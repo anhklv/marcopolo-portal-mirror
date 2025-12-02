@@ -22,15 +22,6 @@ export default async function DocPage({ params }: PageProps) {
 
     return (
       <div className="container mx-auto max-w-4xl py-8 px-4">
-        <div className="mb-6">
-          <Link href="/docs">
-            <Button variant="ghost" className="mb-4">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              一覧に戻る
-            </Button>
-          </Link>
-        </div>
-
         <Card className="p-8">
           <article className="markdown-content">
             <MarkdownContent content={content} />

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import mermaid from "mermaid";
+import Link from "next/link";
 
 interface MarkdownContentProps {
   content: string;
@@ -64,6 +65,26 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
               </code>
             );
           },
+          a({ node, href, children, ...props }) {
+            let newHref = href || "";
+            if (href && href.endsWith('.md')) {
+               // 相対パス (./xxx.md) または 単なるファイル名 (xxx.md) を処理
+               const fileName = href.split('/').pop()?.replace('.md', '');
+               newHref = `/docs/${fileName}`;
+               
+               return (
+                 <Link href={newHref} className="text-blue-600 hover:underline" {...props}>
+                   {children}
+                 </Link>
+               );
+            }
+            
+            return (
+              <a href={newHref} className="text-blue-600 hover:underline" {...props}>
+                {children}
+              </a>
+            );
+          }
         }}
       >
         {content}
@@ -71,4 +92,3 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
     </div>
   );
 }
-
