@@ -9,6 +9,7 @@ import {
   Calendar,
   LogOut,
   Settings,
+  Map,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -33,6 +34,12 @@ export function Sidebar() {
       icon: Calendar,
       href: "/admin/events",
       active: pathname.startsWith("/admin/events"),
+    },
+    {
+      label: "サイトマップ",
+      icon: Map,
+      href: "/admin/sitemap",
+      active: pathname === "/admin/sitemap",
     },
   ];
 
