@@ -1,36 +1,154 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# マルコポーロ 顧客管理・イベント管理システム モックアップ
 
-## Getting Started
+このプロジェクトは、マルコポーロ合同会社の顧客管理・イベント管理システムの**モックアップ（プロトタイプ）**です。
+画面遷移やUIのイメージを確認するためのもので、実際のデータベースやAPIは使用していません。
 
-First, run the development server:
+## 📋 プロジェクト概要
+
+- **目的**: システムの画面構成とユーザーフローを可視化し、要件の確認とイメージの共有を行う
+- **管理者**: 1名を想定
+- **対象**: 顧客（会員・非会員）の管理と、イベントの開催・参加管理
+
+## 🚀 セットアップ・起動方法
+
+### 前提条件
+
+- Node.js 18以上
+- npm または yarn
+
+### インストール
+
+```bash
+# 依存パッケージのインストール
+npm install
+```
+
+### 開発サーバーの起動
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで [http://localhost:3000](http://localhost:3000) を開いてください。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### ビルド（本番用）
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## 📱 画面構成とURL一覧
 
-To learn more about Next.js, take a look at the following resources:
+### 管理者画面（`/admin` 配下）
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| URL | 画面名 | 説明 |
+|-----|--------|------|
+| `/admin` | ダッシュボード | システムの概要と直近のイベント一覧 |
+| `/admin/customers` | 顧客一覧 | 登録されている顧客（会員・非会員）の一覧表示 |
+| `/admin/customers/new` | 顧客登録 | 新規顧客情報の登録フォーム（モック） |
+| `/admin/events` | イベント一覧 | 過去・現在・未来のイベント一覧 |
+| `/admin/events/[id]` | イベント詳細・管理 | イベントの詳細情報、参加状況、招待送信 |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### ユーザー回答画面（管理者レイアウト外）
 
-## Deploy on Vercel
+| URL | 画面名 | 説明 |
+|-----|--------|------|
+| `/events/[id]/rsvp` | 参加回答フォーム | 招待された顧客が参加可否を回答する画面 |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🎯 主な機能（モック）
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 1. 顧客管理
+
+- **顧客一覧**: ダミーデータ（5名）を表示
+- **検索機能**: UIのみ（実際の検索は未実装）
+- **Excelインポート**: ボタン表示のみ（実際のインポート機能は未実装）
+- **新規登録**: フォーム送信時にトースト通知を表示（実際の保存は未実装）
+
+### 2. イベント管理
+
+- **イベント一覧**: ダミーデータ（3件）を表示
+- **イベント詳細画面**:
+  - **参加状況タブ**: ダミーの参加状況を表示
+  - **招待・追送タブ**: 顧客を選択して「招待メール送信」ボタンをクリックするとトースト通知を表示（実際の送信は未実装）
+- **集計サマリ**: 参加・不参加・未回答の数を表示（ダミーデータ）
+
+### 3. ユーザー回答画面
+
+- **個別ID付きURL**: モックでは固定で「山田 太郎 様」として表示
+- **参加・不参加選択**: ラジオボタンで選択可能
+- **メッセージ入力**: 任意のメッセージを入力可能
+- **送信**: 送信ボタンをクリックすると完了画面に遷移（実際の保存は未実装）
+
+## 📊 ダミーデータ
+
+### 顧客データ（`lib/data/mock.ts`）
+
+- 山田 太郎（監査役協会会員）
+- 鈴木 一郎（ないかんMeetup会員）
+- 佐藤 花子（非会員）
+- 田中 次郎（監査役協会会員、非アクティブ）
+- 伊藤 美咲（非会員）
+
+### イベントデータ（`lib/data/mock.ts`）
+
+- 第10回 監査役交流会（受付中）
+- ないかんMeetup 7月度（企画中）
+- 【特別セミナー】DX時代の監査（終了）
+
+## ⚠️ 注意事項
+
+### モックアップの制限
+
+- **データベースなし**: すべてのデータは `lib/data/mock.ts` の定数として定義されています
+- **永続化なし**: フォーム送信やボタンクリックによる変更は、ページをリロードすると元に戻ります
+- **認証なし**: ログイン機能は未実装です（サイドバーの「ログアウト」ボタンは機能しません）
+- **メール送信なし**: 「招待メール送信」ボタンはトースト通知のみ表示します
+
+### 実際の開発で必要な実装
+
+- バックエンドAPI（顧客・イベントのCRUD）
+- データベース（PostgreSQL/MySQLなど）
+- メール送信機能（SendGrid、AWS SESなど）
+- 認証・認可機能
+- Excelインポート機能（ファイルアップロード・パース）
+
+## 🛠️ 技術スタック
+
+- **フレームワーク**: Next.js 16 (App Router)
+- **UIライブラリ**: shadcn/ui (Radix UI + Tailwind CSS)
+- **アイコン**: lucide-react
+- **通知**: sonner
+- **言語**: TypeScript
+- **スタイリング**: Tailwind CSS
+
+## 📁 ディレクトリ構造
+
+```
+mockup/
+├── app/                    # Next.js App Router
+│   ├── admin/             # 管理者画面
+│   │   ├── customers/     # 顧客管理
+│   │   └── events/        # イベント管理
+│   └── events/            # ユーザー回答画面
+├── components/
+│   ├── layout/            # レイアウトコンポーネント（サイドバーなど）
+│   └── ui/                # shadcn/uiコンポーネント
+├── lib/
+│   ├── data/
+│   │   └── mock.ts        # ダミーデータ
+│   └── utils.ts           # ユーティリティ関数
+└── public/                # 静的ファイル
+```
+
+## 🔗 関連ドキュメント
+
+- [機能要件](../機能要件.md)
+- [現状の業務フロー](../現状の業務フロー.md)
+- [理想の業務フロー](../理想の業務フロー.md)
+
+## 📝 開発メモ
+
+- このモックアップは要件定義フェーズで使用することを想定しています
+- 画面遷移やUIのイメージを確認するためのものです
+- 実際の開発では、このモックアップを参考にしながらバックエンドと連携した実装を行います
