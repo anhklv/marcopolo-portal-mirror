@@ -10,6 +10,7 @@ import {
   LogOut,
   Settings,
   Map,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -40,6 +41,12 @@ export function Sidebar() {
       icon: Map,
       href: "/admin/sitemap",
       active: pathname === "/admin/sitemap",
+    },
+    {
+      label: "仕様書",
+      icon: FileText,
+      href: "/docs",
+      active: pathname.startsWith("/docs"),
     },
   ];
 
