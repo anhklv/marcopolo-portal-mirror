@@ -14,7 +14,8 @@ interface PageProps {
 export default async function DocPage({ params }: PageProps) {
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
-  const specDir = join(process.cwd(), "..", "spec");
+  // Docker環境では /app/spec、ローカルでは ../spec
+  const specDir = process.env.SPEC_DIR || join(process.cwd(), "..", "spec");
   
   try {
     const filePath = join(specDir, `${decodedSlug}.md`);
@@ -35,7 +36,8 @@ export default async function DocPage({ params }: PageProps) {
 }
 
 export async function generateStaticParams() {
-  const specDir = join(process.cwd(), "..", "spec");
+  // Docker環境では /app/spec、ローカルでは ../spec
+  const specDir = process.env.SPEC_DIR || join(process.cwd(), "..", "spec");
   const files = await readdir(specDir);
   const mdFiles = files.filter((file) => file.endsWith(".md"));
 

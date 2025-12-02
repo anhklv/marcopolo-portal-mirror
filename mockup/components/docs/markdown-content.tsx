@@ -53,7 +53,7 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
 
             if (match && match[1] === "mermaid") {
               return (
-                <div className="mermaid flex justify-center my-8 overflow-x-auto" {...props}>
+                <div className="mermaid flex justify-center my-8 overflow-x-auto" {...(props as any)}>
                   {codeString}
                 </div>
               );

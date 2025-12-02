@@ -56,3 +56,72 @@ mockup/
 - **データ永続化**: 現状は `lib/data/mock.ts` のメモリ内データを使用しており、リロードするとリセットされます。
 - **認証**: 未実装です。`/admin` へのアクセスは認証なしで可能です。
 - **メール送信**: 実際のメール送信は行われず、トースト通知でエミュレートしています。
+
+## 🚢 Google Cloud Run へのデプロイ
+
+### 前提条件
+
+- Google Cloud SDK (`gcloud`) がインストールされていること
+- サービスアカウントキー（JSONファイル）が用意されていること
+- プロジェクトID: `sandbox-337508`
+- リージョン: `asia-northeast1`
+
+### デプロイ手順
+
+#### 1. サービスアカウントでの認証
+
+```bash
+# プロジェクトルートディレクトリから実行
+gcloud auth activate-service-account --key-file=sandbox-337508-3d697bcf25ae.json
+gcloud config set project sandbox-337508
+```
+
+#### 2. ビルドとプッシュ
+
+```bash
+# プロジェクトルートディレクトリから実行
+gcloud builds submit --config cloudbuild.yaml .
+```
+
+このコマンドで以下が実行されます：
+- Dockerイメージのビルド（`mockup/Dockerfile` を使用）
+- Container Registry へのプッシュ（`gcr.io/sandbox-337508/marcopolo-mockup`）
+
+#### 3. Cloud Run へのデプロイ
+
+```bash
+gcloud run deploy marcopolo-mockup \
+  --image gcr.io/sandbox-337508/marcopolo-mockup \
+  --region asia-northeast1 \
+  --platform managed \
+  --allow-unauthenticated \
+  --port 3000
+```
+
+#### 4. 公開アクセスの設定（初回のみ）
+
+サービスアカウントに適切な権限がある場合、デプロイ時に自動的に設定されます。
+もし403エラーが出る場合は、以下のコマンドで手動設定：
+
+```bash
+gcloud run services add-iam-policy-binding marcopolo-mockup \
+  --region=asia-northeast1 \
+  --member=allUsers \
+  --role=roles/run.invoker
+```
+
+### デプロイ後の確認
+
+デプロイが成功すると、以下のようなService URLが表示されます：
+
+```
+Service URL: https://marcopolo-mockup-671631815586.asia-northeast1.run.app
+```
+
+ブラウザでアクセスして動作確認してください。
+
+### 注意事項
+
+- **環境変数**: Dockerfileで `SPEC_DIR=/app/spec` が設定されており、Markdownファイルは `/app/spec` から読み込まれます
+- **ビルド時間**: 初回ビルドは5-10分程度かかることがあります
+- **コスト**: Cloud Run は従量課金制です。無料枠の範囲内であれば費用はかかりません
