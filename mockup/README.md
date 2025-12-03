@@ -95,8 +95,14 @@ gcloud run deploy marcopolo-mockup \
   --region asia-northeast1 \
   --platform managed \
   --allow-unauthenticated \
-  --port 3000
+  --port 3000 \
+  --set-env-vars "BASIC_AUTH_ENABLED=true,BASIC_AUTH_USER=marcopolo,BASIC_AUTH_PASSWORD=marcopolo_2025"
 ```
+
+**Basic認証設定**:
+- `BASIC_AUTH_ENABLED=true`: Basic認証を有効化
+- `BASIC_AUTH_USER=marcopolo`: 認証ID
+- `BASIC_AUTH_PASSWORD=marcopolo_2025`: 認証パスワード
 
 #### 4. 公開アクセスの設定（初回のみ）
 
@@ -123,5 +129,7 @@ Service URL: https://marcopolo-mockup-671631815586.asia-northeast1.run.app
 ### 注意事項
 
 - **環境変数**: Dockerfileで `SPEC_DIR=/app/spec` が設定されており、Markdownファイルは `/app/spec` から読み込まれます
+- **Basic認証**: 本番環境（Cloud Run）ではBasic認証が有効になっています。ID: `marcopolo`, PW: `marcopolo_2025`
+- **開発環境**: ローカル開発環境（`npm run dev`）ではBasic認証は無効です
 - **ビルド時間**: 初回ビルドは5-10分程度かかることがあります
 - **コスト**: Cloud Run は従量課金制です。無料枠の範囲内であれば費用はかかりません
