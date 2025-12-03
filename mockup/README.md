@@ -76,8 +76,11 @@ mockup/
 GitHubリポジトリのシークレットに以下を設定してください：
 
 - **`GCP_CREDENTIALS`**: Google Cloud サービスアカウントのJSONキー（全体）
-- **`BASIC_AUTH_USER`**: Basic認証のユーザー名（オプション、デフォルト: `marcopolo`）
-- **`BASIC_AUTH_PASSWORD`**: Basic認証のパスワード（オプション、デフォルト: `marcopolo_2025`）
+
+**Basic認証の設定**:
+- Basic認証のユーザー名とパスワードは `.github/workflows/deploy.yml` の `env` セクションで直接設定されています
+- 現在の設定: `BASIC_AUTH_USER=marcopolo`, `BASIC_AUTH_PASSWORD=marcopolo_2025`
+- 変更する場合は、ワークフローファイルを編集してください
 
 #### デプロイ後の確認
 
