@@ -1,0 +1,6 @@
+# Files excluded from gcloud builds submission
+.gcloudignore
+.git
+.gitignore
+
+#!include:.dockerignore

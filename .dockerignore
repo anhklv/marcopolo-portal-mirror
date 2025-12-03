@@ -1,0 +1,24 @@
+# General ignores
+.git
+.gitignore
+.DS_Store
+**/.DS_Store
+**/.env.local
+**/.env.development
+**/.env.production
+**/.env
+
+# Node artifacts
+node_modules
+mockup/node_modules
+mockup/.next
+mockup/.turbo
+mockup/dist
+mockup/out
+mockup/.vercel
+
+# Logs and caches
+**/npm-debug.log
+**/yarn-error.log
+**/pnpm-debug.log
+**/.cache
