@@ -4,11 +4,17 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   // Basic認証の有効化チェック
   const basicAuthEnabled = process.env.BASIC_AUTH_ENABLED === "true";
-  const basicAuthUser = process.env.BASIC_AUTH_USER || "marcopolo";
-  const basicAuthPassword = process.env.BASIC_AUTH_PASSWORD || "marcopolo_2025";
+  const basicAuthUser = process.env.BASIC_AUTH_USER;
+  const basicAuthPassword = process.env.BASIC_AUTH_PASSWORD;
 
   // 本番環境でBasic認証が有効な場合のみチェック
   if (basicAuthEnabled || process.env.NODE_ENV === "production") {
+    // 環境変数が設定されていない場合はエラー
+    if (!basicAuthUser || !basicAuthPassword) {
+      return new NextResponse("Basic auth configuration is missing", {
+        status: 500,
+      });
+    }
     const authHeader = request.headers.get("authorization");
 
     if (!authHeader || !authHeader.startsWith("Basic ")) {
