@@ -54,71 +54,34 @@ mockup/
 ## 📝 実装メモ
 
 - **データ永続化**: 現状は `lib/data/mock.ts` のメモリ内データを使用しており、リロードするとリセットされます。
-- **認証**: `middleware.ts` でBasic認証を実装。`NODE_ENV=production` または `BASIC_AUTH_ENABLED=true` のときのみ有効で、ローカル開発では自動的に無効になります。
+- **認証**: `middleware.ts` でBasic認証を実装。`NODE_ENV=production` または `BASIC_AUTH_ENABLED=true` のときのみ有効で、ローカル開発では自動的に無効になります。認証情報は環境変数（`BASIC_AUTH_USER`, `BASIC_AUTH_PASSWORD`）から取得され、未設定の場合はエラーを返します。
 - **メール送信**: 実際のメール送信は行われず、トースト通知でエミュレートしています。
 
 ## 🚢 Google Cloud Run へのデプロイ
 
-### 前提条件
+### GitHub Actions による自動デプロイ（推奨）
 
-- Google Cloud SDK (`gcloud`) がインストールされていること
-- サービスアカウントキー（JSONファイル）が用意されていること
-- プロジェクトID: `sandbox-337508`
-- リージョン: `asia-northeast1`
+本システムは **GitHub Actions による自動デプロイ**が設定されています。
 
-### デプロイ手順
+#### デプロイの流れ
 
-#### 1. サービスアカウントでの認証
+1. **トリガー**: `main` ブランチへの push またはマージ
+2. **ワークフロー**: `.github/workflows/deploy.yml` が自動実行
+3. **ビルド**: `cloudbuild.yaml` を使用してDockerイメージをビルド
+4. **プッシュ**: Artifact Registry にイメージをプッシュ
+5. **デプロイ**: Cloud Run に最新イメージをデプロイ
 
-```bash
-# プロジェクトルートディレクトリから実行
-gcloud auth activate-service-account --key-file=sandbox-337508-3d697bcf25ae.json
-gcloud config set project sandbox-337508
-```
+#### 必要な設定
 
-#### 2. Artifact Registryへのビルドとプッシュ
+GitHubリポジトリのシークレットに以下を設定してください：
 
-```bash
-# プロジェクトルートディレクトリから実行
-gcloud builds submit --config cloudbuild.yaml .
-```
+- **`GCP_CREDENTIALS`**: Google Cloud サービスアカウントのJSONキー（全体）
+- **`BASIC_AUTH_USER`**: Basic認証のユーザー名（オプション、デフォルト: `marcopolo`）
+- **`BASIC_AUTH_PASSWORD`**: Basic認証のパスワード（オプション、デフォルト: `marcopolo_2025`）
 
-このコマンドで以下が実行されます：
-- Dockerイメージのビルド（`mockup/Dockerfile` を使用）
-- Artifact Registry へのプッシュ（`asia-northeast1-docker.pkg.dev/sandbox-337508/marcopolo-mockup/marcopolo-mockup`）
+#### デプロイ後の確認
 
-#### 3. Cloud Run へのデプロイ
-
-```bash
-gcloud run deploy marcopolo-mockup \
-  --image asia-northeast1-docker.pkg.dev/sandbox-337508/marcopolo-mockup/marcopolo-mockup \
-  --region asia-northeast1 \
-  --platform managed \
-  --allow-unauthenticated \
-  --port 3000 \
-  --set-env-vars "BASIC_AUTH_ENABLED=true,BASIC_AUTH_USER=marcopolo,BASIC_AUTH_PASSWORD=marcopolo_2025"
-```
-
-**Basic認証設定**:
-- `BASIC_AUTH_ENABLED=true`: Basic認証を有効化
-- `BASIC_AUTH_USER=marcopolo`: 認証ID
-- `BASIC_AUTH_PASSWORD=marcopolo_2025`: 認証パスワード
-
-#### 4. 公開アクセスの設定（初回のみ）
-
-サービスアカウントに適切な権限がある場合、デプロイ時に自動的に設定されます。
-もし403エラーが出る場合は、以下のコマンドで手動設定：
-
-```bash
-gcloud run services add-iam-policy-binding marcopolo-mockup \
-  --region=asia-northeast1 \
-  --member=allUsers \
-  --role=roles/run.invoker
-```
-
-### デプロイ後の確認
-
-デプロイが成功すると、以下のようなService URLが表示されます：
+デプロイが成功すると、GitHub ActionsのログにService URLが表示されます：
 
 ```
 Service URL: https://marcopolo-mockup-671631815586.asia-northeast1.run.app
@@ -137,17 +100,49 @@ curl -I -u marcopolo:marcopolo_2025 \
   https://marcopolo-mockup-671631815586.asia-northeast1.run.app/admin
 ```
 
-### GitHub Actions による自動デプロイ
+### 手動デプロイ（補足）
 
-- `.github/workflows/deploy.yml` が `main` ブランチへの push をトリガーとして実行されます。
-- リポジトリの `GCP_CREDENTIALS` シークレットにサービスアカウントJSONを登録しておくことで、ワークフロー内で `google-github-actions/auth` により認証します。
-- ワークフローでは `gcloud builds submit`（`cloudbuild.yaml` 利用）→ `gcloud run deploy` の順に実行され、Artifact Registry の最新イメージを Cloud Run に反映します。
-- Basic認証用の環境変数（`BASIC_AUTH_ENABLED=true`, `BASIC_AUTH_USER`, `BASIC_AUTH_PASSWORD`）もワークフロー内で自動設定されます。
+GitHub Actionsが利用できない場合や、緊急時の手動デプロイが必要な場合のみ使用してください。
+
+#### 前提条件
+
+- Google Cloud SDK (`gcloud`) がインストールされていること
+- サービスアカウントキー（JSONファイル）が用意されていること
+- プロジェクトID: `sandbox-337508`
+- リージョン: `asia-northeast1`
+
+#### 手順
+
+```bash
+# 1. サービスアカウントでの認証
+gcloud auth activate-service-account --key-file=sandbox-337508-3d697bcf25ae.json
+gcloud config set project sandbox-337508
+
+# 2. Artifact Registryへのビルドとプッシュ
+gcloud builds submit --config cloudbuild.yaml .
+
+# 3. Cloud Run へのデプロイ
+gcloud run deploy marcopolo-mockup \
+  --image asia-northeast1-docker.pkg.dev/sandbox-337508/marcopolo-mockup/marcopolo-mockup \
+  --region asia-northeast1 \
+  --platform managed \
+  --allow-unauthenticated \
+  --port 3000 \
+  --set-env-vars "BASIC_AUTH_ENABLED=true,BASIC_AUTH_USER=marcopolo,BASIC_AUTH_PASSWORD=marcopolo_2025"
+```
+
+**Basic認証設定**:
+- `BASIC_AUTH_ENABLED=true`: Basic認証を有効化
+- `BASIC_AUTH_USER=marcopolo`: 認証ID（環境変数から取得、未設定時はエラー）
+- `BASIC_AUTH_PASSWORD=marcopolo_2025`: 認証パスワード（環境変数から取得、未設定時はエラー）
+
+**注意**: 環境変数は一度設定するとCloud Runサービスに保存され、以降のデプロイでも引き継がれます。変更したい場合は `--update-env-vars` を使用してください。
 
 ### 注意事項
 
+- **デプロイ方法**: 通常はGitHub Actionsによる自動デプロイを使用してください。`main` ブランチへの push で自動的にデプロイされます
 - **環境変数**: Dockerfileで `SPEC_DIR=/app/spec` が設定されており、Markdownファイルは `/app/spec` から読み込まれます
-- **Basic認証**: 本番環境（Cloud Run）ではBasic認証が有効になっています。ID: `marcopolo`, PW: `marcopolo_2025`
+- **Basic認証**: 本番環境（Cloud Run）ではBasic認証が有効になっています。認証情報は環境変数（`BASIC_AUTH_USER`, `BASIC_AUTH_PASSWORD`）から取得されます
 - **開発環境**: ローカル開発環境（`npm run dev`）ではBasic認証は無効です
 - **ビルド時間**: 初回ビルドは5-10分程度かかることがあります
 - **コスト**: Cloud Run は従量課金制です。無料枠の範囲内であれば費用はかかりません
