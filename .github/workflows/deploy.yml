@@ -1,0 +1,46 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: sandbox-337508
+  REGION: asia-northeast1
+  SERVICE_NAME: marcopolo-mockup
+  IMAGE: asia-northeast1-docker.pkg.dev/sandbox-337508/marcopolo-mockup/marcopolo-mockup
+  BASIC_AUTH_USER: marcopolo
+  BASIC_AUTH_PASSWORD: marcopolo_2025
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          version: '>= 471.0.0'
+
+      - name: Submit Cloud Build
+        run: gcloud builds submit --project $PROJECT_ID --config cloudbuild.yaml .
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy $SERVICE_NAME \
+            --project $PROJECT_ID \
+            --region $REGION \
+            --image $IMAGE \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 3000 \
+            --set-env-vars "BASIC_AUTH_ENABLED=true,BASIC_AUTH_USER=${BASIC_AUTH_USER},BASIC_AUTH_PASSWORD=${BASIC_AUTH_PASSWORD}"

@@ -9,7 +9,7 @@
 ## 🚀 セットアップ・起動方法
 
 ### 前提条件
-- Node.js 18以上
+- Node.js 24.9.0（Cloud Run本番と同じバージョン）
 - npm または yarn
 
 ### インストール
@@ -54,7 +54,7 @@ mockup/
 ## 📝 実装メモ
 
 - **データ永続化**: 現状は `lib/data/mock.ts` のメモリ内データを使用しており、リロードするとリセットされます。
-- **認証**: 未実装です。`/admin` へのアクセスは認証なしで可能です。
+- **認証**: `middleware.ts` でBasic認証を実装。`NODE_ENV=production` または `BASIC_AUTH_ENABLED=true` のときのみ有効で、ローカル開発では自動的に無効になります。
 - **メール送信**: 実際のメール送信は行われず、トースト通知でエミュレートしています。
 
 ## 🚢 Google Cloud Run へのデプロイ
@@ -76,7 +76,7 @@ gcloud auth activate-service-account --key-file=sandbox-337508-3d697bcf25ae.json
 gcloud config set project sandbox-337508
 ```
 
-#### 2. ビルドとプッシュ
+#### 2. Artifact Registryへのビルドとプッシュ
 
 ```bash
 # プロジェクトルートディレクトリから実行
@@ -85,13 +85,13 @@ gcloud builds submit --config cloudbuild.yaml .
 
 このコマンドで以下が実行されます：
 - Dockerイメージのビルド（`mockup/Dockerfile` を使用）
-- Container Registry へのプッシュ（`gcr.io/sandbox-337508/marcopolo-mockup`）
+- Artifact Registry へのプッシュ（`asia-northeast1-docker.pkg.dev/sandbox-337508/marcopolo-mockup/marcopolo-mockup`）
 
 #### 3. Cloud Run へのデプロイ
 
 ```bash
 gcloud run deploy marcopolo-mockup \
-  --image gcr.io/sandbox-337508/marcopolo-mockup \
+  --image asia-northeast1-docker.pkg.dev/sandbox-337508/marcopolo-mockup/marcopolo-mockup \
   --region asia-northeast1 \
   --platform managed \
   --allow-unauthenticated \
@@ -125,6 +125,24 @@ Service URL: https://marcopolo-mockup-671631815586.asia-northeast1.run.app
 ```
 
 ブラウザでアクセスして動作確認してください。
+
+CLIでBasic認証の挙動を確認する場合：
+
+```bash
+# 認証なし: 401が返る
+curl -I https://marcopolo-mockup-671631815586.asia-northeast1.run.app/admin
+
+# 認証あり: 200が返る
+curl -I -u marcopolo:marcopolo_2025 \
+  https://marcopolo-mockup-671631815586.asia-northeast1.run.app/admin
+```
+
+### GitHub Actions による自動デプロイ
+
+- `.github/workflows/deploy.yml` が `main` ブランチへの push をトリガーとして実行されます。
+- リポジトリの `GCP_CREDENTIALS` シークレットにサービスアカウントJSONを登録しておくことで、ワークフロー内で `google-github-actions/auth` により認証します。
+- ワークフローでは `gcloud builds submit`（`cloudbuild.yaml` 利用）→ `gcloud run deploy` の順に実行され、Artifact Registry の最新イメージを Cloud Run に反映します。
+- Basic認証用の環境変数（`BASIC_AUTH_ENABLED=true`, `BASIC_AUTH_USER`, `BASIC_AUTH_PASSWORD`）もワークフロー内で自動設定されます。
 
 ### 注意事項
 
