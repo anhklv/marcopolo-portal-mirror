@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import mermaid from "mermaid";
 import Link from "next/link";
 
@@ -46,6 +47,7 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
     <div ref={mermaidRef} key={mermaidKey}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw]}
         components={{
           code({ node, className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || "");

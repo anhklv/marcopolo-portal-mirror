@@ -81,7 +81,7 @@ export default function NewEventPage() {
           <Button variant="outline" asChild>
             <Link href="/admin/events">キャンセル</Link>
           </Button>
-          <Button type="submit">作成する</Button>
+          <Button type="submit" variant="outline" className="cursor-pointer">作成する</Button>
         </div>
       </form>
     </div>

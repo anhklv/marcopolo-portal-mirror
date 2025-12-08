@@ -130,7 +130,7 @@ export default function NewCustomerPage() {
           <Button variant="outline" asChild>
             <Link href="/admin/customers">キャンセル</Link>
           </Button>
-          <Button type="submit">登録する</Button>
+          <Button type="submit" variant="outline" className="cursor-pointer">登録する</Button>
         </div>
       </form>
     </div>

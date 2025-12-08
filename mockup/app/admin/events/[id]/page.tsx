@@ -156,7 +156,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                 <div>
                                     <span className="font-medium">{selectedCustomers.length}名</span> 選択中
                                 </div>
-                                <Button onClick={handleSendInvite} disabled={selectedCustomers.length === 0}>
+                                <Button onClick={handleSendInvite} disabled={selectedCustomers.length === 0} variant="outline" className="cursor-pointer">
                                     <Send className="mr-2 h-4 w-4" />
                                     招待メールを送信
                                 </Button>
@@ -234,7 +234,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                     <Button variant="outline" className="w-full justify-start" asChild>
                         <Link href={`/events/${id}/rsvp?token=demo-token`} target="_blank">
                             <UserCheck className="mr-2 h-4 w-4" />
-                            参加回答フォーム
+                            参加回答フォーム (サンプル)
                         </Link>
                     </Button>
                 </CardContent>

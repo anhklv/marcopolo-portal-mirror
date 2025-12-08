@@ -148,7 +148,7 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
           </CardContent>
           
           <CardFooter>
-            <Button className="w-full" size="lg" onClick={handleEmailSubmit}>
+            <Button className="w-full cursor-pointer" size="lg" variant="outline" onClick={handleEmailSubmit}>
               確認する
             </Button>
           </CardFooter>
@@ -251,7 +251,11 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
                 <RadioGroupItem value="attend" id="attend" className="peer sr-only" />
                 <Label
                   htmlFor="attend"
-                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer text-center h-full"
+                  className={`flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer text-center h-full transition-colors ${
+                    status === "attend"
+                      ? "border-green-500 bg-green-50 text-green-900"
+                      : "border-muted bg-popover hover:bg-accent hover:text-accent-foreground"
+                  }`}
                 >
                   <span className="text-xl mb-2">🙆‍♂️</span>
                   <span className="font-semibold">参加する</span>
@@ -261,7 +265,11 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
                 <RadioGroupItem value="decline" id="decline" className="peer sr-only" />
                 <Label
                   htmlFor="decline"
-                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer text-center h-full"
+                  className={`flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer text-center h-full transition-colors ${
+                    status === "decline"
+                      ? "border-red-500 bg-red-50 text-red-900"
+                      : "border-muted bg-popover hover:bg-accent hover:text-accent-foreground"
+                  }`}
                 >
                   <span className="text-xl mb-2">🙅‍♀️</span>
                   <span className="font-semibold">参加しない</span>
@@ -283,8 +291,9 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
         
         <CardFooter>
           <Button 
-            className="w-full" 
-            size="lg" 
+            className="w-full cursor-pointer" 
+            size="lg"
+            variant="outline"
             onClick={handleSubmit}
             disabled={isDeadlinePassed}
           >
