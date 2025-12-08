@@ -22,19 +22,34 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { ArrowLeft, Send, Mail, Copy } from "lucide-react";
-import { events, customers } from "@/lib/data/mock";
+import { ArrowLeft, Send, Mail, UserCheck } from "lucide-react";
+import { events, customers, rsvps } from "@/lib/data/mock";
+import { cn } from "@/lib/utils";
 
 export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const event = events.find((e) => e.id === id) || events[0];
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
 
-  const attendees = customers.map((c, i) => ({
-    ...c,
-    status: i % 3 === 0 ? "参加" : i % 3 === 1 ? "不参加" : "未回答",
-    respondedAt: i % 3 !== 2 ? "2024-05-20 10:00" : "-",
-  }));
+  // このイベントのRSVPデータを取得
+  const eventRsvps = rsvps.filter((r) => r.eventId === id);
+  
+  // 参加者リストを作成（RSVPデータと顧客データを結合）
+  const attendees = eventRsvps.map((rsvp) => {
+    const customer = customers.find((c) => c.id === rsvp.customerId);
+    if (!customer) return null;
+    const { status: _, ...customerWithoutStatus } = customer;
+    return {
+      ...customerWithoutStatus,
+      rsvpStatus: rsvp.status || "未回答",
+      respondedAt: rsvp.respondedAt || "-",
+    };
+  }).filter((a): a is NonNullable<typeof a> => a !== null);
+
+  // 集計サマリを計算
+  const attendCount = attendees.filter((a) => a.rsvpStatus === "参加").length;
+  const declineCount = attendees.filter((a) => a.rsvpStatus === "不参加").length;
+  const noResponseCount = attendees.filter((a) => a.rsvpStatus === "未回答").length;
 
   const handleSendInvite = () => {
     if (selectedCustomers.length === 0) {
@@ -104,14 +119,20 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                             <TableCell>{attendee.name}</TableCell>
                                             <TableCell>{attendee.company}</TableCell>
                                             <TableCell>
-                                                <Badge variant={
-                                                    attendee.status === "参加" ? "default" : 
-                                                    attendee.status === "不参加" ? "destructive" : "outline"
-                                                }>
-                                                    {attendee.status}
+                                                <Badge 
+                                                    variant={
+                                                        attendee.rsvpStatus === "参加" ? "default" : 
+                                                        attendee.rsvpStatus === "不参加" ? "destructive" : "secondary"
+                                                    }
+                                                    className={cn(
+                                                        attendee.rsvpStatus === "未回答" && "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                                                        attendee.rsvpStatus === "不参加" && "text-foreground"
+                                                    )}
+                                                >
+                                                    {attendee.rsvpStatus}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell>{attendee.respondedAt}</TableCell>
+                                            <TableCell>{attendee.respondedAt === "-" ? "-" : attendee.respondedAt}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -180,18 +201,24 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="text-center p-4 bg-green-50 rounded-lg">
-                            <div className="text-2xl font-bold text-green-600">2</div>
+                            <div className="text-2xl font-bold text-green-600">{attendCount}</div>
                             <div className="text-xs text-green-800">参加</div>
                         </div>
                         <div className="text-center p-4 bg-red-50 rounded-lg">
-                            <div className="text-2xl font-bold text-red-600">1</div>
+                            <div className="text-2xl font-bold text-red-600">{declineCount}</div>
                             <div className="text-xs text-red-800">不参加</div>
                         </div>
                         <div className="text-center p-4 bg-gray-50 rounded-lg col-span-2">
-                            <div className="text-2xl font-bold text-gray-600">2</div>
+                            <div className="text-2xl font-bold text-gray-600">{noResponseCount}</div>
                             <div className="text-xs text-gray-800">未回答</div>
                         </div>
                     </div>
+                    {event.responseDeadline && (
+                        <div className="pt-4 border-t">
+                            <div className="text-sm text-muted-foreground">回答受付期限</div>
+                            <div className="text-sm font-medium">{event.responseDeadline}</div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -206,8 +233,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                     </Button>
                     <Button variant="outline" className="w-full justify-start" asChild>
                         <Link href={`/events/${id}/rsvp?token=demo-token`} target="_blank">
-                            <Copy className="mr-2 h-4 w-4" />
-                            回答URLをコピー (デモ)
+                            <UserCheck className="mr-2 h-4 w-4" />
+                            参加回答フォーム
                         </Link>
                     </Button>
                 </CardContent>

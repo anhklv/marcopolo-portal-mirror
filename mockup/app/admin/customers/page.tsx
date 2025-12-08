@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { customers } from "@/lib/data/mock";
-import { Plus, Upload, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 
 export default function CustomersPage() {
   return (
@@ -24,10 +24,6 @@ export default function CustomersPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Upload className="mr-2 h-4 w-4" />
-            Excelインポート
-          </Button>
           <Button asChild>
             <Link href="/admin/customers/new">
               <Plus className="mr-2 h-4 w-4" />

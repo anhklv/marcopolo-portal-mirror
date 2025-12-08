@@ -1,21 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 
 export default function NewCustomerPage() {
+  const [isMember, setIsMember] = useState<"member" | "non-member">("non-member");
+  const [auditMember, setAuditMember] = useState(false);
+  const [naikanMember, setNaikanMember] = useState(false);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast.success("顧客情報を登録しました");
@@ -40,32 +40,84 @@ export default function NewCustomerPage() {
       <form onSubmit={handleSubmit} className="space-y-8 rounded-lg border p-6 shadow-sm">
         <div className="space-y-4">
           <div className="grid gap-2">
-            <Label htmlFor="name">氏名</Label>
-            <Input id="name" placeholder="例: 山田 太郎" required />
+            <Label>会員区分 <span className="text-red-500">*</span></Label>
+            <RadioGroup
+              value={isMember}
+              onValueChange={(value) => {
+                setIsMember(value as "member" | "non-member");
+                if (value === "non-member") {
+                  setAuditMember(false);
+                  setNaikanMember(false);
+                }
+              }}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="non-member" id="non-member" />
+                <Label htmlFor="non-member" className="cursor-pointer">非会員</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="member" id="member" />
+                <Label htmlFor="member" className="cursor-pointer">会員</Label>
+              </div>
+            </RadioGroup>
+            
+            {isMember === "member" && (
+              <div className="ml-6 mt-2 space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="audit"
+                    checked={auditMember}
+                    onCheckedChange={(checked) => setAuditMember(checked === true)}
+                  />
+                  <Label htmlFor="audit" className="cursor-pointer">監査役協会</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="naikan"
+                    checked={naikanMember}
+                    onCheckedChange={(checked) => setNaikanMember(checked === true)}
+                  />
+                  <Label htmlFor="naikan" className="cursor-pointer">ないかんMeetup</Label>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="lastName">姓 <span className="text-red-500">*</span></Label>
+              <Input id="lastName" placeholder="例: 山田" required />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="firstName">名 <span className="text-red-500">*</span></Label>
+              <Input id="firstName" placeholder="例: 太郎" required />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="lastNameKana">セイ <span className="text-red-500">*</span></Label>
+              <Input id="lastNameKana" placeholder="例: ヤマダ" required />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="firstNameKana">メイ <span className="text-red-500">*</span></Label>
+              <Input id="firstNameKana" placeholder="例: タロウ" required />
+            </div>
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="company">会社名</Label>
-            <Input id="company" placeholder="例: 株式会社マルコポーロ" />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="email">メールアドレス</Label>
+            <Label htmlFor="email">メールアドレス <span className="text-red-500">*</span></Label>
             <Input id="email" type="email" placeholder="name@example.com" required />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="type">会員区分</Label>
-            <Select defaultValue="非会員">
-              <SelectTrigger>
-                <SelectValue placeholder="会員区分を選択" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="監査役協会会員">監査役協会会員</SelectItem>
-                <SelectItem value="ないかんMeetup会員">ないかんMeetup会員</SelectItem>
-                <SelectItem value="非会員">非会員</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label htmlFor="company">会社名・所属</Label>
+            <Input id="company" placeholder="例: 株式会社マルコポーロ" />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="phone">電話番号</Label>
+            <Input id="phone" type="tel" placeholder="例: 03-1234-5678" />
           </div>
 
           <div className="grid gap-2">
