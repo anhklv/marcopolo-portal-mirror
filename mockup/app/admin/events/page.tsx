@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { events } from "@/lib/data/mock";
-import { Plus, MoreVertical, Edit, Mail, Pause, Search, ChevronDown } from "lucide-react";
+import { Plus, MoreVertical, Edit, Mail, Pause, Search, ChevronDown, Play } from "lucide-react";
 
 export default function EventsPage() {
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -254,8 +254,17 @@ export default function EventsPage() {
                       </DropdownMenuItem>
                       <DropdownMenuItem className="bg-white hover:bg-gray-100 cursor-pointer">
                         <div className="flex items-center gap-2">
-                          <Pause className="h-4 w-4" />
-                          一時停止
+                          {event.isPaused ? (
+                            <>
+                              <Play className="h-4 w-4" />
+                              再開
+                            </>
+                          ) : (
+                            <>
+                              <Pause className="h-4 w-4" />
+                              一時停止
+                            </>
+                          )}
                         </div>
                       </DropdownMenuItem>
                     </DropdownMenuContent>

@@ -20,6 +20,7 @@ export type Event = {
   status: "planning" | "open" | "closed";
   attendeesCount: number;
   responseDeadline?: string; // 回答期限
+  isPaused?: boolean; // 一時停止中かどうか
 };
 
 // 参加データ（中間テーブル）
@@ -217,6 +218,37 @@ export const events: Event[] = [
     status: "closed",
     attendeesCount: 35,
     responseDeadline: "2024-01-20 23:59",
+  },
+  {
+    id: "E007",
+    title: "第11回 監査役交流会",
+    date: "2028-08-25 18:00",
+    location: "東京都港区六本木 1-1-1 会議室A",
+    description: "定例の監査役交流会です。今回のテーマは「ESG経営と監査の役割」について。",
+    status: "open",
+    attendeesCount: 18,
+    responseDeadline: "2028-08-20 23:59",
+    isPaused: true,
+  },
+  {
+    id: "E008",
+    title: "ないかんMeetup 8月度",
+    date: "2028-09-15 19:00",
+    location: "オンライン (Zoom)",
+    description: "若手内部監査人向けのミートアップイベント。今回は「リモート監査の実践」をテーマにします。",
+    status: "planning",
+    attendeesCount: 0,
+    responseDeadline: "2028-09-10 23:59",
+  },
+  {
+    id: "E009",
+    title: "【秋のセミナー】内部監査の最新動向",
+    date: "2028-10-12 14:00",
+    location: "東京都千代田区丸の内 セミナールーム",
+    description: "内部監査の最新動向について、専門家を招いてセミナーを開催します。",
+    status: "open",
+    attendeesCount: 32,
+    responseDeadline: "2028-10-05 23:59",
   },
 ];
 

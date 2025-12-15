@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Mail, UserCheck, Edit, MoreVertical, Pause } from "lucide-react";
+import { ArrowLeft, Mail, UserCheck, Edit, MoreVertical, Pause, Play } from "lucide-react";
 import { events, customers, rsvps } from "@/lib/data/mock";
 import { cn } from "@/lib/utils";
 import {
@@ -99,8 +99,17 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
             </DropdownMenuItem>
             <DropdownMenuItem className="bg-white hover:bg-gray-100 cursor-pointer">
               <div className="flex items-center gap-2">
-                <Pause className="h-4 w-4" />
-                一時停止
+                {event.isPaused ? (
+                  <>
+                    <Play className="h-4 w-4" />
+                    再開
+                  </>
+                ) : (
+                  <>
+                    <Pause className="h-4 w-4" />
+                    一時停止
+                  </>
+                )}
               </div>
             </DropdownMenuItem>
           </DropdownMenuContent>
