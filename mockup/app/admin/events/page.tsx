@@ -10,9 +10,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { events } from "@/lib/data/mock";
-import { Plus } from "lucide-react";
+import { Plus, MoreVertical, Edit, Mail, Pause } from "lucide-react";
 
 export default function EventsPage() {
   return (
@@ -75,9 +81,33 @@ export default function EventsPage() {
                 </TableCell>
                 <TableCell>{event.attendeesCount}名</TableCell>
                 <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/admin/events/${event.id}/edit`}>編集</Link>
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="cursor-pointer">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-white">
+                      <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+                        <Link href={`/admin/events/${event.id}/edit`} className="flex items-center gap-2">
+                          <Edit className="h-4 w-4" />
+                          編集
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+                        <Link href={`/admin/events/${event.id}/invite`} className="flex items-center gap-2">
+                          <Mail className="h-4 w-4" />
+                          招待
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="bg-white hover:bg-gray-100 cursor-pointer">
+                        <div className="flex items-center gap-2">
+                          <Pause className="h-4 w-4" />
+                          一時停止
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}

@@ -20,16 +20,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Send, Mail, UserCheck, Edit } from "lucide-react";
+import { ArrowLeft, Mail, UserCheck, Edit, MoreVertical, Pause } from "lucide-react";
 import { events, customers, rsvps } from "@/lib/data/mock";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const event = events.find((e) => e.id === id) || events[0];
-  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
 
   // このイベントのRSVPデータを取得
   const eventRsvps = rsvps.filter((r) => r.eventId === id);
@@ -51,23 +56,6 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   const declineCount = attendees.filter((a) => a.rsvpStatus === "不参加").length;
   const noResponseCount = attendees.filter((a) => a.rsvpStatus === "未回答").length;
 
-  const handleSendInvite = () => {
-    if (selectedCustomers.length === 0) {
-      toast.error("招待する顧客を選択してください");
-      return;
-    }
-    toast.success(`${selectedCustomers.length}名に招待メールを送信しました`);
-    setSelectedCustomers([]);
-  };
-
-  const toggleCustomer = (customerId: string) => {
-    setSelectedCustomers((prev) =>
-      prev.includes(customerId)
-        ? prev.filter((id) => id !== customerId)
-        : [...prev, customerId]
-    );
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -88,17 +76,35 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                   : "終了"}
               </Badge>
             </div>
-            <p className="text-muted-foreground">
-              {event.date} @ {event.location}
-            </p>
           </div>
         </div>
-        <Button variant="outline" asChild>
-          <Link href={`/admin/events/${id}/edit`}>
-            <Edit className="h-4 w-4" />
-            編集
-          </Link>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="cursor-pointer">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-white">
+            <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+              <Link href={`/admin/events/${id}/edit`} className="flex items-center gap-2">
+                <Edit className="h-4 w-4" />
+                編集
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+              <Link href={`/admin/events/${id}/invite`} className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                招待
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="bg-white hover:bg-gray-100 cursor-pointer">
+              <div className="flex items-center gap-2">
+                <Pause className="h-4 w-4" />
+                一時停止
+              </div>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="grid gap-6 md:grid-cols-7">
@@ -106,7 +112,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
             <Tabs defaultValue="attendees">
                 <TabsList>
                     <TabsTrigger value="attendees" className="cursor-pointer">参加状況</TabsTrigger>
-                    <TabsTrigger value="invite" className="cursor-pointer">招待・追送</TabsTrigger>
+                    <TabsTrigger value="detail" className="cursor-pointer">詳細</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="attendees" className="space-y-4">
@@ -153,52 +159,36 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                     </Card>
                 </TabsContent>
 
-                <TabsContent value="invite" className="space-y-4">
+                <TabsContent value="detail" className="space-y-4">
                     <Card>
-                        <CardHeader>
-                            <CardTitle>招待メール送信</CardTitle>
-                            <CardDescription>
-                                未招待の顧客を選択して招待メールを送信します。
-                                <br/>
-                                ※送信時に自動で個別ID付きURLが生成されます。
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
+                        <CardContent className="pt-6 space-y-6">
+                            <div className="grid gap-4">
                                 <div>
-                                    <span className="font-medium">{selectedCustomers.length}名</span> 選択中
+                                    <Label className="text-sm font-medium text-muted-foreground">開催日時</Label>
+                                    <div className="mt-1 text-base">{event.date}</div>
                                 </div>
-                                <Button onClick={handleSendInvite} disabled={selectedCustomers.length === 0} variant="outline" className="cursor-pointer">
-                                    <Send className="h-4 w-4" />
-                                    招待メールを送信
-                                </Button>
+                                
+                                {event.location && (
+                                    <div>
+                                        <Label className="text-sm font-medium text-muted-foreground">場所</Label>
+                                        <div className="mt-1 text-base whitespace-pre-wrap">{event.location}</div>
+                                    </div>
+                                )}
+                                
+                                {event.description && (
+                                    <div>
+                                        <Label className="text-sm font-medium text-muted-foreground">イベント概要</Label>
+                                        <div className="mt-1 text-base whitespace-pre-wrap">{event.description}</div>
+                                    </div>
+                                )}
+                                
+                                {event.responseDeadline && (
+                                    <div>
+                                        <Label className="text-sm font-medium text-muted-foreground">回答期限</Label>
+                                        <div className="mt-1 text-base">{event.responseDeadline}</div>
+                                    </div>
+                                )}
                             </div>
-
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="w-12">選択</TableHead>
-                                        <TableHead>氏名</TableHead>
-                                        <TableHead>会社名</TableHead>
-                                        <TableHead>会員区分</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {customers.map((customer) => (
-                                        <TableRow key={customer.id}>
-                                            <TableCell>
-                                                <Checkbox 
-                                                    checked={selectedCustomers.includes(customer.id)}
-                                                    onCheckedChange={() => toggleCustomer(customer.id)}
-                                                />
-                                            </TableCell>
-                                            <TableCell>{customer.name}</TableCell>
-                                            <TableCell>{customer.company}</TableCell>
-                                            <TableCell>{customer.type}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
                         </CardContent>
                     </Card>
                 </TabsContent>
