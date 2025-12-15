@@ -21,20 +21,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { customers, Customer, MemberType, getMemberTypeDisplayName } from "@/lib/data/mock";
+import { customers, Customer, MemberFilterValue, getMemberTypeDisplayName } from "@/lib/data/mock";
 import { Plus, Search, Users, ChevronDown, Download } from "lucide-react";
 import { toast } from "sonner";
 
 export default function CustomersPage() {
   const router = useRouter();
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [memberTypes, setMemberTypes] = useState<string[]>([]);
+  const [memberTypes, setMemberTypes] = useState<MemberFilterValue[]>([]);
   const [statuses, setStatuses] = useState<string[]>(["active"]);
   const [memberTypeSearch, setMemberTypeSearch] = useState("");
   const [statusSearch, setStatusSearch] = useState("");
 
 
-  const handleMemberTypeChange = (type: string, checked: boolean) => {
+  const handleMemberTypeChange = (type: MemberFilterValue, checked: boolean) => {
     if (checked) {
       setMemberTypes([...memberTypes, type]);
     } else {
@@ -126,13 +126,13 @@ export default function CustomersPage() {
       // 会員区分フィルタ（チェックがない場合はすべて表示）
       const matchesMemberType =
         memberTypes.length === 0 ||
-        memberTypes.some((selectedType) => {
+        memberTypes.some((selectedType): boolean => {
           // 非会員の場合
           if (selectedType === "非会員") {
             return customer.memberTypes.length === 0;
           }
-          // 会員区分が含まれているかチェック
-          return customer.memberTypes.includes(selectedType as MemberType);
+          // ここまで来たらselectedTypeは自動的にMemberTypeに絞り込まれる
+          return customer.memberTypes.includes(selectedType);
         });
 
       // ステータスフィルタ（チェックがない場合はすべて表示）

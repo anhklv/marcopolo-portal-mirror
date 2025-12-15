@@ -1,4 +1,5 @@
 export type MemberType = "監査役協会" | "ないかんMeetup";
+export type MemberFilterValue = MemberType | "非会員"; // フィルター用（非会員を含む）
 
 export type Customer = {
   id: string;
@@ -531,8 +532,12 @@ export function getRSVPByEmail(eventId: string, email: string): RSVP | null {
 // ヘルパー関数: 会員区分の表示名を取得
 export function getMemberTypeDisplayName(memberTypes: MemberType[]): string {
   if (memberTypes.length === 0) return "非会員";
-  if (memberTypes.length === 2) return "監査役協会・ないかんMeetup";
-  return memberTypes[0];
+
+  // ソートして表示順を固定（監査役協会が先）
+  const sorted = [...memberTypes].sort();
+
+  if (sorted.length === 2) return "監査役協会・ないかんMeetup";
+  return sorted[0];
 }
 
 // ヘルパー関数: 会員かどうかを判定

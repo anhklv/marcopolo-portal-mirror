@@ -31,7 +31,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check, Search, Users, ChevronDown } from "lucide-react";
-import { customers, events, rsvps, getMemberTypeDisplayName, MemberType } from "@/lib/data/mock";
+import { customers, events, rsvps, getMemberTypeDisplayName, MemberFilterValue } from "@/lib/data/mock";
 import { cn, formatEventDate } from "@/lib/utils";
 
 type Step = "select" | "customize" | "confirm";
@@ -50,7 +50,7 @@ export default function EventInvitePage({
   const [emailTitle, setEmailTitle] = useState("");
   const [emailBody, setEmailBody] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [memberTypes, setMemberTypes] = useState<string[]>([]);
+  const [memberTypes, setMemberTypes] = useState<MemberFilterValue[]>([]);
   const [memberTypeSearch, setMemberTypeSearch] = useState("");
   const [inviteStatuses, setInviteStatuses] = useState<string[]>([]);
   const [inviteStatusSearch, setInviteStatusSearch] = useState("");
@@ -112,7 +112,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
   };
 
 
-  const handleMemberTypeChange = (type: string, checked: boolean) => {
+  const handleMemberTypeChange = (type: MemberFilterValue, checked: boolean) => {
     if (checked) {
       setMemberTypes([...memberTypes, type]);
     } else {
@@ -147,13 +147,13 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
         // 会員区分フィルタ（チェックがない場合はすべて表示）
         const matchesMemberType =
           memberTypes.length === 0 ||
-          memberTypes.some((selectedType) => {
+          memberTypes.some((selectedType): boolean => {
             // 非会員の場合
             if (selectedType === "非会員") {
               return customer.memberTypes.length === 0;
             }
-            // 会員区分が含まれているかチェック
-            return customer.memberTypes.includes(selectedType as MemberType);
+            // ここまで来たらselectedTypeは自動的にMemberTypeに絞り込まれる
+            return customer.memberTypes.includes(selectedType);
           });
 
         // 案内状況フィルタ（チェックがない場合はすべて表示）
