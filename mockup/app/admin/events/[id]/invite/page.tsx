@@ -31,7 +31,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check, Search, Users, ChevronDown } from "lucide-react";
-import { customers, events } from "@/lib/data/mock";
+import { customers, events, rsvps } from "@/lib/data/mock";
 import { cn } from "@/lib/utils";
 
 type Step = "select" | "customize" | "confirm";
@@ -52,6 +52,12 @@ export default function EventInvitePage({
   const [searchKeyword, setSearchKeyword] = useState("");
   const [memberTypes, setMemberTypes] = useState<string[]>([]);
   const [memberTypeSearch, setMemberTypeSearch] = useState("");
+  const [inviteStatuses, setInviteStatuses] = useState<string[]>([]);
+  const [inviteStatusSearch, setInviteStatusSearch] = useState("");
+
+  // このイベントのRSVPデータを取得
+  const eventRsvps = rsvps.filter((r) => r.eventId === id);
+  const invitedCustomerIds = new Set(eventRsvps.map((r) => r.customerId));
 
   // デフォルトのメールタイトルと本文を設定
   useEffect(() => {
@@ -114,6 +120,14 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
     }
   };
 
+  const handleInviteStatusChange = (status: string, checked: boolean) => {
+    if (checked) {
+      setInviteStatuses([...inviteStatuses, status]);
+    } else {
+      setInviteStatuses(inviteStatuses.filter((s) => s !== status));
+    }
+  };
+
   // 会員区分の表示名を短縮する関数（「会員」を除く）
   const getMemberTypeDisplayName = (type: string): string => {
     const mapping: Record<string, string> = {
@@ -138,6 +152,10 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
   const filteredCustomers = useMemo(() => {
     const filtered = customers
       .filter((customer) => customer.status === "active") // アクティブな顧客のみ
+      .map((customer) => ({
+        ...customer,
+        isInvited: invitedCustomerIds.has(customer.id),
+      }))
       .filter((customer) => {
         // フリーワード検索
         const matchesKeyword =
@@ -154,11 +172,20 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
             return customer.type === originalType;
           });
 
-        return matchesKeyword && matchesMemberType;
+        // 招待状況フィルタ（チェックがない場合はすべて表示）
+        const matchesInviteStatus =
+          inviteStatuses.length === 0 ||
+          inviteStatuses.some((status) => {
+            if (status === "招待済み") return customer.isInvited;
+            if (status === "未招待") return !customer.isInvited;
+            return true;
+          });
+
+        return matchesKeyword && matchesMemberType && matchesInviteStatus;
       });
 
     return filtered;
-  }, [searchKeyword, memberTypes]);
+  }, [searchKeyword, memberTypes, inviteStatuses, invitedCustomerIds]);
 
   // ステップインジケーターコンポーネント
   const StepIndicator = () => {
@@ -346,6 +373,75 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                   </div>
                 </PopoverContent>
               </Popover>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-[200px] justify-between h-10"
+                  >
+                    <span className="text-sm">
+                      {inviteStatuses.length === 0
+                        ? "招待状況"
+                        : inviteStatuses.length === 1
+                        ? inviteStatuses[0]
+                        : `${inviteStatuses.length}件選択`}
+                    </span>
+                    <ChevronDown className="h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[280px] p-0 bg-white" align="start">
+                  <div className="p-3 border-b">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        placeholder="招待状況を検索"
+                        value={inviteStatusSearch}
+                        onChange={(e) => setInviteStatusSearch(e.target.value)}
+                        className="pl-8 h-9"
+                      />
+                    </div>
+                  </div>
+                  <div className="p-2 max-h-[300px] overflow-y-auto">
+                    {[
+                      { value: "招待済み", label: "招待済み" },
+                      { value: "未招待", label: "未招待" },
+                    ]
+                      .filter((status) =>
+                        status.label
+                          .toLowerCase()
+                          .includes(inviteStatusSearch.toLowerCase())
+                      )
+                      .map((status) => (
+                        <div
+                          key={status.value}
+                          className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
+                          onClick={() =>
+                            handleInviteStatusChange(
+                              status.value,
+                              !inviteStatuses.includes(status.value)
+                            )
+                          }
+                        >
+                          <Checkbox
+                            checked={inviteStatuses.includes(status.value)}
+                            onCheckedChange={(checked) =>
+                              handleInviteStatusChange(status.value, checked === true)
+                            }
+                          />
+                          <Badge
+                            variant={
+                              status.value === "招待済み" ? "default" : "secondary"
+                            }
+                            className="cursor-pointer"
+                          >
+                            {status.label}
+                          </Badge>
+                        </div>
+                      ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
@@ -361,12 +457,13 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                   <TableHead>氏名</TableHead>
                   <TableHead>会社名</TableHead>
                   <TableHead>会員区分</TableHead>
+                  <TableHead>招待状況</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredCustomers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground">
                       検索条件に一致する顧客が見つかりませんでした。
                     </TableCell>
                   </TableRow>
@@ -388,6 +485,15 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                           }
                         >
                           {getMemberTypeDisplayName(customer.type)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            customer.isInvited ? "default" : "outline"
+                          }
+                        >
+                          {customer.isInvited ? "招待済み" : "未招待"}
                         </Badge>
                       </TableCell>
                     </TableRow>
