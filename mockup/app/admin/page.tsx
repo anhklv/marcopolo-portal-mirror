@@ -5,7 +5,7 @@ import { Users, Calendar, ArrowRight } from "lucide-react";
 import { customers, events } from "@/lib/data/mock";
 
 export default function DashboardPage() {
-  const upcomingEvents = events.filter((e) => e.status === "open" || e.status === "planning");
+  const upcomingEvents = events.filter((e) => e.status === "open" || e.status === "waiting");
 
   return (
     <div className="space-y-8">

@@ -25,7 +25,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { events } from "@/lib/data/mock";
+import { events, getEventStatus } from "@/lib/data/mock";
 import { Plus, MoreVertical, Edit, Mail, Pause, Search, ChevronDown, Play } from "lucide-react";
 
 export default function EventsPage() {
@@ -52,7 +52,10 @@ export default function EventsPage() {
   };
 
   const filteredEvents = useMemo(() => {
-    const filtered = events.filter((event) => {
+    const filtered = events.map(event => ({
+      ...event,
+      status: getEventStatus(event) // ステータスを自動判定
+    })).filter((event) => {
       // フリーワード検索（イベント名、場所、概要、備考）
       const matchesKeyword =
         searchKeyword === "" ||
@@ -68,7 +71,30 @@ export default function EventsPage() {
       return matchesKeyword && matchesStatus;
     });
 
-    return filtered;
+    // ステータスが終了以外で開催日時が近い順、ステータスが終了で開催日時が近い順にソート
+    const sorted = [...filtered].sort((a, b) => {
+      // まず、終了していないイベント（open, waiting）を先に、終了したイベント（closed）を後に
+      const aIsClosed = a.status === "closed";
+      const bIsClosed = b.status === "closed";
+      
+      if (aIsClosed !== bIsClosed) {
+        return aIsClosed ? 1 : -1; // 終了していないイベントを先に
+      }
+      
+      // 開催日時で比較（YYYY-MM-DD HH:MM形式をDateオブジェクトに変換）
+      const dateA = new Date(a.date.replace(" ", "T")).getTime();
+      const dateB = new Date(b.date.replace(" ", "T")).getTime();
+      
+      if (aIsClosed) {
+        // 終了したイベントは開催日時が近い順（最近終了した順、降順）
+        return dateB - dateA;
+      } else {
+        // 終了していないイベントは開催日時が近い順（未来のイベントが先、昇順）
+        return dateA - dateB;
+      }
+    });
+
+    return sorted;
   }, [searchKeyword, statuses]);
   return (
     <div className="space-y-6">
@@ -109,10 +135,10 @@ export default function EventsPage() {
                 {statuses.length === 0
                   ? "ステータス"
                   : statuses.length === 1
-                  ? statuses[0] === "planning"
-                    ? "企画中"
-                    : statuses[0] === "open"
+                  ? statuses[0] === "open"
                     ? "受付中"
+                    : statuses[0] === "waiting"
+                    ? "開催待ち"
                     : "終了"
                   : `${statuses.length}件選択`}
               </span>
@@ -133,8 +159,8 @@ export default function EventsPage() {
             </div>
             <div className="p-2 max-h-[300px] overflow-y-auto">
               {[
-                { value: "planning", label: "企画中" },
                 { value: "open", label: "受付中" },
+                { value: "waiting", label: "開催待ち" },
                 { value: "closed", label: "終了" },
               ]
                 .filter((status) =>
@@ -163,7 +189,7 @@ export default function EventsPage() {
                       variant={
                         status.value === "open"
                           ? "default"
-                          : status.value === "planning"
+                          : status.value === "waiting"
                           ? "secondary"
                           : "outline"
                       }
@@ -219,7 +245,7 @@ export default function EventsPage() {
                     variant={
                       event.status === "open"
                         ? "default"
-                        : event.status === "planning"
+                        : event.status === "waiting"
                         ? "secondary"
                         : "outline"
                     }
@@ -228,10 +254,8 @@ export default function EventsPage() {
                       ? event.isPaused
                         ? "受付中(一時停止)"
                         : "受付中"
-                      : event.status === "planning"
-                      ? event.isPaused
-                        ? "企画中(一時停止)"
-                        : "企画中"
+                      : event.status === "waiting"
+                      ? "開催待ち"
                       : "終了"}
                   </Badge>
                 </TableCell>

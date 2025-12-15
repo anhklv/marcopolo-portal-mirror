@@ -468,7 +468,8 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                 value={emailBody}
                 onChange={(e) => setEmailBody(e.target.value)}
                 placeholder="メール本文を入力"
-                rows={15}
+                rows={30}
+                style={{ minHeight: '480px' }}
               />
             </div>
 

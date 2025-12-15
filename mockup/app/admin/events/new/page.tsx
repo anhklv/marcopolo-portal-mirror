@@ -42,6 +42,7 @@ export default function NewEventPage() {
   const [timetable, setTimetable] = useState("");
   const [location, setLocation] = useState("");
   const [note, setNote] = useState("");
+  const [responseDeadline, setResponseDeadline] = useState("");
   
   // 招待メール送信データ
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
@@ -281,6 +282,19 @@ ${note ? `【備考】\n${note}\n` : ""}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
               />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="responseDeadline">回答期限</Label>
+              <Input
+                id="responseDeadline"
+                type="datetime-local"
+                value={responseDeadline}
+                onChange={(e) => setResponseDeadline(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                回答期限を設定しない場合、イベント開催日まで回答を受け付けます。
+              </p>
             </div>
           </div>
 

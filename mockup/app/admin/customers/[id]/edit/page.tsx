@@ -271,48 +271,47 @@ export default function CustomerEditPage({
           </div>
         </div>
 
-        <div className="flex justify-between items-center pt-4 border-t">
-          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                削除
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-white">
-              <DialogHeader>
-                <DialogTitle>顧客を削除</DialogTitle>
-                <DialogDescription>
-                  この顧客を削除してもよろしいですか？この操作は取り消せません。
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDeleteDialogOpen(false)}
-                  className="cursor-pointer"
-                >
-                  キャンセル
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleDelete}
-                  className="cursor-pointer text-destructive hover:text-destructive"
-                >
-                  削除
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+        <div className="flex justify-end">
           <Button type="submit" variant="outline" className="cursor-pointer">
             更新する
           </Button>
         </div>
       </form>
+
+      <div className="pt-4 box-border">
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogTrigger asChild>
+            <Button type="button" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer">
+              <Trash2 className="h-4 w-4 mr-2" />
+              削除
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle>顧客を削除</DialogTitle>
+              <DialogDescription>
+                この顧客を削除してもよろしいですか？この操作は取り消せません。
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteDialogOpen(false)}
+                className="cursor-pointer"
+              >
+                キャンセル
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleDelete}
+                className="cursor-pointer text-destructive hover:text-destructive"
+              >
+                削除
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

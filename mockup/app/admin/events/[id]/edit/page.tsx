@@ -185,7 +185,7 @@ export default function EventEditPage({
         </div>
       </form>
 
-      <div className="pt-4 border-t">
+      <div className="pt-4 box-border">
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <DialogTrigger asChild>
             <Button type="button" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer">

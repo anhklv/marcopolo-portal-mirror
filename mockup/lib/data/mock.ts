@@ -17,11 +17,37 @@ export type Event = {
   date: string;
   location: string;
   description: string;
-  status: "planning" | "open" | "closed";
+  status: "open" | "waiting" | "closed";
   attendeesCount: number;
   responseDeadline?: string; // 回答期限
   isPaused?: boolean; // 一時停止中かどうか
 };
+
+// イベントのステータスを自動判定する関数
+export function getEventStatus(event: Event): "open" | "waiting" | "closed" {
+  const now = new Date();
+  const eventDate = new Date(event.date.replace(" ", "T"));
+  const responseDeadline = event.responseDeadline 
+    ? new Date(event.responseDeadline.replace(" ", "T"))
+    : null;
+
+  // 開催日時を過ぎている場合は終了
+  if (now >= eventDate) {
+    return "closed";
+  }
+
+  // 回答期限が設定されている場合
+  if (responseDeadline) {
+    if (now < responseDeadline) {
+      return "open"; // 現在日時 < 回答期限: 受付中
+    } else {
+      return "waiting"; // 回答期限 ≤ 現在日時 < 開催日時: 開催待ち
+    }
+  }
+
+  // 回答期限が設定されていない場合は、開催日時まで受付中
+  return "open";
+}
 
 // 参加データ（中間テーブル）
 export type RSVP = {
@@ -175,7 +201,7 @@ export const events: Event[] = [
     date: "2028-07-20 19:00",
     location: "オンライン (Zoom)",
     description: "若手内部監査人向けのミートアップイベント。",
-    status: "planning",
+    status: "open",
     attendeesCount: 0,
     responseDeadline: "2028-07-15 23:59",
   },
@@ -236,7 +262,7 @@ export const events: Event[] = [
     date: "2028-09-15 19:00",
     location: "オンライン (Zoom)",
     description: "若手内部監査人向けのミートアップイベント。今回は「リモート監査の実践」をテーマにします。",
-    status: "planning",
+    status: "open",
     attendeesCount: 0,
     responseDeadline: "2028-09-10 23:59",
   },
@@ -249,6 +275,16 @@ export const events: Event[] = [
     status: "open",
     attendeesCount: 32,
     responseDeadline: "2028-10-05 23:59",
+  },
+  {
+    id: "E010",
+    title: "第12回 監査役交流会",
+    date: "2026-11-14 22:00",
+    location: "東京都港区六本木 1-1-1 会議室A",
+    description: "定例の監査役交流会です。今回のテーマは「コーポレートガバナンスの実践」について。",
+    status: "waiting",
+    attendeesCount: 20,
+    responseDeadline: "2024-12-01 23:59",
   },
 ];
 

@@ -23,7 +23,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft, Mail, UserCheck, Edit, MoreVertical, Pause, Play } from "lucide-react";
-import { events, customers, rsvps } from "@/lib/data/mock";
+import { events, customers, rsvps, getEventStatus } from "@/lib/data/mock";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -34,7 +34,8 @@ import {
 
 export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const event = events.find((e) => e.id === id) || events[0];
+  const eventData = events.find((e) => e.id === id) || events[0];
+  const event = { ...eventData, status: getEventStatus(eventData) }; // ステータスを自動判定
 
   // このイベントのRSVPデータを取得
   const eventRsvps = rsvps.filter((r) => r.eventId === id);
@@ -68,15 +69,19 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
-              <Badge variant={event.status === "open" ? "default" : event.status === "closed" ? "outline" : "secondary"}>
+              <Badge variant={
+                event.status === "open" 
+                  ? "default" 
+                  : event.status === "closed" 
+                  ? "outline" 
+                  : "secondary"
+              }>
                 {event.status === "open"
                   ? event.isPaused
                     ? "受付中(一時停止)"
                     : "受付中"
-                  : event.status === "planning"
-                  ? event.isPaused
-                    ? "企画中(一時停止)"
-                    : "企画中"
+                  : event.status === "waiting"
+                  ? "開催待ち"
                   : "終了"}
               </Badge>
             </div>
