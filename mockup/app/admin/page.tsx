@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, Calendar, ArrowRight } from "lucide-react";
 import { customers, events, getEventStatus } from "@/lib/data/mock";
+import { formatEventDate } from "@/lib/utils";
 
 export default function DashboardPage() {
   const upcomingEvents = events
@@ -53,7 +54,7 @@ export default function DashboardPage() {
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{event.title}</div>
                   <div className="text-sm text-muted-foreground truncate">
-                    {event.date} @ {event.location}
+                    {formatEventDate(event.date)} @ {event.location}
                   </div>
                 </div>
                 <div className="flex items-center gap-4 flex-shrink-0 ml-4">

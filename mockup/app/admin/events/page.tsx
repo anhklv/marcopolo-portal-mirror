@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { events, getEventStatus } from "@/lib/data/mock";
+import { formatEventDate } from "@/lib/utils";
 import { Plus, MoreVertical, Edit, Mail, Pause, Search, ChevronDown, Play, FileText } from "lucide-react";
 import { toast } from "sonner";
 
@@ -245,7 +246,7 @@ export default function EventsPage() {
                 }}
               >
                 <TableCell className="font-medium">{event.title}</TableCell>
-                <TableCell>{event.date}</TableCell>
+                <TableCell>{formatEventDate(event.date)}</TableCell>
                 <TableCell>{event.location}</TableCell>
                 <TableCell>
                   <Badge

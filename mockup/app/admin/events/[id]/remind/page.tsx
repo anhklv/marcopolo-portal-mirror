@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check } from "lucide-react";
 import { customers, events, rsvps, getEventStatus } from "@/lib/data/mock";
-import { cn } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 
 type Step = "select" | "customize" | "confirm";
 
@@ -70,7 +70,7 @@ export default function EventRemindPage({
       const defaultBody = `この度は、${event.title}にご案内いたしました。
 
 【イベント詳細】
-${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開催日時: ${event.date}\n` : ""}${event.location ? `場所: ${event.location}\n` : ""}
+${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開催日時: ${formatEventDate(event.date)}\n` : ""}${event.location ? `場所: ${event.location}\n` : ""}
 
 まだ参加可否のご回答をいただいておりません。
 お忙しい中恐縮ですが、以下のURLよりご回答をお願いいたします。
@@ -124,6 +124,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
     const mapping: Record<string, string> = {
       "監査役協会会員": "監査役協会",
       "ないかんMeetup会員": "ないかんMeetup",
+      "監査役協会会員・ないかんMeetup会員": "監査役協会・ないかんMeetup",
       "非会員": "非会員",
     };
     return mapping[type] || type;
@@ -227,18 +228,18 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                 <table className="w-full">
                   <thead className="bg-muted/50">
                     <tr>
-                      <th className="px-4 py-3 text-left text-base font-medium" style={{ fontSize: '20px' }}>氏名</th>
-                      <th className="px-4 py-3 text-left text-base font-medium" style={{ fontSize: '20px' }}>会社名</th>
-                      <th className="px-4 py-3 text-left text-base font-medium" style={{ fontSize: '20px' }}>会員区分</th>
-                      <th className="px-4 py-3 text-left text-base font-medium" style={{ fontSize: '20px' }}>メールアドレス</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium" style={{ fontSize: '14px' }}>氏名</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium" style={{ fontSize: '14px' }}>会社名</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium" style={{ fontSize: '14px' }}>会員区分</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium" style={{ fontSize: '14px' }}>メールアドレス</th>
                     </tr>
                   </thead>
                   <tbody>
                     {noResponseAttendees.map((attendee) => (
                       <tr key={attendee.id} className="border-t">
-                        <td className="px-4 py-3" style={{ fontSize: '20px' }}>{attendee.name}</td>
-                        <td className="px-4 py-3" style={{ fontSize: '20px' }}>{attendee.company}</td>
-                        <td className="px-4 py-3" style={{ fontSize: '20px' }}>
+                        <td className="px-4 py-3" style={{ fontSize: '14px' }}>{attendee.name}</td>
+                        <td className="px-4 py-3" style={{ fontSize: '14px' }}>{attendee.company}</td>
+                        <td className="px-4 py-3" style={{ fontSize: '14px' }}>
                           <Badge
                             variant={
                               attendee.type === "非会員" ? "secondary" : "default"
@@ -247,7 +248,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                             {getMemberTypeDisplayName(attendee.type)}
                           </Badge>
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground" style={{ fontSize: '20px' }}>{attendee.email}</td>
+                        <td className="px-4 py-3 text-sm text-muted-foreground" style={{ fontSize: '14px' }}>{attendee.email}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -362,7 +363,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                 <div className="font-medium mb-2">イベント情報</div>
                 <div className="space-y-2 text-sm">
                   <div><span className="font-medium">イベント名:</span> {event.title}</div>
-                  <div><span className="font-medium">開催日時:</span> {event.date}</div>
+                  <div><span className="font-medium">開催日時:</span> {formatEventDate(event.date)}</div>
                   {event.location && <div><span className="font-medium">場所:</span> {event.location}</div>}
                 </div>
               </div>

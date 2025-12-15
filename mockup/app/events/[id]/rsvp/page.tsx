@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 import { events, customers, getCustomerByToken, getRSVPByEmail, rsvps } from "@/lib/data/mock";
+import { formatEventDate } from "@/lib/utils";
 
 export default function RSVPPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -121,7 +122,7 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
           <CardHeader>
             <CardTitle className="text-2xl">{event.title}</CardTitle>
             <CardDescription className="mt-2 space-y-1 text-base">
-              <p>日時: {event.date}</p>
+              <p>日時: {formatEventDate(event.date)}</p>
               <p>場所: {event.location}</p>
             </CardDescription>
           </CardHeader>

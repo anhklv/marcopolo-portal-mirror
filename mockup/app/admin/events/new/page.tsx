@@ -26,7 +26,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check } from "lucide-react";
 import { customers } from "@/lib/data/mock";
-import { cn } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 
 type Step = "form" | "success" | "select" | "customize" | "confirm";
 
@@ -58,7 +58,7 @@ export default function NewEventPage() {
     return `この度は、${title || "イベント"}にご案内いたします。
 
 【イベント詳細】
-${overview ? `概要: ${overview}\n` : ""}${date ? `開催日時: ${date}\n` : ""}${location ? `場所: ${location}\n` : ""}${timetable ? `タイムテーブル:\n${timetable}\n` : ""}
+${overview ? `概要: ${overview}\n` : ""}${date ? `開催日時: ${formatEventDate(date)}\n` : ""}${location ? `場所: ${location}\n` : ""}${timetable ? `タイムテーブル:\n${timetable}\n` : ""}
 
 ご参加の可否について、以下のURLよりご回答をお願いいたします。
 {RSVP_URL}
@@ -516,7 +516,7 @@ ${note ? `【備考】\n${note}\n` : ""}
             </CardHeader>
             <CardContent className="space-y-2">
               <div><span className="font-medium">イベント名:</span> {title}</div>
-              <div><span className="font-medium">開催日時:</span> {date}</div>
+              <div><span className="font-medium">開催日時:</span> {date ? formatEventDate(date) : ""}</div>
               {location && <div><span className="font-medium">場所:</span> {location}</div>}
             </CardContent>
           </Card>

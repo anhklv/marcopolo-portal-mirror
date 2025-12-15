@@ -5,7 +5,7 @@ export type Customer = {
   company?: string; // 会社名・所属 - 任意
   email: string;
   phone?: string; // 電話番号 - 任意
-  type: "監査役協会会員" | "ないかんMeetup会員" | "非会員";
+  type: "監査役協会会員" | "ないかんMeetup会員" | "監査役協会会員・ないかんMeetup会員" | "非会員";
   note?: string; // 備考 - 任意
   status: "active" | "inactive";
   registeredAt: string;
@@ -178,6 +178,18 @@ export const customers: Customer[] = [
     note: "イベント参加希望",
     status: "active",
     registeredAt: "2024-10-05",
+  },
+  {
+    id: "C012",
+    name: "松本 健一",
+    nameKana: "マツモト ケンイチ",
+    company: "株式会社コーポレートガバナンス",
+    email: "matsumoto@example.com",
+    phone: "03-1111-2222",
+    type: "監査役協会会員・ないかんMeetup会員",
+    note: "両方の会員",
+    status: "active",
+    registeredAt: "2024-11-01",
   },
 ];
 

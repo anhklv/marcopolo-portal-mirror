@@ -20,12 +20,14 @@ import {
 import { ArrowLeft, Edit, Calendar } from "lucide-react";
 import { customers, events, rsvps } from "@/lib/data/mock";
 import { use } from "react";
+import { formatEventDate } from "@/lib/utils";
 
 // 会員区分の表示名を短縮する関数
 const getMemberTypeDisplayName = (type: string): string => {
   const mapping: Record<string, string> = {
     "監査役協会会員": "監査役協会",
     "ないかんMeetup会員": "ないかんMeetup",
+    "監査役協会会員・ないかんMeetup会員": "監査役協会・ないかんMeetup",
     "非会員": "非会員",
   };
   return mapping[type] || type;
@@ -211,7 +213,7 @@ export default function CustomerDetailPage({
                           {event.title}
                         </Link>
                       </TableCell>
-                      <TableCell>{event.date}</TableCell>
+                      <TableCell>{formatEventDate(event.date)}</TableCell>
                       <TableCell>{event.location}</TableCell>
                       <TableCell>
                         <Badge
@@ -266,7 +268,7 @@ export default function CustomerDetailPage({
                           {event.title}
                         </Link>
                       </TableCell>
-                      <TableCell>{event.date}</TableCell>
+                      <TableCell>{formatEventDate(event.date)}</TableCell>
                       <TableCell>{event.location}</TableCell>
                       <TableCell>
                         <Badge

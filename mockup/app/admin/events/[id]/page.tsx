@@ -32,7 +32,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Mail, Edit, MoreVertical, Pause, Play, FileText, Search, ChevronDown, Send } from "lucide-react";
 import { events, customers, rsvps, getEventStatus } from "@/lib/data/mock";
-import { cn } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -359,7 +359,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                             <div className="grid gap-4">
                                 <div>
                                     <Label className="text-sm font-medium text-muted-foreground">開催日時</Label>
-                                    <div className="mt-1 text-base">{event.date}</div>
+                                    <div className="mt-1 text-base">{formatEventDate(event.date)}</div>
                                 </div>
                                 
                                 {event.location && (
@@ -379,7 +379,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                 {event.responseDeadline && (
                                     <div>
                                         <Label className="text-sm font-medium text-muted-foreground">回答期限</Label>
-                                        <div className="mt-1 text-base">{event.responseDeadline}</div>
+                                        <div className="mt-1 text-base">{formatEventDate(event.responseDeadline)}</div>
                                     </div>
                                 )}
                             </div>
@@ -412,7 +412,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                     {event.responseDeadline && (
                         <div className="pt-4 border-t">
                             <div className="text-sm text-muted-foreground">回答受付期限</div>
-                            <div className="text-sm font-medium">{event.responseDeadline}</div>
+                            <div className="text-sm font-medium">{formatEventDate(event.responseDeadline)}</div>
                         </div>
                     )}
                 </CardContent>

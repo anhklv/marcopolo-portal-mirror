@@ -27,7 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check, FileText } from "lucide-react";
 import { customers, events, rsvps, getEventStatus } from "@/lib/data/mock";
-import { cn } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 
 type Step = "select" | "customize" | "confirm";
 
@@ -63,10 +63,10 @@ export default function EventSurveyPage({
     if (!event) return;
     
     const defaultTitle = `【${event.title}】アンケートのお願い`;
-    const defaultBody = `この度は、${event.title}にご参加いただき、誠にありがとうございました。
+      const defaultBody = `この度は、${event.title}にご参加いただき、誠にありがとうございました。
 
 【イベント詳細】
-${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開催日時: ${event.date}\n` : ""}${event.location ? `場所: ${event.location}\n` : ""}
+${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開催日時: ${formatEventDate(event.date)}\n` : ""}${event.location ? `場所: ${event.location}\n` : ""}
 
 今後のイベント改善のため、アンケートへのご協力をお願いいたします。
 以下のURLよりご回答をお願いいたします。
@@ -313,6 +313,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                       >
                         {attendee.type === "監査役協会会員" ? "監査役協会" :
                          attendee.type === "ないかんMeetup会員" ? "ないかんMeetup" :
+                         attendee.type === "監査役協会会員・ないかんMeetup会員" ? "監査役協会・ないかんMeetup" :
                          attendee.type}
                       </Badge>
                     </TableCell>
@@ -446,7 +447,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                 <div className="font-medium mb-2">イベント情報</div>
                 <div className="space-y-2 text-sm">
                   <div><span className="font-medium">イベント名:</span> {event.title}</div>
-                  <div><span className="font-medium">開催日時:</span> {event.date}</div>
+                  <div><span className="font-medium">開催日時:</span> {formatEventDate(event.date)}</div>
                   {event.location && <div><span className="font-medium">場所:</span> {event.location}</div>}
                 </div>
               </div>

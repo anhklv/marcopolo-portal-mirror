@@ -32,7 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check, Search, Users, ChevronDown } from "lucide-react";
 import { customers, events, rsvps } from "@/lib/data/mock";
-import { cn } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 
 type Step = "select" | "customize" | "confirm";
 
@@ -66,7 +66,7 @@ export default function EventInvitePage({
       const defaultBody = `この度は、${event.title}にご案内いたします。
 
 【イベント詳細】
-${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開催日時: ${event.date}\n` : ""}${event.location ? `場所: ${event.location}\n` : ""}
+${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開催日時: ${formatEventDate(event.date)}\n` : ""}${event.location ? `場所: ${event.location}\n` : ""}
 
 ご参加の可否について、以下のURLよりご回答をお願いいたします。
 {RSVP_URL}
@@ -133,6 +133,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
     const mapping: Record<string, string> = {
       "監査役協会会員": "監査役協会",
       "ないかんMeetup会員": "ないかんMeetup",
+      "監査役協会会員・ないかんMeetup会員": "監査役協会・ないかんMeetup",
       "非会員": "非会員",
     };
     return mapping[type] || type;
@@ -143,6 +144,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
     const mapping: Record<string, string> = {
       "監査役協会": "監査役協会会員",
       "ないかんMeetup": "ないかんMeetup会員",
+      "監査役協会・ないかんMeetup": "監査役協会会員・ないかんMeetup会員",
       "非会員": "非会員",
     };
     return mapping[displayName] || displayName;
@@ -169,6 +171,10 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
           memberTypes.length === 0 ||
           memberTypes.some((type) => {
             const originalType = getMemberTypeFromDisplayName(type);
+            // 両方の会員区分を持つ顧客は、どちらのフィルタでもマッチ
+            if (customer.type === "監査役協会会員・ないかんMeetup会員") {
+              return originalType === "監査役協会会員" || originalType === "ないかんMeetup会員";
+            }
             return customer.type === originalType;
           });
 
@@ -336,6 +342,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                     {[
                       { original: "監査役協会会員", display: "監査役協会" },
                       { original: "ないかんMeetup会員", display: "ないかんMeetup" },
+                      { original: "監査役協会会員・ないかんMeetup会員", display: "監査役協会・ないかんMeetup" },
                       { original: "非会員", display: "非会員" },
                     ]
                       .filter((item) =>
@@ -609,7 +616,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                 <div className="font-medium mb-2">イベント情報</div>
                 <div className="space-y-2 text-sm">
                   <div><span className="font-medium">イベント名:</span> {event.title}</div>
-                  <div><span className="font-medium">開催日時:</span> {event.date}</div>
+                  <div><span className="font-medium">開催日時:</span> {formatEventDate(event.date)}</div>
                   {event.location && <div><span className="font-medium">場所:</span> {event.location}</div>}
                 </div>
               </div>

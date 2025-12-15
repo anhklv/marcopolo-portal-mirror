@@ -55,6 +55,7 @@ export default function CustomersPage() {
     const mapping: Record<string, string> = {
       "監査役協会会員": "監査役協会",
       "ないかんMeetup会員": "ないかんMeetup",
+      "監査役協会会員・ないかんMeetup会員": "監査役協会・ないかんMeetup",
       "非会員": "非会員",
     };
     return mapping[type] || type;
@@ -65,6 +66,7 @@ export default function CustomersPage() {
     const mapping: Record<string, string> = {
       "監査役協会": "監査役協会会員",
       "ないかんMeetup": "ないかんMeetup会員",
+      "監査役協会・ないかんMeetup": "監査役協会会員・ないかんMeetup会員",
       "非会員": "非会員",
     };
     return mapping[displayName] || displayName;
@@ -147,6 +149,10 @@ export default function CustomersPage() {
         memberTypes.length === 0 ||
         memberTypes.some((type) => {
           const originalType = getMemberTypeFromDisplayName(type);
+          // 両方の会員区分を持つ顧客は、どちらのフィルタでもマッチ
+          if (customer.type === "監査役協会会員・ないかんMeetup会員") {
+            return originalType === "監査役協会会員" || originalType === "ないかんMeetup会員";
+          }
           return customer.type === originalType;
         });
 
