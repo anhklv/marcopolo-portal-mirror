@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { ArrowLeft, Send, Mail, UserCheck } from "lucide-react";
+import { ArrowLeft, Send, Mail, UserCheck, Edit } from "lucide-react";
 import { events, customers, rsvps } from "@/lib/data/mock";
 import { cn } from "@/lib/utils";
 
@@ -70,31 +70,43 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/admin/events">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/admin/events">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <div>
             <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
-                <Badge variant={event.status === "open" ? "default" : "secondary"}>
-                    {event.status === "open" ? "受付中" : "企画中"}
-                </Badge>
+              <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
+              <Badge variant={event.status === "open" ? "default" : event.status === "closed" ? "outline" : "secondary"}>
+                {event.status === "open"
+                  ? "受付中"
+                  : event.status === "planning"
+                  ? "企画中"
+                  : "終了"}
+              </Badge>
             </div>
             <p className="text-muted-foreground">
-                {event.date} @ {event.location}
+              {event.date} @ {event.location}
             </p>
+          </div>
         </div>
+        <Button variant="outline" asChild>
+          <Link href={`/admin/events/${id}/edit`}>
+            <Edit className="h-4 w-4" />
+            編集
+          </Link>
+        </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-7">
         <div className="md:col-span-5 space-y-6">
             <Tabs defaultValue="attendees">
                 <TabsList>
-                    <TabsTrigger value="attendees">参加状況</TabsTrigger>
-                    <TabsTrigger value="invite">招待・追送</TabsTrigger>
+                    <TabsTrigger value="attendees" className="cursor-pointer">参加状況</TabsTrigger>
+                    <TabsTrigger value="invite" className="cursor-pointer">招待・追送</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="attendees" className="space-y-4">
@@ -157,7 +169,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                     <span className="font-medium">{selectedCustomers.length}名</span> 選択中
                                 </div>
                                 <Button onClick={handleSendInvite} disabled={selectedCustomers.length === 0} variant="outline" className="cursor-pointer">
-                                    <Send className="mr-2 h-4 w-4" />
+                                    <Send className="h-4 w-4" />
                                     招待メールを送信
                                 </Button>
                             </div>
@@ -227,13 +239,13 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                     <CardTitle>アクション</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                    <Button variant="outline" className="w-full justify-start">
-                        <Mail className="mr-2 h-4 w-4" />
+                    <Button variant="outline" className="w-full justify-start cursor-pointer">
+                        <Mail className="h-4 w-4" />
                         未回答者に再送
                     </Button>
-                    <Button variant="outline" className="w-full justify-start" asChild>
+                    <Button variant="outline" className="w-full justify-start cursor-pointer" asChild>
                         <Link href={`/events/${id}/rsvp?token=demo-token`} target="_blank">
-                            <UserCheck className="mr-2 h-4 w-4" />
+                            <UserCheck className="h-4 w-4" />
                             参加回答フォーム (サンプル)
                         </Link>
                     </Button>

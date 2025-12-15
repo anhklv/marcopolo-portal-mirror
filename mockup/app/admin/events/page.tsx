@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,9 +24,9 @@ export default function EventsPage() {
             イベントの作成、編集、招待管理を行います。
           </p>
         </div>
-        <Button asChild>
+        <Button variant="outline" asChild>
           <Link href="/admin/events/new">
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="h-4 w-4" />
             イベント作成
           </Link>
         </Button>
@@ -44,7 +46,13 @@ export default function EventsPage() {
           </TableHeader>
           <TableBody>
             {events.map((event) => (
-              <TableRow key={event.id}>
+              <TableRow
+                key={event.id}
+                className="cursor-pointer hover:bg-gray-50"
+                onClick={() => {
+                  window.location.href = `/admin/events/${event.id}`;
+                }}
+              >
                 <TableCell className="font-medium">{event.title}</TableCell>
                 <TableCell>{event.date}</TableCell>
                 <TableCell>{event.location}</TableCell>
@@ -66,9 +74,9 @@ export default function EventsPage() {
                   </Badge>
                 </TableCell>
                 <TableCell>{event.attendeesCount}名</TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/admin/events/${event.id}`}>管理</Link>
+                <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/admin/events/${event.id}/edit`}>編集</Link>
                   </Button>
                 </TableCell>
               </TableRow>

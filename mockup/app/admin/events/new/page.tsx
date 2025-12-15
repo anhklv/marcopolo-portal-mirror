@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,13 +11,16 @@ import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 
 export default function NewEventPage() {
+  const router = useRouter();
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     toast.success("イベントを作成しました");
+    router.push("/admin/events");
   };
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-4xl space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/admin/events">
@@ -31,7 +35,7 @@ export default function NewEventPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8 rounded-lg border p-6 shadow-sm">
+      <form onSubmit={handleSubmit} className="space-y-8 rounded-lg border p-8 shadow-sm">
         <div className="space-y-4">
           <div className="grid gap-2">
             <Label htmlFor="title">イベント名 <span className="text-red-500">*</span></Label>
