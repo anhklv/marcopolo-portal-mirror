@@ -186,8 +186,8 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
         return step === "confirm" ? "current" : "upcoming";
       }
       
-      if (stepIndex < currentIndex) return "completed";
-      if (stepIndex === currentIndex) return "current";
+      // 現在のステップもcompletedとして表示（チェックマークを表示）
+      if (stepIndex <= currentIndex) return "completed";
       return "upcoming";
     };
 
@@ -264,7 +264,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
 
         <Card>
           <CardHeader>
-            <CardTitle>招待メール送信</CardTitle>
+            <CardTitle>招待者を選択</CardTitle>
             <CardDescription>
               未招待の顧客を選択して招待メールを送信します。
               <br/>
@@ -445,7 +445,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
 
         <Card>
           <CardHeader>
-            <CardTitle>メール内容</CardTitle>
+            <CardTitle>メール文作成</CardTitle>
             <CardDescription>
               送信するメールのタイトルと本文を編集してください。
             </CardDescription>
@@ -504,66 +504,68 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
         
         <StepIndicator />
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>イベント情報</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div><span className="font-medium">イベント名:</span> {event.title}</div>
-              <div><span className="font-medium">開催日時:</span> {event.date}</div>
-              {event.location && <div><span className="font-medium">場所:</span> {event.location}</div>}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>送信先 ({selectedCustomers.length}名)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {selectedCustomers.map((customerId) => {
-                  const customer = customers.find((c) => c.id === customerId);
-                  return customer ? (
-                    <div key={customerId} className="text-sm">
-                      {customer.name} ({customer.email})
-                    </div>
-                  ) : null;
-                })}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>メール内容</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>確認</CardTitle>
+            <CardDescription>
+              送信内容を確認して、テスト送信または送信を実行してください。
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
               <div>
-                <div className="font-medium mb-2">タイトル:</div>
-                <div className="text-sm bg-muted p-3 rounded">{emailTitle}</div>
+                <div className="font-medium mb-2">イベント情報</div>
+                <div className="space-y-2 text-sm">
+                  <div><span className="font-medium">イベント名:</span> {event.title}</div>
+                  <div><span className="font-medium">開催日時:</span> {event.date}</div>
+                  {event.location && <div><span className="font-medium">場所:</span> {event.location}</div>}
+                </div>
               </div>
-              <div>
-                <div className="font-medium mb-2">本文:</div>
-                <div className="text-sm bg-muted p-3 rounded whitespace-pre-wrap">{emailBody}</div>
-              </div>
-            </CardContent>
-          </Card>
 
-          <div className="flex justify-end gap-4">
-            <Button variant="outline" onClick={() => setStep("customize")}>
-              戻る
-            </Button>
-            <Button variant="outline" onClick={handleTestSend} className="cursor-pointer">
-              <Mail className="h-4 w-4" />
-              テスト送信
-            </Button>
-            <Button variant="outline" onClick={handleSend} className="cursor-pointer">
-              <Send className="h-4 w-4" />
-              送信
-            </Button>
-          </div>
-        </div>
+              <div>
+                <div className="font-medium mb-2">送信先 ({selectedCustomers.length}名)</div>
+                <div className="space-y-2 text-sm">
+                  {selectedCustomers.map((customerId) => {
+                    const customer = customers.find((c) => c.id === customerId);
+                    return customer ? (
+                      <div key={customerId}>
+                        {customer.name} ({customer.email})
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <div className="font-medium mb-2">メール内容</div>
+                <div className="space-y-4">
+                  <div>
+                    <div className="font-medium mb-2">タイトル:</div>
+                    <div className="text-sm bg-muted p-3 rounded">{emailTitle}</div>
+                  </div>
+                  <div>
+                    <div className="font-medium mb-2">本文:</div>
+                    <div className="text-sm bg-muted p-3 rounded whitespace-pre-wrap">{emailBody}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-4 pt-4">
+              <Button variant="outline" onClick={() => setStep("customize")}>
+                戻る
+              </Button>
+              <Button variant="outline" onClick={handleTestSend} className="cursor-pointer">
+                <Mail className="h-4 w-4" />
+                テスト送信
+              </Button>
+              <Button variant="outline" onClick={handleSend} className="cursor-pointer">
+                <Send className="h-4 w-4" />
+                送信
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
