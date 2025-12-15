@@ -227,18 +227,18 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                 <table className="w-full">
                   <thead className="bg-muted/50">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium">氏名</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">会社名</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">会員区分</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">メールアドレス</th>
+                      <th className="px-4 py-3 text-left text-base font-medium" style={{ fontSize: '20px' }}>氏名</th>
+                      <th className="px-4 py-3 text-left text-base font-medium" style={{ fontSize: '20px' }}>会社名</th>
+                      <th className="px-4 py-3 text-left text-base font-medium" style={{ fontSize: '20px' }}>会員区分</th>
+                      <th className="px-4 py-3 text-left text-base font-medium" style={{ fontSize: '20px' }}>メールアドレス</th>
                     </tr>
                   </thead>
                   <tbody>
                     {noResponseAttendees.map((attendee) => (
                       <tr key={attendee.id} className="border-t">
-                        <td className="px-4 py-3">{attendee.name}</td>
-                        <td className="px-4 py-3">{attendee.company}</td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3" style={{ fontSize: '20px' }}>{attendee.name}</td>
+                        <td className="px-4 py-3" style={{ fontSize: '20px' }}>{attendee.company}</td>
+                        <td className="px-4 py-3" style={{ fontSize: '20px' }}>
                           <Badge
                             variant={
                               attendee.type === "非会員" ? "secondary" : "default"
@@ -247,7 +247,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                             {getMemberTypeDisplayName(attendee.type)}
                           </Badge>
                         </td>
-                        <td className="px-4 py-3 text-sm text-muted-foreground">{attendee.email}</td>
+                        <td className="px-4 py-3 text-muted-foreground" style={{ fontSize: '20px' }}>{attendee.email}</td>
                       </tr>
                     ))}
                   </tbody>
