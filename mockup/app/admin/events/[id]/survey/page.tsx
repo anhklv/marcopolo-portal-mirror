@@ -26,7 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check, FileText } from "lucide-react";
-import { customers, events, rsvps, getEventStatus } from "@/lib/data/mock";
+import { customers, events, rsvps, getEventStatus, getMemberTypeDisplayName } from "@/lib/data/mock";
 import { cn, formatEventDate } from "@/lib/utils";
 
 type Step = "select" | "customize" | "confirm";
@@ -308,13 +308,10 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                     <TableCell>
                       <Badge
                         variant={
-                          attendee.type === "非会員" ? "secondary" : "default"
+                          attendee.memberTypes.length === 0 ? "secondary" : "default"
                         }
                       >
-                        {attendee.type === "監査役協会会員" ? "監査役協会" :
-                         attendee.type === "ないかんMeetup会員" ? "ないかんMeetup" :
-                         attendee.type === "監査役協会会員・ないかんMeetup会員" ? "監査役協会・ないかんMeetup" :
-                         attendee.type}
+                        {getMemberTypeDisplayName(attendee.memberTypes)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">{attendee.email}</TableCell>

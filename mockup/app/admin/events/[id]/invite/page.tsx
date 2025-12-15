@@ -31,7 +31,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check, Search, Users, ChevronDown } from "lucide-react";
-import { customers, events, rsvps } from "@/lib/data/mock";
+import { customers, events, rsvps, getMemberTypeDisplayName, MemberType } from "@/lib/data/mock";
 import { cn, formatEventDate } from "@/lib/utils";
 
 type Step = "select" | "customize" | "confirm";
@@ -128,28 +128,6 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
     }
   };
 
-  // 会員区分の表示名を短縮する関数（「会員」を除く）
-  const getMemberTypeDisplayName = (type: string): string => {
-    const mapping: Record<string, string> = {
-      "監査役協会会員": "監査役協会",
-      "ないかんMeetup会員": "ないかんMeetup",
-      "監査役協会会員・ないかんMeetup会員": "監査役協会・ないかんMeetup",
-      "非会員": "非会員",
-    };
-    return mapping[type] || type;
-  };
-
-  // 会員区分の表示名から元の値を取得する関数
-  const getMemberTypeFromDisplayName = (displayName: string): string => {
-    const mapping: Record<string, string> = {
-      "監査役協会": "監査役協会会員",
-      "ないかんMeetup": "ないかんMeetup会員",
-      "監査役協会・ないかんMeetup": "監査役協会会員・ないかんMeetup会員",
-      "非会員": "非会員",
-    };
-    return mapping[displayName] || displayName;
-  };
-
   // アクティブな顧客のみをフィルタリングし、検索条件で絞り込む
   const filteredCustomers = useMemo(() => {
     const filtered = customers
@@ -169,13 +147,13 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
         // 会員区分フィルタ（チェックがない場合はすべて表示）
         const matchesMemberType =
           memberTypes.length === 0 ||
-          memberTypes.some((type) => {
-            const originalType = getMemberTypeFromDisplayName(type);
-            // 両方の会員区分を持つ顧客は、どちらのフィルタでもマッチ
-            if (customer.type === "監査役協会会員・ないかんMeetup会員") {
-              return originalType === "監査役協会会員" || originalType === "ないかんMeetup会員";
+          memberTypes.some((selectedType) => {
+            // 非会員の場合
+            if (selectedType === "非会員") {
+              return customer.memberTypes.length === 0;
             }
-            return customer.type === originalType;
+            // 会員区分が含まれているかチェック
+            return customer.memberTypes.includes(selectedType as MemberType);
           });
 
         // 案内状況フィルタ（チェックがない場合はすべて表示）
@@ -339,41 +317,36 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                     </div>
                   </div>
                   <div className="p-2 max-h-[300px] overflow-y-auto">
-                    {[
-                      { original: "監査役協会会員", display: "監査役協会" },
-                      { original: "ないかんMeetup会員", display: "ないかんMeetup" },
-                      { original: "監査役協会会員・ないかんMeetup会員", display: "監査役協会・ないかんMeetup" },
-                      { original: "非会員", display: "非会員" },
-                    ]
-                      .filter((item) =>
-                        item.display
+                    {["監査役協会", "ないかんMeetup", "非会員"]
+                      .filter((type) =>
+                        type
                           .toLowerCase()
                           .includes(memberTypeSearch.toLowerCase())
                       )
-                      .map((item) => (
+                      .map((type) => (
                         <div
-                          key={item.original}
+                          key={type}
                           className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
                           onClick={() =>
                             handleMemberTypeChange(
-                              item.display,
-                              !memberTypes.includes(item.display)
+                              type,
+                              !memberTypes.includes(type)
                             )
                           }
                         >
                           <Checkbox
-                            checked={memberTypes.includes(item.display)}
+                            checked={memberTypes.includes(type)}
                             onCheckedChange={(checked) =>
-                              handleMemberTypeChange(item.display, checked === true)
+                              handleMemberTypeChange(type, checked === true)
                             }
                           />
                           <Badge
                             variant={
-                              item.original === "非会員" ? "secondary" : "default"
+                              type === "非会員" ? "secondary" : "default"
                             }
                             className="cursor-pointer"
                           >
-                            {item.display}
+                            {type}
                           </Badge>
                         </div>
                       ))}
@@ -488,10 +461,10 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                       <TableCell>
                         <Badge
                           variant={
-                            customer.type === "非会員" ? "secondary" : "default"
+                            customer.memberTypes.length === 0 ? "secondary" : "default"
                           }
                         >
-                          {getMemberTypeDisplayName(customer.type)}
+                          {getMemberTypeDisplayName(customer.memberTypes)}
                         </Badge>
                       </TableCell>
                       <TableCell>

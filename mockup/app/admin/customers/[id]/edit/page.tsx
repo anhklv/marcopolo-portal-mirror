@@ -53,9 +53,9 @@ export default function CustomerEditPage({
   }
 
   // 会員区分の状態管理
-  const isMember = customer.type !== "非会員";
-  const auditMember = customer.type === "監査役協会会員";
-  const naikanMember = customer.type === "ないかんMeetup会員";
+  const isMember = customer.memberTypes.length > 0;
+  const auditMember = customer.memberTypes.includes("監査役協会");
+  const naikanMember = customer.memberTypes.includes("ないかんMeetup");
 
   // フォームの状態管理
   const [isMemberState, setIsMemberState] = useState<"member" | "non-member">(
@@ -86,6 +86,20 @@ export default function CustomerEditPage({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 会員を選択した場合、少なくとも1つの会員区分を選択しているかチェック
+    if (isMemberState === "member" && !auditMemberState && !naikanMemberState) {
+      toast.error("会員を選択した場合、少なくとも1つの会員区分を選択してください");
+      return;
+    }
+
+    // TODO: 実際のAPI呼び出しでは、以下のように memberTypes を構築する
+    // const memberTypes: MemberType[] = [];
+    // if (isMemberState === "member") {
+    //   if (auditMemberState) memberTypes.push("監査役協会");
+    //   if (naikanMemberState) memberTypes.push("ないかんMeetup");
+    // }
+
     toast.success("顧客情報を更新しました");
     router.push(`/admin/customers/${id}`);
   };

@@ -20,6 +20,20 @@ export default function NewCustomerPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 会員を選択した場合、少なくとも1つの会員区分を選択しているかチェック
+    if (isMember === "member" && !auditMember && !naikanMember) {
+      toast.error("会員を選択した場合、少なくとも1つの会員区分を選択してください");
+      return;
+    }
+
+    // TODO: 実際のAPI呼び出しでは、以下のように memberTypes を構築する
+    // const memberTypes: MemberType[] = [];
+    // if (isMember === "member") {
+    //   if (auditMember) memberTypes.push("監査役協会");
+    //   if (naikanMember) memberTypes.push("ないかんMeetup");
+    // }
+
     toast.success("顧客情報を登録しました");
     router.push("/admin/customers");
   };

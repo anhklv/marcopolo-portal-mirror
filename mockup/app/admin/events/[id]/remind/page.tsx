@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check } from "lucide-react";
-import { customers, events, rsvps, getEventStatus } from "@/lib/data/mock";
+import { customers, events, rsvps, getEventStatus, getMemberTypeDisplayName } from "@/lib/data/mock";
 import { cn, formatEventDate } from "@/lib/utils";
 
 type Step = "select" | "customize" | "confirm";
@@ -117,17 +117,6 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
   const handleSend = () => {
     toast.success(`未回答者${noResponseAttendees.length}名にリマインドメールを送信しました`);
     router.push(`/admin/events/${id}`);
-  };
-
-  // 会員区分の表示名を短縮する関数
-  const getMemberTypeDisplayName = (type: string): string => {
-    const mapping: Record<string, string> = {
-      "監査役協会会員": "監査役協会",
-      "ないかんMeetup会員": "ないかんMeetup",
-      "監査役協会会員・ないかんMeetup会員": "監査役協会・ないかんMeetup",
-      "非会員": "非会員",
-    };
-    return mapping[type] || type;
   };
 
   // ステップインジケーターコンポーネント
@@ -242,10 +231,10 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                         <td className="px-4 py-3" style={{ fontSize: '14px' }}>
                           <Badge
                             variant={
-                              attendee.type === "非会員" ? "secondary" : "default"
+                              attendee.memberTypes.length === 0 ? "secondary" : "default"
                             }
                           >
-                            {getMemberTypeDisplayName(attendee.type)}
+                            {getMemberTypeDisplayName(attendee.memberTypes)}
                           </Badge>
                         </td>
                         <td className="px-4 py-3 text-sm text-muted-foreground" style={{ fontSize: '14px' }}>{attendee.email}</td>

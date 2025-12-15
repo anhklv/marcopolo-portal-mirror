@@ -1,3 +1,5 @@
+export type MemberType = "監査役協会" | "ないかんMeetup";
+
 export type Customer = {
   id: string;
   name: string; // 氏名(姓名)
@@ -5,7 +7,7 @@ export type Customer = {
   company?: string; // 会社名・所属 - 任意
   email: string;
   phone?: string; // 電話番号 - 任意
-  type: "監査役協会会員" | "ないかんMeetup会員" | "監査役協会会員・ないかんMeetup会員" | "非会員";
+  memberTypes: MemberType[]; // 会員区分（配列で複数所属可能、空配列=非会員）
   note?: string; // 備考 - 任意
   status: "active" | "inactive";
   registeredAt: string;
@@ -63,7 +65,7 @@ export const customers: Customer[] = [
     company: "株式会社東京貿易",
     email: "yamada@example.com",
     phone: "03-1234-5678",
-    type: "監査役協会会員",
+    memberTypes: ["監査役協会"],
     note: "紹介者: 鈴木",
     status: "active",
     registeredAt: "2024-01-10",
@@ -75,7 +77,7 @@ export const customers: Customer[] = [
     company: "マルコポーロ商事",
     email: "suzuki@example.com",
     phone: "03-2345-6789",
-    type: "ないかんMeetup会員",
+    memberTypes: ["ないかんMeetup"],
     status: "active",
     registeredAt: "2024-02-15",
   },
@@ -86,7 +88,7 @@ export const customers: Customer[] = [
     company: "グローバルテック株式会社",
     email: "sato@example.com",
     phone: "03-3456-7890",
-    type: "非会員",
+    memberTypes: [],
     status: "active",
     registeredAt: "2024-03-05",
   },
@@ -97,7 +99,7 @@ export const customers: Customer[] = [
     company: "田中製作所",
     email: "tanaka@example.com",
     phone: "03-4567-8901",
-    type: "監査役協会会員",
+    memberTypes: ["監査役協会"],
     status: "inactive",
     registeredAt: "2023-11-20",
   },
@@ -107,7 +109,7 @@ export const customers: Customer[] = [
     nameKana: "イトウ ミサキ",
     company: "フリーランス",
     email: "ito@example.com",
-    type: "非会員",
+    memberTypes: [],
     status: "active",
     registeredAt: "2024-04-01",
   },
@@ -118,8 +120,8 @@ export const customers: Customer[] = [
     company: "株式会社サンライズ",
     email: "takahashi@example.com",
     phone: "03-5678-9012",
-    type: "監査役協会会員",
-    note: "新規入会",
+    memberTypes: ["監査役協会", "ないかんMeetup"],
+    note: "新規入会（両方の会員）",
     status: "active",
     registeredAt: "2024-05-12",
   },
@@ -130,7 +132,7 @@ export const customers: Customer[] = [
     company: "テクノロジーソリューションズ株式会社",
     email: "watanabe@example.com",
     phone: "03-6789-0123",
-    type: "ないかんMeetup会員",
+    memberTypes: ["ないかんMeetup"],
     status: "active",
     registeredAt: "2024-06-03",
   },
@@ -141,7 +143,7 @@ export const customers: Customer[] = [
     company: "株式会社ファイナンスパートナーズ",
     email: "nakamura@example.com",
     phone: "03-7890-1234",
-    type: "監査役協会会員",
+    memberTypes: ["監査役協会"],
     note: "紹介者: 山田",
     status: "active",
     registeredAt: "2024-07-18",
@@ -153,7 +155,7 @@ export const customers: Customer[] = [
     company: "デジタルイノベーション株式会社",
     email: "kobayashi@example.com",
     phone: "03-8901-2345",
-    type: "ないかんMeetup会員",
+    memberTypes: ["ないかんMeetup"],
     status: "active",
     registeredAt: "2024-08-22",
   },
@@ -164,7 +166,7 @@ export const customers: Customer[] = [
     company: "株式会社ストラテジックアドバイザーズ",
     email: "kato@example.com",
     phone: "03-9012-3456",
-    type: "監査役協会会員",
+    memberTypes: ["監査役協会"],
     status: "active",
     registeredAt: "2024-09-10",
   },
@@ -174,7 +176,7 @@ export const customers: Customer[] = [
     nameKana: "ヨシダ ユミ",
     company: "フリーランス",
     email: "yoshida@example.com",
-    type: "非会員",
+    memberTypes: [],
     note: "イベント参加希望",
     status: "active",
     registeredAt: "2024-10-05",
@@ -186,7 +188,7 @@ export const customers: Customer[] = [
     company: "株式会社コーポレートガバナンス",
     email: "matsumoto@example.com",
     phone: "03-1111-2222",
-    type: "監査役協会会員・ないかんMeetup会員",
+    memberTypes: ["監査役協会", "ないかんMeetup"],
     note: "両方の会員",
     status: "active",
     registeredAt: "2024-11-01",
@@ -524,4 +526,21 @@ export function getRSVPByEmail(eventId: string, email: string): RSVP | null {
   const customer = customers.find((c) => c.email === email);
   if (!customer) return null;
   return rsvps.find((r) => r.eventId === eventId && r.customerId === customer.id) || null;
+}
+
+// ヘルパー関数: 会員区分の表示名を取得
+export function getMemberTypeDisplayName(memberTypes: MemberType[]): string {
+  if (memberTypes.length === 0) return "非会員";
+  if (memberTypes.length === 2) return "監査役協会・ないかんMeetup";
+  return memberTypes[0];
+}
+
+// ヘルパー関数: 会員かどうかを判定
+export function isMember(memberTypes: MemberType[]): boolean {
+  return memberTypes.length > 0;
+}
+
+// ヘルパー関数: 特定の会員区分を持っているか判定
+export function hasMemberType(memberTypes: MemberType[], type: MemberType): boolean {
+  return memberTypes.includes(type);
 }

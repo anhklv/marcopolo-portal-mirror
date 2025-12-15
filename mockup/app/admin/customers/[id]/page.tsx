@@ -18,20 +18,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArrowLeft, Edit, Calendar } from "lucide-react";
-import { customers, events, rsvps } from "@/lib/data/mock";
+import { customers, events, rsvps, getMemberTypeDisplayName } from "@/lib/data/mock";
 import { use } from "react";
 import { formatEventDate } from "@/lib/utils";
-
-// 会員区分の表示名を短縮する関数
-const getMemberTypeDisplayName = (type: string): string => {
-  const mapping: Record<string, string> = {
-    "監査役協会会員": "監査役協会",
-    "ないかんMeetup会員": "ないかんMeetup",
-    "監査役協会会員・ないかんMeetup会員": "監査役協会・ないかんMeetup",
-    "非会員": "非会員",
-  };
-  return mapping[type] || type;
-};
 
 export default function CustomerDetailPage({
   params,
@@ -151,10 +140,10 @@ export default function CustomerDetailPage({
             <div>
               <p className="text-sm font-medium text-muted-foreground">会員区分</p>
               <Badge
-                variant={customer.type === "非会員" ? "secondary" : "default"}
+                variant={customer.memberTypes.length === 0 ? "secondary" : "default"}
                 className="text-base"
               >
-                {getMemberTypeDisplayName(customer.type)}
+                {getMemberTypeDisplayName(customer.memberTypes)}
               </Badge>
             </div>
             <div>

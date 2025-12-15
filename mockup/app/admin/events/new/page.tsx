@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check } from "lucide-react";
-import { customers } from "@/lib/data/mock";
+import { customers, getMemberTypeDisplayName } from "@/lib/data/mock";
 import { cn, formatEventDate } from "@/lib/utils";
 
 type Step = "form" | "success" | "select" | "customize" | "confirm";
@@ -410,7 +410,7 @@ ${note ? `【備考】\n${note}\n` : ""}
                     </TableCell>
                     <TableCell>{customer.name}</TableCell>
                     <TableCell>{customer.company}</TableCell>
-                    <TableCell>{customer.type}</TableCell>
+                    <TableCell>{getMemberTypeDisplayName(customer.memberTypes)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
