@@ -207,11 +207,6 @@ export default function EventsPage() {
             </div>
           </PopoverContent>
         </Popover>
-
-        <Button variant="outline" onClick={handleSearch} className="h-10 cursor-pointer">
-          <Search className="h-4 w-4" />
-          検索
-        </Button>
       </div>
 
       <div className="rounded-md border">
