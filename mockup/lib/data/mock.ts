@@ -507,7 +507,7 @@ export function getCustomerByToken(eventId: string, token: string): Customer | n
   return customers.find((c) => c.id === rsvp.customerId) || null;
 }
 
-// ヘルパー関数: メールアドレスからイベントの招待情報を取得
+// ヘルパー関数: メールアドレスからイベントの案内情報を取得
 export function getRSVPByEmail(eventId: string, email: string): RSVP | null {
   const customer = customers.find((c) => c.email === email);
   if (!customer) return null;

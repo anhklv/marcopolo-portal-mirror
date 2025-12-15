@@ -155,7 +155,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
                 <Link href={`/admin/events/${id}/invite`} className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
-                  招待
+                  案内
                 </Link>
               </DropdownMenuItem>
             )}

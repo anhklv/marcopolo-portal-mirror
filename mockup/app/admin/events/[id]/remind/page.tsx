@@ -67,7 +67,7 @@ export default function EventRemindPage({
   useEffect(() => {
     if (event) {
       const defaultTitle = `【${event.title}】参加可否のご回答をお願いします`;
-      const defaultBody = `この度は、${event.title}にご招待いたしました。
+      const defaultBody = `この度は、${event.title}にご案内いたしました。
 
 【イベント詳細】
 ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開催日時: ${event.date}\n` : ""}${event.location ? `場所: ${event.location}\n` : ""}

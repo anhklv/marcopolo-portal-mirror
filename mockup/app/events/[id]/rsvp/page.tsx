@@ -67,7 +67,7 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
     
     const rsvp = getRSVPByEmail(id, email);
     if (!rsvp) {
-      toast.error("このメールアドレスはこのイベントに招待されていません");
+      toast.error("このメールアドレスはこのイベントに案内されていません");
       return;
     }
     
@@ -130,7 +130,7 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
             <div className="rounded-lg bg-muted p-4">
               <p className="text-sm font-medium mb-2">メールアドレスを入力してください</p>
               <p className="text-xs text-muted-foreground mb-4">
-                このイベントに招待されたメールアドレスを入力してください。
+                このイベントに案内されたメールアドレスを入力してください。
               </p>
               <div className="space-y-2">
                 <Label htmlFor="email">メールアドレス</Label>
@@ -172,7 +172,7 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
             </div>
             <CardTitle>アクセスエラー</CardTitle>
             <CardDescription>
-              このページにアクセスするには有効な招待URLが必要です。
+              このページにアクセスするには有効な案内URLが必要です。
             </CardDescription>
           </CardHeader>
         </Card>

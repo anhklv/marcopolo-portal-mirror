@@ -44,18 +44,18 @@ export default function NewEventPage() {
   const [note, setNote] = useState("");
   const [responseDeadline, setResponseDeadline] = useState("");
   
-  // 招待メール送信データ
+  // 案内メール送信データ
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   const [emailTitle, setEmailTitle] = useState("");
   const [emailBody, setEmailBody] = useState("");
 
   // デフォルトのメールタイトルと本文を設定
   const getDefaultEmailTitle = () => {
-    return title ? `【${title}】ご招待` : "【イベント】ご招待";
+    return title ? `【${title}】ご案内` : "【イベント】ご案内";
   };
 
   const getDefaultEmailBody = () => {
-    return `この度は、${title || "イベント"}にご招待いたします。
+    return `この度は、${title || "イベント"}にご案内いたします。
 
 【イベント詳細】
 ${overview ? `概要: ${overview}\n` : ""}${date ? `開催日時: ${date}\n` : ""}${location ? `場所: ${location}\n` : ""}${timetable ? `タイムテーブル:\n${timetable}\n` : ""}
@@ -91,7 +91,7 @@ ${note ? `【備考】\n${note}\n` : ""}
   };
 
   const handleStartInvite = () => {
-    // 招待フローを開始
+    // 案内フローを開始
     setStep("select");
   };
 
@@ -106,7 +106,7 @@ ${note ? `【備考】\n${note}\n` : ""}
 
   const handleSelectNext = () => {
     if (selectedCustomers.length === 0) {
-      toast.error("招待する顧客を選択してください");
+      toast.error("案内する顧客を選択してください");
       return;
     }
     setStep("customize");
@@ -125,7 +125,7 @@ ${note ? `【備考】\n${note}\n` : ""}
   };
 
   const handleSend = () => {
-    toast.success(`${selectedCustomers.length}名に招待メールを送信しました`);
+    toast.success(`${selectedCustomers.length}名に案内メールを送信しました`);
     // イベント詳細ページへ遷移
     if (createdEventId) {
       router.push(`/admin/events/${createdEventId}`);
@@ -145,7 +145,7 @@ ${note ? `【備考】\n${note}\n` : ""}
   // ステップインジケーターコンポーネント
   const StepIndicator = () => {
     const steps = [
-      { key: "select", label: "招待者を選択", number: 1 },
+      { key: "select", label: "案内者を選択", number: 1 },
       { key: "customize", label: "メール文作成", number: 2 },
       { key: "confirm", label: "確認", number: 3 },
       { key: "send", label: "送信", number: 4 },
@@ -322,7 +322,7 @@ ${note ? `【備考】\n${note}\n` : ""}
           <div>
             <h1 className="text-3xl font-bold tracking-tight">イベントを作成しました</h1>
             <p className="text-muted-foreground">
-              イベント情報を保存しました。次に招待メールを送信しますか？
+              イベント情報を保存しました。次に案内メールを送信しますか？
             </p>
           </div>
         </div>
@@ -331,7 +331,7 @@ ${note ? `【備考】\n${note}\n` : ""}
           <CardHeader>
             <CardTitle>次のステップ</CardTitle>
             <CardDescription>
-              作成したイベントに招待メールを送信するか、後で送信することができます。
+              作成したイベントに案内メールを送信するか、後で送信することができます。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -347,7 +347,7 @@ ${note ? `【備考】\n${note}\n` : ""}
               </Button>
               <Button variant="outline" onClick={handleStartInvite} className="cursor-pointer">
                 <Mail className="h-4 w-4" />
-                招待メールを送信する
+                案内メールを送信する
               </Button>
             </div>
           </CardContent>
@@ -356,7 +356,7 @@ ${note ? `【備考】\n${note}\n` : ""}
     );
   }
 
-  // ステップ3: 招待する人を選ぶ
+  // ステップ3: 案内する人を選ぶ
   if (step === "select") {
     return (
       <div className="max-w-4xl space-y-6">
@@ -365,9 +365,9 @@ ${note ? `【備考】\n${note}\n` : ""}
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">招待メール送信</h1>
+            <h1 className="text-3xl font-bold tracking-tight">案内メール送信</h1>
             <p className="text-muted-foreground">
-              招待メールを送信する顧客を選択してください。
+              案内メールを送信する顧客を選択してください。
             </p>
           </div>
         </div>
@@ -376,9 +376,9 @@ ${note ? `【備考】\n${note}\n` : ""}
 
         <Card>
           <CardHeader>
-            <CardTitle>招待メール送信</CardTitle>
+            <CardTitle>案内メール送信</CardTitle>
             <CardDescription>
-              未招待の顧客を選択して招待メールを送信します。
+              未案内の顧客を選択して案内メールを送信します。
               <br/>
               ※送信時に自動で個別ID付きURLが生成されます。
             </CardDescription>
@@ -439,9 +439,9 @@ ${note ? `【備考】\n${note}\n` : ""}
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">招待メール送信</h1>
+            <h1 className="text-3xl font-bold tracking-tight">案内メール送信</h1>
             <p className="text-muted-foreground">
-              招待メールのタイトルと本文を編集できます。
+              案内メールのタイトルと本文を編集できます。
             </p>
           </div>
         </div>
@@ -500,7 +500,7 @@ ${note ? `【備考】\n${note}\n` : ""}
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">招待メール送信</h1>
+            <h1 className="text-3xl font-bold tracking-tight">案内メール送信</h1>
             <p className="text-muted-foreground">
               送信内容を確認して、テスト送信または送信を実行してください。
             </p>

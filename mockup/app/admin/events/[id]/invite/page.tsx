@@ -62,8 +62,8 @@ export default function EventInvitePage({
   // デフォルトのメールタイトルと本文を設定
   useEffect(() => {
     if (event) {
-      const defaultTitle = `【${event.title}】ご招待`;
-      const defaultBody = `この度は、${event.title}にご招待いたします。
+      const defaultTitle = `【${event.title}】ご案内`;
+      const defaultBody = `この度は、${event.title}にご案内いたします。
 
 【イベント詳細】
 ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開催日時: ${event.date}\n` : ""}${event.location ? `場所: ${event.location}\n` : ""}
@@ -80,7 +80,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
 
   const handleSelectNext = () => {
     if (selectedCustomers.length === 0) {
-      toast.error("招待する顧客を選択してください");
+      toast.error("案内する顧客を選択してください");
       return;
     }
     setStep("customize");
@@ -99,7 +99,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
   };
 
   const handleSend = () => {
-    toast.success(`${selectedCustomers.length}名に招待メールを送信しました`);
+    toast.success(`${selectedCustomers.length}名に案内メールを送信しました`);
     router.push(`/admin/events/${id}`);
   };
 
@@ -172,12 +172,12 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
             return customer.type === originalType;
           });
 
-        // 招待状況フィルタ（チェックがない場合はすべて表示）
+        // 案内状況フィルタ（チェックがない場合はすべて表示）
         const matchesInviteStatus =
           inviteStatuses.length === 0 ||
           inviteStatuses.some((status) => {
-            if (status === "招待済み") return customer.isInvited;
-            if (status === "未招待") return !customer.isInvited;
+            if (status === "案内済み") return customer.isInvited;
+            if (status === "未案内") return !customer.isInvited;
             return true;
           });
 
@@ -190,7 +190,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
   // ステップインジケーターコンポーネント
   const StepIndicator = () => {
     const steps = [
-      { key: "select", label: "招待者を選択", number: 1 },
+      { key: "select", label: "案内者を選択", number: 1 },
       { key: "customize", label: "メール文作成", number: 2 },
       { key: "confirm", label: "確認", number: 3 },
       { key: "send", label: "送信", number: 4 },
@@ -260,7 +260,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
     );
   }
 
-  // ステップ1: 招待する人を選ぶ
+  // ステップ1: 案内する人を選ぶ
   if (step === "select") {
     return (
       <div className="max-w-4xl space-y-6">
@@ -271,9 +271,9 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
             </Link>
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">招待メール送信</h1>
+            <h1 className="text-3xl font-bold tracking-tight">案内メール送信</h1>
             <p className="text-muted-foreground">
-              招待メールを送信する顧客を選択してください。
+              案内メールを送信する顧客を選択してください。
             </p>
           </div>
         </div>
@@ -282,9 +282,9 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
 
         <Card>
           <CardHeader>
-            <CardTitle>招待者を選択</CardTitle>
+            <CardTitle>案内者を選択</CardTitle>
             <CardDescription>
-              未招待の顧客を選択して招待メールを送信します。
+              未案内の顧客を選択して案内メールを送信します。
               <br/>
               ※送信時に自動で個別ID付きURLが生成されます。
             </CardDescription>
@@ -382,7 +382,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                   >
                     <span className="text-sm">
                       {inviteStatuses.length === 0
-                        ? "招待状況"
+                        ? "案内状況"
                         : inviteStatuses.length === 1
                         ? inviteStatuses[0]
                         : `${inviteStatuses.length}件選択`}
@@ -395,7 +395,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <Input
-                        placeholder="招待状況を検索"
+                        placeholder="案内状況を検索"
                         value={inviteStatusSearch}
                         onChange={(e) => setInviteStatusSearch(e.target.value)}
                         className="pl-8 h-9"
@@ -404,8 +404,8 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                   </div>
                   <div className="p-2 max-h-[300px] overflow-y-auto">
                     {[
-                      { value: "招待済み", label: "招待済み" },
-                      { value: "未招待", label: "未招待" },
+                      { value: "案内済み", label: "案内済み" },
+                      { value: "未案内", label: "未案内" },
                     ]
                       .filter((status) =>
                         status.label
@@ -431,7 +431,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                           />
                           <Badge
                             variant={
-                              status.value === "招待済み" ? "default" : "secondary"
+                              status.value === "案内済み" ? "default" : "secondary"
                             }
                             className="cursor-pointer"
                           >
@@ -457,7 +457,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                   <TableHead>氏名</TableHead>
                   <TableHead>会社名</TableHead>
                   <TableHead>会員区分</TableHead>
-                  <TableHead>招待状況</TableHead>
+                  <TableHead>案内状況</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -493,7 +493,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                             customer.isInvited ? "default" : "outline"
                           }
                         >
-                          {customer.isInvited ? "招待済み" : "未招待"}
+                          {customer.isInvited ? "案内済み" : "未案内"}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -525,9 +525,9 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">招待メール送信</h1>
+            <h1 className="text-3xl font-bold tracking-tight">案内メール送信</h1>
             <p className="text-muted-foreground">
-              招待メールのタイトルと本文を編集できます。
+              案内メールのタイトルと本文を編集できます。
             </p>
           </div>
         </div>
@@ -587,7 +587,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">招待メール送信</h1>
+            <h1 className="text-3xl font-bold tracking-tight">案内メール送信</h1>
             <p className="text-muted-foreground">
               送信内容を確認して、テスト送信または送信を実行してください。
             </p>

@@ -108,7 +108,7 @@ export default function EventsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">イベント管理</h1>
           <p className="text-muted-foreground">
-            イベントの作成、編集、招待管理を行います。
+            イベントの作成、編集、案内管理を行います。
           </p>
         </div>
         <Button variant="outline" asChild>
@@ -285,7 +285,7 @@ export default function EventsPage() {
                         <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
                           <Link href={`/admin/events/${event.id}/invite`} className="flex items-center gap-2">
                             <Mail className="h-4 w-4" />
-                            招待
+                            案内
                           </Link>
                         </DropdownMenuItem>
                       )}
