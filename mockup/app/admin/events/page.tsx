@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { events, getEventStatus } from "@/lib/data/mock";
-import { Plus, MoreVertical, Edit, Mail, Pause, Search, ChevronDown, Play } from "lucide-react";
+import { Plus, MoreVertical, Edit, Mail, Pause, Search, ChevronDown, Play, FileText } from "lucide-react";
 
 export default function EventsPage() {
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -274,12 +274,22 @@ export default function EventsPage() {
                           編集
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
-                        <Link href={`/admin/events/${event.id}/invite`} className="flex items-center gap-2">
-                          <Mail className="h-4 w-4" />
-                          招待
-                        </Link>
-                      </DropdownMenuItem>
+                      {event.status === "open" && (
+                        <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+                          <Link href={`/admin/events/${event.id}/invite`} className="flex items-center gap-2">
+                            <Mail className="h-4 w-4" />
+                            招待
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                      {event.status === "closed" && (
+                        <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+                          <Link href={`/admin/events/${event.id}/survey`} className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            アンケート送信
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem className="bg-white hover:bg-gray-100 cursor-pointer">
                         <div className="flex items-center gap-2">
                           {event.isPaused ? (

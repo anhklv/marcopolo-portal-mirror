@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, use, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,9 +20,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ArrowLeft, Mail, UserCheck, Edit, MoreVertical, Pause, Play } from "lucide-react";
+import { ArrowLeft, Mail, UserCheck, Edit, MoreVertical, Pause, Play, FileText, Search, ChevronDown, Send } from "lucide-react";
 import { events, customers, rsvps, getEventStatus } from "@/lib/data/mock";
 import { cn } from "@/lib/utils";
 import {
@@ -37,11 +52,17 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   const eventData = events.find((e) => e.id === id) || events[0];
   const event = { ...eventData, status: getEventStatus(eventData) }; // ステータスを自動判定
 
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [statusSearch, setStatusSearch] = useState("");
+  const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
+  const [isSendingReminder, setIsSendingReminder] = useState(false);
+
   // このイベントのRSVPデータを取得
   const eventRsvps = rsvps.filter((r) => r.eventId === id);
   
   // 参加者リストを作成（RSVPデータと顧客データを結合）
-  const attendees = eventRsvps.map((rsvp) => {
+  const allAttendees = eventRsvps.map((rsvp) => {
     const customer = customers.find((c) => c.id === rsvp.customerId);
     if (!customer) return null;
     const { status: _, ...customerWithoutStatus } = customer;
@@ -52,10 +73,71 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
     };
   }).filter((a): a is NonNullable<typeof a> => a !== null);
 
-  // 集計サマリを計算
-  const attendCount = attendees.filter((a) => a.rsvpStatus === "参加").length;
-  const declineCount = attendees.filter((a) => a.rsvpStatus === "不参加").length;
-  const noResponseCount = attendees.filter((a) => a.rsvpStatus === "未回答").length;
+  // 検索とフィルタで絞り込んだ参加者リスト
+  const attendees = useMemo(() => {
+    return allAttendees.filter((attendee) => {
+      // フリーワード検索（氏名、会社名）
+      const matchesKeyword =
+        searchKeyword === "" ||
+        attendee.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+        attendee.company?.toLowerCase().includes(searchKeyword.toLowerCase());
+
+      // ステータスフィルタ（チェックがない場合はすべて表示）
+      const matchesStatus =
+        selectedStatuses.length === 0 ||
+        selectedStatuses.includes(attendee.rsvpStatus);
+
+      return matchesKeyword && matchesStatus;
+    });
+  }, [allAttendees, searchKeyword, selectedStatuses]);
+
+  // 集計サマリを計算（フィルタ前の全データから）
+  const attendCount = allAttendees.filter((a) => a.rsvpStatus === "参加").length;
+  const declineCount = allAttendees.filter((a) => a.rsvpStatus === "不参加").length;
+  const noResponseCount = allAttendees.filter((a) => a.rsvpStatus === "未回答").length;
+
+  // 未回答者リスト
+  const noResponseAttendees = allAttendees.filter((a) => a.rsvpStatus === "未回答");
+
+  // 未回答者への再送処理
+  const handleSendReminder = async () => {
+    if (noResponseAttendees.length === 0) {
+      toast.error("未回答者がいません");
+      return;
+    }
+
+    setIsSendingReminder(true);
+    
+    try {
+      // モック: 実際の実装ではAPIを呼び出す
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      toast.success(`未回答者${noResponseAttendees.length}名にリマインドメールを送信しました`);
+      setIsReminderDialogOpen(false);
+    } catch (error) {
+      toast.error("メール送信に失敗しました");
+    } finally {
+      setIsSendingReminder(false);
+    }
+  };
+
+  const handleStatusChange = (status: string, checked: boolean) => {
+    if (checked) {
+      setSelectedStatuses([...selectedStatuses, status]);
+    } else {
+      setSelectedStatuses(selectedStatuses.filter((s) => s !== status));
+    }
+  };
+
+  const handleSearch = () => {
+    // 検索処理は useMemo で自動的に実行される
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -100,12 +182,33 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 編集
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
-              <Link href={`/admin/events/${id}/invite`} className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                招待
-              </Link>
-            </DropdownMenuItem>
+            {event.status === "open" && (
+              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+                <Link href={`/admin/events/${id}/invite`} className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  招待
+                </Link>
+              </DropdownMenuItem>
+            )}
+            {event.status === "open" && noResponseAttendees.length > 0 && (
+              <DropdownMenuItem
+                className="bg-white hover:bg-gray-100 cursor-pointer"
+                onClick={() => setIsReminderDialogOpen(true)}
+              >
+                <div className="flex items-center gap-2">
+                  <Send className="h-4 w-4" />
+                  未回答者に再送 ({noResponseAttendees.length}名)
+                </div>
+              </DropdownMenuItem>
+            )}
+            {event.status === "closed" && (
+              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+                <Link href={`/admin/events/${id}/survey`} className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  アンケート送信
+                </Link>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem className="bg-white hover:bg-gray-100 cursor-pointer">
               <div className="flex items-center gap-2">
                 {event.isPaused ? (
@@ -139,7 +242,103 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                             <CardTitle>参加者リスト</CardTitle>
                             <CardDescription>現在の回答状況です。</CardDescription>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-center gap-3 flex-wrap">
+                                <div className="relative flex-1 max-w-md">
+                                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        type="search"
+                                        placeholder="氏名、会社名で検索..."
+                                        className="pl-9 h-10"
+                                        value={searchKeyword}
+                                        onChange={(e) => setSearchKeyword(e.target.value)}
+                                        onKeyDown={handleKeyDown}
+                                    />
+                                </div>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className="w-[200px] justify-between h-10"
+                                        >
+                                            <span className="text-sm">
+                                                {selectedStatuses.length === 0
+                                                    ? "受付ステータス"
+                                                    : selectedStatuses.length === 1
+                                                    ? selectedStatuses[0]
+                                                    : `${selectedStatuses.length}件選択`}
+                                            </span>
+                                            <ChevronDown className="h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[280px] p-0 bg-white" align="start">
+                                        <div className="p-3 border-b">
+                                            <div className="relative">
+                                                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                                <Input
+                                                    placeholder="ステータスを検索"
+                                                    value={statusSearch}
+                                                    onChange={(e) => setStatusSearch(e.target.value)}
+                                                    className="pl-8 h-9"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="p-2 max-h-[300px] overflow-y-auto">
+                                            {[
+                                                { value: "参加", label: "参加" },
+                                                { value: "不参加", label: "不参加" },
+                                                { value: "未回答", label: "未回答" },
+                                            ]
+                                                .filter((status) =>
+                                                    status.label
+                                                        .toLowerCase()
+                                                        .includes(statusSearch.toLowerCase())
+                                                )
+                                                .map((status) => (
+                                                    <div
+                                                        key={status.value}
+                                                        className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
+                                                        onClick={() =>
+                                                            handleStatusChange(
+                                                                status.value,
+                                                                !selectedStatuses.includes(status.value)
+                                                            )
+                                                        }
+                                                    >
+                                                        <Checkbox
+                                                            checked={selectedStatuses.includes(status.value)}
+                                                            onCheckedChange={(checked) =>
+                                                                handleStatusChange(status.value, checked === true)
+                                                            }
+                                                        />
+                                                        <Badge
+                                                            variant={
+                                                                status.value === "参加"
+                                                                    ? "default"
+                                                                    : status.value === "不参加"
+                                                                    ? "destructive"
+                                                                    : "secondary"
+                                                            }
+                                                            className={cn(
+                                                                status.value === "未回答" && "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                                                                status.value === "不参加" && "text-foreground",
+                                                                "cursor-pointer"
+                                                            )}
+                                                        >
+                                                            {status.label}
+                                                        </Badge>
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+
+                                <Button variant="outline" onClick={handleSearch} className="h-10 cursor-pointer">
+                                    <Search className="h-4 w-4" />
+                                    検索
+                                </Button>
+                            </div>
+
                             <Table>
                                 <TableHeader>
                                     <TableRow>
@@ -150,27 +349,35 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {attendees.map((attendee) => (
-                                        <TableRow key={attendee.id}>
-                                            <TableCell>{attendee.name}</TableCell>
-                                            <TableCell>{attendee.company}</TableCell>
-                                            <TableCell>
-                                                <Badge 
-                                                    variant={
-                                                        attendee.rsvpStatus === "参加" ? "default" : 
-                                                        attendee.rsvpStatus === "不参加" ? "destructive" : "secondary"
-                                                    }
-                                                    className={cn(
-                                                        attendee.rsvpStatus === "未回答" && "bg-gray-100 text-gray-600 hover:bg-gray-200",
-                                                        attendee.rsvpStatus === "不参加" && "text-foreground"
-                                                    )}
-                                                >
-                                                    {attendee.rsvpStatus}
-                                                </Badge>
+                                    {attendees.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={4} className="text-center text-muted-foreground">
+                                                検索条件に一致する参加者が見つかりませんでした。
                                             </TableCell>
-                                            <TableCell>{attendee.respondedAt === "-" ? "-" : attendee.respondedAt}</TableCell>
                                         </TableRow>
-                                    ))}
+                                    ) : (
+                                        attendees.map((attendee) => (
+                                            <TableRow key={attendee.id}>
+                                                <TableCell>{attendee.name}</TableCell>
+                                                <TableCell>{attendee.company}</TableCell>
+                                                <TableCell>
+                                                    <Badge 
+                                                        variant={
+                                                            attendee.rsvpStatus === "参加" ? "default" : 
+                                                            attendee.rsvpStatus === "不参加" ? "destructive" : "secondary"
+                                                        }
+                                                        className={cn(
+                                                            attendee.rsvpStatus === "未回答" && "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                                                            attendee.rsvpStatus === "不参加" && "text-foreground"
+                                                        )}
+                                                    >
+                                                        {attendee.rsvpStatus}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>{attendee.respondedAt === "-" ? "-" : attendee.respondedAt}</TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
                                 </TableBody>
                             </Table>
                         </CardContent>
@@ -242,25 +449,67 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 </CardContent>
             </Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>アクション</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                    <Button variant="outline" className="w-full justify-start cursor-pointer">
-                        <Mail className="h-4 w-4" />
-                        未回答者に再送
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start cursor-pointer" asChild>
-                        <Link href={`/events/${id}/rsvp?token=demo-token`} target="_blank">
-                            <UserCheck className="h-4 w-4" />
-                            参加回答フォーム (サンプル)
-                        </Link>
-                    </Button>
-                </CardContent>
-            </Card>
+            <div className="text-sm">
+              <Link
+                href={`/events/${id}/rsvp?token=demo-token`}
+                target="_blank"
+                className="text-muted-foreground hover:text-foreground underline"
+              >
+                参加回答フォーム (サンプル)
+              </Link>
+            </div>
+
         </div>
       </div>
+
+      {/* 未回答者への再送確認ダイアログ */}
+      <Dialog open={isReminderDialogOpen} onOpenChange={setIsReminderDialogOpen}>
+        <DialogContent className="bg-white">
+          <DialogHeader>
+            <DialogTitle>未回答者への再送</DialogTitle>
+            <DialogDescription>
+              未回答者{noResponseAttendees.length}名にリマインドメールを送信しますか？
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="text-sm text-muted-foreground mb-2">送信対象:</div>
+            <div className="max-h-40 overflow-y-auto space-y-1">
+              {noResponseAttendees.map((attendee) => (
+                <div key={attendee.id} className="text-sm">
+                  {attendee.name} ({attendee.email})
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsReminderDialogOpen(false)}
+              disabled={isSendingReminder}
+            >
+              キャンセル
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleSendReminder}
+              disabled={isSendingReminder}
+              className="cursor-pointer"
+            >
+              {isSendingReminder ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                  送信中...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  送信
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
