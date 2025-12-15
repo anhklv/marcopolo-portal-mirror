@@ -29,14 +29,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ArrowLeft, Mail, Edit, MoreVertical, Pause, Play, FileText, Search, ChevronDown, Send } from "lucide-react";
 import { events, customers, rsvps, getEventStatus } from "@/lib/data/mock";
@@ -63,8 +55,6 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [statusSearch, setStatusSearch] = useState("");
-  const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
-  const [isSendingReminder, setIsSendingReminder] = useState(false);
 
   // このイベントのRSVPデータを取得
   const eventRsvps = rsvps.filter((r) => r.eventId === id);
@@ -106,28 +96,6 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
   // 未回答者リスト
   const noResponseAttendees = allAttendees.filter((a) => a.rsvpStatus === "未回答");
-
-  // 未回答者への再送処理
-  const handleSendReminder = async () => {
-    if (noResponseAttendees.length === 0) {
-      toast.error("未回答者がいません");
-      return;
-    }
-
-    setIsSendingReminder(true);
-    
-    try {
-      // モック: 実際の実装ではAPIを呼び出す
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      toast.success(`未回答者${noResponseAttendees.length}名にリマインドメールを送信しました`);
-      setIsReminderDialogOpen(false);
-    } catch (error) {
-      toast.error("メール送信に失敗しました");
-    } finally {
-      setIsSendingReminder(false);
-    }
-  };
 
   const handleStatusChange = (status: string, checked: boolean) => {
     if (checked) {
@@ -192,14 +160,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               </DropdownMenuItem>
             )}
             {eventStatus === "open" && noResponseAttendees.length > 0 && (
-              <DropdownMenuItem
-                className="bg-white hover:bg-gray-100 cursor-pointer"
-                onClick={() => setIsReminderDialogOpen(true)}
-              >
-                <div className="flex items-center gap-2">
+              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+                <Link href={`/admin/events/${id}/remind`} className="flex items-center gap-2">
                   <Send className="h-4 w-4" />
                   未回答者に再送 ({noResponseAttendees.length}名)
-                </div>
+                </Link>
               </DropdownMenuItem>
             )}
             {eventStatus === "closed" && (
@@ -466,54 +431,6 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
 
-      {/* 未回答者への再送確認ダイアログ */}
-      <Dialog open={isReminderDialogOpen} onOpenChange={setIsReminderDialogOpen}>
-        <DialogContent className="bg-white">
-          <DialogHeader>
-            <DialogTitle>未回答者への再送</DialogTitle>
-            <DialogDescription>
-              未回答者{noResponseAttendees.length}名にリマインドメールを送信しますか？
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="text-sm text-muted-foreground mb-2">送信対象:</div>
-            <div className="max-h-40 overflow-y-auto space-y-1">
-              {noResponseAttendees.map((attendee) => (
-                <div key={attendee.id} className="text-sm">
-                  {attendee.name} ({attendee.email})
-                </div>
-              ))}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsReminderDialogOpen(false)}
-              disabled={isSendingReminder}
-            >
-              キャンセル
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleSendReminder}
-              disabled={isSendingReminder}
-              className="cursor-pointer"
-            >
-              {isSendingReminder ? (
-                <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
-                  送信中...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4 mr-2" />
-                  送信
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
