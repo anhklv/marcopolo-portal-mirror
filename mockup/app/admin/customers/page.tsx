@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { customers, Customer } from "@/lib/data/mock";
-import { Plus, Search, Users, ChevronDown } from "lucide-react";
+import { Plus, Search, Users, ChevronDown, Download } from "lucide-react";
+import { toast } from "sonner";
 
 export default function CustomersPage() {
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -74,6 +75,69 @@ export default function CustomersPage() {
       "非会員": "非会員",
     };
     return mapping[displayName] || displayName;
+  };
+
+  // CSVダウンロード処理
+  const handleDownloadCSV = () => {
+    // CSVヘッダー
+    const headers = [
+      "ID",
+      "氏名",
+      "セイメイ",
+      "会社名",
+      "メールアドレス",
+      "電話番号",
+      "会員区分",
+      "ステータス",
+      "登録日",
+      "備考",
+    ];
+
+    // CSVデータ行を生成
+    const csvRows = [
+      headers.join(","),
+      ...filteredCustomers.map((customer) => {
+        const row = [
+          customer.id,
+          customer.name,
+          customer.nameKana || "",
+          customer.company || "",
+          customer.email,
+          customer.phone || "",
+          customer.type,
+          customer.status === "active" ? "アクティブ" : "非アクティブ",
+          customer.registeredAt,
+          customer.note || "",
+        ];
+        // カンマや改行を含む可能性のある値をダブルクォートで囲む
+        return row.map((cell) => {
+          const cellStr = String(cell);
+          if (cellStr.includes(",") || cellStr.includes('"') || cellStr.includes("\n")) {
+            return `"${cellStr.replace(/"/g, '""')}"`;
+          }
+          return cellStr;
+        }).join(",");
+      }),
+    ];
+
+    // CSV文字列を生成
+    const csvContent = csvRows.join("\n");
+
+    // BOMを追加してExcelで正しく開けるようにする
+    const BOM = "\uFEFF";
+    const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
+
+    // ダウンロードリンクを作成
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `customers_${new Date().toISOString().split("T")[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast.success("CSVファイルをダウンロードしました");
   };
 
   const filteredCustomers = useMemo(() => {
@@ -291,7 +355,7 @@ export default function CustomersPage() {
         </Popover>
 
         <Button variant="outline" onClick={handleSearch} className="h-10">
-          <Search className="mr-0.5 h-4 w-4" />
+          <Search className="h-4 w-4" />
           検索
         </Button>
       </div>
@@ -318,7 +382,13 @@ export default function CustomersPage() {
               </TableRow>
             ) : (
               filteredCustomers.map((customer, index) => (
-                <TableRow key={customer.id}>
+                <TableRow
+                  key={customer.id}
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => {
+                    window.location.href = `/admin/customers/${customer.id}`;
+                  }}
+                >
                   <TableCell className="font-medium">{index + 1}</TableCell>
                   <TableCell>{customer.name}</TableCell>
                   <TableCell>{customer.company}</TableCell>
@@ -341,9 +411,9 @@ export default function CustomersPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>{customer.registeredAt}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     <Button variant="outline" size="sm" asChild>
-                      <Link href={`/admin/customers/${customer.id}`}>編集</Link>
+                      <Link href={`/admin/customers/${customer.id}/edit`}>編集</Link>
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -351,6 +421,13 @@ export default function CustomersPage() {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="flex justify-end">
+        <Button variant="outline" onClick={handleDownloadCSV}>
+          <Download className="h-4 w-4" />
+          CSVダウンロード
+        </Button>
       </div>
     </div>
   );
