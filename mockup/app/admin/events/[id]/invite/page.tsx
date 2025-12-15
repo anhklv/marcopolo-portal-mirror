@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use, useEffect } from "react";
+import { useState, use, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -23,8 +23,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, Send, Mail, Check } from "lucide-react";
+import { ArrowLeft, Send, Mail, Check, Search, Users, ChevronDown } from "lucide-react";
 import { customers, events } from "@/lib/data/mock";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +49,9 @@ export default function EventInvitePage({
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   const [emailTitle, setEmailTitle] = useState("");
   const [emailBody, setEmailBody] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [memberTypes, setMemberTypes] = useState<string[]>([]);
+  const [memberTypeSearch, setMemberTypeSearch] = useState("");
 
   // デフォルトのメールタイトルと本文を設定
   useEffect(() => {
@@ -95,6 +104,70 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
         : [...prev, customerId]
     );
   };
+
+  const handleSearch = () => {
+    // 検索処理は useMemo で自動的に実行される
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
+  const handleMemberTypeChange = (type: string, checked: boolean) => {
+    if (checked) {
+      setMemberTypes([...memberTypes, type]);
+    } else {
+      setMemberTypes(memberTypes.filter((t) => t !== type));
+    }
+  };
+
+  // 会員区分の表示名を短縮する関数（「会員」を除く）
+  const getMemberTypeDisplayName = (type: string): string => {
+    const mapping: Record<string, string> = {
+      "監査役協会会員": "監査役協会",
+      "ないかんMeetup会員": "ないかんMeetup",
+      "非会員": "非会員",
+    };
+    return mapping[type] || type;
+  };
+
+  // 会員区分の表示名から元の値を取得する関数
+  const getMemberTypeFromDisplayName = (displayName: string): string => {
+    const mapping: Record<string, string> = {
+      "監査役協会": "監査役協会会員",
+      "ないかんMeetup": "ないかんMeetup会員",
+      "非会員": "非会員",
+    };
+    return mapping[displayName] || displayName;
+  };
+
+  // アクティブな顧客のみをフィルタリングし、検索条件で絞り込む
+  const filteredCustomers = useMemo(() => {
+    const filtered = customers
+      .filter((customer) => customer.status === "active") // アクティブな顧客のみ
+      .filter((customer) => {
+        // フリーワード検索
+        const matchesKeyword =
+          searchKeyword === "" ||
+          customer.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+          customer.company?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+          customer.email.toLowerCase().includes(searchKeyword.toLowerCase());
+
+        // 会員区分フィルタ（チェックがない場合はすべて表示）
+        const matchesMemberType =
+          memberTypes.length === 0 ||
+          memberTypes.some((type) => {
+            const originalType = getMemberTypeFromDisplayName(type);
+            return customer.type === originalType;
+          });
+
+        return matchesKeyword && matchesMemberType;
+      });
+
+    return filtered;
+  }, [searchKeyword, memberTypes]);
 
   // ステップインジケーターコンポーネント
   const StepIndicator = () => {
@@ -199,6 +272,97 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="名前、会社名、メールアドレスで検索..."
+                  className="pl-9 h-10"
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
+              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-[200px] justify-between h-10"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        {memberTypes.length === 0
+                          ? "会員区分"
+                          : memberTypes.length === 1
+                          ? memberTypes[0]
+                          : `${memberTypes.length}件選択`}
+                      </span>
+                    </div>
+                    <ChevronDown className="h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[280px] p-0 bg-white" align="start">
+                  <div className="p-3 border-b">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        placeholder="会員区分を検索"
+                        value={memberTypeSearch}
+                        onChange={(e) => setMemberTypeSearch(e.target.value)}
+                        className="pl-8 h-9"
+                      />
+                    </div>
+                  </div>
+                  <div className="p-2 max-h-[300px] overflow-y-auto">
+                    {[
+                      { original: "監査役協会会員", display: "監査役協会" },
+                      { original: "ないかんMeetup会員", display: "ないかんMeetup" },
+                      { original: "非会員", display: "非会員" },
+                    ]
+                      .filter((item) =>
+                        item.display
+                          .toLowerCase()
+                          .includes(memberTypeSearch.toLowerCase())
+                      )
+                      .map((item) => (
+                        <div
+                          key={item.original}
+                          className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
+                          onClick={() =>
+                            handleMemberTypeChange(
+                              item.display,
+                              !memberTypes.includes(item.display)
+                            )
+                          }
+                        >
+                          <Checkbox
+                            checked={memberTypes.includes(item.display)}
+                            onCheckedChange={(checked) =>
+                              handleMemberTypeChange(item.display, checked === true)
+                            }
+                          />
+                          <Badge
+                            variant={
+                              item.original === "非会員" ? "secondary" : "default"
+                            }
+                            className="cursor-pointer"
+                          >
+                            {item.display}
+                          </Badge>
+                        </div>
+                      ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <Button variant="outline" onClick={handleSearch} className="h-10 cursor-pointer">
+                <Search className="h-4 w-4" />
+                検索
+              </Button>
+            </div>
+
             <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
               <div>
                 <span className="font-medium">{selectedCustomers.length}名</span> 選択中
@@ -215,19 +379,35 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {customers.map((customer) => (
-                  <TableRow key={customer.id}>
-                    <TableCell>
-                      <Checkbox 
-                        checked={selectedCustomers.includes(customer.id)}
-                        onCheckedChange={() => toggleCustomer(customer.id)}
-                      />
+                {filteredCustomers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground">
+                      検索条件に一致する顧客が見つかりませんでした。
                     </TableCell>
-                    <TableCell>{customer.name}</TableCell>
-                    <TableCell>{customer.company}</TableCell>
-                    <TableCell>{customer.type}</TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredCustomers.map((customer) => (
+                    <TableRow key={customer.id}>
+                      <TableCell>
+                        <Checkbox 
+                          checked={selectedCustomers.includes(customer.id)}
+                          onCheckedChange={() => toggleCustomer(customer.id)}
+                        />
+                      </TableCell>
+                      <TableCell>{customer.name}</TableCell>
+                      <TableCell>{customer.company}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            customer.type === "非会員" ? "secondary" : "default"
+                          }
+                        >
+                          {getMemberTypeDisplayName(customer.type)}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
 
