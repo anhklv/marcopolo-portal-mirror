@@ -7,8 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { events } from "@/lib/data/mock";
 
 export default function EventEditPage({
@@ -47,16 +56,28 @@ export default function EventEditPage({
 
   const [title, setTitle] = useState(event.title);
   const [date, setDate] = useState(formatDateForInput(event.date));
+  const [overview, setOverview] = useState(event.description);
+  const [timetable, setTimetable] = useState((event as any).timetable || "");
   const [location, setLocation] = useState(event.location);
-  const [description, setDescription] = useState(event.description);
+  const [note, setNote] = useState((event as any).note || "");
   const [responseDeadline, setResponseDeadline] = useState(
     event.responseDeadline ? formatDateForInput(event.responseDeadline) : ""
   );
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!title || !date) {
+      toast.error("イベント名と開催日時は必須です");
+      return;
+    }
     toast.success("イベント情報を更新しました");
     router.push(`/admin/events/${id}`);
+  };
+
+  const handleDelete = () => {
+    toast.success("イベントを削除しました");
+    router.push("/admin/events");
   };
 
   return (
@@ -100,24 +121,46 @@ export default function EventEditPage({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="location">場所 <span className="text-red-500">*</span></Label>
-            <Input
-              id="location"
-              placeholder="例: 東京都港区六本木 1-1-1 会議室A"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              required
+            <Label htmlFor="overview">イベント概要</Label>
+            <Textarea
+              id="overview"
+              placeholder="イベントの概要を入力してください"
+              rows={5}
+              value={overview}
+              onChange={(e) => setOverview(e.target.value)}
             />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="description">詳細説明</Label>
+            <Label htmlFor="timetable">タイムテーブル</Label>
             <Textarea
-              id="description"
-              placeholder="イベントの詳細やテーマなどを入力してください"
+              id="timetable"
+              placeholder="タイムテーブルを入力してください"
               rows={5}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              value={timetable}
+              onChange={(e) => setTimetable(e.target.value)}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="location">場所</Label>
+            <Textarea
+              id="location"
+              placeholder="例: 東京都港区六本木 1-1-1 会議室A"
+              rows={3}
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="note">備考</Label>
+            <Textarea
+              id="note"
+              placeholder="備考を入力してください"
+              rows={5}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
             />
           </div>
 
@@ -135,7 +178,39 @@ export default function EventEditPage({
           </div>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-between">
+          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button type="button" variant="outline" className="cursor-pointer text-destructive hover:text-destructive">
+                <Trash2 className="h-4 w-4 mr-2" />
+                削除
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-white">
+              <DialogHeader>
+                <DialogTitle>イベントを削除</DialogTitle>
+                <DialogDescription>
+                  このイベントを削除してもよろしいですか？この操作は取り消せません。
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDeleteDialogOpen(false)}
+                  className="cursor-pointer"
+                >
+                  キャンセル
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleDelete}
+                  className="cursor-pointer text-destructive hover:text-destructive"
+                >
+                  削除
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <Button type="submit" variant="outline" className="cursor-pointer">
             更新する
           </Button>
