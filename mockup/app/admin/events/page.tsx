@@ -225,7 +225,9 @@ export default function EventsPage() {
                     }
                   >
                     {event.status === "open"
-                      ? "受付中"
+                      ? event.isPaused
+                        ? "受付中(一時停止)"
+                        : "受付中"
                       : event.status === "planning"
                       ? "企画中"
                       : "終了"}

@@ -70,7 +70,9 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
               <Badge variant={event.status === "open" ? "default" : event.status === "closed" ? "outline" : "secondary"}>
                 {event.status === "open"
-                  ? "受付中"
+                  ? event.isPaused
+                    ? "受付中(一時停止)"
+                    : "受付中"
                   : event.status === "planning"
                   ? "企画中"
                   : "終了"}
