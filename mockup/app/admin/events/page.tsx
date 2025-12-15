@@ -229,7 +229,9 @@ export default function EventsPage() {
                         ? "受付中(一時停止)"
                         : "受付中"
                       : event.status === "planning"
-                      ? "企画中"
+                      ? event.isPaused
+                        ? "企画中(一時停止)"
+                        : "企画中"
                       : "終了"}
                   </Badge>
                 </TableCell>
