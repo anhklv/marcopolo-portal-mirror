@@ -1,6 +1,5 @@
 "use client";
 
-import { use } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import { ArrowLeft, Edit, Calendar } from "lucide-react";
 import { customers, events, rsvps } from "@/lib/data/mock";
+import { use } from "react";
 
 // 会員区分の表示名を短縮する関数
 const getMemberTypeDisplayName = (type: string): string => {

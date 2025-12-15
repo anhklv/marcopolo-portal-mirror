@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,8 @@ export default function EventSurveyPage({
   const { id } = use(params);
   const router = useRouter();
   const eventData = events.find((e) => e.id === id);
-  const event = eventData ? { ...eventData, status: getEventStatus(eventData) } : null;
+  const eventStatus = eventData ? getEventStatus(eventData) : null;
+  const event = eventData ? { ...eventData } : null;
   
   const [step, setStep] = useState<Step>("select");
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
@@ -214,7 +215,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
   }
 
   // 終了していないイベントの場合はエラー表示
-  if (event.status !== "closed") {
+  if (eventStatus !== "closed") {
     return (
       <div className="max-w-4xl space-y-6">
         <div className="text-center py-12">
@@ -507,4 +508,3 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
 
   return null;
 }
-

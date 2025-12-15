@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -105,15 +105,6 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
     );
   };
 
-  const handleSearch = () => {
-    // 検索処理は useMemo で自動的に実行される
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
-  };
 
   const handleMemberTypeChange = (type: string, checked: boolean) => {
     if (checked) {
@@ -281,7 +272,6 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                   className="pl-9 h-10"
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
-                  onKeyDown={handleKeyDown}
                 />
               </div>
               <Popover>
@@ -356,11 +346,6 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                   </div>
                 </PopoverContent>
               </Popover>
-
-              <Button variant="outline" onClick={handleSearch} className="h-10 cursor-pointer">
-                <Search className="h-4 w-4" />
-                検索
-              </Button>
             </div>
 
             <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
@@ -573,4 +558,3 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
 
   return null;
 }
-

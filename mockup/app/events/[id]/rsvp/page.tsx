@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, use, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect, use } from "react";
+import { notFound, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,7 +24,11 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   
-  const event = events.find((e) => id === e.id) || events[0];
+  const event = events.find((e) => id === e.id);
+
+  if (!event) {
+    notFound();
+  }
   const [email, setEmail] = useState("");
   const [emailVerified, setEmailVerified] = useState(false);
   const [customer, setCustomer] = useState<typeof customers[0] | null>(null);

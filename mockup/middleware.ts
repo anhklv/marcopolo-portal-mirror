@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
   const basicAuthPassword = process.env.BASIC_AUTH_PASSWORD;
 
   // 本番環境でBasic認証が有効な場合のみチェック
-  if (basicAuthEnabled || process.env.NODE_ENV === "production") {
+  if (basicAuthEnabled && process.env.NODE_ENV === "production") {
     // 環境変数が設定されていない場合はエラー
     if (!basicAuthUser || !basicAuthPassword) {
       return new NextResponse("Basic auth configuration is missing", {
@@ -57,4 +57,3 @@ export const config = {
     "/((?!api|_next/static|_next/image|favicon.ico).*)",
   ],
 };
-

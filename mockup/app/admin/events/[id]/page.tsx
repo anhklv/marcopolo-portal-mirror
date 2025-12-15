@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, use, useMemo } from "react";
+import { useState, useMemo, use } from "react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -37,7 +38,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ArrowLeft, Mail, UserCheck, Edit, MoreVertical, Pause, Play, FileText, Search, ChevronDown, Send } from "lucide-react";
+import { ArrowLeft, Mail, Edit, MoreVertical, Pause, Play, FileText, Search, ChevronDown, Send } from "lucide-react";
 import { events, customers, rsvps, getEventStatus } from "@/lib/data/mock";
 import { cn } from "@/lib/utils";
 import {
@@ -49,8 +50,15 @@ import {
 
 export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const eventData = events.find((e) => e.id === id) || events[0];
-  const event = { ...eventData, status: getEventStatus(eventData) }; // ステータスを自動判定
+  const eventData = events.find((e) => e.id === id);
+
+  if (!eventData) {
+    notFound();
+  }
+
+  const eventStatus = getEventStatus(eventData);
+  const [isPaused, setIsPaused] = useState(eventData.isPaused ?? false);
+  const event = eventData;
 
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
@@ -129,15 +137,6 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
     }
   };
 
-  const handleSearch = () => {
-    // 検索処理は useMemo で自動的に実行される
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -151,18 +150,20 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
-              <Badge variant={
-                event.status === "open" 
-                  ? "default" 
-                  : event.status === "closed" 
-                  ? "outline" 
-                  : "secondary"
-              }>
-                {event.status === "open"
-                  ? event.isPaused
+              <Badge
+                variant={
+                  eventStatus === "open"
+                    ? "default"
+                    : eventStatus === "closed"
+                    ? "outline"
+                    : "secondary"
+                }
+              >
+                {eventStatus === "open"
+                  ? isPaused
                     ? "受付中(一時停止)"
                     : "受付中"
-                  : event.status === "waiting"
+                  : eventStatus === "waiting"
                   ? "開催待ち"
                   : "終了"}
               </Badge>
@@ -182,7 +183,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 編集
               </Link>
             </DropdownMenuItem>
-            {event.status === "open" && (
+            {eventStatus === "open" && (
               <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
                 <Link href={`/admin/events/${id}/invite`} className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
@@ -190,7 +191,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 </Link>
               </DropdownMenuItem>
             )}
-            {event.status === "open" && noResponseAttendees.length > 0 && (
+            {eventStatus === "open" && noResponseAttendees.length > 0 && (
               <DropdownMenuItem
                 className="bg-white hover:bg-gray-100 cursor-pointer"
                 onClick={() => setIsReminderDialogOpen(true)}
@@ -201,7 +202,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
               </DropdownMenuItem>
             )}
-            {event.status === "closed" && (
+            {eventStatus === "closed" && (
               <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
                 <Link href={`/admin/events/${id}/survey`} className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
@@ -209,9 +210,18 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 </Link>
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem className="bg-white hover:bg-gray-100 cursor-pointer">
+            <DropdownMenuItem
+              className="bg-white hover:bg-gray-100 cursor-pointer"
+              onClick={() =>
+                setIsPaused((prev) => {
+                  const next = !prev;
+                  toast.success(next ? "イベント受付を一時停止しました" : "イベント受付を再開しました");
+                  return next;
+                })
+              }
+            >
               <div className="flex items-center gap-2">
-                {event.isPaused ? (
+                {isPaused ? (
                   <>
                     <Play className="h-4 w-4" />
                     再開
@@ -252,7 +262,6 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                         className="pl-9 h-10"
                                         value={searchKeyword}
                                         onChange={(e) => setSearchKeyword(e.target.value)}
-                                        onKeyDown={handleKeyDown}
                                     />
                                 </div>
                                 <Popover>
@@ -332,11 +341,6 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                         </div>
                                     </PopoverContent>
                                 </Popover>
-
-                                <Button variant="outline" onClick={handleSearch} className="h-10 cursor-pointer">
-                                    <Search className="h-4 w-4" />
-                                    検索
-                                </Button>
                             </div>
 
                             <Table>

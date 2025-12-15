@@ -17,7 +17,6 @@ export type Event = {
   date: string;
   location: string;
   description: string;
-  status: "open" | "waiting" | "closed";
   attendeesCount: number;
   responseDeadline?: string; // 回答期限
   isPaused?: boolean; // 一時停止中かどうか
@@ -26,10 +25,8 @@ export type Event = {
 // イベントのステータスを自動判定する関数
 export function getEventStatus(event: Event): "open" | "waiting" | "closed" {
   const now = new Date();
-  const eventDate = new Date(event.date.replace(" ", "T"));
-  const responseDeadline = event.responseDeadline 
-    ? new Date(event.responseDeadline.replace(" ", "T"))
-    : null;
+  const eventDate = new Date(event.date);
+  const responseDeadline = event.responseDeadline ? new Date(event.responseDeadline) : null;
 
   // 開催日時を過ぎている場合は終了
   if (now >= eventDate) {
@@ -188,103 +185,93 @@ export const events: Event[] = [
   {
     id: "E001",
     title: "第10回 監査役交流会",
-    date: "2028-06-15 18:00",
+    date: "2028-06-15T18:00:00+09:00",
     location: "東京都港区六本木 1-1-1 会議室A",
     description: "定例の監査役交流会です。今回のテーマは「ガバナンス改革」について。",
-    status: "open",
     attendeesCount: 24,
-    responseDeadline: "2028-06-10 23:59",
+    responseDeadline: "2028-06-10T23:59:00+09:00",
   },
   {
     id: "E002",
     title: "ないかんMeetup 7月度",
-    date: "2028-07-20 19:00",
+    date: "2028-07-20T19:00:00+09:00",
     location: "オンライン (Zoom)",
     description: "若手内部監査人向けのミートアップイベント。",
-    status: "open",
     attendeesCount: 0,
-    responseDeadline: "2028-07-15 23:59",
+    responseDeadline: "2028-07-15T23:59:00+09:00",
   },
   {
     id: "E003",
     title: "【特別セミナー】DX時代の監査",
-    date: "2028-05-10 15:00",
+    date: "2028-05-10T15:00:00+09:00",
     location: "東京都千代田区大手町",
     description: "外部講師を招いての特別セミナー。",
-    status: "closed",
     attendeesCount: 45,
-    responseDeadline: "2028-05-05 23:59",
+    responseDeadline: "2028-05-05T23:59:00+09:00",
   },
   {
     id: "E004",
     title: "第9回 監査役交流会",
-    date: "2024-03-20 18:00",
+    date: "2024-03-20T18:00:00+09:00",
     location: "東京都港区六本木 1-1-1 会議室A",
     description: "定例の監査役交流会です。今回のテーマは「リスク管理の実践」について。",
-    status: "closed",
     attendeesCount: 28,
-    responseDeadline: "2024-03-15 23:59",
+    responseDeadline: "2024-03-15T23:59:00+09:00",
   },
   {
     id: "E005",
     title: "ないかんMeetup 3月度",
-    date: "2024-02-15 19:00",
+    date: "2024-02-15T19:00:00+09:00",
     location: "オンライン (Zoom)",
     description: "若手内部監査人向けのミートアップイベント。",
-    status: "closed",
     attendeesCount: 15,
-    responseDeadline: "2024-02-10 23:59",
+    responseDeadline: "2024-02-10T23:59:00+09:00",
   },
   {
     id: "E006",
     title: "【新年会】監査役・内部監査人交流会",
-    date: "2024-01-25 18:30",
+    date: "2024-01-25T18:30:00+09:00",
     location: "東京都中央区銀座 レストラン",
     description: "新年を祝う交流会。親睦を深めながら情報交換を行います。",
-    status: "closed",
     attendeesCount: 35,
-    responseDeadline: "2024-01-20 23:59",
+    responseDeadline: "2024-01-20T23:59:00+09:00",
   },
   {
     id: "E007",
     title: "第11回 監査役交流会",
-    date: "2028-08-25 18:00",
+    date: "2028-08-25T18:00:00+09:00",
     location: "東京都港区六本木 1-1-1 会議室A",
     description: "定例の監査役交流会です。今回のテーマは「ESG経営と監査の役割」について。",
-    status: "open",
     attendeesCount: 18,
-    responseDeadline: "2028-08-20 23:59",
+    responseDeadline: "2028-08-20T23:59:00+09:00",
     isPaused: true,
   },
   {
     id: "E008",
     title: "ないかんMeetup 8月度",
-    date: "2028-09-15 19:00",
+    date: "2028-09-15T19:00:00+09:00",
     location: "オンライン (Zoom)",
     description: "若手内部監査人向けのミートアップイベント。今回は「リモート監査の実践」をテーマにします。",
-    status: "open",
     attendeesCount: 0,
-    responseDeadline: "2028-09-10 23:59",
+    responseDeadline: "2028-09-10T23:59:00+09:00",
   },
   {
     id: "E009",
     title: "【秋のセミナー】内部監査の最新動向",
-    date: "2028-10-12 14:00",
+    date: "2028-10-12T14:00:00+09:00",
     location: "東京都千代田区丸の内 セミナールーム",
     description: "内部監査の最新動向について、専門家を招いてセミナーを開催します。",
-    status: "open",
     attendeesCount: 32,
-    responseDeadline: "2028-10-05 23:59",
+    responseDeadline: "2028-10-05T23:59:00+09:00",
   },
   {
     id: "E010",
     title: "第12回 監査役交流会",
-    date: "2026-11-14 22:00",
+    date: "2026-11-14T22:00:00+09:00",
     location: "東京都港区六本木 1-1-1 会議室A",
     description: "定例の監査役交流会です。今回のテーマは「コーポレートガバナンスの実践」について。",
-    status: "waiting",
     attendeesCount: 20,
-    responseDeadline: "2024-12-01 23:59",
+    responseDeadline: "2024-12-01T23:59:00+09:00",
   },
 ];
 

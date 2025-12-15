@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,21 +26,13 @@ import { Plus, Search, Users, ChevronDown, Download } from "lucide-react";
 import { toast } from "sonner";
 
 export default function CustomersPage() {
+  const router = useRouter();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [memberTypes, setMemberTypes] = useState<string[]>([]);
   const [statuses, setStatuses] = useState<string[]>(["active"]);
   const [memberTypeSearch, setMemberTypeSearch] = useState("");
   const [statusSearch, setStatusSearch] = useState("");
 
-  const handleSearch = () => {
-    // 検索処理は useMemo で自動的に実行される
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
-  };
 
   const handleMemberTypeChange = (type: string, checked: boolean) => {
     if (checked) {
@@ -207,7 +200,6 @@ export default function CustomersPage() {
             className="pl-9 h-10"
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
-            onKeyDown={handleKeyDown}
           />
         </div>
         <Popover>
@@ -353,11 +345,6 @@ export default function CustomersPage() {
             </div>
           </PopoverContent>
         </Popover>
-
-        <Button variant="outline" onClick={handleSearch} className="h-10">
-          <Search className="h-4 w-4" />
-          検索
-        </Button>
       </div>
 
       <div className="rounded-lg border bg-white shadow-sm">
@@ -385,8 +372,15 @@ export default function CustomersPage() {
                 <TableRow
                   key={customer.id}
                   className="cursor-pointer hover:bg-gray-50"
+                  tabIndex={0}
                   onClick={() => {
-                    window.location.href = `/admin/customers/${customer.id}`;
+                    router.push(`/admin/customers/${customer.id}`);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      router.push(`/admin/customers/${customer.id}`);
+                    }
                   }}
                 >
                   <TableCell className="font-medium">{index + 1}</TableCell>

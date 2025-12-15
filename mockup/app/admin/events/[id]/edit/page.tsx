@@ -49,9 +49,9 @@ export default function EventEditPage({
     );
   }
 
-  // 日付フォーマットを変換（YYYY-MM-DD HH:MM → YYYY-MM-DDTHH:MM）
+  // 日付フォーマットを変換（ISO8601 → YYYY-MM-DDTHH:MM）
   const formatDateForInput = (dateStr: string) => {
-    return dateStr.replace(" ", "T");
+    return dateStr.slice(0, 16);
   };
 
   const [title, setTitle] = useState(event.title);
@@ -222,6 +222,3 @@ export default function EventEditPage({
     </div>
   );
 }
-
-
-

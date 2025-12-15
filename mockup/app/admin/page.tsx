@@ -2,10 +2,12 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, Calendar, ArrowRight } from "lucide-react";
-import { customers, events } from "@/lib/data/mock";
+import { customers, events, getEventStatus } from "@/lib/data/mock";
 
 export default function DashboardPage() {
-  const upcomingEvents = events.filter((e) => e.status === "open" || e.status === "waiting");
+  const upcomingEvents = events
+    .map((event) => ({ ...event, status: getEventStatus(event) }))
+    .filter((event) => event.status === "open" || event.status === "waiting");
 
   return (
     <div className="space-y-8">
@@ -66,11 +68,11 @@ export default function DashboardPage() {
             ))}
           </div>
           <div className="mt-4">
-              <Button variant="ghost" className="w-full" asChild>
-                  <Link href="/admin/events" className="flex items-center gap-2">
-                      すべてのイベントを見る <ArrowRight className="h-4 w-4" />
-                  </Link>
-              </Button>
+            <Button variant="outline" className="w-full" asChild>
+              <Link href="/admin/events" className="flex items-center gap-2">
+                すべてのイベントを見る <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </CardContent>
       </Card>

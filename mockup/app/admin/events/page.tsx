@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,21 +28,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { events, getEventStatus } from "@/lib/data/mock";
 import { Plus, MoreVertical, Edit, Mail, Pause, Search, ChevronDown, Play, FileText } from "lucide-react";
+import { toast } from "sonner";
 
 export default function EventsPage() {
+  const router = useRouter();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [statuses, setStatuses] = useState<string[]>([]);
   const [statusSearch, setStatusSearch] = useState("");
+  const [pausedOverrides, setPausedOverrides] = useState<Record<string, boolean>>({});
 
-  const handleSearch = () => {
-    // 検索処理は useMemo で自動的に実行される
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
-  };
 
   const handleStatusChange = (status: string, checked: boolean) => {
     if (checked) {
@@ -52,10 +47,13 @@ export default function EventsPage() {
   };
 
   const filteredEvents = useMemo(() => {
-    const filtered = events.map(event => ({
+    const enriched = events.map((event) => ({
       ...event,
-      status: getEventStatus(event) // ステータスを自動判定
-    })).filter((event) => {
+      status: getEventStatus(event),
+      isPaused: pausedOverrides[event.id] ?? event.isPaused ?? false,
+    }));
+
+    const filtered = enriched.filter((event) => {
       // フリーワード検索（イベント名、場所、概要、備考）
       const matchesKeyword =
         searchKeyword === "" ||
@@ -82,8 +80,8 @@ export default function EventsPage() {
       }
       
       // 開催日時で比較（YYYY-MM-DD HH:MM形式をDateオブジェクトに変換）
-      const dateA = new Date(a.date.replace(" ", "T")).getTime();
-      const dateB = new Date(b.date.replace(" ", "T")).getTime();
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
       
       if (aIsClosed) {
         // 終了したイベントは開催日時が近い順（最近終了した順、降順）
@@ -95,7 +93,15 @@ export default function EventsPage() {
     });
 
     return sorted;
-  }, [searchKeyword, statuses]);
+  }, [searchKeyword, statuses, pausedOverrides]);
+
+  const handleTogglePause = (eventId: string, current: boolean) => {
+    setPausedOverrides((prev) => {
+      const next = !current;
+      toast.success(next ? "イベント受付を一時停止しました" : "イベント受付を再開しました");
+      return { ...prev, [eventId]: next };
+    });
+  };
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -122,7 +128,6 @@ export default function EventsPage() {
             className="pl-9 h-10"
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
-            onKeyDown={handleKeyDown}
           />
         </div>
         <Popover>
@@ -233,8 +238,15 @@ export default function EventsPage() {
               <TableRow
                 key={event.id}
                 className="cursor-pointer hover:bg-gray-50"
+                tabIndex={0}
                 onClick={() => {
-                  window.location.href = `/admin/events/${event.id}`;
+                  router.push(`/admin/events/${event.id}`);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    router.push(`/admin/events/${event.id}`);
+                  }
                 }}
               >
                 <TableCell className="font-medium">{event.title}</TableCell>
@@ -290,7 +302,10 @@ export default function EventsPage() {
                           </Link>
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem className="bg-white hover:bg-gray-100 cursor-pointer">
+                      <DropdownMenuItem
+                        className="bg-white hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleTogglePause(event.id, event.isPaused ?? false)}
+                      >
                         <div className="flex items-center gap-2">
                           {event.isPaused ? (
                             <>
