@@ -236,9 +236,9 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                   <tbody>
                     {noResponseAttendees.map((attendee) => (
                       <tr key={attendee.id} className="border-t">
-                        <TableCell className="px-4 py-3">{attendee.name}</TableCell>
-                        <TableCell className="px-4 py-3">{attendee.company}</TableCell>
-                        <TableCell className="px-4 py-3">
+                        <td className="px-4 py-3">{attendee.name}</td>
+                        <td className="px-4 py-3">{attendee.company}</td>
+                        <td className="px-4 py-3">
                           <Badge
                             variant={
                               attendee.type === "非会員" ? "secondary" : "default"
@@ -246,8 +246,8 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                           >
                             {getMemberTypeDisplayName(attendee.type)}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-sm text-muted-foreground">{attendee.email}</TableCell>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-muted-foreground">{attendee.email}</td>
                       </tr>
                     ))}
                   </tbody>
