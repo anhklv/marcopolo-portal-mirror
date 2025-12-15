@@ -181,7 +181,7 @@ export default function EventEditPage({
         <div className="flex justify-between">
           <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
             <DialogTrigger asChild>
-              <Button type="button" variant="outline" className="cursor-pointer text-destructive hover:text-destructive">
+              <Button type="button" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer">
                 <Trash2 className="h-4 w-4 mr-2" />
                 削除
               </Button>

@@ -10,6 +10,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { customers, Customer } from "@/lib/data/mock";
@@ -73,6 +82,7 @@ export default function CustomerEditPage({
   const [phone, setPhone] = useState(customer.phone || "");
   const [note, setNote] = useState(customer.note || "");
   const [isInactive, setIsInactive] = useState(customer.status === "inactive");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,10 +91,8 @@ export default function CustomerEditPage({
   };
 
   const handleDelete = () => {
-    if (confirm("この顧客を削除してもよろしいですか？")) {
-      toast.success("顧客を削除しました");
-      router.push("/admin/customers");
-    }
+    toast.success("顧客を削除しました");
+    router.push("/admin/customers");
   };
 
   return (
@@ -264,15 +272,42 @@ export default function CustomerEditPage({
         </div>
 
         <div className="flex justify-between items-center pt-4 border-t">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleDelete}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
-          >
-            <Trash2 className="h-4 w-4" />
-            削除
-          </Button>
+          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                削除
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-white">
+              <DialogHeader>
+                <DialogTitle>顧客を削除</DialogTitle>
+                <DialogDescription>
+                  この顧客を削除してもよろしいですか？この操作は取り消せません。
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDeleteDialogOpen(false)}
+                  className="cursor-pointer"
+                >
+                  キャンセル
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleDelete}
+                  className="cursor-pointer text-destructive hover:text-destructive"
+                >
+                  削除
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <Button type="submit" variant="outline" className="cursor-pointer">
             更新する
           </Button>
