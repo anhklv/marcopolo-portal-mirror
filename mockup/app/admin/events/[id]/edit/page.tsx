@@ -131,6 +131,7 @@ export default function EventEditPage({
               rows={5}
               value={overview}
               onChange={(e) => setOverview(e.target.value)}
+              style={{ height: '200px' }}
             />
           </div>
 
@@ -142,6 +143,7 @@ export default function EventEditPage({
               rows={5}
               value={timetable}
               onChange={(e) => setTimetable(e.target.value)}
+              style={{ height: '200px' }}
             />
           </div>
 
@@ -153,6 +155,7 @@ export default function EventEditPage({
               rows={3}
               value={location}
               onChange={(e) => setLocation(e.target.value)}
+              style={{ height: '100px' }}
             />
           </div>
 
@@ -164,6 +167,7 @@ export default function EventEditPage({
               rows={5}
               value={note}
               onChange={(e) => setNote(e.target.value)}
+              style={{ height: '100px' }}
             />
           </div>
 

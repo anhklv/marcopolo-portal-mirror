@@ -59,10 +59,7 @@ export default function NewEventPage() {
   const getDefaultEmailBody = () => {
     return `この度は、${title || "イベント"}にご案内いたします。
 
-【イベント詳細】
-${overview ? `概要: ${overview}\n` : ""}${date ? `開催日時: ${formatEventDate(date)}\n` : ""}${location ? `場所: ${location}\n` : ""}${timetable ? `タイムテーブル:\n${timetable}\n` : ""}
-
-ご参加の可否について、以下のURLよりご回答をお願いいたします。
+${overview ? `【イベント概要】\n${overview}\n\n` : ""}${date ? `【開催日時】\n${formatEventDate(date)}\n\n` : ""}${location ? `【場所】\n${location}\n\n` : ""}ご参加の可否について、以下のURLよりご回答をお願いいたします。
 {RSVP_URL}
 
 ${note ? `【備考】\n${note}\n` : ""}
@@ -250,6 +247,7 @@ ${note ? `【備考】\n${note}\n` : ""}
                 rows={5}
                 value={overview}
                 onChange={(e) => setOverview(e.target.value)}
+                style={{ height: '200px' }}
               />
             </div>
 
@@ -261,6 +259,7 @@ ${note ? `【備考】\n${note}\n` : ""}
                 rows={5}
                 value={timetable}
                 onChange={(e) => setTimetable(e.target.value)}
+                style={{ height: '200px' }}
               />
             </div>
 
@@ -272,6 +271,7 @@ ${note ? `【備考】\n${note}\n` : ""}
                 rows={3}
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
+                style={{ height: '100px' }}
               />
             </div>
 
@@ -283,6 +283,7 @@ ${note ? `【備考】\n${note}\n` : ""}
                 rows={5}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
+                style={{ height: '100px' }}
               />
             </div>
 
