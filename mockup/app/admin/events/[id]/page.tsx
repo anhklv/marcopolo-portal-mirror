@@ -67,6 +67,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
     return {
       ...customerWithoutStatus,
       rsvpStatus: rsvp.status || "未回答",
+      attendanceType: rsvp.attendanceType,
+      afterPartyStatus: rsvp.afterPartyStatus,
       respondedAt: rsvp.respondedAt || "-",
     };
   }).filter((a): a is NonNullable<typeof a> => a !== null);
@@ -83,14 +85,23 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
       // ステータスフィルタ（チェックがない場合はすべて表示）
       const matchesStatus =
         selectedStatuses.length === 0 ||
-        selectedStatuses.includes(attendee.rsvpStatus);
+        selectedStatuses.some((selectedStatus) => {
+          if (selectedStatus === "現地参加") {
+            return attendee.rsvpStatus === "参加" && attendee.attendanceType !== "オンライン参加";
+          } else if (selectedStatus === "オンライン参加") {
+            return attendee.rsvpStatus === "オンライン参加" || (attendee.rsvpStatus === "参加" && attendee.attendanceType === "オンライン参加");
+          } else {
+            return attendee.rsvpStatus === selectedStatus;
+          }
+        });
 
       return matchesKeyword && matchesStatus;
     });
   }, [allAttendees, searchKeyword, selectedStatuses]);
 
   // 集計サマリを計算（フィルタ前の全データから）
-  const attendCount = allAttendees.filter((a) => a.rsvpStatus === "参加").length;
+  const attendCount = allAttendees.filter((a) => a.rsvpStatus === "参加" || a.rsvpStatus === "オンライン参加").length;
+  const onlineCount = allAttendees.filter((a) => a.rsvpStatus === "オンライン参加").length;
   const declineCount = allAttendees.filter((a) => a.rsvpStatus === "不参加").length;
   const noResponseCount = allAttendees.filter((a) => a.rsvpStatus === "未回答").length;
 
@@ -259,7 +270,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                         </div>
                                         <div className="p-2 max-h-[300px] overflow-y-auto">
                                             {[
-                                                { value: "参加", label: "参加" },
+                                                { value: "現地参加", label: "現地参加" },
+                                                { value: "オンライン参加", label: "オンライン参加" },
                                                 { value: "不参加", label: "不参加" },
                                                 { value: "未回答", label: "未回答" },
                                             ]
@@ -285,22 +297,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                                                 handleStatusChange(status.value, checked === true)
                                                             }
                                                         />
-                                                        <Badge
-                                                            variant={
-                                                                status.value === "参加"
-                                                                    ? "default"
-                                                                    : status.value === "不参加"
-                                                                    ? "destructive"
-                                                                    : "secondary"
-                                                            }
-                                                            className={cn(
-                                                                status.value === "未回答" && "bg-gray-100 text-gray-600 hover:bg-gray-200",
-                                                                status.value === "不参加" && "text-foreground",
-                                                                "cursor-pointer"
-                                                            )}
-                                                        >
-                                                            {status.label}
-                                                        </Badge>
+                                                        <span className="text-sm cursor-pointer">{status.label}</span>
                                                     </div>
                                                 ))}
                                         </div>
@@ -330,18 +327,30 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                                 <TableCell>{attendee.name}</TableCell>
                                                 <TableCell>{attendee.company}</TableCell>
                                                 <TableCell>
-                                                    <Badge 
-                                                        variant={
-                                                            attendee.rsvpStatus === "参加" ? "default" : 
-                                                            attendee.rsvpStatus === "不参加" ? "destructive" : "secondary"
-                                                        }
-                                                        className={cn(
-                                                            attendee.rsvpStatus === "未回答" && "bg-gray-100 text-gray-600 hover:bg-gray-200",
-                                                            attendee.rsvpStatus === "不参加" && "text-foreground"
+                                                    <div className="flex flex-col gap-1">
+                                                        <Badge 
+                                                            variant={
+                                                                attendee.rsvpStatus === "参加" || attendee.rsvpStatus === "オンライン参加" ? "default" : 
+                                                                attendee.rsvpStatus === "不参加" ? "destructive" : "secondary"
+                                                            }
+                                                            className={cn(
+                                                                attendee.rsvpStatus === "未回答" && "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                                                                attendee.rsvpStatus === "不参加" && "text-foreground",
+                                                                (attendee.rsvpStatus === "オンライン参加" || attendee.attendanceType === "オンライン参加") && "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                                                            )}
+                                                        >
+                                                            {attendee.rsvpStatus === "オンライン参加" 
+                                                                ? "オンライン参加"
+                                                                : attendee.rsvpStatus === "参加" && attendee.attendanceType === "オンライン参加"
+                                                                ? "オンライン参加"
+                                                                : attendee.rsvpStatus}
+                                                        </Badge>
+                                                        {attendee.rsvpStatus === "参加" && attendee.attendanceType === "通常参加" && attendee.afterPartyStatus && (
+                                                            <Badge variant="outline" className="text-xs">
+                                                                懇親会: {attendee.afterPartyStatus}
+                                                            </Badge>
                                                         )}
-                                                    >
-                                                        {attendee.rsvpStatus}
-                                                    </Badge>
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell>{attendee.respondedAt === "-" ? "-" : attendee.respondedAt}</TableCell>
                                             </TableRow>
@@ -382,6 +391,20 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                         <div className="mt-1 text-base">{formatEventDate(event.responseDeadline)}</div>
                                     </div>
                                 )}
+                                
+                                <div>
+                                    <Label className="text-sm font-medium text-muted-foreground">オンライン参加</Label>
+                                    <div className="mt-1 text-base">
+                                        {event.allowsOnline ? "可能" : "不可"}
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <Label className="text-sm font-medium text-muted-foreground">懇親会</Label>
+                                    <div className="mt-1 text-base">
+                                        {event.hasAfterParty ? "あり" : "なし"}
+                                    </div>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
@@ -397,7 +420,9 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="text-center p-4 bg-green-50 rounded-lg">
-                            <div className="text-2xl font-bold text-green-600">{attendCount}</div>
+                            <div className="text-2xl font-bold text-green-600">
+                                {onlineCount > 0 ? `${attendCount}(${onlineCount})` : attendCount}
+                            </div>
                             <div className="text-xs text-green-800">参加</div>
                         </div>
                         <div className="text-center p-4 bg-red-50 rounded-lg">

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -63,6 +64,8 @@ export default function EventEditPage({
   const [responseDeadline, setResponseDeadline] = useState(
     event.responseDeadline ? formatDateForInput(event.responseDeadline) : ""
   );
+  const [allowsOnline, setAllowsOnline] = useState(event.allowsOnline ?? false);
+  const [hasAfterParty, setHasAfterParty] = useState(event.hasAfterParty ?? false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -175,6 +178,28 @@ export default function EventEditPage({
             <p className="text-xs text-muted-foreground">
               回答期限を設定しない場合、イベント開催日まで回答を受け付けます。
             </p>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="allowsOnline"
+              checked={allowsOnline}
+              onCheckedChange={(checked) => setAllowsOnline(checked === true)}
+            />
+            <Label htmlFor="allowsOnline" className="cursor-pointer">
+              オンライン参加を可能にする
+            </Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="hasAfterParty"
+              checked={hasAfterParty}
+              onCheckedChange={(checked) => setHasAfterParty(checked === true)}
+            />
+            <Label htmlFor="hasAfterParty" className="cursor-pointer">
+              懇親会を開催する
+            </Label>
           </div>
         </div>
 

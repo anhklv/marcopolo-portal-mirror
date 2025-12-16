@@ -48,13 +48,13 @@ export default function EventSurveyPage({
   const [emailBody, setEmailBody] = useState("");
   const [formUrl, setFormUrl] = useState("");
 
-  // このイベントの参加者のみを取得
+  // このイベントの参加者のみを取得（通常参加とオンライン参加の両方）
   const attendees = useMemo(() => {
     if (!event) return [];
-    const eventRsvps = rsvps.filter((r) => r.eventId === id && r.status === "参加");
+    const eventRsvps = rsvps.filter((r) => r.eventId === id && (r.status === "参加" || r.status === "オンライン参加"));
     return eventRsvps.map((rsvp) => {
       const customer = customers.find((c) => c.id === rsvp.customerId);
-      return customer ? { ...customer, rsvpStatus: rsvp.status } : null;
+      return customer ? { ...customer, rsvpStatus: rsvp.status, attendanceType: rsvp.attendanceType } : null;
     }).filter((a): a is NonNullable<typeof a> => a !== null);
   }, [event, id]);
 
@@ -306,13 +306,20 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                     <TableCell>{attendee.name}</TableCell>
                     <TableCell>{attendee.company}</TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          attendee.memberTypes.length === 0 ? "secondary" : "default"
-                        }
-                      >
-                        {getMemberTypeDisplayName(attendee.memberTypes)}
-                      </Badge>
+                      <div className="flex flex-col gap-1">
+                        <Badge
+                          variant={
+                            attendee.memberTypes.length === 0 ? "secondary" : "default"
+                          }
+                        >
+                          {getMemberTypeDisplayName(attendee.memberTypes)}
+                        </Badge>
+                        {attendee.rsvpStatus === "オンライン参加" && (
+                          <Badge variant="outline" className="text-xs bg-blue-100 text-blue-800">
+                            オンライン参加
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">{attendee.email}</TableCell>
                   </TableRow>

@@ -23,6 +23,8 @@ export type Event = {
   attendeesCount: number;
   responseDeadline?: string; // 回答期限
   isPaused?: boolean; // 一時停止中かどうか
+  allowsOnline?: boolean; // オンライン参加を可能にするか
+  hasAfterParty?: boolean; // 懇親会を開催するか
 };
 
 // イベントのステータスを自動判定する関数
@@ -54,8 +56,10 @@ export type RSVP = {
   eventId: string;
   customerId: string;
   token: string; // URL用の一意な文字列
-  status: "未回答" | "参加" | "不参加";
+  status: "未回答" | "参加" | "オンライン参加" | "不参加";
   respondedAt?: string; // 回答日時
+  attendanceType?: "通常参加" | "オンライン参加"; // 参加タイプ（参加の場合のみ）
+  afterPartyStatus?: "参加" | "不参加"; // 懇親会の参加状況（イベントに懇親会があり、通常参加を選択した場合のみ）
 };
 
 export const customers: Customer[] = [
@@ -205,6 +209,8 @@ export const events: Event[] = [
     description: "定例の監査役交流会です。今回のテーマは「ガバナンス改革」について。",
     attendeesCount: 24,
     responseDeadline: "2028-06-10T23:59:00+09:00",
+    allowsOnline: true,
+    hasAfterParty: true,
   },
   {
     id: "E002",
@@ -250,6 +256,8 @@ export const events: Event[] = [
     description: "新年を祝う交流会。親睦を深めながら情報交換を行います。",
     attendeesCount: 35,
     responseDeadline: "2024-01-20T23:59:00+09:00",
+    allowsOnline: false,
+    hasAfterParty: true,
   },
   {
     id: "E007",
@@ -278,6 +286,8 @@ export const events: Event[] = [
     description: "内部監査の最新動向について、専門家を招いてセミナーを開催します。",
     attendeesCount: 32,
     responseDeadline: "2028-10-05T23:59:00+09:00",
+    allowsOnline: true,
+    hasAfterParty: false,
   },
   {
     id: "E010",
@@ -298,6 +308,8 @@ export const rsvps: RSVP[] = [
     token: "token-yamada-e001",
     status: "参加",
     respondedAt: "2024-05-20 10:00",
+    attendanceType: "通常参加",
+    afterPartyStatus: "参加",
   },
   {
     eventId: "E001",
@@ -441,8 +453,9 @@ export const rsvps: RSVP[] = [
     eventId: "E001",
     customerId: "C006",
     token: "token-takahashi-e001",
-    status: "参加",
+    status: "オンライン参加",
     respondedAt: "2024-05-21 09:00",
+    attendanceType: "オンライン参加",
   },
   {
     eventId: "E001",
@@ -456,6 +469,8 @@ export const rsvps: RSVP[] = [
     token: "token-nakamura-e001",
     status: "参加",
     respondedAt: "2024-05-21 14:00",
+    attendanceType: "通常参加",
+    afterPartyStatus: "不参加",
   },
   {
     eventId: "E001",
@@ -511,6 +526,72 @@ export const rsvps: RSVP[] = [
     eventId: "E002",
     customerId: "C011",
     token: "token-yoshida-e002",
+    status: "未回答",
+  },
+  // E003: 【特別セミナー】DX時代の監査
+  {
+    eventId: "E003",
+    customerId: "C001",
+    token: "token-yamada-e003",
+    status: "参加",
+    respondedAt: "2024-05-01 10:00",
+    attendanceType: "通常参加",
+  },
+  {
+    eventId: "E003",
+    customerId: "C002",
+    token: "token-suzuki-e003",
+    status: "参加",
+    respondedAt: "2024-05-01 11:00",
+    attendanceType: "通常参加",
+  },
+  {
+    eventId: "E003",
+    customerId: "C003",
+    token: "token-sato-e003",
+    status: "参加",
+    respondedAt: "2024-05-01 12:00",
+    attendanceType: "通常参加",
+  },
+  {
+    eventId: "E003",
+    customerId: "C006",
+    token: "token-takahashi-e003",
+    status: "参加",
+    respondedAt: "2024-05-02 09:00",
+    attendanceType: "通常参加",
+  },
+  {
+    eventId: "E003",
+    customerId: "C008",
+    token: "token-nakamura-e003",
+    status: "参加",
+    respondedAt: "2024-05-02 14:00",
+    attendanceType: "通常参加",
+  },
+  {
+    eventId: "E003",
+    customerId: "C004",
+    token: "token-tanaka-e003",
+    status: "不参加",
+    respondedAt: "2024-05-01 15:00",
+  },
+  {
+    eventId: "E003",
+    customerId: "C005",
+    token: "token-ito-e003",
+    status: "未回答",
+  },
+  {
+    eventId: "E003",
+    customerId: "C007",
+    token: "token-watanabe-e003",
+    status: "未回答",
+  },
+  {
+    eventId: "E003",
+    customerId: "C009",
+    token: "token-kobayashi-e003",
     status: "未回答",
   },
 ];

@@ -43,6 +43,8 @@ export default function NewEventPage() {
   const [location, setLocation] = useState("");
   const [note, setNote] = useState("");
   const [responseDeadline, setResponseDeadline] = useState("");
+  const [allowsOnline, setAllowsOnline] = useState(false);
+  const [hasAfterParty, setHasAfterParty] = useState(false);
   
   // 案内メール送信データ
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
@@ -295,6 +297,28 @@ ${note ? `【備考】\n${note}\n` : ""}
               <p className="text-xs text-muted-foreground">
                 回答期限を設定しない場合、イベント開催日まで回答を受け付けます。
               </p>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="allowsOnline"
+                checked={allowsOnline}
+                onCheckedChange={(checked) => setAllowsOnline(checked === true)}
+              />
+              <Label htmlFor="allowsOnline" className="cursor-pointer">
+                オンライン参加を可能にする
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="hasAfterParty"
+                checked={hasAfterParty}
+                onCheckedChange={(checked) => setHasAfterParty(checked === true)}
+              />
+              <Label htmlFor="hasAfterParty" className="cursor-pointer">
+                懇親会を開催する
+              </Label>
             </div>
           </div>
 

@@ -26,7 +26,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { events, getEventStatus } from "@/lib/data/mock";
+import { events, getEventStatus, rsvps, customers } from "@/lib/data/mock";
 import { formatEventDate } from "@/lib/utils";
 import { Plus, MoreVertical, Edit, Mail, Pause, Search, ChevronDown, Play, FileText } from "lucide-react";
 import { toast } from "sonner";
@@ -48,11 +48,26 @@ export default function EventsPage() {
   };
 
   const filteredEvents = useMemo(() => {
-    const enriched = events.map((event) => ({
-      ...event,
-      status: getEventStatus(event),
-      isPaused: pausedOverrides[event.id] ?? event.isPaused ?? false,
-    }));
+    const enriched = events.map((event) => {
+      // 実際の参加者数を計算（イベント詳細画面と同じロジック）
+      // 顧客が存在するRSVPのみをカウント
+      const eventRsvps = rsvps.filter((r) => r.eventId === event.id);
+      const allAttendees = eventRsvps.map((rsvp) => {
+        const customer = customers.find((c) => c.id === rsvp.customerId);
+        return customer ? { ...rsvp, customer } : null;
+      }).filter((a): a is NonNullable<typeof a> => a !== null);
+      
+      const actualAttendeesCount = allAttendees.filter(
+        (a) => a.status === "参加" || a.status === "オンライン参加"
+      ).length;
+      
+      return {
+        ...event,
+        status: getEventStatus(event),
+        isPaused: pausedOverrides[event.id] ?? event.isPaused ?? false,
+        actualAttendeesCount,
+      };
+    });
 
     const filtered = enriched.filter((event) => {
       // フリーワード検索（イベント名、場所、概要、備考）
@@ -267,7 +282,7 @@ export default function EventsPage() {
                       : "終了"}
                   </Badge>
                 </TableCell>
-                <TableCell>{event.attendeesCount}名</TableCell>
+                <TableCell>{event.actualAttendeesCount}名</TableCell>
                 <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

@@ -34,7 +34,9 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
   const [emailVerified, setEmailVerified] = useState(false);
   const [customer, setCustomer] = useState<typeof customers[0] | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const [status, setStatus] = useState<"attend" | "decline" | null>(null);
+  const [status, setStatus] = useState<"attend" | "online" | "decline" | null>(null);
+  const [attendanceType, setAttendanceType] = useState<"通常参加" | "オンライン参加" | null>(null);
+  const [afterPartyStatus, setAfterPartyStatus] = useState<"参加" | "不参加" | null>(null);
   const [comment, setComment] = useState("");
 
   // トークンから顧客情報を取得（モック用：demo-tokenでも動作）
@@ -54,7 +56,18 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
         // 既存の回答があれば読み込む
         const rsvp = rsvps.find((r) => r.eventId === id && r.customerId === customerData.id);
         if (rsvp && rsvp.status !== "未回答") {
-          setStatus(rsvp.status === "参加" ? "attend" : "decline");
+          if (rsvp.status === "参加") {
+            setStatus(rsvp.attendanceType === "オンライン参加" ? "online" : "attend");
+            setAttendanceType(rsvp.attendanceType || "通常参加");
+            if (rsvp.afterPartyStatus) {
+              setAfterPartyStatus(rsvp.afterPartyStatus);
+            }
+          } else if (rsvp.status === "オンライン参加") {
+            setStatus("online");
+            setAttendanceType("オンライン参加");
+          } else if (rsvp.status === "不参加") {
+            setStatus("decline");
+          }
         }
       }
     }
@@ -79,7 +92,18 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
       
       // 既存の回答があれば読み込む
       if (rsvp.status !== "未回答") {
-        setStatus(rsvp.status === "参加" ? "attend" : "decline");
+        if (rsvp.status === "参加") {
+          setStatus(rsvp.attendanceType === "オンライン参加" ? "online" : "attend");
+          setAttendanceType(rsvp.attendanceType || "通常参加");
+          if (rsvp.afterPartyStatus) {
+            setAfterPartyStatus(rsvp.afterPartyStatus);
+          }
+        } else if (rsvp.status === "オンライン参加") {
+          setStatus("online");
+          setAttendanceType("オンライン参加");
+        } else if (rsvp.status === "不参加") {
+          setStatus("decline");
+        }
       }
     }
   };
@@ -92,6 +116,12 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
     
     if (!status) {
       toast.error("参加・不参加を選択してください");
+      return;
+    }
+    
+    // 懇親会の質問がある場合、通常参加を選択したら必須
+    if (event.hasAfterParty && status === "attend" && !afterPartyStatus) {
+      toast.error("懇親会の参加可否を選択してください");
       return;
     }
     
@@ -198,6 +228,12 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
                   当日お会いできるのを楽しみにしています。
                 </>
               )}
+              {status === "online" && (
+                <>
+                  <br />
+                  オンラインでのご参加をお待ちしています。
+                </>
+              )}
             </CardDescription>
           </CardHeader>
           <CardFooter className="justify-center flex-col gap-2">
@@ -249,8 +285,18 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
             <Label className="text-base">出欠を選択してください</Label>
             <RadioGroup 
               value={status || undefined}
-              onValueChange={(v) => setStatus(v as any)} 
-              className="grid grid-cols-2 gap-4"
+              onValueChange={(v) => {
+                setStatus(v as any);
+                if (v === "attend") {
+                  setAttendanceType("通常参加");
+                } else if (v === "online") {
+                  setAttendanceType("オンライン参加");
+                } else {
+                  setAttendanceType(null);
+                  setAfterPartyStatus(null);
+                }
+              }} 
+              className={`grid gap-4 ${event.allowsOnline ? "grid-cols-3" : "grid-cols-2"}`}
             >
               <div>
                 <RadioGroupItem value="attend" id="attend" className="peer sr-only" />
@@ -263,9 +309,25 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
                   }`}
                 >
                   <span className="text-xl mb-2">🙆‍♂️</span>
-                  <span className="font-semibold">参加する</span>
+                  <span className="font-semibold">{event.allowsOnline ? "現地参加" : "参加する"}</span>
                 </Label>
               </div>
+              {event.allowsOnline && (
+                <div>
+                  <RadioGroupItem value="online" id="online" className="peer sr-only" />
+                  <Label
+                    htmlFor="online"
+                    className={`flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer text-center h-full transition-colors ${
+                      status === "online"
+                        ? "border-blue-500 bg-blue-50 text-blue-900"
+                        : "border-muted bg-popover hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    <span className="text-xl mb-2">💻</span>
+                    <span className="font-semibold">オンライン参加</span>
+                  </Label>
+                </div>
+              )}
               <div>
                 <RadioGroupItem value="decline" id="decline" className="peer sr-only" />
                 <Label
@@ -282,6 +344,46 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
               </div>
             </RadioGroup>
           </div>
+
+          {event.hasAfterParty && status === "attend" && (
+            <div className="space-y-4">
+              <Label className="text-base">懇親会も参加しますか？</Label>
+              <RadioGroup 
+                value={afterPartyStatus || undefined}
+                onValueChange={(v) => setAfterPartyStatus(v as "参加" | "不参加")} 
+                className="grid grid-cols-2 gap-4"
+              >
+                <div>
+                  <RadioGroupItem value="参加" id="afterPartyAttend" className="peer sr-only" />
+                  <Label
+                    htmlFor="afterPartyAttend"
+                    className={`flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer text-center h-full transition-colors ${
+                      afterPartyStatus === "参加"
+                        ? "border-green-500 bg-green-50 text-green-900"
+                        : "border-muted bg-popover hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    <span className="text-xl mb-2">🙆‍♂️</span>
+                    <span className="font-semibold">参加する</span>
+                  </Label>
+                </div>
+                <div>
+                  <RadioGroupItem value="不参加" id="afterPartyDecline" className="peer sr-only" />
+                  <Label
+                    htmlFor="afterPartyDecline"
+                    className={`flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer text-center h-full transition-colors ${
+                      afterPartyStatus === "不参加"
+                        ? "border-red-500 bg-red-50 text-red-900"
+                        : "border-muted bg-popover hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    <span className="text-xl mb-2">🙅‍♀️</span>
+                    <span className="font-semibold">参加しない</span>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="comment">メッセージ・連絡事項 (任意)</Label>
