@@ -16,9 +16,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { CheckCircle2, AlertCircle } from "lucide-react";
+import { CheckCircle2, AlertCircle, Info } from "lucide-react";
 import { events, customers, getCustomerByToken, getRSVPByEmail, rsvps } from "@/lib/data/mock";
 import { formatEventDate } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function RSVPPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -261,9 +269,61 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
         <CardHeader>
           <CardTitle className="text-2xl">{event.title}</CardTitle>
           <CardDescription className="mt-2 space-y-1 text-base">
-            <p>日時: {event.date}</p>
+            <p>日時: {formatEventDate(event.date)}</p>
             <p>場所: {event.location}</p>
           </CardDescription>
+          <div className="mt-4">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="cursor-pointer">
+                  <Info className="h-4 w-4 mr-2" />
+                  イベント詳細を見る
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-white max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>{event.title}</DialogTitle>
+                  <DialogDescription>
+                    イベントの詳細情報
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  {(event as any).description && (
+                    <div>
+                      <h3 className="font-semibold mb-2">イベント概要</h3>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {(event as any).description}
+                      </p>
+                    </div>
+                  )}
+                  {(event as any).timetable && (
+                    <div>
+                      <h3 className="font-semibold mb-2">タイムテーブル</h3>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {(event as any).timetable}
+                      </p>
+                    </div>
+                  )}
+                  {event.location && (
+                    <div>
+                      <h3 className="font-semibold mb-2">場所</h3>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {event.location}
+                      </p>
+                    </div>
+                  )}
+                  {(event as any).note && (
+                    <div>
+                      <h3 className="font-semibold mb-2">備考</h3>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {(event as any).note}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         
         <CardContent className="space-y-6">
@@ -276,7 +336,9 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
               <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
               <div className="text-sm text-yellow-800">
                 <p className="font-medium">回答期限を過ぎています</p>
-                <p className="text-xs mt-1">回答期限: {event.responseDeadline}</p>
+                {event.responseDeadline && (
+                  <p className="text-xs mt-1">回答期限: {formatEventDate(event.responseDeadline)}</p>
+                )}
               </div>
             </div>
           )}

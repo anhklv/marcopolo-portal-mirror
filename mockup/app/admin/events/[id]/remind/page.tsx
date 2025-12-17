@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check } from "lucide-react";
 import { customers, events, rsvps, getEventStatus, getMemberTypeDisplayName } from "@/lib/data/mock";
-import { cn, formatEventDate } from "@/lib/utils";
+import { cn, getRemindEmailTemplate, formatEventDate } from "@/lib/utils";
 
 type Step = "select" | "customize" | "confirm";
 
@@ -66,21 +66,16 @@ export default function EventRemindPage({
   // デフォルトのメールタイトルと本文を設定
   useEffect(() => {
     if (event) {
-      const defaultTitle = `【${event.title}】参加可否のご回答をお願いします`;
-      const defaultBody = `この度は、${event.title}にご案内いたしました。
-
-【イベント詳細】
-${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開催日時: ${formatEventDate(event.date)}\n` : ""}${event.location ? `場所: ${event.location}\n` : ""}
-
-まだ参加可否のご回答をいただいておりません。
-お忙しい中恐縮ですが、以下のURLよりご回答をお願いいたします。
-
-{RSVP_URL}
-
-よろしくお願いいたします。`;
-      
-      setEmailTitle(defaultTitle);
-      setEmailBody(defaultBody);
+      const template = getRemindEmailTemplate({
+        title: event.title,
+        description: event.description,
+        date: event.date,
+        timetable: (event as any).timetable,
+        location: event.location,
+        note: (event as any).note,
+      });
+      setEmailTitle(template.title);
+      setEmailBody(template.body);
     }
   }, [event]);
 
