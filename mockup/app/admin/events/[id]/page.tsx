@@ -32,7 +32,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Mail, Edit, MoreVertical, Pause, Play, FileText, Search, ChevronDown, Send } from "lucide-react";
 import { events, customers, rsvps, getEventStatus } from "@/lib/data/mock";
-import { cn, formatEventDate } from "@/lib/utils";
+import { cn, formatEventDate, formatDateTime } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -352,7 +352,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                                         )}
                                                     </div>
                                                 </TableCell>
-                                                <TableCell>{attendee.respondedAt === "-" ? "-" : attendee.respondedAt}</TableCell>
+                                                <TableCell>{attendee.respondedAt === "-" ? "-" : formatDateTime(attendee.respondedAt)}</TableCell>
                                             </TableRow>
                                         ))
                                     )}

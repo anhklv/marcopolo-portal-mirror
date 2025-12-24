@@ -32,7 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check, Search, Users, ChevronDown } from "lucide-react";
 import { customers, events, rsvps, getMemberTypeDisplayName, MemberFilterValue } from "@/lib/data/mock";
-import { cn, formatEventDate } from "@/lib/utils";
+import { cn, getInviteEmailTemplate, formatEventDate } from "@/lib/utils";
 
 type Step = "select" | "customize" | "confirm";
 
@@ -62,19 +62,16 @@ export default function EventInvitePage({
   // デフォルトのメールタイトルと本文を設定
   useEffect(() => {
     if (event) {
-      const defaultTitle = `【${event.title}】ご案内`;
-      const defaultBody = `この度は、${event.title}にご案内いたします。
-
-【イベント詳細】
-${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開催日時: ${formatEventDate(event.date)}\n` : ""}${event.location ? `場所: ${event.location}\n` : ""}
-
-ご参加の可否について、以下のURLよりご回答をお願いいたします。
-{RSVP_URL}
-
-よろしくお願いいたします。`;
-      
-      setEmailTitle(defaultTitle);
-      setEmailBody(defaultBody);
+      const template = getInviteEmailTemplate({
+        title: event.title,
+        description: event.description,
+        date: event.date,
+        timetable: (event as any).timetable,
+        location: event.location,
+        note: (event as any).note,
+      });
+      setEmailTitle(template.title);
+      setEmailBody(template.body);
     }
   }, [event]);
 
@@ -317,7 +314,7 @@ ${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開�
                     </div>
                   </div>
                   <div className="p-2 max-h-[300px] overflow-y-auto">
-                    {["監査役協会", "ないかんMeetup", "非会員"]
+                    {(["監査役協会", "ないかんMeetup", "非会員"] as MemberFilterValue[])
                       .filter((type) =>
                         type
                           .toLowerCase()

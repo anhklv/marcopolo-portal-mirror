@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { customers, Customer, MemberFilterValue, getMemberTypeDisplayName } from "@/lib/data/mock";
 import { Plus, Search, Users, ChevronDown, Download } from "lucide-react";
 import { toast } from "sonner";
+import { formatDate } from "@/lib/utils";
 
 export default function CustomersPage() {
   const router = useRouter();
@@ -219,13 +220,13 @@ export default function CustomersPage() {
               </div>
             </div>
             <div className="p-2 max-h-[300px] overflow-y-auto">
-              {["監査役協会", "ないかんMeetup", "非会員"]
+              {(["監査役協会", "ないかんMeetup", "非会員"] as MemberFilterValue[])
                 .filter((type) =>
                   type
                     .toLowerCase()
                     .includes(memberTypeSearch.toLowerCase())
                 )
-                .map((type) => (
+                .map((type: MemberFilterValue) => (
                   <div
                     key={type}
                     className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
@@ -385,7 +386,7 @@ export default function CustomersPage() {
                       {customer.status === "active" ? "アクティブ" : "非アクティブ"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{customer.registeredAt}</TableCell>
+                  <TableCell>{formatDate(customer.registeredAt)}</TableCell>
                   <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     <Button variant="outline" size="sm" asChild>
                       <Link href={`/admin/customers/${customer.id}/edit`}>編集</Link>

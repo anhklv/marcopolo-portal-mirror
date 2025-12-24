@@ -20,6 +20,8 @@ export type Event = {
   date: string;
   location: string;
   description: string;
+  timetable?: string; // タイムテーブル
+  note?: string; // 備考
   attendeesCount: number;
   responseDeadline?: string; // 回答期限
   isPaused?: boolean; // 一時停止中かどうか

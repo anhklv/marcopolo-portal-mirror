@@ -27,7 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check, FileText } from "lucide-react";
 import { customers, events, rsvps, getEventStatus, getMemberTypeDisplayName } from "@/lib/data/mock";
-import { cn, formatEventDate } from "@/lib/utils";
+import { cn, getSurveyEmailTemplate, formatEventDate } from "@/lib/utils";
 
 type Step = "select" | "customize" | "confirm";
 
@@ -61,23 +61,13 @@ export default function EventSurveyPage({
   // デフォルトのメールタイトルと本文を設定
   useEffect(() => {
     if (!event) return;
-    
-    const defaultTitle = `【${event.title}】アンケートのお願い`;
-      const defaultBody = `この度は、${event.title}にご参加いただき、誠にありがとうございました。
 
-【イベント詳細】
-${event.description ? `概要: ${event.description}\n` : ""}${event.date ? `開催日時: ${formatEventDate(event.date)}\n` : ""}${event.location ? `場所: ${event.location}\n` : ""}
-
-今後のイベント改善のため、アンケートへのご協力をお願いいたします。
-以下のURLよりご回答をお願いいたします。
-
-{FORM_URL}
-
-ご多忙の中恐縮ですが、よろしくお願いいたします。`;
-    
-    setEmailTitle(defaultTitle);
-    setEmailBody(defaultBody);
-  }, [event?.id, event?.title, event?.description, event?.date, event?.location]);
+    const template = getSurveyEmailTemplate({
+      title: event.title,
+    });
+    setEmailTitle(template.title);
+    setEmailBody(template.body);
+  }, [event?.id, event?.title]);
 
   // 参加者を全選択（イベントIDが変更されたときのみ）
   useEffect(() => {
