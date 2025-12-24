@@ -412,11 +412,32 @@ export default function NewCustomerPageV2() {
 
           <div className="grid gap-2">
             <Label>上場区分</Label>
-            <Select value={listingCategory} onValueChange={setListingCategory}>
+            <Select 
+              value={listingCategory} 
+              onValueChange={(value) => {
+                if (value === "選択してください") {
+                  setListingCategory("");
+                } else {
+                  setListingCategory(value);
+                }
+              }}
+            >
               <SelectTrigger className="w-full bg-white">
                 <SelectValue placeholder="選択してください" />
               </SelectTrigger>
               <SelectContent className="bg-white">
+                <SelectItem
+                  value="選択してください"
+                  className="bg-white hover:bg-gray-100"
+                >
+                  選択してください
+                </SelectItem>
+                <SelectItem
+                  value="未上場"
+                  className="bg-white hover:bg-gray-100"
+                >
+                  未上場
+                </SelectItem>
                 {listingOptions.map((option) => (
                   <SelectGroup key={option.exchange}>
                     <SelectLabel className="bg-gray-100">{option.exchange}</SelectLabel>
