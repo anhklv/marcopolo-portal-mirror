@@ -103,9 +103,9 @@ export default function NewCustomerPageV2() {
       return;
     }
 
-    // 監査役協会の会員を選択した場合、会員種別を選択しているかチェック
+    // ベンチャー監査役協会の会員を選択した場合、会員種別を選択しているかチェック
     if (memberCategory === "member" && auditMemberChecked && !auditMemberType) {
-      toast.error("監査役協会の会員種別を選択してください");
+      toast.error("ベンチャー監査役協会の会員種別を選択してください");
       return;
     }
 
@@ -202,7 +202,7 @@ export default function NewCustomerPageV2() {
             {/* 会員の場合 */}
             {memberCategory === "member" && (
               <div className="ml-6 mt-4 space-y-4">
-                {/* 監査役協会 */}
+                {/* ベンチャー監査役協会 */}
                 <div className="grid gap-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -213,7 +213,7 @@ export default function NewCustomerPageV2() {
                         if (!checked) setAuditMemberType("");
                       }}
                     />
-                    <Label htmlFor="audit-check" className="cursor-pointer font-medium">監査役協会</Label>
+                    <Label htmlFor="audit-check" className="cursor-pointer font-medium">ベンチャー監査役協会</Label>
                   </div>
                   {auditMemberChecked && (
                     <div className="ml-6">
@@ -252,14 +252,14 @@ export default function NewCustomerPageV2() {
             {/* スポンサーの場合 */}
             {memberCategory === "sponsor" && (
               <div className="ml-6 mt-4 space-y-4">
-                {/* 監査役協会 */}
+                {/* ベンチャー監査役協会 */}
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="audit-sponsor-check"
                     checked={auditSponsorChecked}
                     onCheckedChange={(checked) => setAuditSponsorChecked(checked === true)}
                   />
-                  <Label htmlFor="audit-sponsor-check" className="cursor-pointer font-medium">監査役協会</Label>
+                  <Label htmlFor="audit-sponsor-check" className="cursor-pointer font-medium">ベンチャー監査役協会</Label>
                 </div>
 
                 {/* ないかんMeetup */}
@@ -277,14 +277,14 @@ export default function NewCustomerPageV2() {
             {/* オブザーバーの場合 */}
             {memberCategory === "observer" && (
               <div className="ml-6 mt-4 space-y-4">
-                {/* 監査役協会 */}
+                {/* ベンチャー監査役協会 */}
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="audit-observer-check"
                     checked={auditObserverChecked}
                     onCheckedChange={(checked) => setAuditObserverChecked(checked === true)}
                   />
-                  <Label htmlFor="audit-observer-check" className="cursor-pointer font-medium">監査役協会</Label>
+                  <Label htmlFor="audit-observer-check" className="cursor-pointer font-medium">ベンチャー監査役協会</Label>
                 </div>
 
                 {/* ないかんMeetup */}

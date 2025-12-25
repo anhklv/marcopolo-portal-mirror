@@ -30,7 +30,7 @@ export default function NewCustomerPage() {
     // TODO: 実際のAPI呼び出しでは、以下のように memberTypes を構築する
     // const memberTypes: MemberType[] = [];
     // if (isMember === "member") {
-    //   if (auditMember) memberTypes.push("監査役協会");
+    //   if (auditMember) memberTypes.push("ベンチャー監査役協会");
     //   if (naikanMember) memberTypes.push("ないかんMeetup");
     // }
 
@@ -86,7 +86,7 @@ export default function NewCustomerPage() {
                     checked={auditMember}
                     onCheckedChange={(checked) => setAuditMember(checked === true)}
                   />
-                  <Label htmlFor="audit" className="cursor-pointer">監査役協会</Label>
+                  <Label htmlFor="audit" className="cursor-pointer">ベンチャー監査役協会</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox

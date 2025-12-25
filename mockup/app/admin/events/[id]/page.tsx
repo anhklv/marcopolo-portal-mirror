@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { ArrowLeft, Mail, Edit, MoreVertical, Pause, Play, FileText, Search, ChevronDown, Send } from "lucide-react";
-import { events, customers, rsvps, getEventStatus } from "@/lib/data/mock";
+import { events, customers, rsvps, getEventStatus, getSurveyByEventId } from "@/lib/data/mock";
 import { cn, formatEventDate, formatDateTime } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -51,6 +51,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   const eventStatus = getEventStatus(eventData);
   const [isPaused, setIsPaused] = useState(eventData.isPaused ?? false);
   const event = eventData;
+  const survey = getSurveyByEventId(id);
 
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
@@ -178,13 +179,24 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 </Link>
               </DropdownMenuItem>
             )}
-            {eventStatus === "closed" && ((event as any).eventType || "ベンチャー監査役協会") === "ベンチャー監査役協会" && (
-              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
-                <Link href={`/admin/events/${id}/survey`} className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  アンケート送信
-                </Link>
-              </DropdownMenuItem>
+            {((event as any).eventType || "ベンチャー監査役協会") === "ベンチャー監査役協会" && (
+              <>
+                {survey ? (
+                  <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+                    <Link href={`/admin/events/${id}/survey/results`} className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      アンケート結果
+                    </Link>
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+                    <Link href={`/admin/events/${id}/survey/create`} className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      アンケート作成
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+              </>
             )}
             <DropdownMenuItem
               className="bg-white hover:bg-gray-100 cursor-pointer"
@@ -448,14 +460,25 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 </CardContent>
             </Card>
 
-            <div className="text-sm">
-              <Link
-                href={`/events/${id}/rsvp?token=demo-token`}
-                target="_blank"
-                className="text-muted-foreground hover:text-foreground underline"
-              >
-                参加回答フォーム (サンプル)
-              </Link>
+            <div className="text-sm space-y-2">
+              <div>
+                <Link
+                  href={`/events/${id}/rsvp?token=demo-token`}
+                  target="_blank"
+                  className="text-muted-foreground hover:text-foreground underline"
+                >
+                  参加回答フォーム (サンプル)
+                </Link>
+              </div>
+              <div>
+                <Link
+                  href={`/events/${id}/survey/demo-token`}
+                  target="_blank"
+                  className="text-muted-foreground hover:text-foreground underline"
+                >
+                  アンケート回答フォーム (サンプル)
+                </Link>
+              </div>
             </div>
 
         </div>

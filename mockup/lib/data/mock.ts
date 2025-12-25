@@ -67,6 +67,40 @@ export type RSVP = {
   afterPartyStatus?: "参加" | "不参加"; // 懇親会の参加状況（イベントに懇親会があり、通常参加を選択した場合のみ）
 };
 
+// アンケート設問
+export type SurveyQuestion = {
+  id: string;
+  title: string;
+  order: number;
+};
+
+// アンケート
+export type Survey = {
+  id: string;
+  eventId: string;
+  questions: SurveyQuestion[];
+  createdAt: string;
+};
+
+// アンケート回答
+export type SurveyResponse = {
+  surveyId: string;
+  questionId: string;
+  customerId: string;
+  token: string; // URL用の一意な文字列
+  rating: "よかった" | "まぁよかった" | "あまりよくなかった" | "よくなかった";
+  reason: string; // 理由
+  respondedAt: string; // 回答日時
+};
+
+// アンケート送信トークン（各顧客ごとに一意なトークンを生成）
+export type SurveyToken = {
+  surveyId: string;
+  customerId: string;
+  token: string; // URL用の一意な文字列
+  sentAt: string; // 送信日時
+};
+
 export const customers: Customer[] = [
   {
     id: "C001",
@@ -664,4 +698,39 @@ export function isMember(memberTypes: MemberType[]): boolean {
 // ヘルパー関数: 特定の会員区分を持っているか判定
 export function hasMemberType(memberTypes: MemberType[], type: MemberType): boolean {
   return memberTypes.includes(type);
+}
+
+// アンケートデータ（モック）
+export const surveys: Survey[] = [];
+
+// アンケート送信トークン（モック）
+export const surveyTokens: SurveyToken[] = [];
+
+// アンケート回答データ（モック）
+export const surveyResponses: SurveyResponse[] = [];
+
+// ヘルパー関数: イベントIDからアンケートを取得
+export function getSurveyByEventId(eventId: string): Survey | null {
+  return surveys.find((s) => s.eventId === eventId) || null;
+}
+
+// ヘルパー関数: トークンからアンケートを取得
+export function getSurveyByToken(token: string): { survey: Survey; customerId: string } | null {
+  const surveyToken = surveyTokens.find((st) => st.token === token);
+  if (!surveyToken) return null;
+  const survey = surveys.find((s) => s.id === surveyToken.surveyId);
+  if (!survey) return null;
+  return { survey, customerId: surveyToken.customerId };
+}
+
+// ヘルパー関数: アンケートの回答を取得
+export function getSurveyResponses(surveyId: string): SurveyResponse[] {
+  return surveyResponses.filter((sr) => sr.surveyId === surveyId);
+}
+
+// ヘルパー関数: 顧客が既に回答済みかチェック
+export function hasResponded(surveyId: string, customerId: string): boolean {
+  return surveyResponses.some(
+    (sr) => sr.surveyId === surveyId && sr.customerId === customerId
+  );
 }

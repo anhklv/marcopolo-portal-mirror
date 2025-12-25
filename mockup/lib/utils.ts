@@ -99,7 +99,7 @@ ${event.note ? `【備考】\n${event.note}\n` : ""}よろしくお願いいた�
   return { title, body };
 }
 
-// アンケートメールテンプレート
+// アンケートメールテンプレート（Googleフォーム用・非推奨）
 export function getSurveyEmailTemplate(event: EventData): { title: string; body: string } {
   const title = `【${event.title}】アンケートのお願い`;
   const body = `この度は、${event.title}にご参加いただき、誠にありがとうございました。
@@ -110,6 +110,19 @@ export function getSurveyEmailTemplate(event: EventData): { title: string; body:
 {FORM_URL}
 
 ご多忙の中恐縮ですが、よろしくお願いいたします。`;
+
+  return { title, body };
+}
+
+// アンケート回答依頼メールテンプレート
+export function getSurveyRequestEmailTemplate(event: EventData): { title: string; body: string } {
+  const title = `${event.title} アンケートのお願い`;
+  const body = `この度は、${event.title}にご参加いただき、ありがとうございました。
+
+以下のURLよりアンケートにご回答いただけますと幸いです。
+{SURVEY_URL}
+
+ご協力のほど、よろしくお願いいたします。`;
 
   return { title, body };
 }

@@ -220,7 +220,7 @@ export default function CustomersPage() {
               </div>
             </div>
             <div className="p-2 max-h-[300px] overflow-y-auto">
-              {(["監査役協会", "ないかんMeetup", "非会員"] as MemberFilterValue[])
+              {(["ベンチャー監査役協会", "ないかんMeetup", "非会員"] as MemberFilterValue[])
                 .filter((type) =>
                   type
                     .toLowerCase()
