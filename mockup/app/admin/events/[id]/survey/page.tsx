@@ -25,9 +25,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, Send, Mail, Check, FileText } from "lucide-react";
-import { customers, events, rsvps, getEventStatus, getMemberTypeDisplayName } from "@/lib/data/mock";
-import { cn, getSurveyEmailTemplate, formatEventDate } from "@/lib/utils";
+import { ArrowLeft, Send, Mail, Check } from "lucide-react";
+import { customers, events, rsvps, getEventStatus, getMemberTypeDisplayName, getSurveyByEventId, surveyTokens } from "@/lib/data/mock";
+import { cn, getSurveyRequestEmailTemplate, formatEventDate } from "@/lib/utils";
 
 type Step = "select" | "customize" | "confirm";
 
@@ -46,7 +46,7 @@ export default function EventSurveyPage({
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   const [emailTitle, setEmailTitle] = useState("");
   const [emailBody, setEmailBody] = useState("");
-  const [formUrl, setFormUrl] = useState("");
+  const survey = getSurveyByEventId(id);
 
   // このイベントの参加者のみを取得（通常参加とオンライン参加の両方）
   const attendees = useMemo(() => {
@@ -62,7 +62,7 @@ export default function EventSurveyPage({
   useEffect(() => {
     if (!event) return;
 
-    const template = getSurveyEmailTemplate({
+    const template = getSurveyRequestEmailTemplate({
       title: event.title,
     });
     setEmailTitle(template.title);
@@ -95,10 +95,6 @@ export default function EventSurveyPage({
       toast.error("メールタイトルと本文を入力してください");
       return;
     }
-    if (!formUrl) {
-      toast.error("GoogleフォームのURLを入力してください");
-      return;
-    }
     setStep("confirm");
   };
 
@@ -107,6 +103,24 @@ export default function EventSurveyPage({
   };
 
   const handleSend = () => {
+    // アンケートが存在する場合はトークンを生成、存在しない場合は固定の質問のみのアンケートとして送信
+    if (survey) {
+      // 各送信先にトークンを生成
+      selectedCustomers.forEach((customerId) => {
+        const token = `survey-${customerId}-${survey.id}-${Date.now()}`;
+        surveyTokens.push({
+          surveyId: survey.id,
+          customerId,
+          token,
+          sentAt: new Date().toISOString(),
+        });
+      });
+    } else {
+      // アンケートが存在しない場合でも、固定の質問のみのアンケートとして送信可能
+      // トークンは生成しない（固定質問のみのアンケート回答ページで処理）
+      // 実際の実装では、固定質問のみのアンケート用のトークンを生成する必要がある
+    }
+
     toast.success(`${selectedCustomers.length}名にアンケートメールを送信しました`);
     router.push(`/admin/events/${id}`);
   };
@@ -127,10 +141,13 @@ export default function EventSurveyPage({
     }
   };
 
-  // メール本文にGoogleフォームURLを挿入したプレビュー
+  // メール本文にアンケートURLを挿入したプレビュー
   const previewBody = useMemo(() => {
-    return emailBody.replace(/{FORM_URL}/g, formUrl || "{FORM_URL}");
-  }, [emailBody, formUrl]);
+    const surveyUrl = selectedCustomers.length > 0
+      ? `http://localhost:3000/events/${id}/survey/demo-token`
+      : "{SURVEY_URL}";
+    return emailBody.replace(/{SURVEY_URL}/g, surveyUrl);
+  }, [emailBody, id, selectedCustomers.length]);
 
   // ステップインジケーターコンポーネント
   const StepIndicator = () => {
@@ -232,6 +249,7 @@ export default function EventSurveyPage({
       </div>
     );
   }
+
 
   // 参加者がいない場合
   if (attendees.length === 0) {
@@ -368,24 +386,10 @@ export default function EventSurveyPage({
           <CardHeader>
             <CardTitle>メール文作成</CardTitle>
             <CardDescription>
-              送信するメールのタイトルと本文を編集してください。本文内の {`{FORM_URL}`} はGoogleフォームのURLに自動的に置き換えられます。
+              送信するメールのタイトルと本文を編集してください。本文内の {`{SURVEY_URL}`} はアンケート回答URLに自動的に置き換えられます。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="formUrl">GoogleフォームURL <span className="text-destructive">*</span></Label>
-              <Input 
-                id="formUrl" 
-                value={formUrl}
-                onChange={(e) => setFormUrl(e.target.value)}
-                placeholder="https://docs.google.com/forms/..."
-                type="url"
-              />
-              <p className="text-sm text-muted-foreground">
-                アンケート用のGoogleフォームのURLを入力してください。
-              </p>
-            </div>
-
             <div className="grid gap-2">
               <Label htmlFor="emailTitle">メールタイトル</Label>
               <Input 
@@ -407,7 +411,7 @@ export default function EventSurveyPage({
                 style={{ minHeight: '400px' }}
               />
               <p className="text-sm text-muted-foreground">
-                本文内に {`{FORM_URL}`} を記述すると、GoogleフォームのURLに自動的に置き換えられます。
+                本文内に {`{SURVEY_URL}`} を記述すると、アンケート回答URLに自動的に置き換えられます。
               </p>
             </div>
 
@@ -472,13 +476,6 @@ export default function EventSurveyPage({
                       </div>
                     ) : null;
                   })}
-                </div>
-              </div>
-
-              <div>
-                <div className="font-medium mb-2">GoogleフォームURL</div>
-                <div className="text-sm bg-muted p-3 rounded break-all">
-                  {formUrl || "未入力"}
                 </div>
               </div>
 
