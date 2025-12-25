@@ -1,0 +1,15 @@
+# CodeRabbit設定ファイル
+# レビューコメントを日本語で表示する設定
+
+language: ja
+locale: ja_JP
+
+# レビュー設定
+reviews:
+  # レビューコメントの言語を日本語に設定
+  language: ja
+  
+# その他の設定
+chat:
+  language: ja
+
