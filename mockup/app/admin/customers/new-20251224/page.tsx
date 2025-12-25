@@ -23,9 +23,10 @@ import { ArrowLeft, Plus, X } from "lucide-react";
 
 export default function NewCustomerPageV2() {
   const router = useRouter();
-  const [memberCategory, setMemberCategory] = useState<"non-member" | "member" | "sponsor" | "observer">("non-member");
+  const [memberCategory, setMemberCategory] = useState<"non-member" | "member" | "sponsor" | "observer">("member");
   const [auditMemberChecked, setAuditMemberChecked] = useState(false);
   const [auditMemberType, setAuditMemberType] = useState<string>("");
+  const [auditMemberPremium, setAuditMemberPremium] = useState(false);
   const [naikanMember, setNaikanMember] = useState(false);
   const [auditSponsorChecked, setAuditSponsorChecked] = useState(false);
   const [naikanSponsorChecked, setNaikanSponsorChecked] = useState(false);
@@ -72,7 +73,6 @@ export default function NewCustomerPageV2() {
   ];
 
   const auditMemberTypes = [
-    { value: "premium", label: "プレミアム会員" },
     { value: "regular", label: "正会員" },
     { value: "online", label: "オンライン会員" },
   ];
@@ -154,6 +154,7 @@ export default function NewCustomerPageV2() {
                 if (newCategory === "non-member") {
                   setAuditMemberChecked(false);
                   setAuditMemberType("");
+                  setAuditMemberPremium(false);
                   setNaikanMember(false);
                   setAuditSponsorChecked(false);
                   setNaikanSponsorChecked(false);
@@ -167,12 +168,14 @@ export default function NewCustomerPageV2() {
                 } else if (newCategory === "sponsor") {
                   setAuditMemberChecked(false);
                   setAuditMemberType("");
+                  setAuditMemberPremium(false);
                   setNaikanMember(false);
                   setAuditObserverChecked(false);
                   setNaikanObserverChecked(false);
                 } else if (newCategory === "observer") {
                   setAuditMemberChecked(false);
                   setAuditMemberType("");
+                  setAuditMemberPremium(false);
                   setNaikanMember(false);
                   setAuditSponsorChecked(false);
                   setNaikanSponsorChecked(false);
@@ -181,12 +184,12 @@ export default function NewCustomerPageV2() {
             >
               <div className="flex items-center gap-6">
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="non-member" id="non-member" />
-                  <Label htmlFor="non-member" className="cursor-pointer">非会員</Label>
-                </div>
-                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="member" id="member" />
                   <Label htmlFor="member" className="cursor-pointer">会員</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="non-member" id="non-member" />
+                  <Label htmlFor="non-member" className="cursor-pointer">非会員</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="sponsor" id="sponsor" />
@@ -210,29 +213,42 @@ export default function NewCustomerPageV2() {
                       checked={auditMemberChecked}
                       onCheckedChange={(checked) => {
                         setAuditMemberChecked(checked === true);
-                        if (!checked) setAuditMemberType("");
+                        if (!checked) {
+                          setAuditMemberType("");
+                          setAuditMemberPremium(false);
+                        }
                       }}
                     />
                     <Label htmlFor="audit-check" className="cursor-pointer font-medium">ベンチャー監査役協会</Label>
                   </div>
                   {auditMemberChecked && (
                     <div className="ml-6">
-                      <Select value={auditMemberType} onValueChange={setAuditMemberType}>
-                        <SelectTrigger className="w-full bg-white">
-                          <SelectValue placeholder="会員種別を選択" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white">
-                          {auditMemberTypes.map((type) => (
-                            <SelectItem
-                              key={type.value}
-                              value={type.value}
-                              className="bg-white hover:bg-gray-100"
-                            >
-                              {type.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-4">
+                        <Select value={auditMemberType} onValueChange={setAuditMemberType}>
+                          <SelectTrigger className="w-1/2 bg-white">
+                            <SelectValue placeholder="会員種別を選択" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white">
+                            {auditMemberTypes.map((type) => (
+                              <SelectItem
+                                key={type.value}
+                                value={type.value}
+                                className="bg-white hover:bg-gray-100"
+                              >
+                                {type.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <div className="flex items-center space-x-2 shrink-0">
+                          <Checkbox
+                            id="audit-premium-check"
+                            checked={auditMemberPremium}
+                            onCheckedChange={(checked) => setAuditMemberPremium(checked === true)}
+                          />
+                          <Label htmlFor="audit-premium-check" className="cursor-pointer">プレミアム会員</Label>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
