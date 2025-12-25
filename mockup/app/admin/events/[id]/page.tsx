@@ -178,7 +178,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 </Link>
               </DropdownMenuItem>
             )}
-            {eventStatus === "closed" && (
+            {eventStatus === "closed" && ((event as any).eventType || "ベンチャー監査役協会") === "ベンチャー監査役協会" && (
               <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
                 <Link href={`/admin/events/${id}/survey`} className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
@@ -366,6 +366,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                     <Card>
                         <CardContent className="pt-6 space-y-6">
                             <div className="grid gap-4">
+                                <div>
+                                    <Label className="text-sm font-medium text-muted-foreground">イベント種別</Label>
+                                    <div className="mt-1 text-base">{(event as any).eventType || "ベンチャー監査役協会"}</div>
+                                </div>
+                                
                                 <div>
                                     <Label className="text-sm font-medium text-muted-foreground">開催日時</Label>
                                     <div className="mt-1 text-base">{formatEventDate(event.date)}</div>

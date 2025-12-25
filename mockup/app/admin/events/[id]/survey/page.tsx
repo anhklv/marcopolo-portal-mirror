@@ -218,6 +218,21 @@ export default function EventSurveyPage({
     );
   }
 
+  // ベンチャー監査役協会のイベントのみアンケート送信可能
+  const eventType = (event as any).eventType || "ベンチャー監査役協会";
+  if (eventType !== "ベンチャー監査役協会") {
+    return (
+      <div className="max-w-4xl space-y-6">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">アンケートメールはベンチャー監査役協会のイベントのみ送信できます。</p>
+          <Button variant="outline" asChild className="mt-4">
+            <Link href={`/admin/events/${id}`}>イベント詳細に戻る</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   // 参加者がいない場合
   if (attendees.length === 0) {
     return (

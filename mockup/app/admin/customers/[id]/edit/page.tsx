@@ -10,15 +10,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { customers, Customer } from "@/lib/data/mock";
@@ -54,7 +45,7 @@ export default function CustomerEditPage({
 
   // 会員区分の状態管理
   const isMember = customer.memberTypes.length > 0;
-  const auditMember = customer.memberTypes.includes("監査役協会");
+  const auditMember = customer.memberTypes.includes("ベンチャー監査役協会");
   const naikanMember = customer.memberTypes.includes("ないかんMeetup");
 
   // フォームの状態管理
@@ -82,31 +73,18 @@ export default function CustomerEditPage({
   const [phone, setPhone] = useState(customer.phone || "");
   const [note, setNote] = useState(customer.note || "");
   const [isInactive, setIsInactive] = useState(customer.status === "inactive");
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // 会員を選択した場合、少なくとも1つの会員区分を選択しているかチェック
-    if (isMemberState === "member" && !auditMemberState && !naikanMemberState) {
-      toast.error("会員を選択した場合、少なくとも1つの会員区分を選択してください");
-      return;
-    }
-
-    // TODO: 実際のAPI呼び出しでは、以下のように memberTypes を構築する
-    // const memberTypes: MemberType[] = [];
-    // if (isMemberState === "member") {
-    //   if (auditMemberState) memberTypes.push("監査役協会");
-    //   if (naikanMemberState) memberTypes.push("ないかんMeetup");
-    // }
-
     toast.success("顧客情報を更新しました");
     router.push(`/admin/customers/${id}`);
   };
 
   const handleDelete = () => {
-    toast.success("顧客を削除しました");
-    router.push("/admin/customers");
+    if (confirm("この顧客を削除してもよろしいですか？")) {
+      toast.success("顧客を削除しました");
+      router.push("/admin/customers");
+    }
   };
 
   return (
@@ -157,7 +135,7 @@ export default function CustomerEditPage({
                     checked={auditMemberState}
                     onCheckedChange={(checked) => setAuditMemberState(checked === true)}
                   />
-                  <Label htmlFor="audit" className="cursor-pointer">監査役協会</Label>
+                  <Label htmlFor="audit" className="cursor-pointer">ベンチャー監査役協会</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -285,48 +263,24 @@ export default function CustomerEditPage({
           </div>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-between items-center pt-4 border-t">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleDelete}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+          >
+            <Trash2 className="h-4 w-4" />
+            削除
+          </Button>
           <Button type="submit" variant="outline" className="cursor-pointer">
             更新する
           </Button>
         </div>
       </form>
-
-      <div className="pt-4 box-border">
-        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <DialogTrigger asChild>
-            <Button type="button" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer">
-              <Trash2 className="h-4 w-4 mr-2" />
-              削除
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-white">
-            <DialogHeader>
-              <DialogTitle>顧客を削除</DialogTitle>
-              <DialogDescription>
-                この顧客を削除してもよろしいですか？この操作は取り消せません。
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsDeleteDialogOpen(false)}
-                className="cursor-pointer"
-              >
-                キャンセル
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleDelete}
-                className="cursor-pointer text-destructive hover:text-destructive"
-              >
-                削除
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
     </div>
   );
 }
+
+
 
