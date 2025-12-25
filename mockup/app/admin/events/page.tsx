@@ -28,15 +28,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { events, getEventStatus, rsvps, customers } from "@/lib/data/mock";
 import { formatEventDate } from "@/lib/utils";
-import { Plus, MoreVertical, Edit, Mail, Pause, Search, ChevronDown, Play, FileText } from "lucide-react";
-import { toast } from "sonner";
+import { Plus, MoreVertical, Edit, Mail, Search, ChevronDown } from "lucide-react";
 
 export default function EventsPage() {
   const router = useRouter();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [statuses, setStatuses] = useState<string[]>([]);
   const [statusSearch, setStatusSearch] = useState("");
-  const [pausedOverrides, setPausedOverrides] = useState<Record<string, boolean>>({});
 
 
   const handleStatusChange = (status: string, checked: boolean) => {
@@ -64,7 +62,7 @@ export default function EventsPage() {
       return {
         ...event,
         status: getEventStatus(event),
-        isPaused: pausedOverrides[event.id] ?? event.isPaused ?? false,
+        isPaused: event.isPaused ?? false,
         actualAttendeesCount,
       };
     });
@@ -109,15 +107,7 @@ export default function EventsPage() {
     });
 
     return sorted;
-  }, [searchKeyword, statuses, pausedOverrides]);
-
-  const handleTogglePause = (eventId: string, current: boolean) => {
-    setPausedOverrides((prev) => {
-      const next = !current;
-      toast.success(next ? "イベント受付を一時停止しました" : "イベント受付を再開しました");
-      return { ...prev, [eventId]: next };
-    });
-  };
+  }, [searchKeyword, statuses]);
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -159,7 +149,7 @@ export default function EventsPage() {
                   ? statuses[0] === "open"
                     ? "受付中"
                     : statuses[0] === "waiting"
-                    ? "開催待ち"
+                    ? "受付終了"
                     : "終了"
                   : `${statuses.length}件選択`}
               </span>
@@ -181,7 +171,7 @@ export default function EventsPage() {
             <div className="p-2 max-h-[300px] overflow-y-auto">
               {[
                 { value: "open", label: "受付中" },
-                { value: "waiting", label: "開催待ち" },
+                { value: "waiting", label: "受付終了" },
                 { value: "closed", label: "終了" },
               ]
                 .filter((status) =>
@@ -278,7 +268,7 @@ export default function EventsPage() {
                         ? "受付中(一時停止)"
                         : "受付中"
                       : event.status === "waiting"
-                      ? "開催待ち"
+                      ? "受付終了"
                       : "終了"}
                   </Badge>
                 </TableCell>
@@ -305,32 +295,6 @@ export default function EventsPage() {
                           </Link>
                         </DropdownMenuItem>
                       )}
-                      {event.status === "closed" && (
-                        <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
-                          <Link href={`/admin/events/${event.id}/survey`} className="flex items-center gap-2">
-                            <FileText className="h-4 w-4" />
-                            アンケート送信
-                          </Link>
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem
-                        className="bg-white hover:bg-gray-100 cursor-pointer"
-                        onClick={() => handleTogglePause(event.id, event.isPaused ?? false)}
-                      >
-                        <div className="flex items-center gap-2">
-                          {event.isPaused ? (
-                            <>
-                              <Play className="h-4 w-4" />
-                              再開
-                            </>
-                          ) : (
-                            <>
-                              <Pause className="h-4 w-4" />
-                              一時停止
-                            </>
-                          )}
-                        </div>
-                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

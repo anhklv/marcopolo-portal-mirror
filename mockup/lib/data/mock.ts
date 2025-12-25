@@ -48,7 +48,7 @@ export function getEventStatus(event: Event): "open" | "waiting" | "closed" {
     if (now < responseDeadline) {
       return "open"; // 現在日時 < 回答期限: 受付中
     } else {
-      return "waiting"; // 回答期限 ≤ 現在日時 < 開催日時: 開催待ち
+      return "waiting"; // 回答期限 ≤ 現在日時 < 開催日時: 受付終了
     }
   }
 
