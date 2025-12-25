@@ -93,6 +93,27 @@ export type SurveyResponse = {
   respondedAt: string; // 回答日時
 };
 
+// 固定設問の回答
+export type FixedSurveyResponse = {
+  surveyId: string;
+  customerId: string;
+  token: string;
+  afterParty?: {
+    rating: "よかった" | "まぁよかった" | "あまりよくなかった" | "よくなかった";
+    reason: string;
+  };
+  futureParticipation?: {
+    rating: "ぜひ参加したい" | "参加を検討したい" | "参加しない";
+    reason: string;
+  };
+  membership?: {
+    rating: "入会をしたい" | "入会を検討したい" | "関心がない";
+    reason: string;
+  };
+  comments?: string; // ご意見・ご提案・感想等
+  respondedAt: string;
+};
+
 // アンケート送信トークン（各顧客ごとに一意なトークンを生成）
 export type SurveyToken = {
   surveyId: string;
@@ -701,13 +722,156 @@ export function hasMemberType(memberTypes: MemberType[], type: MemberType): bool
 }
 
 // アンケートデータ（モック）
-export const surveys: Survey[] = [];
+export const surveys: Survey[] = [
+  {
+    id: "SUR006",
+    eventId: "E006",
+    questions: [
+      { id: "q1", title: "セッションの感想", order: 1 },
+      { id: "q2", title: "交流会の雰囲気", order: 2 },
+    ],
+    createdAt: "2024-01-26T10:00:00+09:00",
+  },
+];
 
 // アンケート送信トークン（モック）
-export const surveyTokens: SurveyToken[] = [];
+export const surveyTokens: SurveyToken[] = [
+  {
+    surveyId: "SUR006",
+    customerId: "C001",
+    token: "survey-c001-sur006-token1",
+    sentAt: "2024-01-26T10:00:00+09:00",
+  },
+  {
+    surveyId: "SUR006",
+    customerId: "C002",
+    token: "survey-c002-sur006-token2",
+    sentAt: "2024-01-26T10:00:00+09:00",
+  },
+  {
+    surveyId: "SUR006",
+    customerId: "C004",
+    token: "survey-c004-sur006-token3",
+    sentAt: "2024-01-26T10:00:00+09:00",
+  },
+];
 
 // アンケート回答データ（モック）
-export const surveyResponses: SurveyResponse[] = [];
+export const surveyResponses: SurveyResponse[] = [
+  // C001の回答
+  {
+    surveyId: "SUR006",
+    questionId: "q1",
+    customerId: "C001",
+    token: "survey-c001-sur006-token1",
+    rating: "よかった",
+    reason: "セッションの内容が非常に参考になりました。",
+    respondedAt: "2024-01-26T14:00:00+09:00",
+  },
+  {
+    surveyId: "SUR006",
+    questionId: "q2",
+    customerId: "C001",
+    token: "survey-c001-sur006-token1",
+    rating: "まぁよかった",
+    reason: "雰囲気は良かったですが、もう少し時間があれば良かったです。",
+    respondedAt: "2024-01-26T14:00:00+09:00",
+  },
+  // C002の回答
+  {
+    surveyId: "SUR006",
+    questionId: "q1",
+    customerId: "C002",
+    token: "survey-c002-sur006-token2",
+    rating: "まぁよかった",
+    reason: "内容は良かったですが、もう少し具体的な事例があると良かったです。",
+    respondedAt: "2024-01-26T15:30:00+09:00",
+  },
+  {
+    surveyId: "SUR006",
+    questionId: "q2",
+    customerId: "C002",
+    token: "survey-c002-sur006-token2",
+    rating: "よかった",
+    reason: "参加者同士の交流が活発で、良いネットワーキングの機会になりました。",
+    respondedAt: "2024-01-26T15:30:00+09:00",
+  },
+  // C004の回答
+  {
+    surveyId: "SUR006",
+    questionId: "q1",
+    customerId: "C004",
+    token: "survey-c004-sur006-token3",
+    rating: "よかった",
+    reason: "非常に有意義な内容でした。",
+    respondedAt: "2024-01-27T09:00:00+09:00",
+  },
+  {
+    surveyId: "SUR006",
+    questionId: "q2",
+    customerId: "C004",
+    token: "survey-c004-sur006-token3",
+    rating: "よかった",
+    reason: "参加者の皆さんと良い交流ができました。",
+    respondedAt: "2024-01-27T09:00:00+09:00",
+  },
+];
+
+// 固定設問の回答データ（モック）
+export const fixedSurveyResponses: FixedSurveyResponse[] = [
+  // C001の固定設問回答
+  {
+    surveyId: "SUR006",
+    customerId: "C001",
+    token: "survey-c001-sur006-token1",
+    afterParty: {
+      rating: "よかった",
+      reason: "懇親会も楽しかったです。",
+    },
+    futureParticipation: {
+      rating: "ぜひ参加したい",
+      reason: "今後も参加したいと思います。",
+    },
+    comments: "とても良いイベントでした。",
+    respondedAt: "2024-01-26T14:00:00+09:00",
+  },
+  // C002の固定設問回答
+  {
+    surveyId: "SUR006",
+    customerId: "C002",
+    token: "survey-c002-sur006-token2",
+    afterParty: {
+      rating: "まぁよかった",
+      reason: "もう少し時間があれば良かったです。",
+    },
+    futureParticipation: {
+      rating: "参加を検討したい",
+      reason: "スケジュールが合えば参加したいです。",
+    },
+    comments: "次回も楽しみにしています。",
+    respondedAt: "2024-01-26T15:30:00+09:00",
+  },
+  // C004の固定設問回答
+  {
+    surveyId: "SUR006",
+    customerId: "C004",
+    token: "survey-c004-sur006-token3",
+    afterParty: {
+      rating: "よかった",
+      reason: "良い交流ができました。",
+    },
+    futureParticipation: {
+      rating: "ぜひ参加したい",
+      reason: "今後も積極的に参加します。",
+    },
+    membership: {
+      rating: "入会を検討したい",
+      reason: "入会について検討したいと思います。",
+    },
+    comments: "有意義な時間でした。",
+    respondedAt: "2024-01-27T09:00:00+09:00",
+  },
+];
 
 // ヘルパー関数: イベントIDからアンケートを取得
 export function getSurveyByEventId(eventId: string): Survey | null {
@@ -726,6 +890,11 @@ export function getSurveyByToken(token: string): { survey: Survey; customerId: s
 // ヘルパー関数: アンケートの回答を取得
 export function getSurveyResponses(surveyId: string): SurveyResponse[] {
   return surveyResponses.filter((sr) => sr.surveyId === surveyId);
+}
+
+// ヘルパー関数: 固定設問の回答を取得
+export function getFixedSurveyResponses(surveyId: string): FixedSurveyResponse[] {
+  return fixedSurveyResponses.filter((fsr) => fsr.surveyId === surveyId);
 }
 
 // ヘルパー関数: 顧客が既に回答済みかチェック
