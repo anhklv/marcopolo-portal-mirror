@@ -132,9 +132,6 @@ export default function SurveyResultsPage({
                   <div className="text-xs text-red-800">よくなかった</div>
                 </div>
               </div>
-              <div className="text-sm text-muted-foreground">
-                回答数: {item.total}件
-              </div>
             </div>
           ))}
 
@@ -170,48 +167,47 @@ export default function SurveyResultsPage({
                         <div className="text-xs text-red-800">よくなかった</div>
                       </div>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      回答数: {afterPartyResponses.length}件
-                    </div>
                   </>
                 );
               })()}
             </div>
           )}
 
-          {/* 固定設問: 今後の参加について */}
-          <div className="space-y-2 pt-4 border-t">
-            <div className="font-medium">今後の参加について</div>
-            {(() => {
-              const futureResponses = fixedResponses.filter((fr) => fr.futureParticipation);
-              const ratingCounts = {
-                ぜひ参加したい: futureResponses.filter((fr) => fr.futureParticipation?.rating === "ぜひ参加したい").length,
-                参加を検討したい: futureResponses.filter((fr) => fr.futureParticipation?.rating === "参加を検討したい").length,
-                参加しない: futureResponses.filter((fr) => fr.futureParticipation?.rating === "参加しない").length,
-              };
-              return (
-                <>
-                  <div className="grid grid-cols-3 gap-4 text-sm">
-                    <div className="text-center p-3 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{ratingCounts.ぜひ参加したい}</div>
-                      <div className="text-xs text-green-800">ぜひ参加したい</div>
+          {/* 固定設問: 今後の参加について（非会員のみ） */}
+          {respondedCustomers.some((item) => item.customer!.memberTypes.length === 0) && (
+            <div className="space-y-2 pt-4 border-t">
+              <div className="font-medium">今後の参加について</div>
+              {(() => {
+                const futureResponses = fixedResponses.filter((fr) => {
+                  const customer = customers.find((c) => c.id === fr.customerId);
+                  return customer && customer.memberTypes.length === 0 && fr.futureParticipation;
+                });
+                const ratingCounts = {
+                  ぜひ参加したい: futureResponses.filter((fr) => fr.futureParticipation?.rating === "ぜひ参加したい").length,
+                  参加を検討したい: futureResponses.filter((fr) => fr.futureParticipation?.rating === "参加を検討したい").length,
+                  参加しない: futureResponses.filter((fr) => fr.futureParticipation?.rating === "参加しない").length,
+                };
+                return (
+                  <>
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div className="text-center p-3 bg-green-50 rounded-lg">
+                        <div className="text-2xl font-bold text-green-600">{ratingCounts.ぜひ参加したい}</div>
+                        <div className="text-xs text-green-800">ぜひ参加したい</div>
+                      </div>
+                      <div className="text-center p-3 bg-blue-50 rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600">{ratingCounts.参加を検討したい}</div>
+                        <div className="text-xs text-blue-800">参加を検討したい</div>
+                      </div>
+                      <div className="text-center p-3 bg-yellow-50 rounded-lg">
+                        <div className="text-2xl font-bold text-yellow-600">{ratingCounts.参加しない}</div>
+                        <div className="text-xs text-yellow-800">参加しない</div>
+                      </div>
                     </div>
-                    <div className="text-center p-3 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{ratingCounts.参加を検討したい}</div>
-                      <div className="text-xs text-blue-800">参加を検討したい</div>
-                    </div>
-                    <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                      <div className="text-2xl font-bold text-yellow-600">{ratingCounts.参加しない}</div>
-                      <div className="text-xs text-yellow-800">参加しない</div>
-                    </div>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    回答数: {futureResponses.length}件
-                  </div>
-                </>
-              );
-            })()}
-          </div>
+                  </>
+                );
+              })()}
+            </div>
+          )}
 
           {/* 固定設問: ベンチャー監査役協会への入会について */}
           {respondedCustomers.some((item) => item.customer!.memberTypes.length === 0) && (
@@ -243,9 +239,6 @@ export default function SurveyResultsPage({
                         <div className="text-xs text-yellow-800">関心がない</div>
                       </div>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      回答数: {membershipResponses.length}件
-                    </div>
                   </>
                 );
               })()}
@@ -262,20 +255,23 @@ export default function SurveyResultsPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>回答者</TableHead>
-                <TableHead>会社名</TableHead>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="sticky left-0 z-10 bg-white">回答者</TableHead>
+                  <TableHead>会社名</TableHead>
                 {survey.questions
                   .sort((a: any, b: any) => a.order - b.order)
                   .map((q: any, index: number) => (
                     <TableHead key={q.id}>{q.title}</TableHead>
                   ))}
                 {event.hasAfterParty && <TableHead>懇親会</TableHead>}
-                <TableHead>今後の参加について</TableHead>
                 {respondedCustomers.some((item) => item.customer!.memberTypes.length === 0) && (
-                  <TableHead>ベンチャー監査役協会への入会について</TableHead>
+                  <>
+                    <TableHead>今後の参加について</TableHead>
+                    <TableHead>ベンチャー監査役協会への入会について</TableHead>
+                  </>
                 )}
                 <TableHead>ご意見・ご提案・感想等</TableHead>
                 <TableHead>回答日時</TableHead>
@@ -284,14 +280,14 @@ export default function SurveyResultsPage({
             <TableBody>
               {respondedCustomers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={survey.questions.length + (event.hasAfterParty ? 1 : 0) + 2 + (respondedCustomers.some((item) => item.customer!.memberTypes.length === 0) ? 1 : 0) + 2} className="text-center text-muted-foreground">
+                  <TableCell colSpan={survey.questions.length + (event.hasAfterParty ? 1 : 0) + (respondedCustomers.some((item) => item.customer!.memberTypes.length === 0) ? 2 : 0) + 2} className="text-center text-muted-foreground">
                     まだ回答がありません
                   </TableCell>
                 </TableRow>
               ) : (
                 respondedCustomers.map((item) => (
                   <TableRow key={item.customer!.id}>
-                    <TableCell>{item.customer!.name}</TableCell>
+                    <TableCell className="sticky left-0 z-10 bg-white font-medium">{item.customer!.name}</TableCell>
                     <TableCell>{item.customer!.company}</TableCell>
                     {survey.questions
                       .sort((a: any, b: any) => a.order - b.order)
@@ -354,39 +350,41 @@ export default function SurveyResultsPage({
                         )}
                       </TableCell>
                     )}
-                    <TableCell>
-                      {item.fixedResponse?.futureParticipation ? (
-                        <div className="space-y-1">
-                          <Badge variant="secondary">
-                            {item.fixedResponse.futureParticipation.rating}
-                          </Badge>
-                          {item.fixedResponse.futureParticipation.reason && (
-                            <div className="text-xs text-muted-foreground max-w-xs truncate">
-                              {item.fixedResponse.futureParticipation.reason}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
                     {respondedCustomers.some((i) => i.customer!.memberTypes.length === 0) && (
-                      <TableCell>
-                        {item.customer!.memberTypes.length === 0 && item.fixedResponse?.membership ? (
-                          <div className="space-y-1">
-                            <Badge variant="secondary">
-                              {item.fixedResponse.membership.rating}
-                            </Badge>
-                            {item.fixedResponse.membership.reason && (
-                              <div className="text-xs text-muted-foreground max-w-xs truncate">
-                                {item.fixedResponse.membership.reason}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
+                      <>
+                        <TableCell>
+                          {item.customer!.memberTypes.length === 0 && item.fixedResponse?.futureParticipation ? (
+                            <div className="space-y-1">
+                              <Badge variant="secondary">
+                                {item.fixedResponse.futureParticipation.rating}
+                              </Badge>
+                              {item.fixedResponse.futureParticipation.reason && (
+                                <div className="text-xs text-muted-foreground max-w-xs truncate">
+                                  {item.fixedResponse.futureParticipation.reason}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {item.customer!.memberTypes.length === 0 && item.fixedResponse?.membership ? (
+                            <div className="space-y-1">
+                              <Badge variant="secondary">
+                                {item.fixedResponse.membership.rating}
+                              </Badge>
+                              {item.fixedResponse.membership.reason && (
+                                <div className="text-xs text-muted-foreground max-w-xs truncate">
+                                  {item.fixedResponse.membership.reason}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                      </>
                     )}
                     <TableCell>
                       {item.fixedResponse?.comments ? (
@@ -405,6 +403,7 @@ export default function SurveyResultsPage({
               )}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

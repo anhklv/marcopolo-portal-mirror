@@ -69,7 +69,7 @@ export default function SurveyAnswerPage({
       // 固定設問の初期化
       setFixedAnswers({
         afterParty: event?.hasAfterParty ? { rating: "", reason: "" } : undefined,
-        futureParticipation: { rating: "", reason: "" },
+        futureParticipation: demoCustomer.memberTypes.length === 0 ? { rating: "", reason: "" } : undefined,
         membership: demoCustomer.memberTypes.length === 0 ? { rating: "", reason: "" } : undefined,
         comments: "",
       });
@@ -100,7 +100,7 @@ export default function SurveyAnswerPage({
       if (customerData) {
         setFixedAnswers({
           afterParty: event?.hasAfterParty ? { rating: "", reason: "" } : undefined,
-          futureParticipation: { rating: "", reason: "" },
+          futureParticipation: customerData.memberTypes.length === 0 ? { rating: "", reason: "" } : undefined,
           membership: customerData.memberTypes.length === 0 ? { rating: "", reason: "" } : undefined,
           comments: "",
         });
@@ -125,8 +125,8 @@ export default function SurveyAnswerPage({
       return;
     }
 
-    // 「今後の参加について」は必須（ラジオボタンのみ）
-    if (!fixedAnswers.futureParticipation?.rating) {
+    // 「今後の参加について」は必須（ラジオボタンのみ、非会員のみ）
+    if (customer.memberTypes.length === 0 && !fixedAnswers.futureParticipation?.rating) {
       toast.error("今後の参加について回答してください");
       return;
     }
@@ -341,50 +341,52 @@ export default function SurveyAnswerPage({
             </div>
           )}
 
-          {/* 固定設問: 今後の参加について */}
-          <div className="space-y-4 pt-4 border-t">
-            <div>
-              <Label className="text-base font-medium">今後の参加について <span className="text-red-500">*</span></Label>
-            </div>
-
-            <RadioGroup
-              value={fixedAnswers.futureParticipation?.rating || ""}
-              onValueChange={(value) => updateFixedAnswer("futureParticipation", "rating", value)}
-            >
-              <div className="flex flex-wrap gap-4">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="ぜひ参加したい" id="future-participation-yes" />
-                  <Label htmlFor="future-participation-yes" className="cursor-pointer">
-                    ぜひ参加したい
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="参加を検討したい" id="future-participation-maybe" />
-                  <Label htmlFor="future-participation-maybe" className="cursor-pointer">
-                    参加を検討したい
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="参加しない" id="future-participation-no" />
-                  <Label htmlFor="future-participation-no" className="cursor-pointer">
-                    参加しない
-                  </Label>
-                </div>
+          {/* 固定設問: 今後の参加について（非会員のみ） */}
+          {customer.memberTypes.length === 0 && (
+            <div className="space-y-4 pt-4 border-t">
+              <div>
+                <Label className="text-base font-medium">今後の参加について <span className="text-red-500">*</span></Label>
               </div>
-            </RadioGroup>
 
-            <div className="space-y-2">
-              <Label htmlFor="future-participation-reason">
-                上記を選んだ理由を、具体的に教えて下さい。
-              </Label>
-              <Textarea
-                id="future-participation-reason"
-                value={fixedAnswers.futureParticipation?.reason || ""}
-                onChange={(e) => updateFixedAnswer("futureParticipation", "reason", e.target.value)}
-                rows={4}
-              />
+              <RadioGroup
+                value={fixedAnswers.futureParticipation?.rating || ""}
+                onValueChange={(value) => updateFixedAnswer("futureParticipation", "rating", value)}
+              >
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="ぜひ参加したい" id="future-participation-yes" />
+                    <Label htmlFor="future-participation-yes" className="cursor-pointer">
+                      ぜひ参加したい
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="参加を検討したい" id="future-participation-maybe" />
+                    <Label htmlFor="future-participation-maybe" className="cursor-pointer">
+                      参加を検討したい
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="参加しない" id="future-participation-no" />
+                    <Label htmlFor="future-participation-no" className="cursor-pointer">
+                      参加しない
+                    </Label>
+                  </div>
+                </div>
+              </RadioGroup>
+
+              <div className="space-y-2">
+                <Label htmlFor="future-participation-reason">
+                  上記を選んだ理由を、具体的に教えて下さい。
+                </Label>
+                <Textarea
+                  id="future-participation-reason"
+                  value={fixedAnswers.futureParticipation?.reason || ""}
+                  onChange={(e) => updateFixedAnswer("futureParticipation", "reason", e.target.value)}
+                  rows={4}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* 固定設問: ベンチャー監査役協会への入会について */}
           {customer.memberTypes.length === 0 && (
