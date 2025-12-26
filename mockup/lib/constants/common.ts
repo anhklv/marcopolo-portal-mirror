@@ -1,4 +1,4 @@
-import type { MemberCategory, MemberTypeDetail } from "@/lib/data/mock";
+import type { MemberCategory, MemberTypeDetail } from "@/lib/types";
 
 // 会員区分の表示ラベル
 export const MEMBER_CATEGORY_LABELS: Record<MemberCategory, string> = {

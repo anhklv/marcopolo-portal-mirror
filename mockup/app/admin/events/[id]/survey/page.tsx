@@ -26,7 +26,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check } from "lucide-react";
-import { customers, events, rsvps, getEventStatus, getSurveyByEventId, surveyTokens, Customer } from "@/lib/data/mock";
+import { customers, events, rsvps, getEventStatus, getSurveyByEventId, surveyTokens } from "@/lib/data/mock";
+import type { Customer } from "@/lib/types";
 import React from "react";
 import { cn, getSurveyRequestEmailTemplate, formatEventDate } from "@/lib/utils";
 

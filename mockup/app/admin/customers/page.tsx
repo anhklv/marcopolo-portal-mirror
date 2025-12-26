@@ -21,7 +21,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { customers, Customer, MemberFilterValue, getMemberTypeDisplayName } from "@/lib/data/mock";
+import { customers, getMemberTypeDisplayName } from "@/lib/data/mock";
+import type { Customer, MemberFilterValue } from "@/lib/types";
 import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/common";
 import { Plus, Search, Users, ChevronDown, Download } from "lucide-react";
 import { toast } from "sonner";

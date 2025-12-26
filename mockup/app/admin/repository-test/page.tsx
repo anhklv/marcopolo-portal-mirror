@@ -8,7 +8,7 @@ import {
   eventRepository,
   rsvpRepository,
 } from "@/lib/repositories";
-import type { Customer, Event, RSVP } from "@/lib/data/mock";
+import type { Customer, Event, RSVP } from "@/lib/types";
 
 export default function RepositoryTestPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);

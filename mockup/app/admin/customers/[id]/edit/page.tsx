@@ -29,7 +29,8 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ArrowLeft, Trash2, Plus, X } from "lucide-react";
-import { customers, Customer } from "@/lib/data/mock";
+import { customers } from "@/lib/data/mock";
+import type { Customer } from "@/lib/types";
 import {
   PREFECTURES,
   ORIGIN_INDUSTRIES,

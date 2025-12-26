@@ -31,7 +31,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check, Search, Users, ChevronDown } from "lucide-react";
-import { customers, events, rsvps, Customer } from "@/lib/data/mock";
+import { customers, events, rsvps } from "@/lib/data/mock";
+import type { Customer } from "@/lib/types";
 import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/common";
 import React from "react";
 import { cn, getInviteEmailTemplate, formatEventDate } from "@/lib/utils";

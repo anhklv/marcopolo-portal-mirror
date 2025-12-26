@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft, Mail } from "lucide-react";
-import { events, EventType } from "@/lib/data/mock";
+import { events } from "@/lib/data/mock";
+import type { EventType } from "@/lib/types";
 import { EVENT_TYPES } from "@/lib/constants/event";
 import {
   Select,

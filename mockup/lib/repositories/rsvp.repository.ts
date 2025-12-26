@@ -1,4 +1,4 @@
-import type { RSVP } from "@/lib/data/mock";
+import type { RSVP } from "@/lib/types";
 import { rsvps } from "@/lib/data/mock";
 import type { IRepository } from "./base.repository";
 

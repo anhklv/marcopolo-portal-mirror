@@ -1,4 +1,4 @@
-import type { Customer, MemberCategory } from "@/lib/data/mock";
+import type { Customer, MemberCategory } from "@/lib/types";
 import { customers } from "@/lib/data/mock";
 import type { IRepository } from "./base.repository";
 

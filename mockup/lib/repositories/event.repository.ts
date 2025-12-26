@@ -1,4 +1,4 @@
-import type { Event, EventType } from "@/lib/data/mock";
+import type { Event, EventType } from "@/lib/types";
 import { events, getEventStatus } from "@/lib/data/mock";
 import type { IRepository } from "./base.repository";
 

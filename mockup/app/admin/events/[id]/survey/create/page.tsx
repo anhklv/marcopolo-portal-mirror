@@ -15,7 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, Trash2, Save } from "lucide-react";
-import { events, surveys, SurveyQuestion, getSurveyByEventId } from "@/lib/data/mock";
+import { events, surveys, getSurveyByEventId } from "@/lib/data/mock";
+import type { SurveyQuestion } from "@/lib/types";
 
 export default function SurveyCreatePage({
   params,

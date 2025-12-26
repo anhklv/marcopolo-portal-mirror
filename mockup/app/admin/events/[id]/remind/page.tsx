@@ -17,7 +17,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check } from "lucide-react";
-import { customers, events, rsvps, getEventStatus, Customer } from "@/lib/data/mock";
+import { customers, events, rsvps, getEventStatus } from "@/lib/data/mock";
+import type { Customer } from "@/lib/types";
 import React from "react";
 import { cn, getRemindEmailTemplate, formatEventDate } from "@/lib/utils";
 

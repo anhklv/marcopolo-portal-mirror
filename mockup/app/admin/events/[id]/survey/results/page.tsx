@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft } from "lucide-react";
-import { events, customers, getSurveyByEventId, getSurveyResponses, getFixedSurveyResponses, FixedSurveyResponse } from "@/lib/data/mock";
+import { events, customers, getSurveyByEventId, getSurveyResponses, getFixedSurveyResponses } from "@/lib/data/mock";
+import type { FixedSurveyResponse } from "@/lib/types";
 import { formatEventDate, formatDateTime } from "@/lib/utils";
 
 export default function SurveyResultsPage({

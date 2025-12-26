@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ArrowLeft, Trash2 } from "lucide-react";
-import { events, EventType } from "@/lib/data/mock";
+import { events } from "@/lib/data/mock";
+import type { EventType } from "@/lib/types";
 import { EVENT_TYPES } from "@/lib/constants/event";
 import {
   Select,

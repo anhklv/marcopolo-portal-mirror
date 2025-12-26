@@ -1,49 +1,35 @@
-export type MemberType = "ベンチャー監査役協会" | "ないかんMeetup";
-export type MemberFilterValue = MemberType | "非会員"; // フィルター用（非会員を含む）
-export type MemberCategory = "member" | "non-member" | "sponsor" | "observer"; // 会員区分
-export type MemberTypeDetail = "corporate" | "individual"; // 会員種別（法人・個人）
+// 型定義は @/lib/types からインポート
+import type {
+  MemberType,
+  MemberFilterValue,
+  MemberCategory,
+  MemberTypeDetail,
+  Customer,
+  EventType,
+  Event,
+  RSVP,
+  SurveyQuestion,
+  Survey,
+  SurveyResponse,
+  FixedSurveyResponse,
+  SurveyToken,
+} from "@/lib/types";
 
-export type Customer = {
-  id: string;
-  name: string; // 氏名(姓名)
-  nameKana?: string; // 氏名(セイメイ) - 任意
-  company?: string; // 会社名・所属 - 任意
-  email: string;
-  subEmails?: string[]; // サブメールアドレス（最大3つ）
-  phone?: string; // 電話番号 - 任意
-  postalCode?: string; // 郵便番号
-  prefecture?: string; // 都道府県
-  city?: string; // 市区町村以下
-  gender?: "male" | "female"; // 性別
-  listingCategory?: string; // 上場区分
-  originIndustry?: string; // 出身業種
-  membershipQualification?: string; // 入会資格
-  memberCategory: MemberCategory; // 会員区分（会員、非会員、スポンサー、オブザーバー）
-  memberTypes: MemberType[]; // 会員区分（配列で複数所属可能、空配列=非会員）
-  memberType?: MemberTypeDetail; // 会員種別（法人・個人）- 会員の場合のみ
-  auditMemberType?: "regular" | "online"; // ベンチャー監査役協会の会員種別
-  auditMemberPremium?: boolean; // プレミアム会員フラグ
-  note?: string; // 備考 - 任意
-  status: "active" | "inactive";
-  registeredAt: string;
-};
-
-export type EventType = "ベンチャー監査役協会" | "ないかんMeetup" | "その他";
-
-export type Event = {
-  id: string;
-  title: string;
-  date: string;
-  location: string;
-  description: string;
-  eventType: EventType; // イベント種別
-  timetable?: string; // タイムテーブル
-  note?: string; // 備考
-  attendeesCount: number;
-  responseDeadline?: string; // 回答期限
-  isPaused?: boolean; // 一時停止中かどうか
-  allowsOnline?: boolean; // オンライン参加を可能にするか
-  hasAfterParty?: boolean; // 懇親会を開催するか
+// 型定義を再エクスポート（既存コードとの互換性のため）
+export type {
+  MemberType,
+  MemberFilterValue,
+  MemberCategory,
+  MemberTypeDetail,
+  Customer,
+  EventType,
+  Event,
+  RSVP,
+  SurveyQuestion,
+  Survey,
+  SurveyResponse,
+  FixedSurveyResponse,
+  SurveyToken,
 };
 
 // イベントのステータスを自動判定する関数
@@ -70,71 +56,6 @@ export function getEventStatus(event: Event): "open" | "waiting" | "closed" {
   return "open";
 }
 
-// 参加データ（中間テーブル）
-export type RSVP = {
-  eventId: string;
-  customerId: string;
-  token: string; // URL用の一意な文字列
-  status: "未回答" | "参加" | "オンライン参加" | "不参加";
-  respondedAt?: string; // 回答日時
-  attendanceType?: "通常参加" | "オンライン参加"; // 参加タイプ（参加の場合のみ）
-  afterPartyStatus?: "参加" | "不参加"; // 懇親会の参加状況（イベントに懇親会があり、通常参加を選択した場合のみ）
-};
-
-// アンケート設問
-export type SurveyQuestion = {
-  id: string;
-  title: string;
-  order: number;
-};
-
-// アンケート
-export type Survey = {
-  id: string;
-  eventId: string;
-  questions: SurveyQuestion[];
-  createdAt: string;
-};
-
-// アンケート回答
-export type SurveyResponse = {
-  surveyId: string;
-  questionId: string;
-  customerId: string;
-  token: string; // URL用の一意な文字列
-  rating: "よかった" | "まぁよかった" | "あまりよくなかった" | "よくなかった";
-  reason: string; // 理由
-  respondedAt: string; // 回答日時
-};
-
-// 固定設問の回答
-export type FixedSurveyResponse = {
-  surveyId: string;
-  customerId: string;
-  token: string;
-  afterParty?: {
-    rating: "よかった" | "まぁよかった" | "あまりよくなかった" | "よくなかった";
-    reason: string;
-  };
-  futureParticipation?: {
-    rating: "ぜひ参加したい" | "参加を検討したい" | "参加しない";
-    reason: string;
-  };
-  membership?: {
-    rating: "入会をしたい" | "入会を検討したい" | "関心がない";
-    reason: string;
-  };
-  comments?: string; // ご意見・ご提案・感想等
-  respondedAt: string;
-};
-
-// アンケート送信トークン（各顧客ごとに一意なトークンを生成）
-export type SurveyToken = {
-  surveyId: string;
-  customerId: string;
-  token: string; // URL用の一意な文字列
-  sentAt: string; // 送信日時
-};
 
 export const customers: Customer[] = [
   {

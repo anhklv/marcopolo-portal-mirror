@@ -1,4 +1,4 @@
-import type { EventType } from "@/lib/data/mock";
+import type { EventType } from "@/lib/types";
 
 // イベント種別の選択肢
 export const EVENT_TYPES: readonly EventType[] = [
