@@ -61,7 +61,6 @@ export default function CustomerEditPage({
   }
 
   // 会員区分の状態管理（既存データから初期化）
-  const isMember = customer.memberTypes.length > 0;
   const auditMember = customer.memberTypes.includes("ベンチャー監査役協会");
   const naikanMemberInitial = customer.memberTypes.includes("ないかんMeetup");
   
@@ -71,32 +70,34 @@ export default function CustomerEditPage({
 
   // フォームの状態管理
   const [memberCategory, setMemberCategory] = useState<"non-member" | "member" | "sponsor" | "observer">(
-    isMember ? "member" : "non-member"
+    customer.memberCategory || (customer.memberTypes.length > 0 ? "member" : "non-member")
   );
   const [auditMemberChecked, setAuditMemberChecked] = useState(auditMember);
-  const [auditMemberType, setAuditMemberType] = useState<string>("");
-  const [auditMemberPremium, setAuditMemberPremium] = useState(false);
+  const [auditMemberType, setAuditMemberType] = useState<string>(customer.auditMemberType || "");
+  const [auditMemberPremium, setAuditMemberPremium] = useState(customer.auditMemberPremium || false);
   const [naikanMember, setNaikanMember] = useState(naikanMemberInitial);
   const [auditSponsorChecked, setAuditSponsorChecked] = useState(false);
   const [naikanSponsorChecked, setNaikanSponsorChecked] = useState(false);
   const [auditObserverChecked, setAuditObserverChecked] = useState(false);
   const [naikanObserverChecked, setNaikanObserverChecked] = useState(false);
-  const [memberType, setMemberType] = useState<"corporate" | "individual">("corporate");
+  const [memberType, setMemberType] = useState<"corporate" | "individual">(
+    customer.memberType || "corporate"
+  );
   const [lastName, setLastName] = useState(nameParts[0] || "");
   const [firstName, setFirstName] = useState(nameParts[1] || "");
   const [lastNameKana, setLastNameKana] = useState(nameKanaParts[0] || "");
   const [firstNameKana, setFirstNameKana] = useState(nameKanaParts[1] || "");
   const [email, setEmail] = useState(customer.email);
-  const [subEmails, setSubEmails] = useState<string[]>([]);
+  const [subEmails, setSubEmails] = useState<string[]>(customer.subEmails || []);
   const [company, setCompany] = useState(customer.company || "");
   const [phone, setPhone] = useState(customer.phone || "");
-  const [postalCode, setPostalCode] = useState("");
-  const [prefecture, setPrefecture] = useState("");
-  const [city, setCity] = useState("");
-  const [gender, setGender] = useState<"male" | "female" | "">("");
-  const [listingCategory, setListingCategory] = useState<string>("");
-  const [originIndustry, setOriginIndustry] = useState<string>("");
-  const [membershipQualification, setMembershipQualification] = useState<string>("");
+  const [postalCode, setPostalCode] = useState(customer.postalCode || "");
+  const [prefecture, setPrefecture] = useState(customer.prefecture || "");
+  const [city, setCity] = useState(customer.city || "");
+  const [gender, setGender] = useState<"male" | "female" | "">(customer.gender || "");
+  const [listingCategory, setListingCategory] = useState<string>(customer.listingCategory || "");
+  const [originIndustry, setOriginIndustry] = useState<string>(customer.originIndustry || "");
+  const [membershipQualification, setMembershipQualification] = useState<string>(customer.membershipQualification || "");
   const [note, setNote] = useState(customer.note || "");
   const [isInactive, setIsInactive] = useState(customer.status === "inactive");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);

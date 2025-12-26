@@ -1,5 +1,7 @@
 export type MemberType = "ベンチャー監査役協会" | "ないかんMeetup";
 export type MemberFilterValue = MemberType | "非会員"; // フィルター用（非会員を含む）
+export type MemberCategory = "member" | "non-member" | "sponsor" | "observer"; // 会員区分
+export type MemberTypeDetail = "corporate" | "individual"; // 会員種別（法人・個人）
 
 export type Customer = {
   id: string;
@@ -7,8 +9,20 @@ export type Customer = {
   nameKana?: string; // 氏名(セイメイ) - 任意
   company?: string; // 会社名・所属 - 任意
   email: string;
+  subEmails?: string[]; // サブメールアドレス（最大3つ）
   phone?: string; // 電話番号 - 任意
+  postalCode?: string; // 郵便番号
+  prefecture?: string; // 都道府県
+  city?: string; // 市区町村以下
+  gender?: "male" | "female"; // 性別
+  listingCategory?: string; // 上場区分
+  originIndustry?: string; // 出身業種
+  membershipQualification?: string; // 入会資格
+  memberCategory: MemberCategory; // 会員区分（会員、非会員、スポンサー、オブザーバー）
   memberTypes: MemberType[]; // 会員区分（配列で複数所属可能、空配列=非会員）
+  memberType?: MemberTypeDetail; // 会員種別（法人・個人）- 会員の場合のみ
+  auditMemberType?: "regular" | "online"; // ベンチャー監査役協会の会員種別
+  auditMemberPremium?: boolean; // プレミアム会員フラグ
   note?: string; // 備考 - 任意
   status: "active" | "inactive";
   registeredAt: string;
@@ -129,8 +143,20 @@ export const customers: Customer[] = [
     nameKana: "ヤマダ タロウ",
     company: "株式会社東京貿易",
     email: "yamada@example.com",
-    phone: "03-1234-5678",
+    subEmails: ["yamada.sub@example.com"],
+    phone: "0312345678",
+    postalCode: "1000001",
+    prefecture: "東京都",
+    city: "千代田区千代田1-1-1",
+    gender: "male",
+    listingCategory: "東京証券取引所-プライム",
+    originIndustry: "事業会社",
+    membershipQualification: "監査役",
+    memberCategory: "member",
     memberTypes: ["ベンチャー監査役協会"],
+    memberType: "corporate",
+    auditMemberType: "regular",
+    auditMemberPremium: false,
     note: "紹介者: 鈴木",
     status: "active",
     registeredAt: "2024-01-10",
@@ -141,8 +167,10 @@ export const customers: Customer[] = [
     nameKana: "スズキ イチロウ",
     company: "マルコポーロ商事",
     email: "suzuki@example.com",
-    phone: "03-2345-6789",
+    phone: "0323456789",
+    memberCategory: "member",
     memberTypes: ["ないかんMeetup"],
+    memberType: "corporate",
     status: "active",
     registeredAt: "2024-02-15",
   },
@@ -152,7 +180,8 @@ export const customers: Customer[] = [
     nameKana: "サトウ ハナコ",
     company: "グローバルテック株式会社",
     email: "sato@example.com",
-    phone: "03-3456-7890",
+    phone: "0334567890",
+    memberCategory: "non-member",
     memberTypes: [],
     status: "active",
     registeredAt: "2024-03-05",
@@ -163,8 +192,11 @@ export const customers: Customer[] = [
     nameKana: "タナカ ジロウ",
     company: "田中製作所",
     email: "tanaka@example.com",
-    phone: "03-4567-8901",
+    phone: "0345678901",
+    memberCategory: "member",
     memberTypes: ["ベンチャー監査役協会"],
+    memberType: "corporate",
+    auditMemberType: "regular",
     status: "inactive",
     registeredAt: "2023-11-20",
   },
@@ -174,6 +206,7 @@ export const customers: Customer[] = [
     nameKana: "イトウ ミサキ",
     company: "フリーランス",
     email: "ito@example.com",
+    memberCategory: "non-member",
     memberTypes: [],
     status: "active",
     registeredAt: "2024-04-01",
@@ -184,8 +217,11 @@ export const customers: Customer[] = [
     nameKana: "タカハシ ケンタ",
     company: "株式会社サンライズ",
     email: "takahashi@example.com",
-    phone: "03-5678-9012",
+    phone: "0356789012",
+    memberCategory: "member",
     memberTypes: ["ベンチャー監査役協会", "ないかんMeetup"],
+    memberType: "corporate",
+    auditMemberType: "regular",
     note: "新規入会（両方の会員）",
     status: "active",
     registeredAt: "2024-05-12",
@@ -196,8 +232,10 @@ export const customers: Customer[] = [
     nameKana: "ワタナベ マイ",
     company: "テクノロジーソリューションズ株式会社",
     email: "watanabe@example.com",
-    phone: "03-6789-0123",
+    phone: "0367890123",
+    memberCategory: "member",
     memberTypes: ["ないかんMeetup"],
+    memberType: "individual",
     status: "active",
     registeredAt: "2024-06-03",
   },
@@ -207,8 +245,11 @@ export const customers: Customer[] = [
     nameKana: "ナカムラ ユウイチ",
     company: "株式会社ファイナンスパートナーズ",
     email: "nakamura@example.com",
-    phone: "03-7890-1234",
+    phone: "0378901234",
+    memberCategory: "member",
     memberTypes: ["ベンチャー監査役協会"],
+    memberType: "corporate",
+    auditMemberType: "online",
     note: "紹介者: 山田",
     status: "active",
     registeredAt: "2024-07-18",
@@ -219,8 +260,10 @@ export const customers: Customer[] = [
     nameKana: "コバヤシ サクラ",
     company: "デジタルイノベーション株式会社",
     email: "kobayashi@example.com",
-    phone: "03-8901-2345",
+    phone: "0389012345",
+    memberCategory: "member",
     memberTypes: ["ないかんMeetup"],
+    memberType: "individual",
     status: "active",
     registeredAt: "2024-08-22",
   },
@@ -230,8 +273,12 @@ export const customers: Customer[] = [
     nameKana: "カトウ ダイスケ",
     company: "株式会社ストラテジックアドバイザーズ",
     email: "kato@example.com",
-    phone: "03-9012-3456",
+    phone: "0390123456",
+    memberCategory: "member",
     memberTypes: ["ベンチャー監査役協会"],
+    memberType: "corporate",
+    auditMemberType: "regular",
+    auditMemberPremium: true,
     status: "active",
     registeredAt: "2024-09-10",
   },
@@ -241,6 +288,7 @@ export const customers: Customer[] = [
     nameKana: "ヨシダ ユミ",
     company: "フリーランス",
     email: "yoshida@example.com",
+    memberCategory: "non-member",
     memberTypes: [],
     note: "イベント参加希望",
     status: "active",
@@ -252,8 +300,11 @@ export const customers: Customer[] = [
     nameKana: "マツモト ケンイチ",
     company: "株式会社コーポレートガバナンス",
     email: "matsumoto@example.com",
-    phone: "03-1111-2222",
+    phone: "0311112222",
+    memberCategory: "member",
     memberTypes: ["ベンチャー監査役協会", "ないかんMeetup"],
+    memberType: "corporate",
+    auditMemberType: "regular",
     note: "両方の会員",
     status: "active",
     registeredAt: "2024-11-01",

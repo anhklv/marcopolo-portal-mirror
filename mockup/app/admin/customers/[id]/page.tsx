@@ -20,6 +20,7 @@ import {
 import { ArrowLeft, Edit, Calendar } from "lucide-react";
 import { customers, events, rsvps, getMemberTypeDisplayName } from "@/lib/data/mock";
 import { use } from "react";
+import React from "react";
 import { formatEventDate } from "@/lib/utils";
 
 export default function CustomerDetailPage({
@@ -100,6 +101,110 @@ export default function CustomerDetailPage({
         </Button>
       </div>
 
+      {/* 会員情報 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>会員情報</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground mb-2">会員区分</p>
+              <div className="flex gap-2 flex-wrap items-center">
+                {(() => {
+                  const badges: React.ReactElement[] = [];
+                  
+                  if (customer.memberCategory === "non-member") {
+                    badges.push(
+                      <Badge key="non-member" variant="secondary" className="text-base px-3 py-1">
+                        非会員
+                      </Badge>
+                    );
+                  } else if (customer.memberCategory === "member") {
+                    const hasAudit = customer.memberTypes.includes("ベンチャー監査役協会");
+                    const hasNaikan = customer.memberTypes.includes("ないかんMeetup");
+                    
+                    if (hasNaikan && !hasAudit) {
+                      badges.push(
+                        <Badge key="naikan-member" variant="default" className="text-base px-3 py-1">
+                          会員(ないかんMeetup)
+                        </Badge>
+                      );
+                    } else if (hasAudit && !hasNaikan) {
+                      const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
+                      badges.push(
+                        <Badge key="audit-member" variant="default" className="text-base px-3 py-1">
+                          {auditType}(ベンチャー監査役協会)
+                        </Badge>
+                      );
+                    } else if (hasAudit && hasNaikan) {
+                      const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
+                      badges.push(
+                        <Badge key="audit-member" variant="default" className="text-base px-3 py-1">
+                          {auditType}(ベンチャー監査役協会)
+                        </Badge>
+                      );
+                      badges.push(
+                        <Badge key="naikan-member" variant="default" className="text-base px-3 py-1">
+                          会員(ないかんMeetup)
+                        </Badge>
+                      );
+                    }
+                    
+                    // プレミアム会員バッジ
+                    if (customer.auditMemberPremium) {
+                      badges.push(
+                        <Badge key="premium" variant="default" className="text-xs px-2 py-0.5 bg-slate-600 hover:bg-slate-700 text-white">
+                          プレミアム
+                        </Badge>
+                      );
+                    }
+                  } else if (customer.memberCategory === "sponsor") {
+                    if (customer.memberTypes.includes("ないかんMeetup")) {
+                      badges.push(
+                        <Badge key="sponsor-naikan" variant="default" className="text-base px-3 py-1">
+                          スポンサー(ないかんMeetup)
+                        </Badge>
+                      );
+                    }
+                    if (customer.memberTypes.includes("ベンチャー監査役協会")) {
+                      badges.push(
+                        <Badge key="sponsor-audit" variant="default" className="text-base px-3 py-1">
+                          スポンサー(ベンチャー監査役協会)
+                        </Badge>
+                      );
+                    }
+                  } else if (customer.memberCategory === "observer") {
+                    if (customer.memberTypes.includes("ないかんMeetup")) {
+                      badges.push(
+                        <Badge key="observer-naikan" variant="default" className="text-base px-3 py-1">
+                          オブザーバー(ないかんMeetup)
+                        </Badge>
+                      );
+                    }
+                    if (customer.memberTypes.includes("ベンチャー監査役協会")) {
+                      badges.push(
+                        <Badge key="observer-audit" variant="default" className="text-base px-3 py-1">
+                          オブザーバー(ベンチャー監査役協会)
+                        </Badge>
+                      );
+                    }
+                  }
+                  
+                  return badges.length > 0 ? badges : null;
+                })()}
+              </div>
+            </div>
+            {customer.memberCategory === "member" && customer.memberType && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-2">会員種別</p>
+                <p className="text-base">{customer.memberType === "corporate" ? "法人" : "個人"}</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* 顧客プロフィール */}
       <Card>
         <CardHeader>
@@ -130,22 +235,57 @@ export default function CustomerDetailPage({
               </div>
             )}
           </div>
+          {customer.subEmails && customer.subEmails.length > 0 && (
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">サブメールアドレス</p>
+              <div className="space-y-1">
+                {customer.subEmails.map((subEmail, index) => (
+                  <p key={index} className="text-base">{subEmail}</p>
+                ))}
+              </div>
+            </div>
+          )}
           {customer.company && (
             <div>
               <p className="text-sm font-medium text-muted-foreground">会社名・所属</p>
               <p className="text-base">{customer.company}</p>
             </div>
           )}
-          <div className="grid grid-cols-2 gap-4">
+          {(customer.postalCode || customer.prefecture || customer.city) && (
             <div>
-              <p className="text-sm font-medium text-muted-foreground">会員区分</p>
-              <Badge
-                variant={customer.memberTypes.length === 0 ? "secondary" : "default"}
-                className="text-base"
-              >
-                {getMemberTypeDisplayName(customer.memberTypes)}
-              </Badge>
+              <p className="text-sm font-medium text-muted-foreground">住所</p>
+              <p className="text-base">
+                {customer.postalCode && `〒${customer.postalCode} `}
+                {customer.prefecture}
+                {customer.city && ` ${customer.city}`}
+              </p>
             </div>
+          )}
+          {customer.gender && (
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">性別</p>
+              <p className="text-base">{customer.gender === "male" ? "男性" : "女性"}</p>
+            </div>
+          )}
+          {customer.listingCategory && (
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">上場区分</p>
+              <p className="text-base">{customer.listingCategory}</p>
+            </div>
+          )}
+          {customer.originIndustry && (
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">出身業種</p>
+              <p className="text-base">{customer.originIndustry}</p>
+            </div>
+          )}
+          {customer.membershipQualification && (
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">入会資格</p>
+              <p className="text-base">{customer.membershipQualification}</p>
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground">ステータス</p>
               <Badge
@@ -155,8 +295,6 @@ export default function CustomerDetailPage({
                 {customer.status === "active" ? "アクティブ" : "非アクティブ"}
               </Badge>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground">登録日</p>
               <p className="text-base">{customer.registeredAt}</p>
