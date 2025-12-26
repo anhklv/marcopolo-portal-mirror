@@ -127,26 +127,26 @@ export default function CustomerDetailPage({
                     if (hasNaikan && !hasAudit) {
                       badges.push(
                         <Badge key="naikan-member" variant="default" className="text-base px-3 py-1">
-                          会員(ないかんMeetup)
+                          ないかんMeetup(会員)
                         </Badge>
                       );
                     } else if (hasAudit && !hasNaikan) {
                       const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                       badges.push(
                         <Badge key="audit-member" variant="default" className="text-base px-3 py-1">
-                          {auditType}(ベンチャー監査役協会)
+                          ベンチャー監査役協会({auditType})
                         </Badge>
                       );
                     } else if (hasAudit && hasNaikan) {
                       const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                       badges.push(
                         <Badge key="audit-member" variant="default" className="text-base px-3 py-1">
-                          {auditType}(ベンチャー監査役協会)
+                          ベンチャー監査役協会({auditType})
                         </Badge>
                       );
                       badges.push(
                         <Badge key="naikan-member" variant="default" className="text-base px-3 py-1">
-                          会員(ないかんMeetup)
+                          ないかんMeetup(会員)
                         </Badge>
                       );
                     }
@@ -163,14 +163,14 @@ export default function CustomerDetailPage({
                     if (customer.memberTypes.includes("ないかんMeetup")) {
                       badges.push(
                         <Badge key="sponsor-naikan" variant="default" className="text-base px-3 py-1">
-                          スポンサー(ないかんMeetup)
+                          ないかんMeetup(スポンサー)
                         </Badge>
                       );
                     }
                     if (customer.memberTypes.includes("ベンチャー監査役協会")) {
                       badges.push(
                         <Badge key="sponsor-audit" variant="default" className="text-base px-3 py-1">
-                          スポンサー(ベンチャー監査役協会)
+                          ベンチャー監査役協会(スポンサー)
                         </Badge>
                       );
                     }
@@ -178,14 +178,14 @@ export default function CustomerDetailPage({
                     if (customer.memberTypes.includes("ないかんMeetup")) {
                       badges.push(
                         <Badge key="observer-naikan" variant="default" className="text-base px-3 py-1">
-                          オブザーバー(ないかんMeetup)
+                          ないかんMeetup(オブザーバー)
                         </Badge>
                       );
                     }
                     if (customer.memberTypes.includes("ベンチャー監査役協会")) {
                       badges.push(
                         <Badge key="observer-audit" variant="default" className="text-base px-3 py-1">
-                          オブザーバー(ベンチャー監査役協会)
+                          ベンチャー監査役協会(オブザーバー)
                         </Badge>
                       );
                     }
