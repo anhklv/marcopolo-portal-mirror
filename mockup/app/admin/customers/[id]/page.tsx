@@ -51,11 +51,19 @@ export default function CustomerDetailPage({
     );
   }
 
-  // この顧客のRSVPデータを取得
+  // この顧客のRSVPデータを取得（重複を除去）
   const customerRsvps = rsvps.filter((r) => r.customerId === id);
   
+  // イベントIDで重複を除去（同じイベントIDの場合は最初のRSVPのみを使用）
+  const uniqueRsvps = customerRsvps.reduce((acc, rsvp) => {
+    if (!acc.find((r) => r.eventId === rsvp.eventId)) {
+      acc.push(rsvp);
+    }
+    return acc;
+  }, [] as typeof customerRsvps);
+  
   // イベント情報とRSVP情報を結合
-  const eventList = customerRsvps.map((rsvp) => {
+  const eventList = uniqueRsvps.map((rsvp) => {
     const event = events.find((e) => e.id === rsvp.eventId);
     if (!event) return null;
     return {
