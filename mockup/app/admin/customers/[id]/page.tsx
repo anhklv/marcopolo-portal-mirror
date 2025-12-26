@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArrowLeft, Edit, Calendar } from "lucide-react";
-import { customers, events, rsvps, getMemberTypeDisplayName } from "@/lib/data/mock";
+import { customers, events, rsvps } from "@/lib/data/mock";
 import { use } from "react";
 import React from "react";
 import { formatEventDate } from "@/lib/utils";

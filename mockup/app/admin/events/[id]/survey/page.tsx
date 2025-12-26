@@ -26,7 +26,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check } from "lucide-react";
-import { customers, events, rsvps, getEventStatus, getMemberTypeDisplayName, getSurveyByEventId, surveyTokens } from "@/lib/data/mock";
+import { customers, events, rsvps, getEventStatus, getSurveyByEventId, surveyTokens, Customer } from "@/lib/data/mock";
+import React from "react";
 import { cn, getSurveyRequestEmailTemplate, formatEventDate } from "@/lib/utils";
 
 type Step = "select" | "customize" | "confirm";
@@ -330,13 +331,89 @@ export default function EventSurveyPage({
                     <TableCell>{attendee.company}</TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
-                        <Badge
-                          variant={
-                            attendee.memberTypes.length === 0 ? "secondary" : "default"
-                          }
-                        >
-                          {getMemberTypeDisplayName(attendee.memberTypes)}
-                        </Badge>
+                        <div className="flex gap-1 flex-wrap items-center">
+                          {(() => {
+                            const badges: React.ReactElement[] = [];
+                            
+                            if (attendee.memberCategory === "non-member") {
+                              badges.push(
+                                <Badge key="non-member" variant="secondary" className="text-xs px-2 py-0.5">
+                                  非会員
+                                </Badge>
+                              );
+                            } else if (attendee.memberCategory === "member") {
+                              const hasAudit = attendee.memberTypes.includes("ベンチャー監査役協会");
+                              const hasNaikan = attendee.memberTypes.includes("ないかんMeetup");
+                              
+                              if (hasNaikan && !hasAudit) {
+                                badges.push(
+                                  <Badge key="naikan-member" variant="default" className="text-xs px-2 py-0.5">
+                                    ないかんMeetup(会員)
+                                  </Badge>
+                                );
+                              } else if (hasAudit && !hasNaikan) {
+                                const auditType = attendee.auditMemberType === "regular" ? "正会員" : "オンライン会員";
+                                badges.push(
+                                  <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
+                                    ベンチャー監査役協会({auditType})
+                                  </Badge>
+                                );
+                              } else if (hasAudit && hasNaikan) {
+                                const auditType = attendee.auditMemberType === "regular" ? "正会員" : "オンライン会員";
+                                badges.push(
+                                  <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
+                                    ベンチャー監査役協会({auditType})
+                                  </Badge>
+                                );
+                                badges.push(
+                                  <Badge key="naikan-member" variant="default" className="text-xs px-2 py-0.5">
+                                    ないかんMeetup(会員)
+                                  </Badge>
+                                );
+                              }
+                              
+                              if (attendee.auditMemberPremium) {
+                                badges.push(
+                                  <Badge key="premium" variant="default" className="text-xs px-1.5 py-0.5 bg-slate-600 hover:bg-slate-700 text-white">
+                                    プレミアム
+                                  </Badge>
+                                );
+                              }
+                            } else if (attendee.memberCategory === "sponsor") {
+                              if (attendee.memberTypes.includes("ないかんMeetup")) {
+                                badges.push(
+                                  <Badge key="sponsor-naikan" variant="default" className="text-xs px-2 py-0.5">
+                                    ないかんMeetup(スポンサー)
+                                  </Badge>
+                                );
+                              }
+                              if (attendee.memberTypes.includes("ベンチャー監査役協会")) {
+                                badges.push(
+                                  <Badge key="sponsor-audit" variant="default" className="text-xs px-2 py-0.5">
+                                    ベンチャー監査役協会(スポンサー)
+                                  </Badge>
+                                );
+                              }
+                            } else if (attendee.memberCategory === "observer") {
+                              if (attendee.memberTypes.includes("ないかんMeetup")) {
+                                badges.push(
+                                  <Badge key="observer-naikan" variant="default" className="text-xs px-2 py-0.5">
+                                    ないかんMeetup(オブザーバー)
+                                  </Badge>
+                                );
+                              }
+                              if (attendee.memberTypes.includes("ベンチャー監査役協会")) {
+                                badges.push(
+                                  <Badge key="observer-audit" variant="default" className="text-xs px-2 py-0.5">
+                                    ベンチャー監査役協会(オブザーバー)
+                                  </Badge>
+                                );
+                              }
+                            }
+                            
+                            return badges.length > 0 ? badges : null;
+                          })()}
+                        </div>
                         {attendee.rsvpStatus === "オンライン参加" && (
                           <Badge variant="outline" className="text-xs bg-blue-100 text-blue-800">
                             オンライン参加

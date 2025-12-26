@@ -160,24 +160,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           </Button>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
-              <Badge
-                variant={
-                  eventStatus === "open"
-                    ? "default"
-                    : eventStatus === "closed"
-                    ? "outline"
-                    : "secondary"
-                }
-              >
-                {eventStatus === "open"
-                  ? isPaused
-                    ? "受付中(一時停止)"
-                    : "受付中"
-                  : eventStatus === "waiting"
-                  ? "受付終了"
-                  : "終了"}
+              <Badge variant="outline" className="text-xs">
+                {(event as any).eventType || "ベンチャー監査役協会"}
               </Badge>
+              <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
             </div>
           </div>
         </div>
@@ -776,7 +762,26 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         <div className="md:col-span-2 space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>集計サマリ</CardTitle>
+                    <div className="flex items-center justify-between">
+                        <CardTitle>集計サマリ</CardTitle>
+                        <Badge
+                            variant={
+                                eventStatus === "open"
+                                    ? "default"
+                                    : eventStatus === "closed"
+                                    ? "outline"
+                                    : "secondary"
+                            }
+                        >
+                            {eventStatus === "open"
+                                ? isPaused
+                                    ? "受付中(一時停止)"
+                                    : "受付中"
+                                : eventStatus === "waiting"
+                                ? "受付終了"
+                                : "終了"}
+                        </Badge>
+                    </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">

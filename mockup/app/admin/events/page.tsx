@@ -35,6 +35,8 @@ export default function EventsPage() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [statuses, setStatuses] = useState<string[]>([]);
   const [statusSearch, setStatusSearch] = useState("");
+  const [eventTypes, setEventTypes] = useState<string[]>([]);
+  const [eventTypeSearch, setEventTypeSearch] = useState("");
 
 
   const handleStatusChange = (status: string, checked: boolean) => {
@@ -42,6 +44,14 @@ export default function EventsPage() {
       setStatuses([...statuses, status]);
     } else {
       setStatuses(statuses.filter((s) => s !== status));
+    }
+  };
+
+  const handleEventTypeChange = (eventType: string, checked: boolean) => {
+    if (checked) {
+      setEventTypes([...eventTypes, eventType]);
+    } else {
+      setEventTypes(eventTypes.filter((t) => t !== eventType));
     }
   };
 
@@ -80,7 +90,11 @@ export default function EventsPage() {
       const matchesStatus =
         statuses.length === 0 || statuses.includes(event.status);
 
-      return matchesKeyword && matchesStatus;
+      // イベント種別フィルタ（チェックがない場合はすべて表示）
+      const matchesEventType =
+        eventTypes.length === 0 || eventTypes.includes(event.eventType);
+
+      return matchesKeyword && matchesStatus && matchesEventType;
     });
 
     // ステータスが終了以外で開催日時が近い順、ステータスが終了で開催日時が近い順にソート
@@ -107,7 +121,7 @@ export default function EventsPage() {
     });
 
     return sorted;
-  }, [searchKeyword, statuses]);
+  }, [searchKeyword, statuses, eventTypes]);
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -136,6 +150,68 @@ export default function EventsPage() {
             onChange={(e) => setSearchKeyword(e.target.value)}
           />
         </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-[200px] justify-between h-10"
+            >
+              <span className="text-sm">
+                {eventTypes.length === 0
+                  ? "イベント種別"
+                  : eventTypes.length === 1
+                  ? eventTypes[0]
+                  : `${eventTypes.length}件選択`}
+              </span>
+              <ChevronDown className="h-4 w-4 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[280px] p-0 bg-white" align="start">
+            <div className="p-3 border-b">
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="イベント種別を検索"
+                  value={eventTypeSearch}
+                  onChange={(e) => setEventTypeSearch(e.target.value)}
+                  className="pl-8 h-9"
+                />
+              </div>
+            </div>
+            <div className="p-2 max-h-[300px] overflow-y-auto">
+              {[
+                { value: "ベンチャー監査役協会", label: "ベンチャー監査役協会" },
+                { value: "ないかんMeetup", label: "ないかんMeetup" },
+                { value: "その他", label: "その他" },
+              ]
+                .filter((eventType) =>
+                  eventType.label
+                    .toLowerCase()
+                    .includes(eventTypeSearch.toLowerCase())
+                )
+                .map((eventType) => (
+                  <div
+                    key={eventType.value}
+                    className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
+                    onClick={() =>
+                      handleEventTypeChange(
+                        eventType.value,
+                        !eventTypes.includes(eventType.value)
+                      )
+                    }
+                  >
+                    <Checkbox
+                      checked={eventTypes.includes(eventType.value)}
+                      onCheckedChange={(checked) =>
+                        handleEventTypeChange(eventType.value, checked === true)
+                      }
+                    />
+                    <span className="text-sm cursor-pointer">{eventType.label}</span>
+                  </div>
+                ))}
+            </div>
+          </PopoverContent>
+        </Popover>
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -219,9 +295,9 @@ export default function EventsPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>イベント種別</TableHead>
               <TableHead>イベント名</TableHead>
               <TableHead>開催日時</TableHead>
-              <TableHead>場所</TableHead>
               <TableHead>ステータス</TableHead>
               <TableHead>参加予定数</TableHead>
               <TableHead className="text-right">操作</TableHead>
@@ -250,9 +326,13 @@ export default function EventsPage() {
                   }
                 }}
               >
+                <TableCell>
+                  <Badge variant="outline" className="text-xs">
+                    {event.eventType}
+                  </Badge>
+                </TableCell>
                 <TableCell className="font-medium">{event.title}</TableCell>
                 <TableCell>{formatEventDate(event.date)}</TableCell>
-                <TableCell>{event.location}</TableCell>
                 <TableCell>
                   <Badge
                     variant={
