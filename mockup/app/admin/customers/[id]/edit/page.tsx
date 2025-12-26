@@ -9,7 +9,15 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogTrigger,
@@ -20,7 +28,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, X } from "lucide-react";
 import { customers, Customer } from "@/lib/data/mock";
 
 export default function CustomerEditPage({
@@ -52,40 +60,181 @@ export default function CustomerEditPage({
     );
   }
 
-  // 会員区分の状態管理
+  // 会員区分の状態管理（既存データから初期化）
   const isMember = customer.memberTypes.length > 0;
   const auditMember = customer.memberTypes.includes("ベンチャー監査役協会");
-  const naikanMember = customer.memberTypes.includes("ないかんMeetup");
+  const naikanMemberInitial = customer.memberTypes.includes("ないかんMeetup");
+  
+  // 名前の分割
+  const nameParts = customer.name.split(" ");
+  const nameKanaParts = customer.nameKana?.split(" ") || ["", ""];
 
   // フォームの状態管理
-  const [isMemberState, setIsMemberState] = useState<"member" | "non-member">(
+  const [memberCategory, setMemberCategory] = useState<"non-member" | "member" | "sponsor" | "observer">(
     isMember ? "member" : "non-member"
   );
-  const [auditMemberState, setAuditMemberState] = useState(auditMember);
-  const [naikanMemberState, setNaikanMemberState] = useState(naikanMember);
-  const [nameParts, setNameParts] = useState(() => {
-    const parts = customer.name.split(" ");
-    return {
-      lastName: parts[0] || "",
-      firstName: parts[1] || "",
-    };
-  });
-  const [nameKanaParts, setNameKanaParts] = useState(() => {
-    const parts = customer.nameKana?.split(" ") || ["", ""];
-    return {
-      lastNameKana: parts[0] || "",
-      firstNameKana: parts[1] || "",
-    };
-  });
+  const [auditMemberChecked, setAuditMemberChecked] = useState(auditMember);
+  const [auditMemberType, setAuditMemberType] = useState<string>("");
+  const [auditMemberPremium, setAuditMemberPremium] = useState(false);
+  const [naikanMember, setNaikanMember] = useState(naikanMemberInitial);
+  const [auditSponsorChecked, setAuditSponsorChecked] = useState(false);
+  const [naikanSponsorChecked, setNaikanSponsorChecked] = useState(false);
+  const [auditObserverChecked, setAuditObserverChecked] = useState(false);
+  const [naikanObserverChecked, setNaikanObserverChecked] = useState(false);
+  const [memberType, setMemberType] = useState<"corporate" | "individual">("corporate");
+  const [lastName, setLastName] = useState(nameParts[0] || "");
+  const [firstName, setFirstName] = useState(nameParts[1] || "");
+  const [lastNameKana, setLastNameKana] = useState(nameKanaParts[0] || "");
+  const [firstNameKana, setFirstNameKana] = useState(nameKanaParts[1] || "");
   const [email, setEmail] = useState(customer.email);
+  const [subEmails, setSubEmails] = useState<string[]>([]);
   const [company, setCompany] = useState(customer.company || "");
   const [phone, setPhone] = useState(customer.phone || "");
+  const [postalCode, setPostalCode] = useState("");
+  const [prefecture, setPrefecture] = useState("");
+  const [city, setCity] = useState("");
+  const [gender, setGender] = useState<"male" | "female" | "">("");
+  const [listingCategory, setListingCategory] = useState<string>("");
+  const [originIndustry, setOriginIndustry] = useState<string>("");
+  const [membershipQualification, setMembershipQualification] = useState<string>("");
   const [note, setNote] = useState(customer.note || "");
   const [isInactive, setIsInactive] = useState(customer.status === "inactive");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  const originIndustries = [
+    "事業会社",
+    "公認会計士",
+    "銀行",
+    "内部",
+    "証券会社",
+    "弁護士",
+    "社労士",
+    "損保",
+    "VC",
+    "生保",
+    "司法書士",
+    "大学教員",
+    "その他",
+  ];
+
+  const membershipQualifications = [
+    "監査役",
+    "元監査役",
+    "監査等委員",
+    "監査役候補",
+    "元監事",
+    "監査委員",
+    "事業会社（内部監査部門）",
+    "事業会社（内部監査部門以外）",
+    "その他",
+  ];
+
+  const listingOptions = [
+    { exchange: "東京証券取引所", markets: ["プライム", "スタンダード", "グロース", "TOKYO PRO Market"] },
+    { exchange: "名古屋証券取引所", markets: ["プレミア", "メイン", "ネクスト"] },
+    { exchange: "福岡証券取引所", markets: ["本則市場", "Q-Board", "Fukuoka PRO Market"] },
+    { exchange: "札幌証券取引所", markets: ["本則市場", "アンビシャス"] },
+  ];
+
+  const prefectures = [
+    "北海道",
+    "青森県",
+    "岩手県",
+    "宮城県",
+    "秋田県",
+    "山形県",
+    "福島県",
+    "茨城県",
+    "栃木県",
+    "群馬県",
+    "埼玉県",
+    "千葉県",
+    "東京都",
+    "神奈川県",
+    "新潟県",
+    "富山県",
+    "石川県",
+    "福井県",
+    "山梨県",
+    "長野県",
+    "岐阜県",
+    "静岡県",
+    "愛知県",
+    "三重県",
+    "滋賀県",
+    "京都府",
+    "大阪府",
+    "兵庫県",
+    "奈良県",
+    "和歌山県",
+    "鳥取県",
+    "島根県",
+    "岡山県",
+    "広島県",
+    "山口県",
+    "徳島県",
+    "香川県",
+    "愛媛県",
+    "高知県",
+    "福岡県",
+    "佐賀県",
+    "長崎県",
+    "熊本県",
+    "大分県",
+    "宮崎県",
+    "鹿児島県",
+    "沖縄県",
+    "その他",
+  ];
+
+  const auditMemberTypes = [
+    { value: "regular", label: "正会員" },
+    { value: "online", label: "オンライン会員" },
+  ];
+
+  const handleAddSubEmail = () => {
+    if (subEmails.length < 3) {
+      setSubEmails([...subEmails, ""]);
+    }
+  };
+
+  const handleRemoveSubEmail = (index: number) => {
+    setSubEmails(subEmails.filter((_, i) => i !== index));
+  };
+
+  const handleSubEmailChange = (index: number, value: string) => {
+    const newSubEmails = [...subEmails];
+    newSubEmails[index] = value;
+    setSubEmails(newSubEmails);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 会員を選択した場合、少なくとも1つの会員区分を選択しているかチェック
+    if (memberCategory === "member" && !auditMemberChecked && !naikanMember) {
+      toast.error("会員を選択した場合、少なくとも1つの会員区分を選択してください");
+      return;
+    }
+
+    // ベンチャー監査役協会の会員を選択した場合、会員種別を選択しているかチェック
+    if (memberCategory === "member" && auditMemberChecked && !auditMemberType) {
+      toast.error("ベンチャー監査役協会の会員種別を選択してください");
+      return;
+    }
+
+    // スポンサーを選択した場合、少なくとも1つの組織を選択しているかチェック
+    if (memberCategory === "sponsor" && !auditSponsorChecked && !naikanSponsorChecked) {
+      toast.error("スポンサーを選択した場合、少なくとも1つの組織を選択してください");
+      return;
+    }
+
+    // オブザーバーを選択した場合、少なくとも1つの組織を選択しているかチェック
+    if (memberCategory === "observer" && !auditObserverChecked && !naikanObserverChecked) {
+      toast.error("オブザーバーを選択した場合、少なくとも1つの組織を選択してください");
+      return;
+    }
+
     toast.success("顧客情報を更新しました");
     router.push(`/admin/customers/${id}`);
   };
@@ -113,50 +262,200 @@ export default function CustomerEditPage({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8 rounded-lg border p-8 shadow-sm">
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="grid gap-2">
             <Label>会員区分 <span className="text-red-500">*</span></Label>
             <RadioGroup
-              value={isMemberState}
+              value={memberCategory}
               onValueChange={(value) => {
-                setIsMemberState(value as "member" | "non-member");
-                if (value === "non-member") {
-                  setAuditMemberState(false);
-                  setNaikanMemberState(false);
+                const newCategory = value as "non-member" | "member" | "sponsor" | "observer";
+                setMemberCategory(newCategory);
+                // 切り替え時にクリア
+                if (newCategory === "non-member") {
+                  setAuditMemberChecked(false);
+                  setAuditMemberType("");
+                  setAuditMemberPremium(false);
+                  setNaikanMember(false);
+                  setAuditSponsorChecked(false);
+                  setNaikanSponsorChecked(false);
+                  setAuditObserverChecked(false);
+                  setNaikanObserverChecked(false);
+                } else if (newCategory === "member") {
+                  setAuditSponsorChecked(false);
+                  setNaikanSponsorChecked(false);
+                  setAuditObserverChecked(false);
+                  setNaikanObserverChecked(false);
+                } else if (newCategory === "sponsor") {
+                  setAuditMemberChecked(false);
+                  setAuditMemberType("");
+                  setAuditMemberPremium(false);
+                  setNaikanMember(false);
+                  setAuditObserverChecked(false);
+                  setNaikanObserverChecked(false);
+                } else if (newCategory === "observer") {
+                  setAuditMemberChecked(false);
+                  setAuditMemberType("");
+                  setAuditMemberPremium(false);
+                  setNaikanMember(false);
+                  setAuditSponsorChecked(false);
+                  setNaikanSponsorChecked(false);
                 }
               }}
             >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="non-member" id="non-member" />
-                <Label htmlFor="non-member" className="cursor-pointer">非会員</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="member" id="member" />
-                <Label htmlFor="member" className="cursor-pointer">会員</Label>
+              <div className="flex items-center gap-6">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="member" id="member" />
+                  <Label htmlFor="member" className="cursor-pointer">会員</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="non-member" id="non-member" />
+                  <Label htmlFor="non-member" className="cursor-pointer">非会員</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="sponsor" id="sponsor" />
+                  <Label htmlFor="sponsor" className="cursor-pointer">スポンサー</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="observer" id="observer" />
+                  <Label htmlFor="observer" className="cursor-pointer">オブザーバー</Label>
+                </div>
               </div>
             </RadioGroup>
             
-            {isMemberState === "member" && (
-              <div className="ml-6 mt-2 flex gap-6">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="audit"
-                    checked={auditMemberState}
-                    onCheckedChange={(checked) => setAuditMemberState(checked === true)}
-                  />
-                  <Label htmlFor="audit" className="cursor-pointer">ベンチャー監査役協会</Label>
+            {/* 会員の場合 */}
+            {memberCategory === "member" && (
+              <div className="ml-6 mt-4 space-y-4">
+                {/* ベンチャー監査役協会 */}
+                <div className="grid gap-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="audit-check"
+                      checked={auditMemberChecked}
+                      onCheckedChange={(checked) => {
+                        setAuditMemberChecked(checked === true);
+                        if (!checked) {
+                          setAuditMemberType("");
+                          setAuditMemberPremium(false);
+                        }
+                      }}
+                    />
+                    <Label htmlFor="audit-check" className="cursor-pointer font-medium">ベンチャー監査役協会</Label>
+                  </div>
+                  {auditMemberChecked && (
+                    <div className="ml-6">
+                      <div className="flex items-center gap-4">
+                        <Select value={auditMemberType} onValueChange={setAuditMemberType}>
+                          <SelectTrigger className="w-1/2 bg-white">
+                            <SelectValue placeholder="会員種別を選択" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white">
+                            {auditMemberTypes.map((type) => (
+                              <SelectItem
+                                key={type.value}
+                                value={type.value}
+                                className="bg-white hover:bg-gray-100"
+                              >
+                                {type.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <div className="flex items-center space-x-2 shrink-0">
+                          <Checkbox
+                            id="audit-premium-check"
+                            checked={auditMemberPremium}
+                            onCheckedChange={(checked) => setAuditMemberPremium(checked === true)}
+                          />
+                          <Label htmlFor="audit-premium-check" className="cursor-pointer">プレミアム会員</Label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                {/* ないかんMeetup */}
                 <div className="flex items-center space-x-2">
                   <Checkbox
-                    id="naikan"
-                    checked={naikanMemberState}
-                    onCheckedChange={(checked) => setNaikanMemberState(checked === true)}
+                    id="naikan-check"
+                    checked={naikanMember}
+                    onCheckedChange={(checked) => setNaikanMember(checked === true)}
                   />
-                  <Label htmlFor="naikan" className="cursor-pointer">ないかんMeetup</Label>
+                  <Label htmlFor="naikan-check" className="cursor-pointer font-medium">ないかんMeetup</Label>
+                </div>
+              </div>
+            )}
+
+            {/* スポンサーの場合 */}
+            {memberCategory === "sponsor" && (
+              <div className="ml-6 mt-4 space-y-4">
+                {/* ベンチャー監査役協会 */}
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="audit-sponsor-check"
+                    checked={auditSponsorChecked}
+                    onCheckedChange={(checked) => setAuditSponsorChecked(checked === true)}
+                  />
+                  <Label htmlFor="audit-sponsor-check" className="cursor-pointer font-medium">ベンチャー監査役協会</Label>
+                </div>
+
+                {/* ないかんMeetup */}
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="naikan-sponsor-check"
+                    checked={naikanSponsorChecked}
+                    onCheckedChange={(checked) => setNaikanSponsorChecked(checked === true)}
+                  />
+                  <Label htmlFor="naikan-sponsor-check" className="cursor-pointer font-medium">ないかんMeetup</Label>
+                </div>
+              </div>
+            )}
+
+            {/* オブザーバーの場合 */}
+            {memberCategory === "observer" && (
+              <div className="ml-6 mt-4 space-y-4">
+                {/* ベンチャー監査役協会 */}
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="audit-observer-check"
+                    checked={auditObserverChecked}
+                    onCheckedChange={(checked) => setAuditObserverChecked(checked === true)}
+                  />
+                  <Label htmlFor="audit-observer-check" className="cursor-pointer font-medium">ベンチャー監査役協会</Label>
+                </div>
+
+                {/* ないかんMeetup */}
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="naikan-observer-check"
+                    checked={naikanObserverChecked}
+                    onCheckedChange={(checked) => setNaikanObserverChecked(checked === true)}
+                  />
+                  <Label htmlFor="naikan-observer-check" className="cursor-pointer font-medium">ないかんMeetup</Label>
                 </div>
               </div>
             )}
           </div>
+
+          {memberCategory === "member" && (
+            <div className="grid gap-2">
+              <Label>会員種別 <span className="text-red-500">*</span></Label>
+              <RadioGroup
+                value={memberType}
+                onValueChange={(value) => setMemberType(value as "corporate" | "individual")}
+              >
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="corporate" id="corporate" />
+                    <Label htmlFor="corporate" className="cursor-pointer">法人</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="individual" id="individual" />
+                    <Label htmlFor="individual" className="cursor-pointer">個人</Label>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
@@ -164,10 +463,8 @@ export default function CustomerEditPage({
               <Input
                 id="lastName"
                 placeholder="例: 山田"
-                value={nameParts.lastName}
-                onChange={(e) =>
-                  setNameParts({ ...nameParts, lastName: e.target.value })
-                }
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
                 required
               />
             </div>
@@ -176,10 +473,8 @@ export default function CustomerEditPage({
               <Input
                 id="firstName"
                 placeholder="例: 太郎"
-                value={nameParts.firstName}
-                onChange={(e) =>
-                  setNameParts({ ...nameParts, firstName: e.target.value })
-                }
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 required
               />
             </div>
@@ -187,41 +482,69 @@ export default function CustomerEditPage({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="lastNameKana">セイ <span className="text-red-500">*</span></Label>
+              <Label htmlFor="lastNameKana">セイ</Label>
               <Input
                 id="lastNameKana"
                 placeholder="例: ヤマダ"
-                value={nameKanaParts.lastNameKana}
-                onChange={(e) =>
-                  setNameKanaParts({ ...nameKanaParts, lastNameKana: e.target.value })
-                }
-                required
+                value={lastNameKana}
+                onChange={(e) => setLastNameKana(e.target.value)}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="firstNameKana">メイ <span className="text-red-500">*</span></Label>
+              <Label htmlFor="firstNameKana">メイ</Label>
               <Input
                 id="firstNameKana"
                 placeholder="例: タロウ"
-                value={nameKanaParts.firstNameKana}
-                onChange={(e) =>
-                  setNameKanaParts({ ...nameKanaParts, firstNameKana: e.target.value })
-                }
-                required
+                value={firstNameKana}
+                onChange={(e) => setFirstNameKana(e.target.value)}
               />
             </div>
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="email">メールアドレス <span className="text-red-500">*</span></Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <div className="flex gap-2">
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="flex-1"
+              />
+              {subEmails.length < 3 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={handleAddSubEmail}
+                  className="shrink-0"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            {subEmails.map((subEmail, index) => (
+              <div key={index} className="flex gap-2">
+                <Input
+                  type="email"
+                  placeholder={`サブメールアドレス ${index + 1}`}
+                  value={subEmail}
+                  onChange={(e) => handleSubEmailChange(index, e.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleRemoveSubEmail(index)}
+                  className="shrink-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
           </div>
 
           <div className="grid gap-2">
@@ -239,10 +562,172 @@ export default function CustomerEditPage({
             <Input
               id="phone"
               type="tel"
-              placeholder="例: 03-1234-5678"
+              placeholder="例: 0312345678"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="postalCode">郵便番号</Label>
+            <Input
+              id="postalCode"
+              type="text"
+              placeholder="例: 1234567"
+              value={postalCode}
+              onChange={(e) => setPostalCode(e.target.value)}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label>都道府県</Label>
+            <Select 
+              value={prefecture} 
+              onValueChange={(value) => {
+                if (value === "選択してください") {
+                  setPrefecture("");
+                } else {
+                  setPrefecture(value);
+                }
+              }}
+            >
+              <SelectTrigger className="w-full bg-white">
+                <SelectValue placeholder="選択してください" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem
+                  value="選択してください"
+                  className="bg-white hover:bg-gray-100"
+                >
+                  選択してください
+                </SelectItem>
+                {prefectures.map((pref) => (
+                  <SelectItem
+                    key={pref}
+                    value={pref}
+                    className="bg-white hover:bg-gray-100"
+                  >
+                    {pref}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="city">市区町村以下</Label>
+            <Input
+              id="city"
+              type="text"
+              placeholder="例: 千代田区丸の内1-1-1"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label>性別</Label>
+            <RadioGroup
+              value={gender}
+              onValueChange={(value) => setGender(value as "male" | "female")}
+            >
+              <div className="flex items-center gap-6">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="male" id="male" />
+                  <Label htmlFor="male" className="cursor-pointer">男性</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="female" id="female" />
+                  <Label htmlFor="female" className="cursor-pointer">女性</Label>
+                </div>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div className="grid gap-2">
+            <Label>上場区分</Label>
+            <Select 
+              value={listingCategory} 
+              onValueChange={(value) => {
+                if (value === "選択してください") {
+                  setListingCategory("");
+                } else {
+                  setListingCategory(value);
+                }
+              }}
+            >
+              <SelectTrigger className="w-full bg-white">
+                <SelectValue placeholder="選択してください" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem
+                  value="選択してください"
+                  className="bg-white hover:bg-gray-100"
+                >
+                  選択してください
+                </SelectItem>
+                <SelectItem
+                  value="未上場"
+                  className="bg-white hover:bg-gray-100"
+                >
+                  未上場
+                </SelectItem>
+                {listingOptions.map((option) => (
+                  <SelectGroup key={option.exchange}>
+                    <SelectLabel className="bg-gray-100">{option.exchange}</SelectLabel>
+                    {option.markets.map((market) => (
+                      <SelectItem
+                        key={`${option.exchange}-${market}`}
+                        value={`${option.exchange}-${market}`}
+                        className="bg-white hover:bg-gray-100"
+                      >
+                        {market}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label>出身業種</Label>
+            <Select value={originIndustry} onValueChange={setOriginIndustry}>
+              <SelectTrigger className="w-full bg-white">
+                <SelectValue placeholder="選択してください" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {originIndustries.map((industry) => (
+                  <SelectItem
+                    key={industry}
+                    value={industry}
+                    className="bg-white hover:bg-gray-100"
+                  >
+                    {industry}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label>入会資格</Label>
+            <Select value={membershipQualification} onValueChange={setMembershipQualification}>
+              <SelectTrigger className="w-full bg-white">
+                <SelectValue placeholder="選択してください" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {membershipQualifications.map((qualification) => (
+                  <SelectItem
+                    key={qualification}
+                    value={qualification}
+                    className="bg-white hover:bg-gray-100"
+                  >
+                    {qualification}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-2">
@@ -317,6 +802,3 @@ export default function CustomerEditPage({
     </div>
   );
 }
-
-
-
