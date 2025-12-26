@@ -30,6 +30,13 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Trash2, Plus, X } from "lucide-react";
 import { customers, Customer } from "@/lib/data/mock";
+import {
+  PREFECTURES,
+  ORIGIN_INDUSTRIES,
+  MEMBERSHIP_QUALIFICATIONS,
+  LISTING_OPTIONS,
+  AUDIT_MEMBER_TYPES,
+} from "@/lib/constants/customer";
 
 export default function CustomerEditPage({
   params,
@@ -102,96 +109,11 @@ export default function CustomerEditPage({
   const [isInactive, setIsInactive] = useState(customer.status === "inactive");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const originIndustries = [
-    "事業会社",
-    "公認会計士",
-    "銀行",
-    "内部",
-    "証券会社",
-    "弁護士",
-    "社労士",
-    "損保",
-    "VC",
-    "生保",
-    "司法書士",
-    "大学教員",
-    "その他",
-  ];
-
-  const membershipQualifications = [
-    "監査役",
-    "元監査役",
-    "監査等委員",
-    "監査役候補",
-    "元監事",
-    "監査委員",
-    "事業会社（内部監査部門）",
-    "事業会社（内部監査部門以外）",
-    "その他",
-  ];
-
-  const listingOptions = [
-    { exchange: "東京証券取引所", markets: ["プライム", "スタンダード", "グロース", "TOKYO PRO Market"] },
-    { exchange: "名古屋証券取引所", markets: ["プレミア", "メイン", "ネクスト"] },
-    { exchange: "福岡証券取引所", markets: ["本則市場", "Q-Board", "Fukuoka PRO Market"] },
-    { exchange: "札幌証券取引所", markets: ["本則市場", "アンビシャス"] },
-  ];
-
-  const prefectures = [
-    "北海道",
-    "青森県",
-    "岩手県",
-    "宮城県",
-    "秋田県",
-    "山形県",
-    "福島県",
-    "茨城県",
-    "栃木県",
-    "群馬県",
-    "埼玉県",
-    "千葉県",
-    "東京都",
-    "神奈川県",
-    "新潟県",
-    "富山県",
-    "石川県",
-    "福井県",
-    "山梨県",
-    "長野県",
-    "岐阜県",
-    "静岡県",
-    "愛知県",
-    "三重県",
-    "滋賀県",
-    "京都府",
-    "大阪府",
-    "兵庫県",
-    "奈良県",
-    "和歌山県",
-    "鳥取県",
-    "島根県",
-    "岡山県",
-    "広島県",
-    "山口県",
-    "徳島県",
-    "香川県",
-    "愛媛県",
-    "高知県",
-    "福岡県",
-    "佐賀県",
-    "長崎県",
-    "熊本県",
-    "大分県",
-    "宮崎県",
-    "鹿児島県",
-    "沖縄県",
-    "その他",
-  ];
-
-  const auditMemberTypes = [
-    { value: "regular", label: "正会員" },
-    { value: "online", label: "オンライン会員" },
-  ];
+  const originIndustries = ORIGIN_INDUSTRIES;
+  const membershipQualifications = MEMBERSHIP_QUALIFICATIONS;
+  const listingOptions = LISTING_OPTIONS;
+  const prefectures = PREFECTURES;
+  const auditMemberTypes = AUDIT_MEMBER_TYPES;
 
   const handleAddSubEmail = () => {
     if (subEmails.length < 3) {

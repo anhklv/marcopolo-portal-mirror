@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import { ArrowLeft, Edit, Calendar } from "lucide-react";
 import { customers, events, rsvps } from "@/lib/data/mock";
+import { MEMBER_TYPE_LABELS, GENDER_LABELS } from "@/lib/constants/common";
 import { use } from "react";
 import React from "react";
 import { formatEventDate } from "@/lib/utils";
@@ -206,7 +207,7 @@ export default function CustomerDetailPage({
             {customer.memberCategory === "member" && customer.memberType && (
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-2">会員種別</p>
-                <p className="text-base">{customer.memberType === "corporate" ? "法人" : "個人"}</p>
+                <p className="text-base">{MEMBER_TYPE_LABELS[customer.memberType]}</p>
               </div>
             )}
           </div>
@@ -272,7 +273,7 @@ export default function CustomerDetailPage({
           {customer.gender && (
             <div>
               <p className="text-sm font-medium text-muted-foreground">性別</p>
-              <p className="text-base">{customer.gender === "male" ? "男性" : "女性"}</p>
+              <p className="text-base">{GENDER_LABELS[customer.gender]}</p>
             </div>
           )}
           {customer.listingCategory && (

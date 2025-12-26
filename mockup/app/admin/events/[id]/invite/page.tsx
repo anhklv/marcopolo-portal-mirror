@@ -32,6 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check, Search, Users, ChevronDown } from "lucide-react";
 import { customers, events, rsvps, Customer } from "@/lib/data/mock";
+import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/common";
 import React from "react";
 import { cn, getInviteEmailTemplate, formatEventDate } from "@/lib/utils";
 
@@ -167,10 +168,7 @@ export default function EventInvitePage({
     if (memberCategories.length > 0) {
       const categoryLabels: string[] = [];
       memberCategories.forEach((cat) => {
-        if (cat === "non-member") categoryLabels.push("非会員");
-        if (cat === "member") categoryLabels.push("会員");
-        if (cat === "sponsor") categoryLabels.push("スポンサー");
-        if (cat === "observer") categoryLabels.push("オブザーバー");
+        categoryLabels.push(MEMBER_CATEGORY_LABELS[cat]);
       });
       parts.push(categoryLabels.join("・"));
     }

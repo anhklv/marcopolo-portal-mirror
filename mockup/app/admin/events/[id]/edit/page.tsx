@@ -20,6 +20,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { events, EventType } from "@/lib/data/mock";
+import { EVENT_TYPES } from "@/lib/constants/event";
 import {
   Select,
   SelectContent,
@@ -130,15 +131,11 @@ export default function EventEditPage({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white">
-                <SelectItem value="ベンチャー監査役協会" className="bg-white hover:bg-gray-100">
-                  ベンチャー監査役協会
-                </SelectItem>
-                <SelectItem value="ないかんMeetup" className="bg-white hover:bg-gray-100">
-                  ないかんMeetup
-                </SelectItem>
-                <SelectItem value="その他" className="bg-white hover:bg-gray-100">
-                  その他
-                </SelectItem>
+                {EVENT_TYPES.map((type) => (
+                  <SelectItem key={type} value={type} className="bg-white hover:bg-gray-100">
+                    {type}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

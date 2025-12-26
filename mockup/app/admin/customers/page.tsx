@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { customers, Customer, MemberFilterValue, getMemberTypeDisplayName } from "@/lib/data/mock";
+import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/common";
 import { Plus, Search, Users, ChevronDown, Download } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
@@ -100,10 +101,7 @@ export default function CustomersPage() {
     if (memberCategories.length > 0) {
       const categoryLabels: string[] = [];
       memberCategories.forEach((cat) => {
-        if (cat === "non-member") categoryLabels.push("非会員");
-        if (cat === "member") categoryLabels.push("会員");
-        if (cat === "sponsor") categoryLabels.push("スポンサー");
-        if (cat === "observer") categoryLabels.push("オブザーバー");
+        categoryLabels.push(MEMBER_CATEGORY_LABELS[cat]);
       });
       parts.push(categoryLabels.join("・"));
     }

@@ -32,6 +32,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Mail, Edit, MoreVertical, Pause, Play, FileText, Search, ChevronDown, Send } from "lucide-react";
 import { events, customers, rsvps, getEventStatus, getSurveyByEventId, getSurveyResponses, getFixedSurveyResponses } from "@/lib/data/mock";
+import { RSVP_STATUSES } from "@/lib/constants/event";
 import { cn, formatEventDate, formatDateTime } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -290,12 +291,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                             </div>
                                         </div>
                                         <div className="p-2 max-h-[300px] overflow-y-auto">
-                                            {[
-                                                { value: "現地参加", label: "現地参加" },
-                                                { value: "オンライン参加", label: "オンライン参加" },
-                                                { value: "不参加", label: "不参加" },
-                                                { value: "未回答", label: "未回答" },
-                                            ]
+                                            {RSVP_STATUSES
                                                 .filter((status) =>
                                                     status.label
                                                         .toLowerCase()

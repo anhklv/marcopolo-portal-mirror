@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { CheckCircle2 } from "lucide-react";
 import { events, customers, getSurveyByToken, surveyResponses, hasResponded } from "@/lib/data/mock";
+import { RATINGS, FUTURE_PARTICIPATION_OPTIONS, MEMBERSHIP_OPTIONS } from "@/lib/constants/survey";
 import { formatEventDate } from "@/lib/utils";
 
 type Rating = "よかった" | "まぁよかった" | "あまりよくなかった" | "よくなかった";
@@ -247,30 +248,14 @@ export default function SurveyAnswerPage({
                   onValueChange={(value) => updateAnswer(question.id, "rating", value)}
                 >
                   <div className="flex flex-wrap gap-4">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="よかった" id={`${question.id}-good`} />
-                      <Label htmlFor={`${question.id}-good`} className="cursor-pointer">
-                        よかった
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="まぁよかった" id={`${question.id}-ok`} />
-                      <Label htmlFor={`${question.id}-ok`} className="cursor-pointer">
-                        まぁよかった
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="あまりよくなかった" id={`${question.id}-bad`} />
-                      <Label htmlFor={`${question.id}-bad`} className="cursor-pointer">
-                        あまりよくなかった
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="よくなかった" id={`${question.id}-very-bad`} />
-                      <Label htmlFor={`${question.id}-very-bad`} className="cursor-pointer">
-                        よくなかった
-                      </Label>
-                    </div>
+                    {RATINGS.map((rating) => (
+                      <div key={rating} className="flex items-center space-x-2">
+                        <RadioGroupItem value={rating} id={`${question.id}-${rating}`} />
+                        <Label htmlFor={`${question.id}-${rating}`} className="cursor-pointer">
+                          {rating}
+                        </Label>
+                      </div>
+                    ))}
                   </div>
                 </RadioGroup>
 
@@ -300,30 +285,14 @@ export default function SurveyAnswerPage({
                 onValueChange={(value) => updateFixedAnswer("afterParty", "rating", value)}
               >
                 <div className="flex flex-wrap gap-4">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="よかった" id="after-party-good" />
-                    <Label htmlFor="after-party-good" className="cursor-pointer">
-                      よかった
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="まぁよかった" id="after-party-ok" />
-                    <Label htmlFor="after-party-ok" className="cursor-pointer">
-                      まぁよかった
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="あまりよくなかった" id="after-party-bad" />
-                    <Label htmlFor="after-party-bad" className="cursor-pointer">
-                      あまりよくなかった
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="よくなかった" id="after-party-very-bad" />
-                    <Label htmlFor="after-party-very-bad" className="cursor-pointer">
-                      よくなかった
-                    </Label>
-                  </div>
+                  {RATINGS.map((rating) => (
+                    <div key={rating} className="flex items-center space-x-2">
+                      <RadioGroupItem value={rating} id={`after-party-${rating}`} />
+                      <Label htmlFor={`after-party-${rating}`} className="cursor-pointer">
+                        {rating}
+                      </Label>
+                    </div>
+                  ))}
                 </div>
               </RadioGroup>
 
@@ -353,24 +322,14 @@ export default function SurveyAnswerPage({
                 onValueChange={(value) => updateFixedAnswer("futureParticipation", "rating", value)}
               >
                 <div className="flex flex-wrap gap-4">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="ぜひ参加したい" id="future-participation-yes" />
-                    <Label htmlFor="future-participation-yes" className="cursor-pointer">
-                      ぜひ参加したい
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="参加を検討したい" id="future-participation-maybe" />
-                    <Label htmlFor="future-participation-maybe" className="cursor-pointer">
-                      参加を検討したい
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="参加しない" id="future-participation-no" />
-                    <Label htmlFor="future-participation-no" className="cursor-pointer">
-                      参加しない
-                    </Label>
-                  </div>
+                  {FUTURE_PARTICIPATION_OPTIONS.map((option) => (
+                    <div key={option} className="flex items-center space-x-2">
+                      <RadioGroupItem value={option} id={`future-participation-${option}`} />
+                      <Label htmlFor={`future-participation-${option}`} className="cursor-pointer">
+                        {option}
+                      </Label>
+                    </div>
+                  ))}
                 </div>
               </RadioGroup>
 
@@ -400,24 +359,14 @@ export default function SurveyAnswerPage({
                 onValueChange={(value) => updateFixedAnswer("membership", "rating", value)}
               >
                 <div className="flex flex-wrap gap-4">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="入会をしたい" id="membership-yes" />
-                    <Label htmlFor="membership-yes" className="cursor-pointer">
-                      入会をしたい
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="入会を検討したい" id="membership-maybe" />
-                    <Label htmlFor="membership-maybe" className="cursor-pointer">
-                      入会を検討したい
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="関心がない" id="membership-no" />
-                    <Label htmlFor="membership-no" className="cursor-pointer">
-                      関心がない
-                    </Label>
-                  </div>
+                  {MEMBERSHIP_OPTIONS.map((option) => (
+                    <div key={option} className="flex items-center space-x-2">
+                      <RadioGroupItem value={option} id={`membership-${option}`} />
+                      <Label htmlFor={`membership-${option}`} className="cursor-pointer">
+                        {option}
+                      </Label>
+                    </div>
+                  ))}
                 </div>
               </RadioGroup>
 
