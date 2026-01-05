@@ -2,7 +2,7 @@
 
 import { useState, useMemo, use } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -43,6 +43,9 @@ import {
 
 export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const tab = searchParams.get("tab") || "attendees"; // デフォルトは "attendees"
   const eventData = events.find((e) => e.id === id);
 
   if (!eventData) {
@@ -72,6 +75,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
       attendanceType: rsvp.attendanceType,
       afterPartyStatus: rsvp.afterPartyStatus,
       respondedAt: rsvp.respondedAt || "-",
+      comment: rsvp.comment || "",
     };
   }).filter((a): a is NonNullable<typeof a> => a !== null);
 
@@ -102,9 +106,14 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   }, [allAttendees, searchKeyword, selectedStatuses]);
 
   // 集計サマリを計算（フィルタ前の全データから）
-  const attendCount = allAttendees.filter((a) => a.rsvpStatus === "参加" || a.rsvpStatus === "オンライン参加").length;
-  const onlineCount = allAttendees.filter((a) => a.rsvpStatus === "オンライン参加").length;
+  const onsiteCount = allAttendees.filter((a) => 
+    a.rsvpStatus === "参加" && (a.attendanceType === "通常参加" || !a.attendanceType || a.attendanceType === undefined)
+  ).length;
+  const onlineCount = allAttendees.filter((a) => 
+    a.rsvpStatus === "オンライン参加" || (a.rsvpStatus === "参加" && a.attendanceType === "オンライン参加")
+  ).length;
   const declineCount = allAttendees.filter((a) => a.rsvpStatus === "不参加").length;
+  const afterPartyCount = allAttendees.filter((a) => a.afterPartyStatus === "参加").length;
   const noResponseCount = allAttendees.filter((a) => a.rsvpStatus === "未回答").length;
 
   // 未回答者リスト
@@ -235,7 +244,13 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
       <div className="grid gap-6 md:grid-cols-7">
         <div className="md:col-span-5 space-y-6">
-            <Tabs defaultValue="attendees">
+            <Tabs value={tab} onValueChange={(value) => {
+              // タブ変更時にURLを更新
+              const newUrl = value === "attendees" 
+                ? `/admin/events/${id}` 
+                : `/admin/events/${id}?tab=${value}`;
+              router.push(newUrl);
+            }}>
                 <TabsList>
                     <TabsTrigger value="attendees" className="cursor-pointer">参加状況</TabsTrigger>
                     <TabsTrigger value="detail" className="cursor-pointer">詳細</TabsTrigger>
@@ -329,12 +344,13 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                         <TableHead>会社名</TableHead>
                                         <TableHead>ステータス</TableHead>
                                         <TableHead>回答日時</TableHead>
+                                        <TableHead>メッセージ</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {attendees.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="text-center text-muted-foreground">
+                                            <TableCell colSpan={5} className="text-center text-muted-foreground">
                                                 検索条件に一致する参加者が見つかりませんでした。
                                             </TableCell>
                                         </TableRow>
@@ -370,6 +386,15 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>{attendee.respondedAt === "-" ? "-" : formatDateTime(attendee.respondedAt)}</TableCell>
+                                                <TableCell className="max-w-xs">
+                                                    {attendee.comment ? (
+                                                        <div className="text-sm text-muted-foreground truncate" title={attendee.comment}>
+                                                            {attendee.comment}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-muted-foreground">-</span>
+                                                    )}
+                                                </TableCell>
                                             </TableRow>
                                         ))
                                     )}
@@ -782,14 +807,20 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="text-center p-4 bg-green-50 rounded-lg">
-                            <div className="text-2xl font-bold text-green-600">
-                                {onlineCount > 0 ? `${attendCount}(${onlineCount})` : attendCount}
-                            </div>
-                            <div className="text-xs text-green-800">参加</div>
+                            <div className="text-2xl font-bold text-green-600">{onsiteCount}</div>
+                            <div className="text-xs text-green-800">現地参加</div>
                         </div>
                         <div className="text-center p-4 bg-red-50 rounded-lg">
                             <div className="text-2xl font-bold text-red-600">{declineCount}</div>
                             <div className="text-xs text-red-800">不参加</div>
+                        </div>
+                        <div className="text-center p-4 bg-blue-50 rounded-lg">
+                            <div className="text-2xl font-bold text-blue-600">{onlineCount}</div>
+                            <div className="text-xs text-blue-800">オンライン参加</div>
+                        </div>
+                        <div className="text-center p-4 bg-purple-50 rounded-lg">
+                            <div className="text-2xl font-bold text-purple-600">{afterPartyCount}</div>
+                            <div className="text-xs text-purple-800">懇親会参加</div>
                         </div>
                         <div className="text-center p-4 bg-gray-50 rounded-lg col-span-2">
                             <div className="text-2xl font-bold text-gray-600">{noResponseCount}</div>

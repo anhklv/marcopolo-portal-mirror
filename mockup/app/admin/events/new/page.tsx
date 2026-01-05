@@ -20,6 +20,7 @@ import { ArrowLeft, Mail } from "lucide-react";
 import { events } from "@/lib/data/mock";
 import type { EventType } from "@/lib/types";
 import { EVENT_TYPES } from "@/lib/constants/event";
+import { formatEventDate } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -278,9 +279,8 @@ export default function NewEventPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <div className="text-sm text-muted-foreground">作成したイベント:</div>
-              <div className="text-lg font-medium">{title}</div>
-              <div className="text-sm text-muted-foreground">{date}</div>
+              <div className="text-lg font-bold">{title}</div>
+              <div className="text-sm text-muted-foreground">開催日時: {formatEventDate(date)}</div>
             </div>
 
             <div className="flex justify-end gap-4 pt-4">

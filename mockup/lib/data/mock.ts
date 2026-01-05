@@ -421,6 +421,7 @@ export const rsvps: RSVP[] = [
     respondedAt: "2024-05-20 10:00",
     attendanceType: "通常参加",
     afterPartyStatus: "参加",
+    comment: "よろしくお願いします。",
   },
   {
     eventId: "E001",
@@ -580,6 +581,7 @@ export const rsvps: RSVP[] = [
     status: "オンライン参加",
     respondedAt: "2024-05-21 09:00",
     attendanceType: "オンライン参加",
+    comment: "オンラインで参加します。ZoomのURLをお送りください。",
   },
   {
     eventId: "E001",
@@ -589,6 +591,7 @@ export const rsvps: RSVP[] = [
     respondedAt: "2024-05-21 14:00",
     attendanceType: "通常参加",
     afterPartyStatus: "不参加",
+    comment: "懇親会は都合により参加できません。",
   },
   {
     eventId: "E001",
@@ -596,6 +599,7 @@ export const rsvps: RSVP[] = [
     token: "token-kato-e001",
     status: "参加",
     respondedAt: "2024-05-22 11:00",
+    comment: "少し遅れて参加する可能性があります。",
   },
   // E003: 【特別セミナー】DX時代の監査
   {

@@ -160,8 +160,7 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
           <CardHeader>
             <CardTitle className="text-2xl">{event.title}</CardTitle>
             <CardDescription className="mt-2 space-y-1 text-base">
-              <p>日時: {formatEventDate(event.date)}</p>
-              <p>場所: {event.location}</p>
+              <p>開催日時: {formatEventDate(event.date)}</p>
             </CardDescription>
           </CardHeader>
           
@@ -269,8 +268,7 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
         <CardHeader>
           <CardTitle className="text-2xl">{event.title}</CardTitle>
           <CardDescription className="mt-2 space-y-1 text-base">
-            <p>日時: {formatEventDate(event.date)}</p>
-            <p>場所: {event.location}</p>
+            <p>開催日時: {formatEventDate(event.date)}</p>
           </CardDescription>
           <div className="mt-4">
             <Dialog>

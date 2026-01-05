@@ -48,6 +48,16 @@ test('イベント詳細が200を返す', async ({ page }) => {
   expect(response?.status()).toBe(200);
 });
 
+test('イベント詳細の詳細タブが200を返す', async ({ page }) => {
+  const response = await page.goto('/admin/events/E001?tab=detail');
+  expect(response?.status()).toBe(200);
+});
+
+test('イベント詳細のアンケート結果タブが200を返す', async ({ page }) => {
+  const response = await page.goto('/admin/events/E001?tab=survey');
+  expect(response?.status()).toBe(200);
+});
+
 test('イベント編集が200を返す', async ({ page }) => {
   const response = await page.goto('/admin/events/E001/edit');
   expect(response?.status()).toBe(200);
