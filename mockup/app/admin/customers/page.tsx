@@ -29,8 +29,8 @@ import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
 import React from "react";
 
-type MemberCategoryFilter = "non-member" | "member" | "sponsor" | "observer";
-type OrganizationFilter = "ベンチャー監査役協会" | "ないかんMeetup";
+type MemberCategoryFilter = "member" | "sponsor" | "observer";
+type OrganizationFilter = "ベンチャー監査役協会" | "ないかんMeetup" | "非会員";
 type AuditMemberTypeFilter = "regular" | "online";
 
 export default function CustomersPage() {
@@ -66,6 +66,10 @@ export default function CustomersPage() {
         setAuditMemberTypes([]);
         setPremiumOnly(false);
       }
+      // 社団法人を外した場合、会員区分もリセット
+      if (org !== "非会員") {
+        setMemberCategories([]);
+      }
     }
   };
 
@@ -86,33 +90,23 @@ export default function CustomersPage() {
   };
 
   const getFilterDisplayText = () => {
-    if (memberCategories.length === 0 && organizations.length === 0) return "会員区分";
+    if (organizations.length === 0) return "社団法人";
     
     const parts: string[] = [];
     
-    if (memberCategories.length === 0 && organizations.length > 0) {
-      // 組織のみ選択されている場合
-      if (organizations.length === 1) {
-        return organizations[0];
-      }
-      // 複数の組織が選択されている場合は選択数で表示
-      return `${organizations.length}件選択`;
+    if (organizations.length === 1) {
+      parts.push(organizations[0]);
+    } else {
+      parts.push(`${organizations.length}件選択`);
     }
     
-    if (memberCategories.length > 0) {
+    // 会員区分が選択されている場合（社団法人を選択している場合のみ）
+    if (memberCategories.length > 0 && organizations.length > 0 && !organizations.includes("非会員")) {
       const categoryLabels: string[] = [];
       memberCategories.forEach((cat) => {
         categoryLabels.push(MEMBER_CATEGORY_LABELS[cat]);
       });
-      parts.push(categoryLabels.join("・"));
-    }
-    
-    if (organizations.length > 0) {
-      if (organizations.length === 1) {
-        parts.push(`(${organizations[0]})`);
-      } else {
-        parts.push(`(${organizations.length}件)`);
-      }
+      parts.push(`(${categoryLabels.join("・")})`);
     }
     
     if (organizations.includes("ベンチャー監査役協会") && auditMemberTypes.length > 0) {
@@ -131,11 +125,11 @@ export default function CustomersPage() {
     const result = parts.join(" ");
     // テキストが長すぎる場合は選択数で表示
     if (result.length > 20) {
-      const totalSelections = memberCategories.length + organizations.length + auditMemberTypes.length + (premiumOnly ? 1 : 0);
+      const totalSelections = organizations.length + memberCategories.length + auditMemberTypes.length + (premiumOnly ? 1 : 0);
       return `${totalSelections}件選択`;
     }
     
-    return result || "会員区分";
+    return result || "社団法人";
   };
 
 
@@ -211,10 +205,11 @@ export default function CustomersPage() {
         customer.company?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
         customer.email.toLowerCase().includes(searchKeyword.toLowerCase());
 
-      // 組織フィルタ（最優先：組織を選択した場合は、その組織に関連するすべての会員区分を抽出）
+      // 所属社団法人フィルタ（ベンチャー監査役協会、ないかんMeetup、非会員）
       let matchesOrganizations = true;
       if (organizations.length > 0) {
-        matchesOrganizations = organizations.some((org) => {
+        const hasNonMember = organizations.includes("非会員");
+        const hasOrganizations = organizations.some((org) => {
           if (org === "ベンチャー監査役協会") {
             return customer.memberTypes.includes("ベンチャー監査役協会");
           }
@@ -223,12 +218,21 @@ export default function CustomersPage() {
           }
           return false;
         });
+        
+        // 非会員の場合（memberTypesが空配列）
+        if (customer.memberTypes.length === 0) {
+          matchesOrganizations = hasNonMember;
+        } else {
+          // 社団法人に所属している場合
+          matchesOrganizations = hasOrganizations;
+        }
       }
 
-      // 会員区分フィルタ（チェックがない場合はすべて表示）
+      // 会員区分フィルタ（社団法人を選択した場合のみ適用、チェックがない場合はすべて表示）
       let matchesMemberCategory = true;
-      if (memberCategories.length > 0) {
-        matchesMemberCategory = memberCategories.includes(customer.memberCategory);
+      if (memberCategories.length > 0 && organizations.length > 0 && !organizations.includes("非会員")) {
+        // 社団法人を選択している場合のみ会員区分でフィルタ
+        matchesMemberCategory = customer.memberCategory ? memberCategories.includes(customer.memberCategory) : false;
       }
 
       // ベンチャー監査役協会の会員種別フィルタ
@@ -329,9 +333,9 @@ export default function CustomersPage() {
           </PopoverTrigger>
           <PopoverContent className="w-[320px] p-0 bg-white" align="start">
             <div className="p-4 space-y-4 max-h-[500px] overflow-y-auto">
-              {/* 組織選択（最優先） */}
+              {/* 社団法人選択（複数選択可能） */}
               <div className="space-y-2">
-                <Label className="text-sm font-semibold">組織</Label>
+                <Label className="text-sm font-semibold">社団法人</Label>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -353,55 +357,57 @@ export default function CustomersPage() {
                     />
                     <Label htmlFor="org-naikan" className="cursor-pointer text-sm">ないかんMeetup</Label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="org-non-member"
+                      checked={organizations.includes("非会員")}
+                      onCheckedChange={(checked) =>
+                        handleOrganizationChange("非会員", checked === true)
+                      }
+                    />
+                    <Label htmlFor="org-non-member" className="cursor-pointer text-sm">非会員</Label>
+                  </div>
                 </div>
               </div>
 
-              {/* 会員区分選択 */}
-              <div className="space-y-2 border-t pt-4">
-                <Label className="text-sm font-semibold">会員区分</Label>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="member-non-member"
-                      checked={memberCategories.includes("non-member")}
-                      onCheckedChange={(checked) =>
-                        handleMemberCategoryChange("non-member", checked === true)
-                      }
-                    />
-                    <Label htmlFor="member-non-member" className="cursor-pointer text-sm">非会員</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="member-member"
-                      checked={memberCategories.includes("member")}
-                      onCheckedChange={(checked) =>
-                        handleMemberCategoryChange("member", checked === true)
-                      }
-                    />
-                    <Label htmlFor="member-member" className="cursor-pointer text-sm">会員</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="member-sponsor"
-                      checked={memberCategories.includes("sponsor")}
-                      onCheckedChange={(checked) =>
-                        handleMemberCategoryChange("sponsor", checked === true)
-                      }
-                    />
-                    <Label htmlFor="member-sponsor" className="cursor-pointer text-sm">スポンサー</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="member-observer"
-                      checked={memberCategories.includes("observer")}
-                      onCheckedChange={(checked) =>
-                        handleMemberCategoryChange("observer", checked === true)
-                      }
-                    />
-                    <Label htmlFor="member-observer" className="cursor-pointer text-sm">オブザーバー</Label>
+              {/* 会員区分選択（社団法人を選択した場合のみ表示） */}
+              {(organizations.includes("ベンチャー監査役協会") || organizations.includes("ないかんMeetup")) && (
+                <div className="space-y-2 border-t pt-4">
+                  <Label className="text-sm font-semibold">会員区分</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="member-member"
+                        checked={memberCategories.includes("member")}
+                        onCheckedChange={(checked) =>
+                          handleMemberCategoryChange("member", checked === true)
+                        }
+                      />
+                      <Label htmlFor="member-member" className="cursor-pointer text-sm">会員</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="member-sponsor"
+                        checked={memberCategories.includes("sponsor")}
+                        onCheckedChange={(checked) =>
+                          handleMemberCategoryChange("sponsor", checked === true)
+                        }
+                      />
+                      <Label htmlFor="member-sponsor" className="cursor-pointer text-sm">スポンサー</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="member-observer"
+                        checked={memberCategories.includes("observer")}
+                        onCheckedChange={(checked) =>
+                          handleMemberCategoryChange("observer", checked === true)
+                        }
+                      />
+                      <Label htmlFor="member-observer" className="cursor-pointer text-sm">オブザーバー</Label>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* ベンチャー監査役協会の会員種別（ベンチャー監査役協会を選択している場合のみ表示） */}
               {organizations.includes("ベンチャー監査役協会") && (
@@ -565,7 +571,8 @@ export default function CustomersPage() {
                       {(() => {
                         const badges: React.ReactElement[] = [];
                         
-                        if (customer.memberCategory === "non-member") {
+                        // 非会員の判定（memberTypesが空配列）
+                        if (customer.memberTypes.length === 0) {
                           badges.push(
                             <Badge key="non-member" variant="secondary" className="text-xs px-2 py-0.5">
                               非会員

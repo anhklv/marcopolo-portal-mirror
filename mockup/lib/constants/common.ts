@@ -1,8 +1,7 @@
 import type { MemberCategory, MemberTypeDetail } from "@/lib/types";
 
-// 会員区分の表示ラベル
+// 会員区分の表示ラベル（会員の場合のみ）
 export const MEMBER_CATEGORY_LABELS: Record<MemberCategory, string> = {
-  "non-member": "非会員",
   "member": "会員",
   "sponsor": "スポンサー",
   "observer": "オブザーバー",

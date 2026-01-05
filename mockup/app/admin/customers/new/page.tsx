@@ -30,7 +30,7 @@ import {
 
 export default function NewCustomerPage() {
   const router = useRouter();
-  const [memberCategory, setMemberCategory] = useState<"non-member" | "member" | "sponsor" | "observer">("member");
+  const [memberCategory, setMemberCategory] = useState<"member" | "sponsor" | "observer" | undefined>("member");
   const [auditMemberChecked, setAuditMemberChecked] = useState(false);
   const [auditMemberType, setAuditMemberType] = useState<string>("");
   const [auditMemberPremium, setAuditMemberPremium] = useState(false);
@@ -73,9 +73,18 @@ export default function NewCustomerPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 会員を選択した場合、少なくとも1つの会員区分を選択しているかチェック
+    // 非会員の場合はmemberCategoryがundefined、memberTypesが空配列
+    if (!memberCategory) {
+      // 非会員の場合、社団法人のチェックが外れていることを確認
+      if (auditMemberChecked || naikanMember || auditSponsorChecked || naikanSponsorChecked || auditObserverChecked || naikanObserverChecked) {
+        toast.error("非会員の場合は、社団法人の選択を外してください");
+        return;
+      }
+    }
+
+    // 会員を選択した場合、少なくとも1つの社団法人を選択しているかチェック
     if (memberCategory === "member" && !auditMemberChecked && !naikanMember) {
-      toast.error("会員を選択した場合、少なくとも1つの会員区分を選択してください");
+      toast.error("会員を選択した場合、少なくとも1つの社団法人を選択してください");
       return;
     }
 
@@ -85,15 +94,15 @@ export default function NewCustomerPage() {
       return;
     }
 
-    // スポンサーを選択した場合、少なくとも1つの組織を選択しているかチェック
+    // スポンサーを選択した場合、少なくとも1つの社団法人を選択しているかチェック
     if (memberCategory === "sponsor" && !auditSponsorChecked && !naikanSponsorChecked) {
-      toast.error("スポンサーを選択した場合、少なくとも1つの組織を選択してください");
+      toast.error("スポンサーを選択した場合、少なくとも1つの社団法人を選択してください");
       return;
     }
 
-    // オブザーバーを選択した場合、少なくとも1つの組織を選択しているかチェック
+    // オブザーバーを選択した場合、少なくとも1つの社団法人を選択しているかチェック
     if (memberCategory === "observer" && !auditObserverChecked && !naikanObserverChecked) {
-      toast.error("オブザーバーを選択した場合、少なくとも1つの組織を選択してください");
+      toast.error("オブザーバーを選択した場合、少なくとも1つの社団法人を選択してください");
       return;
     }
 
@@ -122,12 +131,17 @@ export default function NewCustomerPage() {
           <div className="grid gap-2">
             <Label>会員区分 <span className="text-red-500">*</span></Label>
             <RadioGroup
-              value={memberCategory}
+              value={memberCategory || ""}
               onValueChange={(value) => {
-                const newCategory = value as "non-member" | "member" | "sponsor" | "observer";
-                setMemberCategory(newCategory);
+                const newCategory = value as "member" | "sponsor" | "observer" | "";
+                if (newCategory === "") {
+                  setMemberCategory(undefined);
+                } else {
+                  setMemberCategory(newCategory);
+                }
                 // 切り替え時にクリア
-                if (newCategory === "non-member") {
+                if (newCategory === "") {
+                  // 非会員の場合
                   setAuditMemberChecked(false);
                   setAuditMemberType("");
                   setAuditMemberPremium(false);
@@ -164,7 +178,7 @@ export default function NewCustomerPage() {
                   <Label htmlFor="member" className="cursor-pointer">会員</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="non-member" id="non-member" />
+                  <RadioGroupItem value="" id="non-member" />
                   <Label htmlFor="non-member" className="cursor-pointer">非会員</Label>
                 </div>
                 <div className="flex items-center space-x-2">

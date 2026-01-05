@@ -30,11 +30,11 @@ import {
 
 export default function NewCustomerPage() {
   const router = useRouter();
-  // 組織を最初に選択（チェックボックス、複数選択可能）
+  // 社団法人を最初に選択（チェックボックス、複数選択可能）
   const [auditOrganizationChecked, setAuditOrganizationChecked] = useState(false);
   const [naikanOrganizationChecked, setNaikanOrganizationChecked] = useState(false);
   
-  // 会員区分（組織が選択されている場合のみ表示）
+  // 会員区分（社団法人が選択されている場合のみ表示）
   const [memberCategory, setMemberCategory] = useState<"member" | "sponsor" | "observer">("member");
   
   // ベンチャー監査役協会関連
@@ -74,7 +74,7 @@ export default function NewCustomerPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 組織が選択されている場合のバリデーション
+    // 社団法人が選択されている場合のバリデーション
     if (auditOrganizationChecked || naikanOrganizationChecked) {
       // ベンチャー監査役協会の会員を選択した場合、会員種別を選択しているかチェック
       if (memberCategory === "member" && auditOrganizationChecked && !auditMemberType) {
@@ -106,9 +106,9 @@ export default function NewCustomerPage() {
 
       <form onSubmit={handleSubmit} className="space-y-8 rounded-lg border p-8 shadow-sm">
         <div className="space-y-6">
-          {/* 組織選択（最優先、チェックボックスで横並び） */}
+          {/* 社団法人選択（最優先、チェックボックスで横並び） */}
           <div className="grid gap-2">
-            <Label>組織</Label>
+            <Label>社団法人</Label>
             <div className="flex items-center gap-6">
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -142,7 +142,7 @@ export default function NewCustomerPage() {
             </p>
           </div>
 
-          {/* 会員区分選択（組織が選択されている場合のみ表示） */}
+          {/* 会員区分選択（社団法人が選択されている場合のみ表示） */}
           {(auditOrganizationChecked || naikanOrganizationChecked) && (
             <div className="grid gap-2">
               <Label>会員区分 <span className="text-red-500">*</span></Label>

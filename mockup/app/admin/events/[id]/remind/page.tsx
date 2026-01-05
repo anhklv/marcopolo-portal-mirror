@@ -230,7 +230,8 @@ export default function EventRemindPage({
                             {(() => {
                               const badges: React.ReactElement[] = [];
                               
-                              if (attendee.memberCategory === "non-member") {
+                              // 非会員の判定（memberTypesが空配列）
+                              if (attendee.memberTypes.length === 0) {
                                 badges.push(
                                   <Badge key="non-member" variant="secondary" className="text-xs px-2 py-0.5">
                                     非会員

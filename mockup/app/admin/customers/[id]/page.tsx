@@ -123,7 +123,8 @@ export default function CustomerDetailPage({
                 {(() => {
                   const badges: React.ReactElement[] = [];
                   
-                  if (customer.memberCategory === "non-member") {
+                  // 非会員の判定（memberTypesが空配列）
+                  if (customer.memberTypes.length === 0) {
                     badges.push(
                       <Badge key="non-member" variant="secondary" className="text-base px-3 py-1">
                         非会員

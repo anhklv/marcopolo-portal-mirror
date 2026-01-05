@@ -7,8 +7,8 @@ import type { IRepository } from "./base.repository";
  */
 export interface CustomerFilters {
   keyword?: string; // 名前、会社名、メールアドレスで検索
-  memberCategories?: MemberCategory[]; // 会員区分でフィルタ
-  organizations?: string[]; // 組織（ベンチャー監査役協会、ないかんMeetup）でフィルタ
+  memberCategories?: MemberCategory[]; // 会員区分でフィルタ（会員の場合のみ）
+  organizations?: string[]; // 社団法人（ベンチャー監査役協会、ないかんMeetup、非会員）でフィルタ
   auditMemberTypes?: ("regular" | "online")[]; // ベンチャー監査役協会の会員種別
   premiumOnly?: boolean; // プレミアム会員のみ
   statuses?: ("active" | "inactive")[]; // ステータスでフィルタ
@@ -34,20 +34,28 @@ class MockCustomerRepository implements IRepository<Customer> {
       );
     }
 
-    // 会員区分でフィルタ
+    // 会員区分でフィルタ（会員の場合のみ）
     if (filters?.memberCategories && filters.memberCategories.length > 0) {
       results = results.filter((c) =>
-        filters.memberCategories!.includes(c.memberCategory)
+        c.memberCategory && filters.memberCategories!.includes(c.memberCategory)
       );
     }
 
-    // 組織でフィルタ
+    // 所属社団法人でフィルタ（ベンチャー監査役協会、ないかんMeetup、非会員）
     if (filters?.organizations && filters.organizations.length > 0) {
-      results = results.filter((c) =>
-        c.memberTypes.some((type) =>
-          filters.organizations!.includes(type)
-        )
-      );
+      results = results.filter((c) => {
+        const hasNonMember = filters.organizations!.includes("非会員");
+        const hasOrganizations = filters.organizations!.some((org) =>
+          c.memberTypes.includes(org as "ベンチャー監査役協会" | "ないかんMeetup")
+        );
+        
+        // 非会員の場合
+        if (c.memberTypes.length === 0) {
+          return hasNonMember;
+        }
+        // 社団法人に所属している場合
+        return hasOrganizations;
+      });
     }
 
     // ベンチャー監査役協会の会員種別でフィルタ
@@ -96,7 +104,7 @@ class MockCustomerRepository implements IRepository<Customer> {
       id: newId,
       name: data.name || "",
       email: data.email || "",
-      memberCategory: data.memberCategory || "non-member",
+      memberCategory: data.memberCategory, // 会員の場合のみ設定、非会員の場合はundefined
       memberTypes: data.memberTypes || [],
       status: data.status || "active",
       registeredAt: data.registeredAt || new Date().toISOString(),
