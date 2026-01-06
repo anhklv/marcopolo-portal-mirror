@@ -846,24 +846,28 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                   参加回答フォーム (サンプル)
                 </Link>
               </div>
-              <div>
-                <Link
-                  href={`/events/${id}/survey/demo-token`}
-                  target="_blank"
-                  className="text-muted-foreground hover:text-foreground underline"
-                >
-                  アンケート回答フォーム (会員向けサンプル)
-                </Link>
-              </div>
-              <div>
-                <Link
-                  href={`/events/${id}/survey/demo-token-nonmember`}
-                  target="_blank"
-                  className="text-muted-foreground hover:text-foreground underline"
-                >
-                  アンケート回答フォーム (非会員向けサンプル)
-                </Link>
-              </div>
+              {event.eventType === "ベンチャー監査役協会" && (
+                <>
+                  <div>
+                    <Link
+                      href={`/events/${id}/survey/demo-token`}
+                      target="_blank"
+                      className="text-muted-foreground hover:text-foreground underline"
+                    >
+                      アンケート回答フォーム (会員向けサンプル)
+                    </Link>
+                  </div>
+                  <div>
+                    <Link
+                      href={`/events/${id}/survey/demo-token-nonmember`}
+                      target="_blank"
+                      className="text-muted-foreground hover:text-foreground underline"
+                    >
+                      アンケート回答フォーム (非会員向けサンプル)
+                    </Link>
+                  </div>
+                </>
+              )}
             </div>
 
         </div>

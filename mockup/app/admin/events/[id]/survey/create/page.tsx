@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Save } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Eye } from "lucide-react";
 import { events, surveys, getSurveyByEventId } from "@/lib/data/mock";
 import type { SurveyQuestion } from "@/lib/types";
 
@@ -80,6 +80,17 @@ export default function SurveyCreatePage({
 
   const updateQuestionTitle = (questionId: string, title: string) => {
     setQuestions(questions.map((q) => (q.id === questionId ? { ...q, title } : q)));
+  };
+
+  const handlePreview = () => {
+    // 現在の設問をセッションストレージに保存
+    const previewQuestions = questions.filter(q => q.title.trim() !== "").map((q, index) => ({
+      ...q,
+      order: index + 1,
+    }));
+    sessionStorage.setItem(`survey-preview-${id}`, JSON.stringify(previewQuestions));
+    // プレビューページを別タブで開く
+    window.open(`/events/${id}/survey/demo-token-nonmember`, '_blank');
   };
 
 
@@ -153,21 +164,25 @@ export default function SurveyCreatePage({
             <Plus className="h-4 w-4 mr-2" />
             設問を追加
           </Button>
-
-          <div className="flex justify-end gap-4 pt-4">
-            <Button variant="outline" asChild>
-              <Link href={`/admin/events/${id}`}>キャンセル</Link>
-            </Button>
-            <Button variant="outline" onClick={() => router.push(`/admin/events/${id}/survey`)} className="cursor-pointer">
-              スキップしてアンケートを送る
-            </Button>
-            <Button variant="outline" onClick={handleSave} className="cursor-pointer">
-              <Save className="h-4 w-4 mr-2" />
-              保存
-            </Button>
-          </div>
         </CardContent>
       </Card>
+
+      <div className="flex justify-end gap-4">
+        <Button variant="outline" asChild>
+          <Link href={`/admin/events/${id}`}>キャンセル</Link>
+        </Button>
+        <Button variant="outline" onClick={handlePreview} className="cursor-pointer">
+          <Eye className="h-4 w-4 mr-2" />
+          プレビュー
+        </Button>
+        <Button variant="outline" onClick={() => router.push(`/admin/events/${id}/survey`)} className="cursor-pointer">
+          スキップしてアンケートを送る
+        </Button>
+        <Button variant="outline" onClick={handleSave} className="cursor-pointer">
+          <Save className="h-4 w-4 mr-2" />
+          保存
+        </Button>
+      </div>
     </div>
   );
 }

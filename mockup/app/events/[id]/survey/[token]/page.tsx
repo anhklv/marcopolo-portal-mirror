@@ -18,6 +18,7 @@ import { CheckCircle2 } from "lucide-react";
 import { events, customers, getSurveyByToken, surveyResponses, hasResponded } from "@/lib/data/mock";
 import { RATINGS, FUTURE_PARTICIPATION_OPTIONS, MEMBERSHIP_OPTIONS } from "@/lib/constants/survey";
 import { formatEventDate } from "@/lib/utils";
+import type { SurveyQuestion } from "@/lib/types";
 
 type Rating = "よかった" | "まぁよかった" | "あまりよくなかった" | "よくなかった";
 type FutureParticipation = "ぜひ参加したい" | "参加を検討したい" | "参加しない";
@@ -52,12 +53,19 @@ export default function SurveyAnswerPage({
     // モック用：demo-tokenの場合はダミーデータを使用（会員向け）
     if (token === "demo-token") {
       const demoCustomer = customers[0];
+      // ベンチャー監査役協会のイベントの場合は2つの設問を設定
+      const questions = event?.eventType === "ベンチャー監査役協会"
+        ? [
+            { id: "q1", title: "第1部　ベンチャー企業における常勤監査役の役割", order: 1 },
+            { id: "q2", title: "第2部　監査役座談会", order: 2 },
+          ]
+        : [
+            { id: "q1", title: "セッションの感想", order: 1 },
+          ];
       const demoSurvey = {
         id: "SUR001",
         eventId: id,
-        questions: [
-          { id: "q1", title: "セッションの感想", order: 1 },
-        ],
+        questions,
         createdAt: new Date().toISOString(),
       };
       setSurveyData({ survey: demoSurvey, customerId: demoCustomer.id });
@@ -71,8 +79,8 @@ export default function SurveyAnswerPage({
       // 固定設問の初期化
       setFixedAnswers({
         afterParty: event?.hasAfterParty ? { rating: "", reason: "" } : undefined,
-        futureParticipation: demoCustomer.memberTypes.length === 0 ? { rating: "", reason: "" } : undefined,
-        membership: demoCustomer.memberTypes.length === 0 ? { rating: "", reason: "" } : undefined,
+        futureParticipation: { rating: "", reason: "" }, // 全員必須
+        membership: event?.eventType === "ベンチャー監査役協会" && !demoCustomer.memberTypes.includes("ベンチャー監査役協会") ? { rating: "", reason: "" } : undefined,
         comments: "",
       });
       setDataLoaded(true);
@@ -82,12 +90,39 @@ export default function SurveyAnswerPage({
     // モック用：demo-token-nonmemberの場合は非会員のダミーデータを使用
     if (token === "demo-token-nonmember") {
       const demoCustomer = customers.find(c => c.memberTypes.length === 0) || customers[2]; // C003（非会員）
+      // セッションストレージからプレビュー用の設問を取得
+      const previewQuestionsJson = sessionStorage.getItem(`survey-preview-${id}`);
+      let questions: SurveyQuestion[];
+      if (previewQuestionsJson) {
+        // プレビュー用の設問がある場合はそれを使用
+        try {
+          questions = JSON.parse(previewQuestionsJson) as SurveyQuestion[];
+        } catch (e) {
+          // JSON解析に失敗した場合はデフォルトの設問を使用
+          questions = event?.eventType === "ベンチャー監査役協会"
+            ? [
+                { id: "q1", title: "第1部　ベンチャー企業における常勤監査役の役割", order: 1 },
+                { id: "q2", title: "第2部　監査役座談会", order: 2 },
+              ]
+            : [
+                { id: "q1", title: "セッションの感想", order: 1 },
+              ];
+        }
+      } else {
+        // プレビュー用の設問がない場合はデフォルトの設問を使用
+        questions = event?.eventType === "ベンチャー監査役協会"
+          ? [
+              { id: "q1", title: "第1部　ベンチャー企業における常勤監査役の役割", order: 1 },
+              { id: "q2", title: "第2部　監査役座談会", order: 2 },
+            ]
+          : [
+              { id: "q1", title: "セッションの感想", order: 1 },
+            ];
+      }
       const demoSurvey = {
         id: "SUR001",
         eventId: id,
-        questions: [
-          { id: "q1", title: "セッションの感想", order: 1 },
-        ],
+        questions,
         createdAt: new Date().toISOString(),
       };
       setSurveyData({ survey: demoSurvey, customerId: demoCustomer.id });
@@ -101,8 +136,8 @@ export default function SurveyAnswerPage({
       // 固定設問の初期化
       setFixedAnswers({
         afterParty: event?.hasAfterParty ? { rating: "", reason: "" } : undefined,
-        futureParticipation: demoCustomer.memberTypes.length === 0 ? { rating: "", reason: "" } : undefined,
-        membership: demoCustomer.memberTypes.length === 0 ? { rating: "", reason: "" } : undefined,
+        futureParticipation: { rating: "", reason: "" }, // 全員必須
+        membership: event?.eventType === "ベンチャー監査役協会" && !demoCustomer.memberTypes.includes("ベンチャー監査役協会") ? { rating: "", reason: "" } : undefined,
         comments: "",
       });
       setDataLoaded(true);
@@ -134,8 +169,8 @@ export default function SurveyAnswerPage({
       if (customerData) {
         setFixedAnswers({
           afterParty: event?.hasAfterParty ? { rating: "", reason: "" } : undefined,
-          futureParticipation: customerData.memberTypes.length === 0 ? { rating: "", reason: "" } : undefined,
-          membership: customerData.memberTypes.length === 0 ? { rating: "", reason: "" } : undefined,
+          futureParticipation: { rating: "", reason: "" }, // 全員必須
+          membership: event?.eventType === "ベンチャー監査役協会" && !customerData.memberTypes.includes("ベンチャー監査役協会") ? { rating: "", reason: "" } : undefined,
           comments: "",
         });
       }
@@ -162,8 +197,8 @@ export default function SurveyAnswerPage({
       return;
     }
 
-    // 「今後の参加について」は必須（ラジオボタンのみ、非会員のみ）
-    if (customer.memberTypes.length === 0 && !fixedAnswers.futureParticipation?.rating) {
+    // 「今後の参加について」は必須（全員）
+    if (!fixedAnswers.futureParticipation?.rating) {
       toast.error("今後の参加について回答してください");
       return;
     }
@@ -315,7 +350,7 @@ export default function SurveyAnswerPage({
 
           {/* 固定設問: 懇親会 */}
           {event?.hasAfterParty && (
-            <div className="space-y-4 pt-4 border-t">
+            <div className="space-y-4 pt-4">
               <div>
                 <Label className="text-base font-medium">懇親会</Label>
               </div>
@@ -350,9 +385,9 @@ export default function SurveyAnswerPage({
             </div>
           )}
 
-          {/* 固定設問: 今後の参加について（非会員のみ） */}
-          {customer.memberTypes.length === 0 && (
-            <div className="space-y-4 pt-4 border-t">
+          {/* 固定設問: 今後の参加について（全員必須） */}
+          {(
+            <div className="space-y-4 pt-4">
               <div>
                 <Label className="text-base font-medium">今後の参加について <span className="text-red-500">*</span></Label>
               </div>
@@ -387,9 +422,9 @@ export default function SurveyAnswerPage({
             </div>
           )}
 
-          {/* 固定設問: ベンチャー監査役協会への入会について */}
-          {customer.memberTypes.length === 0 && (
-            <div className="space-y-4 pt-4 border-t">
+          {/* 固定設問: ベンチャー監査役協会への入会について（ベンチャー監査役協会のイベントで、ベンチャー監査役協会に未所属の場合のみ） */}
+          {event?.eventType === "ベンチャー監査役協会" && !customer.memberTypes.includes("ベンチャー監査役協会") && (
+            <div className="space-y-4 pt-4">
               <div>
                 <Label className="text-base font-medium">ベンチャー監査役協会への入会について</Label>
               </div>

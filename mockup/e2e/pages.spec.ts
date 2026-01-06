@@ -98,6 +98,36 @@ test('アンケート回答が200を返す', async ({ page }) => {
   expect(response?.status()).toBe(200);
 });
 
+test('イベント参加登録（トークン付き）が200を返す', async ({ page }) => {
+  const response = await page.goto('/events/E001/rsvp?token=demo-token');
+  expect(response?.status()).toBe(200);
+});
+
+test('アンケート回答（会員向けデモトークン）が200を返す', async ({ page }) => {
+  const response = await page.goto('/events/E001/survey/demo-token');
+  expect(response?.status()).toBe(200);
+});
+
+test('アンケート回答（非会員向けデモトークン）が200を返す', async ({ page }) => {
+  const response = await page.goto('/events/E001/survey/demo-token-nonmember');
+  expect(response?.status()).toBe(200);
+});
+
+test('ベンチャー監査役協会のイベントのアンケート回答（デモトークン）が200を返す', async ({ page }) => {
+  const response = await page.goto('/events/E001/survey/demo-token');
+  expect(response?.status()).toBe(200);
+});
+
+test('ないかんMeetupのイベント詳細が200を返す', async ({ page }) => {
+  const response = await page.goto('/admin/events/E002');
+  expect(response?.status()).toBe(200);
+});
+
+test('その他のイベント詳細が200を返す', async ({ page }) => {
+  const response = await page.goto('/admin/events/E003');
+  expect(response?.status()).toBe(200);
+});
+
 test('顧客一覧のフィルタ機能が動作する', async ({ page }) => {
   await page.goto('/admin/customers');
   await page.waitForLoadState('networkidle');
