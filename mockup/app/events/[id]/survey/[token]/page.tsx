@@ -38,6 +38,7 @@ export default function SurveyAnswerPage({
   const [surveyData, setSurveyData] = useState<{ survey: any; customerId: string } | null>(null);
   const [customer, setCustomer] = useState<typeof customers[0] | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [answers, setAnswers] = useState<Record<string, { rating: Rating | ""; reason: string }>>({});
   const [fixedAnswers, setFixedAnswers] = useState<{
     afterParty?: { rating: Rating | ""; reason: string };
@@ -48,7 +49,7 @@ export default function SurveyAnswerPage({
 
   // トークンからアンケート情報を取得
   useEffect(() => {
-    // モック用：demo-tokenの場合はダミーデータを使用
+    // モック用：demo-tokenの場合はダミーデータを使用（会員向け）
     if (token === "demo-token") {
       const demoCustomer = customers[0];
       const demoSurvey = {
@@ -74,6 +75,37 @@ export default function SurveyAnswerPage({
         membership: demoCustomer.memberTypes.length === 0 ? { rating: "", reason: "" } : undefined,
         comments: "",
       });
+      setDataLoaded(true);
+      return;
+    }
+
+    // モック用：demo-token-nonmemberの場合は非会員のダミーデータを使用
+    if (token === "demo-token-nonmember") {
+      const demoCustomer = customers.find(c => c.memberTypes.length === 0) || customers[2]; // C003（非会員）
+      const demoSurvey = {
+        id: "SUR001",
+        eventId: id,
+        questions: [
+          { id: "q1", title: "セッションの感想", order: 1 },
+        ],
+        createdAt: new Date().toISOString(),
+      };
+      setSurveyData({ survey: demoSurvey, customerId: demoCustomer.id });
+      setCustomer(demoCustomer);
+      // 初期化
+      const initialAnswers: Record<string, { rating: Rating | ""; reason: string }> = {};
+      demoSurvey.questions.forEach((q) => {
+        initialAnswers[q.id] = { rating: "", reason: "" };
+      });
+      setAnswers(initialAnswers);
+      // 固定設問の初期化
+      setFixedAnswers({
+        afterParty: event?.hasAfterParty ? { rating: "", reason: "" } : undefined,
+        futureParticipation: demoCustomer.memberTypes.length === 0 ? { rating: "", reason: "" } : undefined,
+        membership: demoCustomer.memberTypes.length === 0 ? { rating: "", reason: "" } : undefined,
+        comments: "",
+      });
+      setDataLoaded(true);
       return;
     }
 
@@ -88,6 +120,7 @@ export default function SurveyAnswerPage({
       // 既に回答済みかチェック
       if (hasResponded(data.survey.id, data.customerId)) {
         setSubmitted(true);
+        setDataLoaded(true);
         return;
       }
 
@@ -106,6 +139,9 @@ export default function SurveyAnswerPage({
           comments: "",
         });
       }
+      setDataLoaded(true);
+    } else {
+      setDataLoaded(true);
     }
   }, [token, id]);
 
@@ -185,6 +221,10 @@ export default function SurveyAnswerPage({
       comments: value,
     }));
   };
+
+  if (!dataLoaded) {
+    return null;
+  }
 
   if (!surveyData || !customer) {
     return (

@@ -50,9 +50,16 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
   // トークンから顧客情報を取得（モック用：demo-tokenでも動作）
   useEffect(() => {
     if (token) {
-      // モック用：demo-tokenの場合はダミーデータを使用
+      // モック用：demo-tokenの場合はダミーデータを使用（会員向け）
       if (token === "demo-token") {
-        const demoCustomer = customers[0]; // 最初の顧客をダミーとして使用
+        const demoCustomer = customers[0]; // C001（会員）
+        setCustomer(demoCustomer);
+        return;
+      }
+
+      // モック用：demo-token-nonmemberの場合は非会員のダミーデータを使用
+      if (token === "demo-token-nonmember") {
+        const demoCustomer = customers.find(c => c.memberTypes.length === 0) || customers[2]; // C003（非会員）
         setCustomer(demoCustomer);
         return;
       }

@@ -210,7 +210,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
                 <Link href={`/admin/events/${id}/survey/create`} className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
-                  アンケート編集
+                  アンケート管理
                 </Link>
               </DropdownMenuItem>
             )}
@@ -767,9 +767,9 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                             </p>
                             <p className="text-sm text-muted-foreground">
                               <Link href={`/admin/events/${id}/survey/create`} className="text-primary hover:underline">
-                                アンケート編集画面
+                                アンケート管理画面
                               </Link>
-                              からアンケート編集及び送付を行ってください。
+                              からアンケート管理及び送付を行ってください。
                             </p>
                           </div>
                         </CardContent>
@@ -852,7 +852,16 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                   target="_blank"
                   className="text-muted-foreground hover:text-foreground underline"
                 >
-                  アンケート回答フォーム (サンプル)
+                  アンケート回答フォーム (会員向けサンプル)
+                </Link>
+              </div>
+              <div>
+                <Link
+                  href={`/events/${id}/survey/demo-token-nonmember`}
+                  target="_blank"
+                  className="text-muted-foreground hover:text-foreground underline"
+                >
+                  アンケート回答フォーム (非会員向けサンプル)
                 </Link>
               </div>
             </div>

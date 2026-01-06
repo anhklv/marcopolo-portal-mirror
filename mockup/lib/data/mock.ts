@@ -74,7 +74,7 @@ export const customers: Customer[] = [
     originIndustry: "事業会社",
     membershipQualification: "監査役",
     memberCategory: "member",
-    memberTypes: ["ベンチャー監査役協会"],
+    memberTypes: ["ベンチャー監査役協会", "ないかんMeetup"],
     memberType: "corporate",
     auditMemberType: "regular",
     auditMemberPremium: false,
