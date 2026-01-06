@@ -316,7 +316,6 @@ export default function EventSurveyPage({
                   <TableHead>氏名</TableHead>
                   <TableHead>会社名</TableHead>
                   <TableHead>会員区分</TableHead>
-                  <TableHead>メールアドレス</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -423,7 +422,6 @@ export default function EventSurveyPage({
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{attendee.email}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -534,19 +532,15 @@ export default function EventSurveyPage({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div>
-                <div className="font-medium mb-2">イベント情報</div>
+            <Card>
+              <CardHeader>
+                <CardTitle>送信先</CardTitle>
+                <CardDescription>
+                  {selectedCustomers.length}名に送信します
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-2 text-sm">
-                  <div><span className="font-medium">イベント名:</span> {event.title}</div>
-                  <div><span className="font-medium">開催日時:</span> {formatEventDate(event.date)}</div>
-                  {event.location && <div><span className="font-medium">場所:</span> {event.location}</div>}
-                </div>
-              </div>
-
-              <div>
-                <div className="font-medium mb-2">送信先 ({selectedCustomers.length}名)</div>
-                <div className="space-y-2 text-sm max-h-40 overflow-y-auto">
                   {selectedCustomers.map((customerId) => {
                     const customer = customers.find((c) => c.id === customerId);
                     return customer ? (
@@ -556,22 +550,27 @@ export default function EventSurveyPage({
                     ) : null;
                   })}
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div>
-                <div className="font-medium mb-2">メール内容</div>
-                <div className="space-y-4">
-                  <div>
-                    <div className="font-medium mb-2">タイトル:</div>
-                    <div className="text-sm bg-muted p-3 rounded">{emailTitle}</div>
-                  </div>
-                  <div>
-                    <div className="font-medium mb-2">本文:</div>
-                    <div className="text-sm bg-muted p-3 rounded whitespace-pre-wrap">{previewBody}</div>
-                  </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>メール内容</CardTitle>
+                <CardDescription>
+                  送信するメールのタイトルと本文です
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="font-medium mb-2">タイトル:</div>
+                  <div className="text-sm bg-muted p-3 rounded">{emailTitle}</div>
                 </div>
-              </div>
-            </div>
+                <div>
+                  <div className="font-medium mb-2">本文:</div>
+                  <div className="text-sm bg-muted p-3 rounded whitespace-pre-wrap">{previewBody}</div>
+                </div>
+              </CardContent>
+            </Card>
 
             <div className="flex justify-end gap-4 pt-4">
               <Button variant="outline" onClick={() => setStep("customize")}>
