@@ -80,7 +80,7 @@ export default function SurveyAnswerPage({
       setFixedAnswers({
         afterParty: event?.hasAfterParty ? { rating: "", reason: "" } : undefined,
         futureParticipation: { rating: "", reason: "" }, // 全員必須
-        membership: event?.eventType === "ベンチャー監査役協会" && !demoCustomer.memberTypes.includes("ベンチャー監査役協会") ? { rating: "", reason: "" } : undefined,
+        membership: event?.eventType === "ベンチャー監査役協会" && !demoCustomer.communities.includes("ベンチャー監査役協会") ? { rating: "", reason: "" } : undefined,
         comments: "",
       });
       setDataLoaded(true);
@@ -89,7 +89,7 @@ export default function SurveyAnswerPage({
 
     // モック用：demo-token-nonmemberの場合は非会員のダミーデータを使用
     if (token === "demo-token-nonmember") {
-      const demoCustomer = customers.find(c => c.memberTypes.length === 0) || customers[2]; // C003（非会員）
+      const demoCustomer = customers.find(c => c.communities.length === 0) || customers[2]; // C003（非会員）
       // セッションストレージからプレビュー用の設問を取得
       const previewQuestionsJson = sessionStorage.getItem(`survey-preview-${id}`);
       let questions: SurveyQuestion[];
@@ -137,7 +137,7 @@ export default function SurveyAnswerPage({
       setFixedAnswers({
         afterParty: event?.hasAfterParty ? { rating: "", reason: "" } : undefined,
         futureParticipation: { rating: "", reason: "" }, // 全員必須
-        membership: event?.eventType === "ベンチャー監査役協会" && !demoCustomer.memberTypes.includes("ベンチャー監査役協会") ? { rating: "", reason: "" } : undefined,
+        membership: event?.eventType === "ベンチャー監査役協会" && !demoCustomer.communities.includes("ベンチャー監査役協会") ? { rating: "", reason: "" } : undefined,
         comments: "",
       });
       setDataLoaded(true);
@@ -170,7 +170,7 @@ export default function SurveyAnswerPage({
         setFixedAnswers({
           afterParty: event?.hasAfterParty ? { rating: "", reason: "" } : undefined,
           futureParticipation: { rating: "", reason: "" }, // 全員必須
-          membership: event?.eventType === "ベンチャー監査役協会" && !customerData.memberTypes.includes("ベンチャー監査役協会") ? { rating: "", reason: "" } : undefined,
+          membership: event?.eventType === "ベンチャー監査役協会" && !customerData.communities.includes("ベンチャー監査役協会") ? { rating: "", reason: "" } : undefined,
           comments: "",
         });
       }
@@ -423,7 +423,7 @@ export default function SurveyAnswerPage({
           )}
 
           {/* 固定設問: ベンチャー監査役協会への入会について（ベンチャー監査役協会のイベントで、ベンチャー監査役協会に未所属の場合のみ） */}
-          {event?.eventType === "ベンチャー監査役協会" && !customer.memberTypes.includes("ベンチャー監査役協会") && (
+          {event?.eventType === "ベンチャー監査役協会" && !customer.communities.includes("ベンチャー監査役協会") && (
             <div className="space-y-4 pt-4">
               <div>
                 <Label className="text-base font-medium">ベンチャー監査役協会への入会について</Label>

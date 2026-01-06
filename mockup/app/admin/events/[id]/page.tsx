@@ -529,13 +529,13 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                             )}
 
                             {/* 固定設問: 今後の参加について（非会員のみ） */}
-                            {surveyResults.respondedCustomers.some((item) => item.customer!.memberTypes.length === 0) && (
+                            {surveyResults.respondedCustomers.some((item) => item.customer!.communities.length === 0) && (
                               <div className="space-y-2 pt-4 border-t">
                                 <div className="font-medium">今後の参加について</div>
                                 {(() => {
                                   const futureResponses = surveyResults.fixedResponses.filter((fr) => {
                                     const customer = customers.find((c) => c.id === fr.customerId);
-                                    return customer && customer.memberTypes.length === 0 && fr.futureParticipation;
+                                    return customer && customer.communities.length === 0 && fr.futureParticipation;
                                   });
                                   const ratingCounts = {
                                     ぜひ参加したい: futureResponses.filter((fr) => fr.futureParticipation?.rating === "ぜひ参加したい").length,
@@ -563,13 +563,13 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                             )}
 
                             {/* 固定設問: ベンチャー監査役協会への入会について */}
-                            {surveyResults.respondedCustomers.some((item) => item.customer!.memberTypes.length === 0) && (
+                            {surveyResults.respondedCustomers.some((item) => item.customer!.communities.length === 0) && (
                               <div className="space-y-2 pt-4 border-t">
                                 <div className="font-medium">ベンチャー監査役協会への入会について</div>
                                 {(() => {
                                   const membershipResponses = surveyResults.fixedResponses.filter((fr) => {
                                     const customer = customers.find((c) => c.id === fr.customerId);
-                                    return customer && customer.memberTypes.length === 0 && fr.membership;
+                                    return customer && customer.communities.length === 0 && fr.membership;
                                   });
                                   const ratingCounts = {
                                     入会をしたい: membershipResponses.filter((fr) => fr.membership?.rating === "入会をしたい").length,
@@ -618,7 +618,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                         <TableHead key={q.id}>{q.title}</TableHead>
                                       ))}
                                     {event.hasAfterParty && <TableHead>懇親会</TableHead>}
-                                    {surveyResults.respondedCustomers.some((item) => item.customer!.memberTypes.length === 0) && (
+                                    {surveyResults.respondedCustomers.some((item) => item.customer!.communities.length === 0) && (
                                       <>
                                         <TableHead>今後の参加について</TableHead>
                                         <TableHead>ベンチャー監査役協会への入会について</TableHead>
@@ -631,7 +631,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                 <TableBody>
                                   {surveyResults.respondedCustomers.length === 0 ? (
                                     <TableRow>
-                                      <TableCell colSpan={(survey?.questions.length || 0) + (event.hasAfterParty ? 1 : 0) + (surveyResults.respondedCustomers.some((item) => item.customer!.memberTypes.length === 0) ? 2 : 0) + 4} className="text-center text-muted-foreground">
+                                      <TableCell colSpan={(survey?.questions.length || 0) + (event.hasAfterParty ? 1 : 0) + (surveyResults.respondedCustomers.some((item) => item.customer!.communities.length === 0) ? 2 : 0) + 4} className="text-center text-muted-foreground">
                                         まだ回答がありません
                                       </TableCell>
                                     </TableRow>
@@ -701,10 +701,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                             )}
                                           </TableCell>
                                         )}
-                                        {surveyResults.respondedCustomers.some((i) => i.customer!.memberTypes.length === 0) && (
+                                        {surveyResults.respondedCustomers.some((i) => i.customer!.communities.length === 0) && (
                                           <>
                                             <TableCell>
-                                              {item.customer!.memberTypes.length === 0 && item.fixedResponse?.futureParticipation ? (
+                                              {item.customer!.communities.length === 0 && item.fixedResponse?.futureParticipation ? (
                                                 <div className="space-y-1">
                                                   <Badge variant="secondary">
                                                     {item.fixedResponse.futureParticipation.rating}
@@ -720,7 +720,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                               )}
                                             </TableCell>
                                             <TableCell>
-                                              {item.customer!.memberTypes.length === 0 && item.fixedResponse?.membership ? (
+                                              {item.customer!.communities.length === 0 && item.fixedResponse?.membership ? (
                                                 <div className="space-y-1">
                                                   <Badge variant="secondary">
                                                     {item.fixedResponse.membership.rating}

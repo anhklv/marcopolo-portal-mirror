@@ -150,8 +150,8 @@ test('顧客一覧のフィルタ機能が動作する', async ({ page }) => {
   await searchInput.clear();
   await page.waitForTimeout(500);
 
-  // 社団法人フィルタ（ベンチャー監査役協会）
-  const filterButton = page.locator('button').filter({ hasText: '社団法人' }).first();
+  // コミュニティフィルタ（ベンチャー監査役協会）
+  const filterButton = page.locator('button').filter({ hasText: 'コミュニティ' }).first();
   await filterButton.click();
   await page.waitForTimeout(300);
   
@@ -166,7 +166,7 @@ test('顧客一覧のフィルタ機能が動作する', async ({ page }) => {
   expect(orgFilteredCount).toBeGreaterThan(0);
   expect(orgFilteredCount).toBeLessThanOrEqual(initialCount);
 
-  // 会員区分フィルタが表示されていることを確認（社団法人を選択した場合のみ表示）
+  // 会員区分フィルタが表示されていることを確認（コミュニティを選択した場合のみ表示）
   // Popover内の「会員区分」ラベルを確認
   const memberCategoryLabel = page.locator('[role="dialog"] label:has-text("会員区分")');
   await expect(memberCategoryLabel).toBeVisible();

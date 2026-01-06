@@ -143,7 +143,7 @@ export default function EventInvitePage({
         setAuditMemberTypes([]);
         setPremiumOnly(false);
       }
-      // 社団法人を外した場合、会員区分もリセット
+      // コミュニティを外した場合、会員区分もリセット
       if (org !== "非会員") {
         setMemberCategories([]);
       }
@@ -159,7 +159,7 @@ export default function EventInvitePage({
   };
 
   const getFilterDisplayText = () => {
-    if (organizations.length === 0) return "社団法人";
+    if (organizations.length === 0) return "コミュニティ";
     
     const parts: string[] = [];
     
@@ -169,7 +169,7 @@ export default function EventInvitePage({
       parts.push(`${organizations.length}件選択`);
     }
     
-    // 会員区分が選択されている場合（社団法人を選択している場合のみ）
+    // 会員区分が選択されている場合（コミュニティを選択している場合のみ）
     if (memberCategories.length > 0 && organizations.length > 0 && !organizations.includes("非会員")) {
       const categoryLabels: string[] = [];
       memberCategories.forEach((cat) => {
@@ -197,7 +197,7 @@ export default function EventInvitePage({
       return `${totalSelections}件選択`;
     }
     
-    return result || "社団法人";
+    return result || "コミュニティ";
   };
 
   const handleInviteStatusChange = (status: string, checked: boolean) => {
@@ -224,33 +224,33 @@ export default function EventInvitePage({
           customer.company?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
           customer.email.toLowerCase().includes(searchKeyword.toLowerCase());
 
-        // 所属社団法人フィルタ（ベンチャー監査役協会、ないかんMeetup、非会員）
+        // 所属コミュニティフィルタ（ベンチャー監査役協会、ないかんMeetup、非会員）
         let matchesOrganizations = true;
         if (organizations.length > 0) {
           const hasNonMember = organizations.includes("非会員");
           const hasOrganizations = organizations.some((org) => {
             if (org === "ベンチャー監査役協会") {
-              return customer.memberTypes.includes("ベンチャー監査役協会");
+              return customer.communities.includes("ベンチャー監査役協会");
             }
             if (org === "ないかんMeetup") {
-              return customer.memberTypes.includes("ないかんMeetup");
+              return customer.communities.includes("ないかんMeetup");
             }
             return false;
           });
           
-          // 非会員の場合（memberTypesが空配列）
-          if (customer.memberTypes.length === 0) {
+          // 非会員の場合（communitiesが空配列）
+          if (customer.communities.length === 0) {
             matchesOrganizations = hasNonMember;
           } else {
-            // 社団法人に所属している場合
+            // コミュニティに所属している場合
             matchesOrganizations = hasOrganizations;
           }
         }
 
-        // 会員区分フィルタ（社団法人を選択した場合のみ適用、チェックがない場合はすべて表示）
+        // 会員区分フィルタ（コミュニティを選択した場合のみ適用、チェックがない場合はすべて表示）
         let matchesMemberCategory = true;
         if (memberCategories.length > 0 && organizations.length > 0 && !organizations.includes("非会員")) {
-          // 社団法人を選択している場合のみ会員区分でフィルタ
+          // コミュニティを選択している場合のみ会員区分でフィルタ
           matchesMemberCategory = customer.memberCategory ? memberCategories.includes(customer.memberCategory) : false;
         }
 
@@ -424,9 +424,9 @@ export default function EventInvitePage({
                 </PopoverTrigger>
                 <PopoverContent className="w-[320px] p-0 bg-white" align="start">
                   <div className="p-4 space-y-4 max-h-[500px] overflow-y-auto">
-                    {/* 社団法人選択（複数選択可能） */}
+                    {/* コミュニティ選択（複数選択可能） */}
                     <div className="space-y-2">
-                      <Label className="text-sm font-semibold">社団法人</Label>
+                      <Label className="text-sm font-semibold">コミュニティ</Label>
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
                           <Checkbox
@@ -465,7 +465,7 @@ export default function EventInvitePage({
                       </div>
                     </div>
 
-                    {/* 会員区分選択（社団法人を選択した場合のみ表示） */}
+                    {/* 会員区分選択（コミュニティを選択した場合のみ表示） */}
                     {(organizations.includes("ベンチャー監査役協会") || organizations.includes("ないかんMeetup")) && (
                       <div className="space-y-2 border-t pt-4">
                         <Label className="text-sm font-semibold">会員区分</Label>
@@ -668,16 +668,16 @@ export default function EventInvitePage({
                           {(() => {
                             const badges: React.ReactElement[] = [];
                             
-                            // 非会員の判定（memberTypesが空配列）
-                            if (customer.memberTypes.length === 0) {
+                            // 非会員の判定（communitiesが空配列）
+                            if (customer.communities.length === 0) {
                               badges.push(
                                 <Badge key="non-member" variant="secondary" className="text-xs px-2 py-0.5">
                                   非会員
                                 </Badge>
                               );
                             } else if (customer.memberCategory === "member") {
-                              const hasAudit = customer.memberTypes.includes("ベンチャー監査役協会");
-                              const hasNaikan = customer.memberTypes.includes("ないかんMeetup");
+                              const hasAudit = customer.communities.includes("ベンチャー監査役協会");
+                              const hasNaikan = customer.communities.includes("ないかんMeetup");
                               
                               if (hasNaikan && !hasAudit) {
                                 badges.push(
@@ -714,14 +714,14 @@ export default function EventInvitePage({
                                 );
                               }
                             } else if (customer.memberCategory === "sponsor") {
-                              if (customer.memberTypes.includes("ないかんMeetup")) {
+                              if (customer.communities.includes("ないかんMeetup")) {
                                 badges.push(
                                   <Badge key="sponsor-naikan" variant="default" className="text-xs px-2 py-0.5">
                                     ないかんMeetup(スポンサー)
                                   </Badge>
                                 );
                               }
-                              if (customer.memberTypes.includes("ベンチャー監査役協会")) {
+                              if (customer.communities.includes("ベンチャー監査役協会")) {
                                 badges.push(
                                   <Badge key="sponsor-audit" variant="default" className="text-xs px-2 py-0.5">
                                     ベンチャー監査役協会(スポンサー)
@@ -729,14 +729,14 @@ export default function EventInvitePage({
                                 );
                               }
                             } else if (customer.memberCategory === "observer") {
-                              if (customer.memberTypes.includes("ないかんMeetup")) {
+                              if (customer.communities.includes("ないかんMeetup")) {
                                 badges.push(
                                   <Badge key="observer-naikan" variant="default" className="text-xs px-2 py-0.5">
                                     ないかんMeetup(オブザーバー)
                                   </Badge>
                                 );
                               }
-                              if (customer.memberTypes.includes("ベンチャー監査役協会")) {
+                              if (customer.communities.includes("ベンチャー監査役協会")) {
                                 badges.push(
                                   <Badge key="observer-audit" variant="default" className="text-xs px-2 py-0.5">
                                     ベンチャー監査役協会(オブザーバー)

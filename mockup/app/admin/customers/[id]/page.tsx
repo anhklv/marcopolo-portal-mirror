@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { ArrowLeft, Edit, Calendar } from "lucide-react";
 import { customers, events, rsvps } from "@/lib/data/mock";
-import { MEMBER_TYPE_LABELS, GENDER_LABELS } from "@/lib/constants/common";
+import { CONTRACT_TYPE_LABELS, GENDER_LABELS } from "@/lib/constants/common";
 import { use } from "react";
 import React from "react";
 import { formatEventDate, formatDate } from "@/lib/utils";
@@ -123,16 +123,16 @@ export default function CustomerDetailPage({
                 {(() => {
                   const badges: React.ReactElement[] = [];
                   
-                  // 非会員の判定（memberTypesが空配列）
-                  if (customer.memberTypes.length === 0) {
+                  // 非会員の判定（communitiesが空配列）
+                  if (customer.communities.length === 0) {
                     badges.push(
                       <Badge key="non-member" variant="secondary" className="text-base px-3 py-1">
                         非会員
                       </Badge>
                     );
                   } else if (customer.memberCategory === "member") {
-                    const hasAudit = customer.memberTypes.includes("ベンチャー監査役協会");
-                    const hasNaikan = customer.memberTypes.includes("ないかんMeetup");
+                    const hasAudit = customer.communities.includes("ベンチャー監査役協会");
+                    const hasNaikan = customer.communities.includes("ないかんMeetup");
                     
                     if (hasNaikan && !hasAudit) {
                       badges.push(
@@ -170,14 +170,14 @@ export default function CustomerDetailPage({
                       );
                     }
                   } else if (customer.memberCategory === "sponsor") {
-                    if (customer.memberTypes.includes("ないかんMeetup")) {
+                    if (customer.communities.includes("ないかんMeetup")) {
                       badges.push(
                         <Badge key="sponsor-naikan" variant="default" className="text-base px-3 py-1">
                           ないかんMeetup(スポンサー)
                         </Badge>
                       );
                     }
-                    if (customer.memberTypes.includes("ベンチャー監査役協会")) {
+                    if (customer.communities.includes("ベンチャー監査役協会")) {
                       badges.push(
                         <Badge key="sponsor-audit" variant="default" className="text-base px-3 py-1">
                           ベンチャー監査役協会(スポンサー)
@@ -185,14 +185,14 @@ export default function CustomerDetailPage({
                       );
                     }
                   } else if (customer.memberCategory === "observer") {
-                    if (customer.memberTypes.includes("ないかんMeetup")) {
+                    if (customer.communities.includes("ないかんMeetup")) {
                       badges.push(
                         <Badge key="observer-naikan" variant="default" className="text-base px-3 py-1">
                           ないかんMeetup(オブザーバー)
                         </Badge>
                       );
                     }
-                    if (customer.memberTypes.includes("ベンチャー監査役協会")) {
+                    if (customer.communities.includes("ベンチャー監査役協会")) {
                       badges.push(
                         <Badge key="observer-audit" variant="default" className="text-base px-3 py-1">
                           ベンチャー監査役協会(オブザーバー)
@@ -205,10 +205,10 @@ export default function CustomerDetailPage({
                 })()}
               </div>
             </div>
-            {customer.memberCategory === "member" && customer.memberType && (
+            {customer.memberCategory === "member" && customer.contractType && (
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">会員種別</p>
-                <p className="text-base">{MEMBER_TYPE_LABELS[customer.memberType]}</p>
+                <p className="text-sm font-medium text-muted-foreground mb-2">契約主体</p>
+                <p className="text-base">{CONTRACT_TYPE_LABELS[customer.contractType]}</p>
               </div>
             )}
           </div>

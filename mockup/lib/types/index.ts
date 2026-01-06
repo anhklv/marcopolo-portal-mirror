@@ -1,9 +1,9 @@
 // Customer関連の型
 export type {
-  MemberType,
-  MemberFilterValue,
+  Community,
+  CommunityFilterValue,
   MemberCategory,
-  MemberTypeDetail,
+  ContractType,
   Customer,
 } from "./customer";
 

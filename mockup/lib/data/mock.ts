@@ -1,9 +1,9 @@
 // 型定義は @/lib/types からインポート
 import type {
-  MemberType,
-  MemberFilterValue,
+  Community,
+  CommunityFilterValue,
   MemberCategory,
-  MemberTypeDetail,
+  ContractType,
   Customer,
   EventType,
   Event,
@@ -17,10 +17,10 @@ import type {
 
 // 型定義を再エクスポート（既存コードとの互換性のため）
 export type {
-  MemberType,
-  MemberFilterValue,
+  Community,
+  CommunityFilterValue,
   MemberCategory,
-  MemberTypeDetail,
+  ContractType,
   Customer,
   EventType,
   Event,
@@ -74,8 +74,8 @@ export const customers: Customer[] = [
     originIndustry: "事業会社",
     membershipQualification: "監査役",
     memberCategory: "member",
-    memberTypes: ["ベンチャー監査役協会", "ないかんMeetup"],
-    memberType: "corporate",
+    communities: ["ベンチャー監査役協会", "ないかんMeetup"],
+    contractType: "corporate",
     auditMemberType: "regular",
     auditMemberPremium: false,
     note: "紹介者: 鈴木",
@@ -95,8 +95,8 @@ export const customers: Customer[] = [
     originIndustry: "事業会社",
     membershipQualification: "内部監査人",
     memberCategory: "member",
-    memberTypes: ["ないかんMeetup"],
-    memberType: "corporate",
+    communities: ["ないかんMeetup"],
+    contractType: "corporate",
     status: "active",
     registeredAt: "2024-02-15",
   },
@@ -111,7 +111,7 @@ export const customers: Customer[] = [
     prefecture: "東京都",
     city: "渋谷区神宮前1-1-1",
     originIndustry: "IT・テクノロジー",
-    memberTypes: [],
+    communities: [],
     status: "active",
     registeredAt: "2024-03-05",
   },
@@ -128,8 +128,8 @@ export const customers: Customer[] = [
     originIndustry: "製造業",
     membershipQualification: "監査役",
     memberCategory: "member",
-    memberTypes: ["ベンチャー監査役協会"],
-    memberType: "corporate",
+    communities: ["ベンチャー監査役協会"],
+    contractType: "corporate",
     auditMemberType: "regular",
     status: "inactive",
     registeredAt: "2023-11-20",
@@ -144,7 +144,7 @@ export const customers: Customer[] = [
     prefecture: "愛知県",
     city: "名古屋市中区錦1-1-1",
     originIndustry: "コンサルティング",
-    memberTypes: [],
+    communities: [],
     status: "active",
     registeredAt: "2024-04-01",
   },
@@ -161,8 +161,8 @@ export const customers: Customer[] = [
     originIndustry: "事業会社",
     membershipQualification: "監査役",
     memberCategory: "member",
-    memberTypes: ["ベンチャー監査役協会", "ないかんMeetup"],
-    memberType: "corporate",
+    communities: ["ベンチャー監査役協会", "ないかんMeetup"],
+    contractType: "corporate",
     auditMemberType: "regular",
     note: "新規入会（両方の会員）",
     status: "active",
@@ -181,8 +181,8 @@ export const customers: Customer[] = [
     originIndustry: "IT・テクノロジー",
     membershipQualification: "内部監査人",
     memberCategory: "member",
-    memberTypes: ["ないかんMeetup"],
-    memberType: "individual",
+    communities: ["ないかんMeetup"],
+    contractType: "individual",
     status: "active",
     registeredAt: "2024-06-03",
   },
@@ -199,8 +199,8 @@ export const customers: Customer[] = [
     originIndustry: "金融機関",
     membershipQualification: "監査役",
     memberCategory: "member",
-    memberTypes: ["ベンチャー監査役協会"],
-    memberType: "corporate",
+    communities: ["ベンチャー監査役協会"],
+    contractType: "corporate",
     auditMemberType: "online",
     note: "紹介者: 山田",
     status: "active",
@@ -219,8 +219,8 @@ export const customers: Customer[] = [
     originIndustry: "IT・テクノロジー",
     membershipQualification: "内部監査人",
     memberCategory: "member",
-    memberTypes: ["ないかんMeetup"],
-    memberType: "individual",
+    communities: ["ないかんMeetup"],
+    contractType: "individual",
     status: "active",
     registeredAt: "2024-08-22",
   },
@@ -237,8 +237,8 @@ export const customers: Customer[] = [
     originIndustry: "コンサルティング",
     membershipQualification: "監査役",
     memberCategory: "member",
-    memberTypes: ["ベンチャー監査役協会"],
-    memberType: "corporate",
+    communities: ["ベンチャー監査役協会"],
+    contractType: "corporate",
     auditMemberType: "regular",
     auditMemberPremium: true,
     status: "active",
@@ -254,7 +254,7 @@ export const customers: Customer[] = [
     prefecture: "兵庫県",
     city: "神戸市中央区三宮町1-1-1",
     originIndustry: "コンサルティング",
-    memberTypes: [],
+    communities: [],
     note: "イベント参加希望",
     status: "active",
     registeredAt: "2024-10-05",
@@ -272,8 +272,8 @@ export const customers: Customer[] = [
     originIndustry: "事業会社",
     membershipQualification: "監査役",
     memberCategory: "member",
-    memberTypes: ["ベンチャー監査役協会", "ないかんMeetup"],
-    memberType: "corporate",
+    communities: ["ベンチャー監査役協会", "ないかんMeetup"],
+    contractType: "corporate",
     auditMemberType: "regular",
     note: "両方の会員",
     status: "active",
@@ -684,24 +684,24 @@ export function getRSVPByEmail(eventId: string, email: string): RSVP | null {
 }
 
 // ヘルパー関数: 会員区分の表示名を取得
-export function getMemberTypeDisplayName(memberTypes: MemberType[]): string {
-  if (memberTypes.length === 0) return "非会員";
+export function getCommunityDisplayName(communities: Community[]): string {
+  if (communities.length === 0) return "非会員";
 
   // ソートして表示順を固定（ベンチャー監査役協会が先）
-  const sorted = [...memberTypes].sort();
+  const sorted = [...communities].sort();
 
   if (sorted.length === 2) return "ベンチャー監査役協会・ないかんMeetup";
   return sorted[0];
 }
 
 // ヘルパー関数: 会員かどうかを判定
-export function isMember(memberTypes: MemberType[]): boolean {
-  return memberTypes.length > 0;
+export function isMember(communities: Community[]): boolean {
+  return communities.length > 0;
 }
 
 // ヘルパー関数: 特定の会員区分を持っているか判定
-export function hasMemberType(memberTypes: MemberType[], type: MemberType): boolean {
-  return memberTypes.includes(type);
+export function hasCommunity(communities: Community[], type: Community): boolean {
+  return communities.includes(type);
 }
 
 // アンケートデータ（モック）

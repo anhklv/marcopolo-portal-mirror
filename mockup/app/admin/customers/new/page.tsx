@@ -39,7 +39,7 @@ export default function NewCustomerPage() {
   const [naikanSponsorChecked, setNaikanSponsorChecked] = useState(false);
   const [auditObserverChecked, setAuditObserverChecked] = useState(false);
   const [naikanObserverChecked, setNaikanObserverChecked] = useState(false);
-  const [memberType, setMemberType] = useState<"corporate" | "individual">("corporate");
+  const [contractType, setContractType] = useState<"corporate" | "individual">("corporate");
   const [gender, setGender] = useState<"male" | "female" | "">("");
   const [listingCategory, setListingCategory] = useState<string>("");
   const [originIndustry, setOriginIndustry] = useState<string>("");
@@ -73,18 +73,18 @@ export default function NewCustomerPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 非会員の場合はmemberCategoryがundefined、memberTypesが空配列
+    // 非会員の場合はmemberCategoryがundefined、communitiesが空配列
     if (!memberCategory) {
-      // 非会員の場合、社団法人のチェックが外れていることを確認
+      // 非会員の場合、コミュニティのチェックが外れていることを確認
       if (auditMemberChecked || naikanMember || auditSponsorChecked || naikanSponsorChecked || auditObserverChecked || naikanObserverChecked) {
-        toast.error("非会員の場合は、社団法人の選択を外してください");
+        toast.error("非会員の場合は、コミュニティの選択を外してください");
         return;
       }
     }
 
-    // 会員を選択した場合、少なくとも1つの社団法人を選択しているかチェック
+    // 会員を選択した場合、少なくとも1つのコミュニティを選択しているかチェック
     if (memberCategory === "member" && !auditMemberChecked && !naikanMember) {
-      toast.error("会員を選択した場合、少なくとも1つの社団法人を選択してください");
+      toast.error("会員を選択した場合、少なくとも1つのコミュニティを選択してください");
       return;
     }
 
@@ -94,15 +94,15 @@ export default function NewCustomerPage() {
       return;
     }
 
-    // スポンサーを選択した場合、少なくとも1つの社団法人を選択しているかチェック
+    // スポンサーを選択した場合、少なくとも1つのコミュニティを選択しているかチェック
     if (memberCategory === "sponsor" && !auditSponsorChecked && !naikanSponsorChecked) {
-      toast.error("スポンサーを選択した場合、少なくとも1つの社団法人を選択してください");
+      toast.error("スポンサーを選択した場合、少なくとも1つのコミュニティを選択してください");
       return;
     }
 
-    // オブザーバーを選択した場合、少なくとも1つの社団法人を選択しているかチェック
+    // オブザーバーを選択した場合、少なくとも1つのコミュニティを選択しているかチェック
     if (memberCategory === "observer" && !auditObserverChecked && !naikanObserverChecked) {
-      toast.error("オブザーバーを選択した場合、少なくとも1つの社団法人を選択してください");
+      toast.error("オブザーバーを選択した場合、少なくとも1つのコミュニティを選択してください");
       return;
     }
 
@@ -308,10 +308,10 @@ export default function NewCustomerPage() {
 
           {memberCategory === "member" && (
             <div className="grid gap-2">
-              <Label>会員種別 <span className="text-red-500">*</span></Label>
+              <Label>契約主体 <span className="text-red-500">*</span></Label>
               <RadioGroup
-                value={memberType}
-                onValueChange={(value) => setMemberType(value as "corporate" | "individual")}
+                value={contractType}
+                onValueChange={(value) => setContractType(value as "corporate" | "individual")}
               >
                 <div className="flex items-center gap-6">
                   <div className="flex items-center space-x-2">

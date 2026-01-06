@@ -1,4 +1,4 @@
-import type { MemberCategory, MemberTypeDetail } from "@/lib/types";
+import type { MemberCategory, ContractType } from "@/lib/types";
 
 // 会員区分の表示ラベル（会員の場合のみ）
 export const MEMBER_CATEGORY_LABELS: Record<MemberCategory, string> = {
@@ -7,8 +7,8 @@ export const MEMBER_CATEGORY_LABELS: Record<MemberCategory, string> = {
   "observer": "オブザーバー",
 } as const;
 
-// 会員種別の表示ラベル
-export const MEMBER_TYPE_LABELS: Record<MemberTypeDetail, string> = {
+// 契約主体の表示ラベル
+export const CONTRACT_TYPE_LABELS: Record<ContractType, string> = {
   "corporate": "法人",
   "individual": "個人",
 } as const;

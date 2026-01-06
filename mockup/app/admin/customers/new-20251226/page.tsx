@@ -30,18 +30,18 @@ import {
 
 export default function NewCustomerPage() {
   const router = useRouter();
-  // 社団法人を最初に選択（チェックボックス、複数選択可能）
+  // コミュニティを最初に選択（チェックボックス、複数選択可能）
   const [auditOrganizationChecked, setAuditOrganizationChecked] = useState(false);
   const [naikanOrganizationChecked, setNaikanOrganizationChecked] = useState(false);
   
-  // 会員区分（社団法人が選択されている場合のみ表示）
+  // 会員区分（コミュニティが選択されている場合のみ表示）
   const [memberCategory, setMemberCategory] = useState<"member" | "sponsor" | "observer">("member");
   
   // ベンチャー監査役協会関連
   const [auditMemberType, setAuditMemberType] = useState<string>("");
   const [auditMemberPremium, setAuditMemberPremium] = useState(false);
   
-  const [memberType, setMemberType] = useState<"corporate" | "individual">("corporate");
+  const [contractType, setContractType] = useState<"corporate" | "individual">("corporate");
   const [gender, setGender] = useState<"male" | "female" | "">("");
   const [listingCategory, setListingCategory] = useState<string>("");
   const [originIndustry, setOriginIndustry] = useState<string>("");
@@ -74,7 +74,7 @@ export default function NewCustomerPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 社団法人が選択されている場合のバリデーション
+    // コミュニティが選択されている場合のバリデーション
     if (auditOrganizationChecked || naikanOrganizationChecked) {
       // ベンチャー監査役協会の会員を選択した場合、会員種別を選択しているかチェック
       if (memberCategory === "member" && auditOrganizationChecked && !auditMemberType) {
@@ -106,9 +106,9 @@ export default function NewCustomerPage() {
 
       <form onSubmit={handleSubmit} className="space-y-8 rounded-lg border p-8 shadow-sm">
         <div className="space-y-6">
-          {/* 社団法人選択（最優先、チェックボックスで横並び） */}
+          {/* コミュニティ選択（最優先、チェックボックスで横並び） */}
           <div className="grid gap-2">
-            <Label>社団法人</Label>
+            <Label>コミュニティ</Label>
             <div className="flex items-center gap-6">
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -142,7 +142,7 @@ export default function NewCustomerPage() {
             </p>
           </div>
 
-          {/* 会員区分選択（社団法人が選択されている場合のみ表示） */}
+          {/* 会員区分選択（コミュニティが選択されている場合のみ表示） */}
           {(auditOrganizationChecked || naikanOrganizationChecked) && (
             <div className="grid gap-2">
               <Label>会員区分 <span className="text-red-500">*</span></Label>
@@ -211,10 +211,10 @@ export default function NewCustomerPage() {
 
           {(auditOrganizationChecked || naikanOrganizationChecked) && memberCategory === "member" && (
             <div className="grid gap-2">
-              <Label>会員種別 <span className="text-red-500">*</span></Label>
+              <Label>契約主体 <span className="text-red-500">*</span></Label>
               <RadioGroup
-                value={memberType}
-                onValueChange={(value) => setMemberType(value as "corporate" | "individual")}
+                value={contractType}
+                onValueChange={(value) => setContractType(value as "corporate" | "individual")}
               >
                 <div className="flex items-center gap-6">
                   <div className="flex items-center space-x-2">

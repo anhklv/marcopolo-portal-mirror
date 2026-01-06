@@ -59,7 +59,7 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
 
       // モック用：demo-token-nonmemberの場合は非会員のダミーデータを使用
       if (token === "demo-token-nonmember") {
-        const demoCustomer = customers.find(c => c.memberTypes.length === 0) || customers[2]; // C003（非会員）
+        const demoCustomer = customers.find(c => c.communities.length === 0) || customers[2]; // C003（非会員）
         setCustomer(demoCustomer);
         return;
       }

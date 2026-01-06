@@ -335,16 +335,16 @@ export default function EventSurveyPage({
                           {(() => {
                             const badges: React.ReactElement[] = [];
                             
-                            // 非会員の判定（memberTypesが空配列）
-                            if (attendee.memberTypes.length === 0) {
+                            // 非会員の判定（communitiesが空配列）
+                            if (attendee.communities.length === 0) {
                               badges.push(
                                 <Badge key="non-member" variant="secondary" className="text-xs px-2 py-0.5">
                                   非会員
                                 </Badge>
                               );
                             } else if (attendee.memberCategory === "member") {
-                              const hasAudit = attendee.memberTypes.includes("ベンチャー監査役協会");
-                              const hasNaikan = attendee.memberTypes.includes("ないかんMeetup");
+                              const hasAudit = attendee.communities.includes("ベンチャー監査役協会");
+                              const hasNaikan = attendee.communities.includes("ないかんMeetup");
                               
                               if (hasNaikan && !hasAudit) {
                                 badges.push(
@@ -381,14 +381,14 @@ export default function EventSurveyPage({
                                 );
                               }
                             } else if (attendee.memberCategory === "sponsor") {
-                              if (attendee.memberTypes.includes("ないかんMeetup")) {
+                              if (attendee.communities.includes("ないかんMeetup")) {
                                 badges.push(
                                   <Badge key="sponsor-naikan" variant="default" className="text-xs px-2 py-0.5">
                                     ないかんMeetup(スポンサー)
                                   </Badge>
                                 );
                               }
-                              if (attendee.memberTypes.includes("ベンチャー監査役協会")) {
+                              if (attendee.communities.includes("ベンチャー監査役協会")) {
                                 badges.push(
                                   <Badge key="sponsor-audit" variant="default" className="text-xs px-2 py-0.5">
                                     ベンチャー監査役協会(スポンサー)
@@ -396,14 +396,14 @@ export default function EventSurveyPage({
                                 );
                               }
                             } else if (attendee.memberCategory === "observer") {
-                              if (attendee.memberTypes.includes("ないかんMeetup")) {
+                              if (attendee.communities.includes("ないかんMeetup")) {
                                 badges.push(
                                   <Badge key="observer-naikan" variant="default" className="text-xs px-2 py-0.5">
                                     ないかんMeetup(オブザーバー)
                                   </Badge>
                                 );
                               }
-                              if (attendee.memberTypes.includes("ベンチャー監査役協会")) {
+                              if (attendee.communities.includes("ベンチャー監査役協会")) {
                                 badges.push(
                                   <Badge key="observer-audit" variant="default" className="text-xs px-2 py-0.5">
                                     ベンチャー監査役協会(オブザーバー)
