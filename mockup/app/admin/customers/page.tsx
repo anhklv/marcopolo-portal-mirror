@@ -528,6 +528,11 @@ export default function CustomersPage() {
       </div>
 
       <div className="rounded-lg border bg-white shadow-sm">
+        <div className="flex items-center justify-end px-6 py-4 border-b">
+          <div className="text-sm text-muted-foreground">
+            検索結果: <span className="font-semibold text-foreground">{filteredCustomers.length}</span>件
+          </div>
+        </div>
         <Table>
           <TableHeader>
             <TableRow>
