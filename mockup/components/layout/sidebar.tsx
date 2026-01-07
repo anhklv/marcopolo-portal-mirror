@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
   Users,
   Calendar,
   LogOut,
@@ -24,12 +23,6 @@ export function Sidebar() {
   const pathname = usePathname();
 
   const routes = [
-    {
-      label: "ダッシュボード",
-      icon: LayoutDashboard,
-      href: "/admin",
-      active: pathname === "/admin",
-    },
     {
       label: "顧客管理",
       icon: Users,
@@ -64,7 +57,7 @@ export function Sidebar() {
   return (
     <div className="flex h-full w-64 flex-col border-r bg-white">
       <div className="flex h-14 items-center border-b px-6 bg-white">
-        <Link className="flex items-center gap-2 font-semibold" href="/admin">
+        <Link className="flex items-center gap-2 font-semibold" href="/admin/customers">
           <span className="text-lg font-bold">Marcopolo Admin</span>
         </Link>
       </div>

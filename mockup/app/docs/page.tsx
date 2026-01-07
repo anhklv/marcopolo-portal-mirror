@@ -4,8 +4,8 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function DocsPage() {
-  const specDir = process.env.SPEC_DIR || join(process.cwd(), "..", "spec");
-  const files = await readdir(specDir);
+  const docsDir = process.env.DOCS_DIR || join(process.cwd(), "..", "docs");
+  const files = await readdir(docsDir);
   const mdFiles = files.filter((file) => file.endsWith(".md"));
 
   const fileNames = mdFiles.map((file) => {
@@ -32,7 +32,7 @@ export default async function DocsPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">仕様書一覧</h1>
         <p className="text-muted-foreground">
-          spec/ディレクトリ内のMarkdownファイルを閲覧できます
+          docs/ディレクトリ内のMarkdownファイルを閲覧できます
         </p>
       </div>
 
