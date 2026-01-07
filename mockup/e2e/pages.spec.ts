@@ -1,16 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-test('トップページが/adminにリダイレクトする', async ({ page }) => {
+test('トップページが/admin/customersにリダイレクトする', async ({ page }) => {
   const response = await page.goto('/', { waitUntil: 'networkidle' });
-  await page.waitForURL('**/admin');
-  // リダイレクト後、最終的に/adminページが200を返すことを確認
+  await page.waitForURL('**/admin/customers');
+  // リダイレクト後、最終的に/admin/customersページが200を返すことを確認
   expect(response?.status()).toBe(200);
-  expect(page.url()).toContain('/admin');
-});
-
-test('ダッシュボードが200を返す', async ({ page }) => {
-  const response = await page.goto('/admin');
-  expect(response?.status()).toBe(200);
+  expect(page.url()).toContain('/admin/customers');
 });
 
 test('顧客一覧が200を返す', async ({ page }) => {

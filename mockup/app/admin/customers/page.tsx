@@ -527,12 +527,12 @@ export default function CustomersPage() {
         </Popover>
       </div>
 
-      <div className="rounded-lg border bg-white shadow-sm">
-        <div className="flex items-center justify-end px-6 py-4 border-b">
-          <div className="text-sm text-muted-foreground">
-            件数: <span className="font-semibold text-foreground">{filteredCustomers.length}</span>件
-          </div>
+      <div className="flex justify-end">
+        <div className="text-sm text-muted-foreground">
+          <span className="font-semibold text-foreground">{filteredCustomers.length}</span>件
         </div>
+      </div>
+      <div className="rounded-lg border bg-white shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>

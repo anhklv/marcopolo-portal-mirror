@@ -291,7 +291,12 @@ export default function EventsPage() {
         </Popover>
       </div>
 
-      <div className="rounded-md border">
+      <div className="flex justify-end">
+        <div className="text-sm text-muted-foreground">
+          <span className="font-semibold text-foreground">{filteredEvents.length}</span>件
+        </div>
+      </div>
+      <div className="rounded-md border bg-white shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>
