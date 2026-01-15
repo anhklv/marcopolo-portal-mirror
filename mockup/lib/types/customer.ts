@@ -23,6 +23,10 @@ export type Customer = {
   contractType?: ContractType; // 契約主体（法人・個人）- 会員の場合のみ
   auditMemberType?: "regular" | "online"; // ベンチャー監査役協会の会員種別
   auditMemberPremium?: boolean; // プレミアム会員フラグ
+  auditJoinedAt?: string; // ベンチャー監査役協会 入会日
+  auditResignedAt?: string; // ベンチャー監査役協会 脱退日
+  naikanJoinedAt?: string; // ないかんMeetup 入会日
+  naikanResignedAt?: string; // ないかんMeetup 脱退日
   note?: string; // 備考 - 任意
   status: "active" | "inactive";
   registeredAt: string;

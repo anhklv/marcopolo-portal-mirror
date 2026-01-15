@@ -44,49 +44,59 @@ export default function CustomersPage() {
   const [statusSearch, setStatusSearch] = useState("");
 
   const handleMemberCategoryChange = (category: MemberCategoryFilter, checked: boolean) => {
-    if (checked) {
-      setMemberCategories([...memberCategories, category]);
-    } else {
-      setMemberCategories(memberCategories.filter((c) => c !== category));
-      // 会員を外した場合、ベンチャー監査役協会の会員種別もリセット
-      if (category === "member") {
-        setAuditMemberTypes([]);
-        setPremiumOnly(false);
+    setMemberCategories((prev) => {
+      const hasCategory = prev.includes(category);
+      if (checked) {
+        return hasCategory ? prev : [...prev, category];
       }
+      return hasCategory ? prev.filter((c) => c !== category) : prev;
+    });
+    // 会員を外した場合、ベンチャー監査役協会の会員種別もリセット
+    if (!checked && category === "member") {
+      setAuditMemberTypes((prev) => (prev.length > 0 ? [] : prev));
+      setPremiumOnly((prev) => (prev ? false : prev));
     }
   };
 
   const handleOrganizationChange = (org: OrganizationFilter, checked: boolean) => {
-    if (checked) {
-      setOrganizations([...organizations, org]);
-    } else {
-      setOrganizations(organizations.filter((o) => o !== org));
+    setOrganizations((prev) => {
+      const hasOrg = prev.includes(org);
+      if (checked) {
+        return hasOrg ? prev : [...prev, org];
+      }
+      return hasOrg ? prev.filter((o) => o !== org) : prev;
+    });
+    if (!checked) {
       // ベンチャー監査役協会のチェックを外した場合、会員種別もリセット
       if (org === "ベンチャー監査役協会") {
-        setAuditMemberTypes([]);
-        setPremiumOnly(false);
+        setAuditMemberTypes((prev) => (prev.length > 0 ? [] : prev));
+        setPremiumOnly((prev) => (prev ? false : prev));
       }
       // コミュニティを外した場合、会員区分もリセット
       if (org !== "非会員") {
-        setMemberCategories([]);
+        setMemberCategories((prev) => (prev.length > 0 ? [] : prev));
       }
     }
   };
 
   const handleAuditMemberTypeChange = (type: AuditMemberTypeFilter, checked: boolean) => {
-    if (checked) {
-      setAuditMemberTypes([...auditMemberTypes, type]);
-    } else {
-      setAuditMemberTypes(auditMemberTypes.filter((t) => t !== type));
-    }
+    setAuditMemberTypes((prev) => {
+      const hasType = prev.includes(type);
+      if (checked) {
+        return hasType ? prev : [...prev, type];
+      }
+      return hasType ? prev.filter((t) => t !== type) : prev;
+    });
   };
 
   const handleStatusChange = (status: string, checked: boolean) => {
-    if (checked) {
-      setStatuses([...statuses, status]);
-    } else {
-      setStatuses(statuses.filter((s) => s !== status));
-    }
+    setStatuses((prev) => {
+      const hasStatus = prev.includes(status);
+      if (checked) {
+        return hasStatus ? prev : [...prev, status];
+      }
+      return hasStatus ? prev.filter((s) => s !== status) : prev;
+    });
   };
 
   const getFilterDisplayText = () => {
