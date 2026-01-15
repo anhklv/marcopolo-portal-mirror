@@ -20,7 +20,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { events } from "@/lib/data/mock";
-import type { EventType } from "@/lib/types";
+import type { EventType, CommunityScope } from "@/lib/types";
 import { EVENT_TYPES } from "@/lib/constants/event";
 import {
   Select,
@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/lib/contexts/auth.context";
 
 export default function EventEditPage({
   params,
@@ -37,6 +38,7 @@ export default function EventEditPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { hasPermission } = useAuth();
   const event = events.find((e) => e.id === id);
 
   if (!event) {
@@ -84,6 +86,17 @@ export default function EventEditPage({
       toast.error("イベント名と開催日時は必須です");
       return;
     }
+
+    // 権限チェック
+    const eventData = {
+      eventType: eventType as CommunityScope,
+    };
+
+    if (!hasPermission("event", eventData)) {
+      toast.error("このイベントを編集する権限がありません");
+      return;
+    }
+
     // モックデータを更新
     const eventIndex = events.findIndex((e) => e.id === id);
     if (eventIndex !== -1) {

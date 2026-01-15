@@ -18,7 +18,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Mail } from "lucide-react";
 import { events } from "@/lib/data/mock";
-import type { EventType } from "@/lib/types";
+import type { EventType, CommunityScope } from "@/lib/types";
 import { EVENT_TYPES } from "@/lib/constants/event";
 import { formatEventDate } from "@/lib/utils";
 import {
@@ -28,9 +28,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/lib/contexts/auth.context";
 
 export default function NewEventPage() {
   const router = useRouter();
+  const { hasPermission } = useAuth();
   const [step, setStep] = useState<"form" | "success">("form");
   const [createdEventId, setCreatedEventId] = useState<string | null>(null);
 
@@ -50,6 +52,16 @@ export default function NewEventPage() {
     e.preventDefault();
     if (!title || !date) {
       toast.error("イベント名と開催日時は必須です");
+      return;
+    }
+
+    // 権限チェック
+    const eventData = {
+      eventType: eventType as CommunityScope,
+    };
+
+    if (!hasPermission("event", eventData)) {
+      toast.error("このイベントを登録する権限がありません");
       return;
     }
 

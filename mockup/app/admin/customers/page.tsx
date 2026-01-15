@@ -22,12 +22,13 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { customers, getCommunityDisplayName } from "@/lib/data/mock";
-import type { Customer, CommunityFilterValue } from "@/lib/types";
+import type { CommunityScope } from "@/lib/types";
 import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/common";
 import { Plus, Search, Users, ChevronDown, Download } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
 import React from "react";
+import { useAuth } from "@/lib/contexts/auth.context";
 
 type MemberCategoryFilter = "member" | "sponsor" | "observer";
 type OrganizationFilter = "ベンチャー監査役の会" | "ないかんMeetup" | "非会員";
@@ -35,6 +36,7 @@ type AuditMemberTypeFilter = "regular" | "online";
 
 export default function CustomersPage() {
   const router = useRouter();
+  const { currentAdmin } = useAuth();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [memberCategories, setMemberCategories] = useState<MemberCategoryFilter[]>([]);
   const [organizations, setOrganizations] = useState<OrganizationFilter[]>([]);
@@ -207,7 +209,18 @@ export default function CustomersPage() {
   };
 
   const filteredCustomers = useMemo(() => {
-    const filtered = customers.filter((customer) => {
+    let filtered = [...customers];
+
+    // 管理者権限に応じてフィルタリング
+    if (currentAdmin?.role === "community_admin" && currentAdmin.communityScopes) {
+      filtered = filtered.filter((c) =>
+        c.communities.some((community) =>
+          currentAdmin.communityScopes!.includes(community as CommunityScope)
+        )
+      );
+    }
+
+    filtered = filtered.filter((customer) => {
       // フリーワード検索
       const matchesKeyword =
         searchKeyword === "" ||
@@ -294,7 +307,7 @@ export default function CustomersPage() {
       if (a.status === "inactive" && b.status === "active") return 1;
       return 0;
     });
-  }, [searchKeyword, memberCategories, organizations, auditMemberTypes, premiumOnly, statuses]);
+  }, [currentAdmin, searchKeyword, memberCategories, organizations, auditMemberTypes, premiumOnly, statuses]);
 
   return (
     <div className="space-y-6">

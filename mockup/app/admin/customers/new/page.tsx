@@ -28,9 +28,12 @@ import {
   LISTING_OPTIONS,
   AUDIT_MEMBER_TYPES,
 } from "@/lib/constants/customer";
+import { useAuth } from "@/lib/contexts/auth.context";
+import type { CommunityScope } from "@/lib/types";
 
 export default function NewCustomerPage() {
   const router = useRouter();
+  const { hasPermission } = useAuth();
 
   // コミュニティ選択
   const [auditCommunityChecked, setAuditCommunityChecked] = useState(false);
@@ -112,6 +115,20 @@ export default function NewCustomerPage() {
         toast.error("ベンチャー監査役の会の会員種別を選択してください");
         return;
       }
+    }
+
+    // 権限チェック: 選択したコミュニティへのアクセス権があるか確認
+    const selectedCommunities: CommunityScope[] = [];
+    if (auditCommunityChecked) selectedCommunities.push("ベンチャー監査役の会");
+    if (naikanCommunityChecked) selectedCommunities.push("ないかんMeetup");
+
+    const customerData = {
+      communities: selectedCommunities,
+    };
+
+    if (!hasPermission("customer", customerData)) {
+      toast.error("この顧客を登録する権限がありません");
+      return;
     }
 
     toast.success("顧客情報を登録しました");

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   Users,
@@ -18,9 +18,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/lib/contexts/auth.context";
+import { toast } from "sonner";
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { currentAdmin, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    router.push("/admin/login");
+    toast.success("ログアウトしました");
+  };
 
   const routes = [
     {
@@ -131,17 +141,19 @@ export function Sidebar() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56 bg-white">
-              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
-                <Link
-                  href="/admin/settings/email"
-                  className={cn(
-                    "cursor-pointer w-full",
-                    pathname === "/admin/settings/email" && "bg-gray-100"
-                  )}
-                >
-                  ログインID変更
-                </Link>
-              </DropdownMenuItem>
+              {currentAdmin?.role === "super" && (
+                <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
+                  <Link
+                    href="/admin/admins"
+                    className={cn(
+                      "cursor-pointer w-full",
+                      pathname.startsWith("/admin/admins") && "bg-gray-100"
+                    )}
+                  >
+                    管理者管理
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
                 <Link
                   href="/admin/settings/password"
@@ -155,7 +167,11 @@ export function Sidebar() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="ghost" className="w-full justify-start gap-2 text-red-500 hover:text-red-600 hover:bg-red-50">
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+            onClick={handleLogout}
+          >
             <LogOut className="h-4 w-4" />
             ログアウト
           </Button>

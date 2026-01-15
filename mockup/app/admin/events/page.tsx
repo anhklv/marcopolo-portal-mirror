@@ -29,9 +29,12 @@ import { Badge } from "@/components/ui/badge";
 import { events, getEventStatus, rsvps, customers } from "@/lib/data/mock";
 import { formatEventDate } from "@/lib/utils";
 import { Plus, MoreVertical, Edit, Mail, Search, ChevronDown } from "lucide-react";
+import { useAuth } from "@/lib/contexts/auth.context";
+import type { CommunityScope } from "@/lib/types";
 
 export default function EventsPage() {
   const router = useRouter();
+  const { currentAdmin } = useAuth();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [statuses, setStatuses] = useState<string[]>([]);
   const [statusSearch, setStatusSearch] = useState("");
@@ -56,7 +59,7 @@ export default function EventsPage() {
   };
 
   const filteredEvents = useMemo(() => {
-    const enriched = events.map((event) => {
+    let enriched = events.map((event) => {
       // 実際の参加者数を計算（イベント詳細画面と同じロジック）
       // 顧客が存在するRSVPのみをカウント
       const eventRsvps = rsvps.filter((r) => r.eventId === event.id);
@@ -64,11 +67,11 @@ export default function EventsPage() {
         const customer = customers.find((c) => c.id === rsvp.customerId);
         return customer ? { ...rsvp, customer } : null;
       }).filter((a): a is NonNullable<typeof a> => a !== null);
-      
+
       const actualAttendeesCount = allAttendees.filter(
         (a) => a.status === "参加" || a.status === "オンライン参加"
       ).length;
-      
+
       return {
         ...event,
         status: getEventStatus(event),
@@ -76,6 +79,13 @@ export default function EventsPage() {
         actualAttendeesCount,
       };
     });
+
+    // 管理者権限に応じてフィルタリング
+    if (currentAdmin?.role === "community_admin" && currentAdmin.communityScopes) {
+      enriched = enriched.filter((e) =>
+        currentAdmin.communityScopes!.includes(e.eventType as CommunityScope)
+      );
+    }
 
     const filtered = enriched.filter((event) => {
       // フリーワード検索（イベント名、場所、概要、備考）
@@ -121,7 +131,7 @@ export default function EventsPage() {
     });
 
     return sorted;
-  }, [searchKeyword, statuses, eventTypes]);
+  }, [currentAdmin, searchKeyword, statuses, eventTypes]);
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
