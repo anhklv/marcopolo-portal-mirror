@@ -36,6 +36,7 @@ import type { Customer } from "@/lib/types";
 import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/common";
 import React from "react";
 import { cn, getInviteEmailTemplate, formatEventDate } from "@/lib/utils";
+import { useAuth } from "@/lib/contexts/auth.context";
 
 type Step = "select" | "customize" | "confirm";
 
@@ -46,6 +47,7 @@ export default function EventInvitePage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { currentAdmin } = useAuth();
   const event = events.find((e) => e.id === id);
   
   const [step, setStep] = useState<Step>("select");
@@ -217,6 +219,21 @@ export default function EventInvitePage({
         isInvited: invitedCustomerIds.has(customer.id),
       }))
       .filter((customer) => {
+        // 管理者の権限に基づくフィルタリング（システム的な制約）
+        if (currentAdmin?.role === "community_admin" && currentAdmin.communityScopes) {
+          // 非会員は特権管理者のみが表示できる
+          if (customer.communities.length === 0) {
+            return false;
+          }
+          // 管理者の権限範囲内のコミュニティに所属している顧客のみを表示
+          const hasAccess = customer.communities.some((community) =>
+            currentAdmin.communityScopes!.includes(community as "ベンチャー監査役の会" | "ないかんMeetup")
+          );
+          if (!hasAccess) {
+            return false;
+          }
+        }
+
         // フリーワード検索
         const matchesKeyword =
           searchKeyword === "" ||
@@ -291,7 +308,7 @@ export default function EventInvitePage({
       });
 
     return filtered;
-  }, [searchKeyword, memberCategories, organizations, auditMemberTypes, premiumOnly, inviteStatuses, invitedCustomerIds]);
+  }, [currentAdmin, searchKeyword, memberCategories, organizations, auditMemberTypes, premiumOnly, inviteStatuses, invitedCustomerIds]);
 
   // ステップインジケーターコンポーネント
   const StepIndicator = () => {
@@ -428,40 +445,53 @@ export default function EventInvitePage({
                     <div className="space-y-2">
                       <Label className="text-sm font-semibold">コミュニティ</Label>
                       <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="org-audit-invite"
-                            checked={organizations.includes("ベンチャー監査役の会")}
-                            onCheckedChange={(checked) =>
-                              handleOrganizationChange("ベンチャー監査役の会", checked === true)
-                            }
-                          />
-                          <Label htmlFor="org-audit-invite" className="cursor-pointer text-sm">
-                            ベンチャー監査役の会
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="org-naikan-invite"
-                            checked={organizations.includes("ないかんMeetup")}
-                            onCheckedChange={(checked) =>
-                              handleOrganizationChange("ないかんMeetup", checked === true)
-                            }
-                          />
-                          <Label htmlFor="org-naikan-invite" className="cursor-pointer text-sm">
-                            ないかんMeetup
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="org-non-member-invite"
-                            checked={organizations.includes("非会員")}
-                            onCheckedChange={(checked) =>
-                              handleOrganizationChange("非会員", checked === true)
-                            }
-                          />
-                          <Label htmlFor="org-non-member-invite" className="cursor-pointer text-sm">非会員</Label>
-                        </div>
+                        {/* 特権管理者またはベンチャー監査役の会の権限がある場合のみ表示 */}
+                        {(currentAdmin?.role === "super" || 
+                          (currentAdmin?.role === "community_admin" && 
+                           currentAdmin.communityScopes?.includes("ベンチャー監査役の会"))) && (
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="org-audit-invite"
+                              checked={organizations.includes("ベンチャー監査役の会")}
+                              onCheckedChange={(checked) =>
+                                handleOrganizationChange("ベンチャー監査役の会", checked === true)
+                              }
+                            />
+                            <Label htmlFor="org-audit-invite" className="cursor-pointer text-sm">
+                              ベンチャー監査役の会
+                            </Label>
+                          </div>
+                        )}
+                        {/* 特権管理者またはないかんMeetupの権限がある場合のみ表示 */}
+                        {(currentAdmin?.role === "super" || 
+                          (currentAdmin?.role === "community_admin" && 
+                           currentAdmin.communityScopes?.includes("ないかんMeetup"))) && (
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="org-naikan-invite"
+                              checked={organizations.includes("ないかんMeetup")}
+                              onCheckedChange={(checked) =>
+                                handleOrganizationChange("ないかんMeetup", checked === true)
+                              }
+                            />
+                            <Label htmlFor="org-naikan-invite" className="cursor-pointer text-sm">
+                              ないかんMeetup
+                            </Label>
+                          </div>
+                        )}
+                        {/* 非会員は特権管理者のみ表示 */}
+                        {currentAdmin?.role === "super" && (
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="org-non-member-invite"
+                              checked={organizations.includes("非会員")}
+                              onCheckedChange={(checked) =>
+                                handleOrganizationChange("非会員", checked === true)
+                              }
+                            />
+                            <Label htmlFor="org-non-member-invite" className="cursor-pointer text-sm">非会員</Label>
+                          </div>
+                        )}
                       </div>
                     </div>
 

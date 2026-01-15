@@ -207,28 +207,120 @@ test.describe('権限チェック - イベント登録', () => {
     await page.goto('/admin/events/new');
     await page.waitForLoadState('networkidle');
 
-    // イベント種別を選択（ないかんMeetup）
-    const eventTypeButton = page.locator('button[role="combobox"]').first();
-    await eventTypeButton.click();
+    // コミュニティ管理者の場合、イベント種別のSelectは表示されず、テキスト表示になる
+    // Selectボタンが存在しないことを確認
+    const eventTypeButton = page.locator('button[role="combobox"]');
+    const buttonCount = await eventTypeButton.count();
+    expect(buttonCount).toBe(0);
+
+    // 権限のあるコミュニティ（ベンチャー監査役の会）がテキストで表示されることを確認
+    const eventTypeText = page.locator('text=ベンチャー監査役の会');
+    await expect(eventTypeText).toBeVisible();
+
+    // 権限外のコミュニティ（ないかんMeetup）が表示されないことを確認
+    const naikanText = page.locator('text=ないかんMeetup');
+    const naikanTextCount = await naikanText.count();
+    expect(naikanTextCount).toBe(0);
+  });
+});
+
+test.describe('権限チェック - イベント案内ページ', () => {
+  test('特権管理者は全てのコミュニティのフィルタを表示できる', async ({ page }) => {
+    await loginAs(page, 'admin@example.com', 'password123');
+
+    await page.goto('/admin/events/E008/invite');
+    await page.waitForLoadState('networkidle');
+
+    // コミュニティフィルタのPopoverを開く
+    const filterButton = page.locator('button').filter({ hasText: 'コミュニティ' }).first();
+    await filterButton.click();
     await page.waitForTimeout(300);
 
-    // 権限外のイベント種別（ないかんMeetup）を選択
-    const naikanOption = page.locator('text=ないかんMeetup').last();
-    await naikanOption.click();
+    // 全てのコミュニティのチェックボックスが表示されることを確認
+    const auditCheckbox = page.locator('#org-audit-invite');
+    await expect(auditCheckbox).toBeVisible();
+
+    const naikanCheckbox = page.locator('#org-naikan-invite');
+    await expect(naikanCheckbox).toBeVisible();
+
+    const nonMemberCheckbox = page.locator('#org-non-member-invite');
+    await expect(nonMemberCheckbox).toBeVisible();
+  });
+
+  test('ベンチャー監査役の会管理者は該当コミュニティのフィルタのみ表示できる', async ({ page }) => {
+    await loginAs(page, 'venture@example.com', 'password123');
+
+    await page.goto('/admin/events/E008/invite');
+    await page.waitForLoadState('networkidle');
+
+    // コミュニティフィルタのPopoverを開く
+    const filterButton = page.locator('button').filter({ hasText: 'コミュニティ' }).first();
+    await filterButton.click();
     await page.waitForTimeout(300);
 
-    // タイトルを入力
-    await page.locator('input#title').fill('テストイベント');
+    // ベンチャー監査役の会のチェックボックスが表示されることを確認
+    const auditCheckbox = page.locator('#org-audit-invite');
+    await expect(auditCheckbox).toBeVisible();
 
-    // 開催日を入力
-    await page.locator('input#date').fill('2026-02-01T10:00');
+    // ないかんMeetupのチェックボックスが表示されないことを確認
+    const naikanCheckbox = page.locator('#org-naikan-invite');
+    const naikanCount = await naikanCheckbox.count();
+    expect(naikanCount).toBe(0);
 
-    // 送信を試みる
-    await page.locator('button[type="submit"]').click();
+    // 非会員のチェックボックスが表示されないことを確認
+    const nonMemberCheckbox = page.locator('#org-non-member-invite');
+    const nonMemberCount = await nonMemberCheckbox.count();
+    expect(nonMemberCount).toBe(0);
+  });
 
-    // エラーメッセージが表示されることを確認
-    await page.waitForTimeout(1000);
-    const errorToast = page.locator('text=このイベントを登録する権限がありません');
-    await expect(errorToast).toBeVisible();
+  test('ないかんMeetup管理者は該当コミュニティのフィルタのみ表示できる', async ({ page }) => {
+    await loginAs(page, 'naikan@example.com', 'password123');
+
+    await page.goto('/admin/events/E008/invite');
+    await page.waitForLoadState('networkidle');
+
+    // コミュニティフィルタのPopoverを開く（初期状態で「ないかんMeetup」が選択されているため、ボタンのテキストが変わる可能性がある）
+    const filterButton = page.locator('button').filter({ hasText: /^(コミュニティ|ないかんMeetup)$/ }).first();
+    await filterButton.click();
+    await page.waitForTimeout(300);
+
+    // ないかんMeetupのチェックボックスが表示されることを確認
+    const naikanCheckbox = page.locator('#org-naikan-invite');
+    await expect(naikanCheckbox).toBeVisible();
+
+    // ベンチャー監査役の会のチェックボックスが表示されないことを確認
+    const auditCheckbox = page.locator('#org-audit-invite');
+    const auditCount = await auditCheckbox.count();
+    expect(auditCount).toBe(0);
+
+    // 非会員のチェックボックスが表示されないことを確認
+    const nonMemberCheckbox = page.locator('#org-non-member-invite');
+    const nonMemberCount = await nonMemberCheckbox.count();
+    expect(nonMemberCount).toBe(0);
+  });
+
+  test('複数スコープ管理者は該当コミュニティのフィルタを表示できる', async ({ page }) => {
+    await loginAs(page, 'both@example.com', 'password123');
+
+    await page.goto('/admin/events/E008/invite');
+    await page.waitForLoadState('networkidle');
+
+    // コミュニティフィルタのPopoverを開く（初期状態で「ないかんMeetup」が選択されているため、ボタンのテキストが変わる可能性がある）
+    const filterButton = page.locator('button').filter({ hasText: /^(コミュニティ|ないかんMeetup)$/ }).first();
+    await filterButton.click();
+    await page.waitForTimeout(300);
+
+    // ベンチャー監査役の会のチェックボックスが表示されることを確認
+    const auditCheckbox = page.locator('#org-audit-invite');
+    await expect(auditCheckbox).toBeVisible();
+
+    // ないかんMeetupのチェックボックスが表示されることを確認
+    const naikanCheckbox = page.locator('#org-naikan-invite');
+    await expect(naikanCheckbox).toBeVisible();
+
+    // 非会員のチェックボックスが表示されないことを確認
+    const nonMemberCheckbox = page.locator('#org-non-member-invite');
+    const nonMemberCount = await nonMemberCheckbox.count();
+    expect(nonMemberCount).toBe(0);
   });
 });

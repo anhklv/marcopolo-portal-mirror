@@ -38,7 +38,7 @@ export default function EventEditPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { hasPermission } = useAuth();
+  const { hasPermission, currentAdmin } = useAuth();
   const event = events.find((e) => e.id === id);
 
   if (!event) {
@@ -66,7 +66,23 @@ export default function EventEditPage({
     return dateStr.slice(0, 16);
   };
 
-  const [eventType, setEventType] = useState<EventType>((event as any).eventType || "ベンチャー監査役の会");
+  // 初期値の設定（コミュニティ管理者の場合、権限のあるコミュニティを優先）
+  const getInitialEventType = (): EventType => {
+    const existingEventType = (event as any).eventType || "ベンチャー監査役の会";
+    if (currentAdmin?.role === "super") {
+      return existingEventType;
+    }
+    if (currentAdmin?.role === "community_admin" && currentAdmin.communityScopes && currentAdmin.communityScopes.length > 0) {
+      // 既存のイベント種別が権限内の場合はそのまま、権限外の場合は最初の権限を設定
+      if (currentAdmin.communityScopes.includes(existingEventType as CommunityScope)) {
+        return existingEventType;
+      }
+      return currentAdmin.communityScopes[0] as EventType;
+    }
+    return existingEventType;
+  };
+
+  const [eventType, setEventType] = useState<EventType>(getInitialEventType());
   const [title, setTitle] = useState(event.title);
   const [date, setDate] = useState(formatDateForInput(event.date));
   const [overview, setOverview] = useState(event.description);
@@ -140,18 +156,29 @@ export default function EventEditPage({
         <div className="space-y-4">
           <div className="grid gap-2">
             <Label htmlFor="eventType">イベント種別 <span className="text-red-500">*</span></Label>
-            <Select value={eventType} onValueChange={(value) => setEventType(value as EventType)}>
-              <SelectTrigger className="w-full bg-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {EVENT_TYPES.map((type) => (
-                  <SelectItem key={type} value={type} className="bg-white hover:bg-gray-100">
-                    {type}
-                  </SelectItem>
+            {currentAdmin?.role === "super" ? (
+              <Select value={eventType} onValueChange={(value) => setEventType(value as EventType)}>
+                <SelectTrigger className="w-full bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {EVENT_TYPES.map((type) => (
+                    <SelectItem key={type} value={type} className="bg-white hover:bg-gray-100">
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="text-sm text-foreground">
+                {currentAdmin?.communityScopes?.map((scope, index) => (
+                  <span key={scope}>
+                    {index > 0 && "、"}
+                    {scope}
+                  </span>
                 ))}
-              </SelectContent>
-            </Select>
+              </div>
+            )}
           </div>
 
           <div className="grid gap-2">

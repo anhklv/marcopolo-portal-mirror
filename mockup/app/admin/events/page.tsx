@@ -190,9 +190,22 @@ export default function EventsPage() {
             </div>
             <div className="p-2 max-h-[300px] overflow-y-auto">
               {[
-                { value: "ベンチャー監査役の会", label: "ベンチャー監査役の会" },
-                { value: "ないかんMeetup", label: "ないかんMeetup" },
-                { value: "その他", label: "その他" },
+                // 特権管理者またはベンチャー監査役の会の権限がある場合のみ表示
+                ...(currentAdmin?.role === "super" || 
+                  (currentAdmin?.role === "community_admin" && 
+                   currentAdmin.communityScopes?.includes("ベンチャー監査役の会"))
+                  ? [{ value: "ベンチャー監査役の会", label: "ベンチャー監査役の会" }]
+                  : []),
+                // 特権管理者またはないかんMeetupの権限がある場合のみ表示
+                ...(currentAdmin?.role === "super" || 
+                  (currentAdmin?.role === "community_admin" && 
+                   currentAdmin.communityScopes?.includes("ないかんMeetup"))
+                  ? [{ value: "ないかんMeetup", label: "ないかんMeetup" }]
+                  : []),
+                // その他は特権管理者のみ表示
+                ...(currentAdmin?.role === "super"
+                  ? [{ value: "その他", label: "その他" }]
+                  : []),
               ]
                 .filter((eventType) =>
                   eventType.label
