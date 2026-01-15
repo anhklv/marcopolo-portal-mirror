@@ -20,6 +20,15 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { events } from "@/lib/data/mock";
+import type { EventType } from "@/lib/types";
+import { EVENT_TYPES } from "@/lib/constants/event";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function EventEditPage({
   params,
@@ -55,6 +64,7 @@ export default function EventEditPage({
     return dateStr.slice(0, 16);
   };
 
+  const [eventType, setEventType] = useState<EventType>((event as any).eventType || "ベンチャー監査役協会");
   const [title, setTitle] = useState(event.title);
   const [date, setDate] = useState(formatDateForInput(event.date));
   const [overview, setOverview] = useState(event.description);
@@ -73,6 +83,20 @@ export default function EventEditPage({
     if (!title || !date) {
       toast.error("イベント名と開催日時は必須です");
       return;
+    }
+    // モックデータを更新
+    const eventIndex = events.findIndex((e) => e.id === id);
+    if (eventIndex !== -1) {
+      (events[eventIndex] as any).eventType = eventType;
+      (events[eventIndex] as any).title = title;
+      (events[eventIndex] as any).date = date;
+      (events[eventIndex] as any).description = overview;
+      (events[eventIndex] as any).location = location;
+      (events[eventIndex] as any).timetable = timetable;
+      (events[eventIndex] as any).note = note;
+      (events[eventIndex] as any).responseDeadline = responseDeadline || undefined;
+      (events[eventIndex] as any).allowsOnline = allowsOnline;
+      (events[eventIndex] as any).hasAfterParty = hasAfterParty;
     }
     toast.success("イベント情報を更新しました");
     router.push(`/admin/events/${id}`);
@@ -101,6 +125,22 @@ export default function EventEditPage({
 
       <form onSubmit={handleSubmit} className="space-y-8 rounded-lg border p-8 shadow-sm">
         <div className="space-y-4">
+          <div className="grid gap-2">
+            <Label htmlFor="eventType">イベント種別 <span className="text-red-500">*</span></Label>
+            <Select value={eventType} onValueChange={(value) => setEventType(value as EventType)}>
+              <SelectTrigger className="w-full bg-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {EVENT_TYPES.map((type) => (
+                  <SelectItem key={type} value={type} className="bg-white hover:bg-gray-100">
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="grid gap-2">
             <Label htmlFor="title">イベント名 <span className="text-red-500">*</span></Label>
             <Input

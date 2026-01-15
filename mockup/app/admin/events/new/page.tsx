@@ -18,6 +18,16 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Mail } from "lucide-react";
 import { events } from "@/lib/data/mock";
+import type { EventType } from "@/lib/types";
+import { EVENT_TYPES } from "@/lib/constants/event";
+import { formatEventDate } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -25,6 +35,7 @@ export default function NewEventPage() {
   const [createdEventId, setCreatedEventId] = useState<string | null>(null);
 
   // フォームデータ
+  const [eventType, setEventType] = useState<EventType>("ベンチャー監査役協会");
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [overview, setOverview] = useState("");
@@ -53,6 +64,7 @@ export default function NewEventPage() {
       date,
       location: location || "",
       description: overview || "",
+      eventType,
       attendeesCount: 0,
       responseDeadline: responseDeadline || undefined,
       isPaused: false,
@@ -107,6 +119,22 @@ export default function NewEventPage() {
 
         <form onSubmit={handleFormSubmit} className="space-y-8 rounded-lg border p-8 shadow-sm">
           <div className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="eventType">イベント種別 <span className="text-red-500">*</span></Label>
+              <Select value={eventType} onValueChange={(value) => setEventType(value as EventType)}>
+                <SelectTrigger className="w-full bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {EVENT_TYPES.map((type) => (
+                    <SelectItem key={type} value={type} className="bg-white hover:bg-gray-100">
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid gap-2">
               <Label htmlFor="title">イベント名 <span className="text-red-500">*</span></Label>
               <Input
@@ -251,9 +279,8 @@ export default function NewEventPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <div className="text-sm text-muted-foreground">作成したイベント:</div>
-              <div className="text-lg font-medium">{title}</div>
-              <div className="text-sm text-muted-foreground">{date}</div>
+              <div className="text-lg font-bold">{title}</div>
+              <div className="text-sm text-muted-foreground">開催日時: {formatEventDate(date)}</div>
             </div>
 
             <div className="flex justify-end gap-4 pt-4">

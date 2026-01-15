@@ -25,9 +25,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, Send, Mail, Check, FileText } from "lucide-react";
-import { customers, events, rsvps, getEventStatus, getMemberTypeDisplayName } from "@/lib/data/mock";
-import { cn, getSurveyEmailTemplate, formatEventDate } from "@/lib/utils";
+import { ArrowLeft, Send, Mail, Check } from "lucide-react";
+import { customers, events, rsvps, getEventStatus, getSurveyByEventId, surveyTokens } from "@/lib/data/mock";
+import type { Customer } from "@/lib/types";
+import React from "react";
+import { cn, getSurveyRequestEmailTemplate, formatEventDate } from "@/lib/utils";
 
 type Step = "select" | "customize" | "confirm";
 
@@ -46,7 +48,7 @@ export default function EventSurveyPage({
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   const [emailTitle, setEmailTitle] = useState("");
   const [emailBody, setEmailBody] = useState("");
-  const [formUrl, setFormUrl] = useState("");
+  const survey = getSurveyByEventId(id);
 
   // このイベントの参加者のみを取得（通常参加とオンライン参加の両方）
   const attendees = useMemo(() => {
@@ -62,7 +64,7 @@ export default function EventSurveyPage({
   useEffect(() => {
     if (!event) return;
 
-    const template = getSurveyEmailTemplate({
+    const template = getSurveyRequestEmailTemplate({
       title: event.title,
     });
     setEmailTitle(template.title);
@@ -95,10 +97,6 @@ export default function EventSurveyPage({
       toast.error("メールタイトルと本文を入力してください");
       return;
     }
-    if (!formUrl) {
-      toast.error("GoogleフォームのURLを入力してください");
-      return;
-    }
     setStep("confirm");
   };
 
@@ -107,6 +105,24 @@ export default function EventSurveyPage({
   };
 
   const handleSend = () => {
+    // アンケートが存在する場合はトークンを生成、存在しない場合は固定の質問のみのアンケートとして送信
+    if (survey) {
+      // 各送信先にトークンを生成
+      selectedCustomers.forEach((customerId) => {
+        const token = `survey-${customerId}-${survey.id}-${Date.now()}`;
+        surveyTokens.push({
+          surveyId: survey.id,
+          customerId,
+          token,
+          sentAt: new Date().toISOString(),
+        });
+      });
+    } else {
+      // アンケートが存在しない場合でも、固定の質問のみのアンケートとして送信可能
+      // トークンは生成しない（固定質問のみのアンケート回答ページで処理）
+      // 実際の実装では、固定質問のみのアンケート用のトークンを生成する必要がある
+    }
+
     toast.success(`${selectedCustomers.length}名にアンケートメールを送信しました`);
     router.push(`/admin/events/${id}`);
   };
@@ -127,10 +143,13 @@ export default function EventSurveyPage({
     }
   };
 
-  // メール本文にGoogleフォームURLを挿入したプレビュー
+  // メール本文にアンケートURLを挿入したプレビュー
   const previewBody = useMemo(() => {
-    return emailBody.replace(/{FORM_URL}/g, formUrl || "{FORM_URL}");
-  }, [emailBody, formUrl]);
+    const surveyUrl = selectedCustomers.length > 0
+      ? `http://localhost:3000/events/${id}/survey/demo-token`
+      : "{SURVEY_URL}";
+    return emailBody.replace(/{SURVEY_URL}/g, surveyUrl);
+  }, [emailBody, id, selectedCustomers.length]);
 
   // ステップインジケーターコンポーネント
   const StepIndicator = () => {
@@ -218,6 +237,22 @@ export default function EventSurveyPage({
     );
   }
 
+  // ベンチャー監査役協会のイベントのみアンケート送信可能
+  const eventType = (event as any).eventType || "ベンチャー監査役協会";
+  if (eventType !== "ベンチャー監査役協会") {
+    return (
+      <div className="max-w-4xl space-y-6">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">アンケートメールはベンチャー監査役協会のイベントのみ送信できます。</p>
+          <Button variant="outline" asChild className="mt-4">
+            <Link href={`/admin/events/${id}`}>イベント詳細に戻る</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+
   // 参加者がいない場合
   if (attendees.length === 0) {
     return (
@@ -281,7 +316,6 @@ export default function EventSurveyPage({
                   <TableHead>氏名</TableHead>
                   <TableHead>会社名</TableHead>
                   <TableHead>会員区分</TableHead>
-                  <TableHead>メールアドレス</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -297,13 +331,90 @@ export default function EventSurveyPage({
                     <TableCell>{attendee.company}</TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
-                        <Badge
-                          variant={
-                            attendee.memberTypes.length === 0 ? "secondary" : "default"
-                          }
-                        >
-                          {getMemberTypeDisplayName(attendee.memberTypes)}
-                        </Badge>
+                        <div className="flex gap-1 flex-wrap items-center">
+                          {(() => {
+                            const badges: React.ReactElement[] = [];
+                            
+                            // 非会員の判定（communitiesが空配列）
+                            if (attendee.communities.length === 0) {
+                              badges.push(
+                                <Badge key="non-member" variant="secondary" className="text-xs px-2 py-0.5">
+                                  非会員
+                                </Badge>
+                              );
+                            } else if (attendee.memberCategory === "member") {
+                              const hasAudit = attendee.communities.includes("ベンチャー監査役協会");
+                              const hasNaikan = attendee.communities.includes("ないかんMeetup");
+                              
+                              if (hasNaikan && !hasAudit) {
+                                badges.push(
+                                  <Badge key="naikan-member" variant="default" className="text-xs px-2 py-0.5">
+                                    ないかんMeetup(会員)
+                                  </Badge>
+                                );
+                              } else if (hasAudit && !hasNaikan) {
+                                const auditType = attendee.auditMemberType === "regular" ? "正会員" : "オンライン会員";
+                                badges.push(
+                                  <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
+                                    ベンチャー監査役協会({auditType})
+                                  </Badge>
+                                );
+                              } else if (hasAudit && hasNaikan) {
+                                const auditType = attendee.auditMemberType === "regular" ? "正会員" : "オンライン会員";
+                                badges.push(
+                                  <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
+                                    ベンチャー監査役協会({auditType})
+                                  </Badge>
+                                );
+                                badges.push(
+                                  <Badge key="naikan-member" variant="default" className="text-xs px-2 py-0.5">
+                                    ないかんMeetup(会員)
+                                  </Badge>
+                                );
+                              }
+                              
+                              if (attendee.auditMemberPremium) {
+                                badges.push(
+                                  <Badge key="premium" variant="default" className="text-xs px-1.5 py-0.5 bg-slate-600 hover:bg-slate-700 text-white">
+                                    プレミアム
+                                  </Badge>
+                                );
+                              }
+                            } else if (attendee.memberCategory === "sponsor") {
+                              if (attendee.communities.includes("ないかんMeetup")) {
+                                badges.push(
+                                  <Badge key="sponsor-naikan" variant="default" className="text-xs px-2 py-0.5">
+                                    ないかんMeetup(スポンサー)
+                                  </Badge>
+                                );
+                              }
+                              if (attendee.communities.includes("ベンチャー監査役協会")) {
+                                badges.push(
+                                  <Badge key="sponsor-audit" variant="default" className="text-xs px-2 py-0.5">
+                                    ベンチャー監査役協会(スポンサー)
+                                  </Badge>
+                                );
+                              }
+                            } else if (attendee.memberCategory === "observer") {
+                              if (attendee.communities.includes("ないかんMeetup")) {
+                                badges.push(
+                                  <Badge key="observer-naikan" variant="default" className="text-xs px-2 py-0.5">
+                                    ないかんMeetup(オブザーバー)
+                                  </Badge>
+                                );
+                              }
+                              if (attendee.communities.includes("ベンチャー監査役協会")) {
+                                badges.push(
+                                  <Badge key="observer-audit" variant="default" className="text-xs px-2 py-0.5">
+                                    ベンチャー監査役協会(オブザーバー)
+                                  </Badge>
+                                );
+                              }
+                            }
+                            
+                            return badges.length > 0 ? badges : null;
+                          })()}
+                        </div>
                         {attendee.rsvpStatus === "オンライン参加" && (
                           <Badge variant="outline" className="text-xs bg-blue-100 text-blue-800">
                             オンライン参加
@@ -311,7 +422,6 @@ export default function EventSurveyPage({
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{attendee.email}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -353,24 +463,10 @@ export default function EventSurveyPage({
           <CardHeader>
             <CardTitle>メール文作成</CardTitle>
             <CardDescription>
-              送信するメールのタイトルと本文を編集してください。本文内の {`{FORM_URL}`} はGoogleフォームのURLに自動的に置き換えられます。
+              送信するメールのタイトルと本文を編集してください。本文内の {`{SURVEY_URL}`} はアンケート回答URLに自動的に置き換えられます。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="formUrl">GoogleフォームURL <span className="text-destructive">*</span></Label>
-              <Input 
-                id="formUrl" 
-                value={formUrl}
-                onChange={(e) => setFormUrl(e.target.value)}
-                placeholder="https://docs.google.com/forms/..."
-                type="url"
-              />
-              <p className="text-sm text-muted-foreground">
-                アンケート用のGoogleフォームのURLを入力してください。
-              </p>
-            </div>
-
             <div className="grid gap-2">
               <Label htmlFor="emailTitle">メールタイトル</Label>
               <Input 
@@ -392,7 +488,7 @@ export default function EventSurveyPage({
                 style={{ minHeight: '400px' }}
               />
               <p className="text-sm text-muted-foreground">
-                本文内に {`{FORM_URL}`} を記述すると、GoogleフォームのURLに自動的に置き換えられます。
+                本文内に {`{SURVEY_URL}`} を記述すると、アンケート回答URLに自動的に置き換えられます。
               </p>
             </div>
 
@@ -436,19 +532,15 @@ export default function EventSurveyPage({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div>
-                <div className="font-medium mb-2">イベント情報</div>
+            <Card>
+              <CardHeader>
+                <CardTitle>送信先</CardTitle>
+                <CardDescription>
+                  {selectedCustomers.length}名に送信します
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-2 text-sm">
-                  <div><span className="font-medium">イベント名:</span> {event.title}</div>
-                  <div><span className="font-medium">開催日時:</span> {formatEventDate(event.date)}</div>
-                  {event.location && <div><span className="font-medium">場所:</span> {event.location}</div>}
-                </div>
-              </div>
-
-              <div>
-                <div className="font-medium mb-2">送信先 ({selectedCustomers.length}名)</div>
-                <div className="space-y-2 text-sm max-h-40 overflow-y-auto">
                   {selectedCustomers.map((customerId) => {
                     const customer = customers.find((c) => c.id === customerId);
                     return customer ? (
@@ -458,29 +550,27 @@ export default function EventSurveyPage({
                     ) : null;
                   })}
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div>
-                <div className="font-medium mb-2">GoogleフォームURL</div>
-                <div className="text-sm bg-muted p-3 rounded break-all">
-                  {formUrl || "未入力"}
+            <Card>
+              <CardHeader>
+                <CardTitle>メール内容</CardTitle>
+                <CardDescription>
+                  送信するメールのタイトルと本文です
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="font-medium mb-2">タイトル:</div>
+                  <div className="text-sm bg-muted p-3 rounded">{emailTitle}</div>
                 </div>
-              </div>
-
-              <div>
-                <div className="font-medium mb-2">メール内容</div>
-                <div className="space-y-4">
-                  <div>
-                    <div className="font-medium mb-2">タイトル:</div>
-                    <div className="text-sm bg-muted p-3 rounded">{emailTitle}</div>
-                  </div>
-                  <div>
-                    <div className="font-medium mb-2">本文:</div>
-                    <div className="text-sm bg-muted p-3 rounded whitespace-pre-wrap">{previewBody}</div>
-                  </div>
+                <div>
+                  <div className="font-medium mb-2">本文:</div>
+                  <div className="text-sm bg-muted p-3 rounded whitespace-pre-wrap">{previewBody}</div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             <div className="flex justify-end gap-4 pt-4">
               <Button variant="outline" onClick={() => setStep("customize")}>

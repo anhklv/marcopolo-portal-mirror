@@ -17,7 +17,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check } from "lucide-react";
-import { customers, events, rsvps, getEventStatus, getMemberTypeDisplayName } from "@/lib/data/mock";
+import { customers, events, rsvps, getEventStatus } from "@/lib/data/mock";
+import type { Customer } from "@/lib/types";
+import React from "react";
 import { cn, getRemindEmailTemplate, formatEventDate } from "@/lib/utils";
 
 type Step = "select" | "customize" | "confirm";
@@ -224,13 +226,90 @@ export default function EventRemindPage({
                         <td className="px-4 py-3" style={{ fontSize: '14px' }}>{attendee.name}</td>
                         <td className="px-4 py-3" style={{ fontSize: '14px' }}>{attendee.company}</td>
                         <td className="px-4 py-3" style={{ fontSize: '14px' }}>
-                          <Badge
-                            variant={
-                              attendee.memberTypes.length === 0 ? "secondary" : "default"
-                            }
-                          >
-                            {getMemberTypeDisplayName(attendee.memberTypes)}
-                          </Badge>
+                          <div className="flex gap-1 flex-wrap items-center">
+                            {(() => {
+                              const badges: React.ReactElement[] = [];
+                              
+                              // 非会員の判定（communitiesが空配列）
+                              if (attendee.communities.length === 0) {
+                                badges.push(
+                                  <Badge key="non-member" variant="secondary" className="text-xs px-2 py-0.5">
+                                    非会員
+                                  </Badge>
+                                );
+                              } else if (attendee.memberCategory === "member") {
+                                const hasAudit = attendee.communities.includes("ベンチャー監査役協会");
+                                const hasNaikan = attendee.communities.includes("ないかんMeetup");
+                                
+                                if (hasNaikan && !hasAudit) {
+                                  badges.push(
+                                    <Badge key="naikan-member" variant="default" className="text-xs px-2 py-0.5">
+                                      ないかんMeetup(会員)
+                                    </Badge>
+                                  );
+                                } else if (hasAudit && !hasNaikan) {
+                                  const auditType = attendee.auditMemberType === "regular" ? "正会員" : "オンライン会員";
+                                  badges.push(
+                                    <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
+                                      ベンチャー監査役協会({auditType})
+                                    </Badge>
+                                  );
+                                } else if (hasAudit && hasNaikan) {
+                                  const auditType = attendee.auditMemberType === "regular" ? "正会員" : "オンライン会員";
+                                  badges.push(
+                                    <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
+                                      ベンチャー監査役協会({auditType})
+                                    </Badge>
+                                  );
+                                  badges.push(
+                                    <Badge key="naikan-member" variant="default" className="text-xs px-2 py-0.5">
+                                      ないかんMeetup(会員)
+                                    </Badge>
+                                  );
+                                }
+                                
+                                if (attendee.auditMemberPremium) {
+                                  badges.push(
+                                    <Badge key="premium" variant="default" className="text-xs px-1.5 py-0.5 bg-slate-600 hover:bg-slate-700 text-white">
+                                      プレミアム
+                                    </Badge>
+                                  );
+                                }
+                              } else if (attendee.memberCategory === "sponsor") {
+                                if (attendee.communities.includes("ないかんMeetup")) {
+                                  badges.push(
+                                    <Badge key="sponsor-naikan" variant="default" className="text-xs px-2 py-0.5">
+                                      ないかんMeetup(スポンサー)
+                                    </Badge>
+                                  );
+                                }
+                                if (attendee.communities.includes("ベンチャー監査役協会")) {
+                                  badges.push(
+                                    <Badge key="sponsor-audit" variant="default" className="text-xs px-2 py-0.5">
+                                      ベンチャー監査役協会(スポンサー)
+                                    </Badge>
+                                  );
+                                }
+                              } else if (attendee.memberCategory === "observer") {
+                                if (attendee.communities.includes("ないかんMeetup")) {
+                                  badges.push(
+                                    <Badge key="observer-naikan" variant="default" className="text-xs px-2 py-0.5">
+                                      ないかんMeetup(オブザーバー)
+                                    </Badge>
+                                  );
+                                }
+                                if (attendee.communities.includes("ベンチャー監査役協会")) {
+                                  badges.push(
+                                    <Badge key="observer-audit" variant="default" className="text-xs px-2 py-0.5">
+                                      ベンチャー監査役協会(オブザーバー)
+                                    </Badge>
+                                  );
+                                }
+                              }
+                              
+                              return badges.length > 0 ? badges : null;
+                            })()}
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-sm text-muted-foreground" style={{ fontSize: '14px' }}>{attendee.email}</td>
                       </tr>
@@ -342,18 +421,14 @@ export default function EventRemindPage({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div>
-                <div className="font-medium mb-2">イベント情報</div>
-                <div className="space-y-2 text-sm">
-                  <div><span className="font-medium">イベント名:</span> {event.title}</div>
-                  <div><span className="font-medium">開催日時:</span> {formatEventDate(event.date)}</div>
-                  {event.location && <div><span className="font-medium">場所:</span> {event.location}</div>}
-                </div>
-              </div>
-
-              <div>
-                <div className="font-medium mb-2">送信先 ({noResponseAttendees.length}名)</div>
+            <Card>
+              <CardHeader>
+                <CardTitle>送信先</CardTitle>
+                <CardDescription>
+                  {noResponseAttendees.length}名に送信します
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-2 text-sm max-h-40 overflow-y-auto">
                   {noResponseAttendees.map((attendee) => (
                     <div key={attendee.id}>
@@ -361,22 +436,27 @@ export default function EventRemindPage({
                     </div>
                   ))}
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div>
-                <div className="font-medium mb-2">メール内容</div>
-                <div className="space-y-4">
-                  <div>
-                    <div className="font-medium mb-2">タイトル:</div>
-                    <div className="text-sm bg-muted p-3 rounded">{emailTitle}</div>
-                  </div>
-                  <div>
-                    <div className="font-medium mb-2">本文:</div>
-                    <div className="text-sm bg-muted p-3 rounded whitespace-pre-wrap">{emailBody}</div>
-                  </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>メール内容</CardTitle>
+                <CardDescription>
+                  送信するメールのタイトルと本文です
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="font-medium mb-2">タイトル:</div>
+                  <div className="text-sm bg-muted p-3 rounded">{emailTitle}</div>
                 </div>
-              </div>
-            </div>
+                <div>
+                  <div className="font-medium mb-2">本文:</div>
+                  <div className="text-sm bg-muted p-3 rounded whitespace-pre-wrap">{emailBody}</div>
+                </div>
+              </CardContent>
+            </Card>
 
             <div className="flex justify-end gap-4 pt-4">
               <Button variant="outline" onClick={() => setStep("customize")}>

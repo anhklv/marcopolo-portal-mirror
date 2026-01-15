@@ -15,12 +15,12 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 # Copy mockup contents into /app so Next.js root is consistent
 COPY mockup/ ./
-# Copy spec directory for build time (if needed) and runtime
-COPY spec ./spec
+# Copy docs directory for build time (if needed) and runtime
+COPY docs ./docs
 
 # Build the Next.js app
 ENV NEXT_TELEMETRY_DISABLED 1
-ENV SPEC_DIR=/app/spec
+ENV DOCS_DIR=/app/docs
 RUN npm run build
 
 # Production image, copy all the files and run next
@@ -29,13 +29,13 @@ WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
-ENV SPEC_DIR=/app/spec
+ENV DOCS_DIR=/app/docs
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy spec files
-COPY --from=builder /app/spec ./spec
+# Copy docs files
+COPY --from=builder /app/docs ./docs
 
 # Copy public files
 COPY --from=builder /app/public ./public

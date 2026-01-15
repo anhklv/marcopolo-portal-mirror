@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // Basic認証の有効化チェック
   const basicAuthEnabled = process.env.BASIC_AUTH_ENABLED === "true";
   const basicAuthUser = process.env.BASIC_AUTH_USER;

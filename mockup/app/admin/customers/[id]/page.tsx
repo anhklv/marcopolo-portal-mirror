@@ -18,9 +18,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ArrowLeft, Edit, Calendar } from "lucide-react";
-import { customers, events, rsvps, getMemberTypeDisplayName } from "@/lib/data/mock";
+import { customers, events, rsvps } from "@/lib/data/mock";
+import { CONTRACT_TYPE_LABELS, GENDER_LABELS } from "@/lib/constants/common";
 import { use } from "react";
-import { formatEventDate } from "@/lib/utils";
+import React from "react";
+import { formatEventDate, formatDate } from "@/lib/utils";
 
 export default function CustomerDetailPage({
   params,
@@ -50,11 +52,19 @@ export default function CustomerDetailPage({
     );
   }
 
-  // この顧客のRSVPデータを取得
+  // この顧客のRSVPデータを取得（重複を除去）
   const customerRsvps = rsvps.filter((r) => r.customerId === id);
   
+  // イベントIDで重複を除去（同じイベントIDの場合は最初のRSVPのみを使用）
+  const uniqueRsvps = customerRsvps.reduce((acc, rsvp) => {
+    if (!acc.find((r) => r.eventId === rsvp.eventId)) {
+      acc.push(rsvp);
+    }
+    return acc;
+  }, [] as typeof customerRsvps);
+  
   // イベント情報とRSVP情報を結合
-  const eventList = customerRsvps.map((rsvp) => {
+  const eventList = uniqueRsvps.map((rsvp) => {
     const event = events.find((e) => e.id === rsvp.eventId);
     if (!event) return null;
     return {
@@ -100,52 +110,109 @@ export default function CustomerDetailPage({
         </Button>
       </div>
 
-      {/* 顧客プロフィール */}
+      {/* 会員情報など */}
       <Card>
         <CardHeader>
-          <CardTitle>プロフィール</CardTitle>
+          <CardTitle>会員情報など</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">氏名</p>
-              <p className="text-base">{customer.name}</p>
+              <p className="text-sm font-medium text-muted-foreground mb-2">会員区分</p>
+              <div className="flex gap-2 flex-wrap items-center">
+                {(() => {
+                  const badges: React.ReactElement[] = [];
+                  
+                  // 非会員の判定（communitiesが空配列）
+                  if (customer.communities.length === 0) {
+                    badges.push(
+                      <Badge key="non-member" variant="secondary" className="text-base px-3 py-1">
+                        非会員
+                      </Badge>
+                    );
+                  } else if (customer.memberCategory === "member") {
+                    const hasAudit = customer.communities.includes("ベンチャー監査役協会");
+                    const hasNaikan = customer.communities.includes("ないかんMeetup");
+                    
+                    if (hasNaikan && !hasAudit) {
+                      badges.push(
+                        <Badge key="naikan-member" variant="default" className="text-base px-3 py-1">
+                          ないかんMeetup(会員)
+                        </Badge>
+                      );
+                    } else if (hasAudit && !hasNaikan) {
+                      const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
+                      badges.push(
+                        <Badge key="audit-member" variant="default" className="text-base px-3 py-1">
+                          ベンチャー監査役協会({auditType})
+                        </Badge>
+                      );
+                    } else if (hasAudit && hasNaikan) {
+                      const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
+                      badges.push(
+                        <Badge key="audit-member" variant="default" className="text-base px-3 py-1">
+                          ベンチャー監査役協会({auditType})
+                        </Badge>
+                      );
+                      badges.push(
+                        <Badge key="naikan-member" variant="default" className="text-base px-3 py-1">
+                          ないかんMeetup(会員)
+                        </Badge>
+                      );
+                    }
+                    
+                    // プレミアム会員バッジ
+                    if (customer.auditMemberPremium) {
+                      badges.push(
+                        <Badge key="premium" variant="default" className="text-xs px-2 py-0.5 bg-slate-600 hover:bg-slate-700 text-white">
+                          プレミアム
+                        </Badge>
+                      );
+                    }
+                  } else if (customer.memberCategory === "sponsor") {
+                    if (customer.communities.includes("ないかんMeetup")) {
+                      badges.push(
+                        <Badge key="sponsor-naikan" variant="default" className="text-base px-3 py-1">
+                          ないかんMeetup(スポンサー)
+                        </Badge>
+                      );
+                    }
+                    if (customer.communities.includes("ベンチャー監査役協会")) {
+                      badges.push(
+                        <Badge key="sponsor-audit" variant="default" className="text-base px-3 py-1">
+                          ベンチャー監査役協会(スポンサー)
+                        </Badge>
+                      );
+                    }
+                  } else if (customer.memberCategory === "observer") {
+                    if (customer.communities.includes("ないかんMeetup")) {
+                      badges.push(
+                        <Badge key="observer-naikan" variant="default" className="text-base px-3 py-1">
+                          ないかんMeetup(オブザーバー)
+                        </Badge>
+                      );
+                    }
+                    if (customer.communities.includes("ベンチャー監査役協会")) {
+                      badges.push(
+                        <Badge key="observer-audit" variant="default" className="text-base px-3 py-1">
+                          ベンチャー監査役協会(オブザーバー)
+                        </Badge>
+                      );
+                    }
+                  }
+                  
+                  return badges.length > 0 ? badges : null;
+                })()}
+              </div>
             </div>
-            {customer.nameKana && (
+            {customer.memberCategory === "member" && customer.contractType && (
               <div>
-                <p className="text-sm font-medium text-muted-foreground">セイメイ</p>
-                <p className="text-base">{customer.nameKana}</p>
+                <p className="text-sm font-medium text-muted-foreground mb-2">契約主体</p>
+                <p className="text-base">{CONTRACT_TYPE_LABELS[customer.contractType]}</p>
               </div>
             )}
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">メールアドレス</p>
-              <p className="text-base">{customer.email}</p>
-            </div>
-            {customer.phone && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">電話番号</p>
-                <p className="text-base">{customer.phone}</p>
-              </div>
-            )}
-          </div>
-          {customer.company && (
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">会社名・所属</p>
-              <p className="text-base">{customer.company}</p>
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">会員区分</p>
-              <Badge
-                variant={customer.memberTypes.length === 0 ? "secondary" : "default"}
-                className="text-base"
-              >
-                {getMemberTypeDisplayName(customer.memberTypes)}
-              </Badge>
-            </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">ステータス</p>
               <Badge
@@ -155,19 +222,108 @@ export default function CustomerDetailPage({
                 {customer.status === "active" ? "アクティブ" : "非アクティブ"}
               </Badge>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground">登録日</p>
-              <p className="text-base">{customer.registeredAt}</p>
+              <p className="text-base">{formatDate(customer.registeredAt)}</p>
             </div>
           </div>
-          {customer.note && (
+        </CardContent>
+      </Card>
+
+      {/* 顧客プロフィール */}
+      <Card>
+        <CardHeader>
+          <CardTitle>プロフィール</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">備考</p>
-              <p className="text-base">{customer.note}</p>
+              <p className="text-sm font-medium text-muted-foreground">氏名</p>
+              <p className="text-base">{customer.name}</p>
             </div>
-          )}
+            {customer.nameKana ? (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">セイメイ</p>
+                <p className="text-base">{customer.nameKana}</p>
+              </div>
+            ) : (
+              <div></div>
+            )}
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">メールアドレス</p>
+              <p className="text-base">{customer.email}</p>
+            </div>
+            {customer.phone ? (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">電話番号</p>
+                <p className="text-base">{customer.phone}</p>
+              </div>
+            ) : (
+              <div></div>
+            )}
+            {customer.subEmails && customer.subEmails.length > 0 ? (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">サブメールアドレス</p>
+                <div className="space-y-1">
+                  {customer.subEmails.map((subEmail, index) => (
+                    <p key={index} className="text-base">{subEmail}</p>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {customer.company ? (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">会社名・所属</p>
+                <p className="text-base">{customer.company}</p>
+              </div>
+            ) : null}
+            {(customer.postalCode || customer.prefecture || customer.city) ? (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">住所</p>
+                <div className="text-base">
+                  {customer.postalCode && (
+                    <div>〒{customer.postalCode}</div>
+                  )}
+                  {customer.prefecture && (
+                    <div>
+                      {customer.prefecture}
+                      {customer.city && customer.city}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null}
+            {customer.gender ? (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">性別</p>
+                <p className="text-base">{GENDER_LABELS[customer.gender]}</p>
+              </div>
+            ) : null}
+            {customer.listingCategory ? (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">上場区分</p>
+                <p className="text-base">{customer.listingCategory}</p>
+              </div>
+            ) : null}
+            {customer.originIndustry ? (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">出身業種</p>
+                <p className="text-base">{customer.originIndustry}</p>
+              </div>
+            ) : null}
+            {customer.membershipQualification ? (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">入会資格</p>
+                <p className="text-base">{customer.membershipQualification}</p>
+              </div>
+            ) : null}
+            {customer.note ? (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">備考</p>
+                <p className="text-base">{customer.note}</p>
+              </div>
+            ) : null}
+          </div>
         </CardContent>
       </Card>
 
@@ -185,15 +341,20 @@ export default function CustomerDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>イベント種別</TableHead>
                     <TableHead>イベント名</TableHead>
                     <TableHead>開催日時</TableHead>
-                    <TableHead>場所</TableHead>
                     <TableHead>回答状況</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {upcomingEvents.map((event) => (
                     <TableRow key={event.id}>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {event.eventType}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="font-medium">
                         <Link
                           href={`/admin/events/${event.id}`}
@@ -203,7 +364,6 @@ export default function CustomerDetailPage({
                         </Link>
                       </TableCell>
                       <TableCell>{formatEventDate(event.date)}</TableCell>
-                      <TableCell>{event.location}</TableCell>
                       <TableCell>
                         <Badge
                           variant={
@@ -240,15 +400,20 @@ export default function CustomerDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>イベント種別</TableHead>
                     <TableHead>イベント名</TableHead>
                     <TableHead>開催日時</TableHead>
-                    <TableHead>場所</TableHead>
                     <TableHead>参加状況</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {pastEvents.map((event) => (
                     <TableRow key={event.id}>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {event.eventType}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="font-medium">
                         <Link
                           href={`/admin/events/${event.id}`}
@@ -258,7 +423,6 @@ export default function CustomerDetailPage({
                         </Link>
                       </TableCell>
                       <TableCell>{formatEventDate(event.date)}</TableCell>
-                      <TableCell>{event.location}</TableCell>
                       <TableCell>
                         <Badge
                           variant={

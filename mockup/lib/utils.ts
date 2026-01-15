@@ -74,12 +74,19 @@ interface EventData {
 // 案内メールテンプレート
 export function getInviteEmailTemplate(event: EventData): { title: string; body: string } {
   const title = `【${event.title}】ご案内`;
-  const body = `この度は、${event.title}にご案内いたします。
+  const body = `いつも大変お世話になっております。
+
+一般社団法人ベンチャー監査役協会の黒坂です。
+${event.title}のご案内です。
 
 ${event.description ? `【イベント概要】\n${event.description}\n\n` : ""}${event.date ? `【開催日時】\n${formatEventDate(event.date)}\n\n` : ""}${event.timetable ? `【タイムテーブル】\n${event.timetable}\n\n` : ""}${event.location ? `【場所】\n${event.location}\n\n` : ""}ご参加の可否について、以下のURLよりご回答をお願いいたします。
 {RSVP_URL}
 
-${event.note ? `【備考】\n${event.note}\n\n` : ""}よろしくお願いいたします。`;
+${event.note ? `【備考】\n${event.note}\n\n` : ""}よろしくお願いいたします。
+
+代表理事　黒坂卓司
+090‐3062‐8467
+https://marcopolo.work/`;
 
   return { title, body };
 }
@@ -87,19 +94,26 @@ ${event.note ? `【備考】\n${event.note}\n\n` : ""}よろしくお願いい�
 // リマインドメールテンプレート
 export function getRemindEmailTemplate(event: EventData): { title: string; body: string } {
   const title = `【${event.title}】参加可否のご回答をお願いします`;
-  const body = `この度は、${event.title}にご案内いたしました。
+  const body = `いつも大変お世話になっております。
+
+一般社団法人ベンチャー監査役協会の黒坂です。
+${event.title}のご案内です。
 
 ${event.description ? `【イベント概要】\n${event.description}\n\n` : ""}${event.date ? `【開催日時】\n${formatEventDate(event.date)}\n\n` : ""}${event.timetable ? `【タイムテーブル】\n${event.timetable}\n\n` : ""}${event.location ? `【場所】\n${event.location}\n\n` : ""}まだ参加可否のご回答をいただいておりません。
 お忙しい中恐縮ですが、以下のURLよりご回答をお願いいたします。
 
 {RSVP_URL}
 
-${event.note ? `【備考】\n${event.note}\n` : ""}よろしくお願いいたします。`;
+${event.note ? `【備考】\n${event.note}\n\n` : ""}よろしくお願いいたします。
+
+代表理事　黒坂卓司
+090‐3062‐8467
+https://marcopolo.work/`;
 
   return { title, body };
 }
 
-// アンケートメールテンプレート
+// アンケートメールテンプレート（Googleフォーム用・非推奨）
 export function getSurveyEmailTemplate(event: EventData): { title: string; body: string } {
   const title = `【${event.title}】アンケートのお願い`;
   const body = `この度は、${event.title}にご参加いただき、誠にありがとうございました。
@@ -110,6 +124,19 @@ export function getSurveyEmailTemplate(event: EventData): { title: string; body:
 {FORM_URL}
 
 ご多忙の中恐縮ですが、よろしくお願いいたします。`;
+
+  return { title, body };
+}
+
+// アンケート回答依頼メールテンプレート
+export function getSurveyRequestEmailTemplate(event: EventData): { title: string; body: string } {
+  const title = `${event.title} アンケートのお願い`;
+  const body = `この度は、${event.title}にご参加いただき、ありがとうございました。
+
+以下のURLよりアンケートにご回答いただけますと幸いです。
+{SURVEY_URL}
+
+ご協力のほど、よろしくお願いいたします。`;
 
   return { title, body };
 }
