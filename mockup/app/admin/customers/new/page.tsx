@@ -30,15 +30,17 @@ import {
 
 export default function NewCustomerPage() {
   const router = useRouter();
-  const [memberCategory, setMemberCategory] = useState<"member" | "sponsor" | "observer" | undefined>("member");
-  const [auditMemberChecked, setAuditMemberChecked] = useState(false);
+  // コミュニティを最初に選択（チェックボックス、複数選択可能）
+  const [auditOrganizationChecked, setAuditOrganizationChecked] = useState(false);
+  const [naikanOrganizationChecked, setNaikanOrganizationChecked] = useState(false);
+  
+  // 会員区分（コミュニティが選択されている場合のみ表示）
+  const [memberCategory, setMemberCategory] = useState<"member" | "sponsor" | "observer">("member");
+  
+  // ベンチャー監査役協会関連
   const [auditMemberType, setAuditMemberType] = useState<string>("");
   const [auditMemberPremium, setAuditMemberPremium] = useState(false);
-  const [naikanMember, setNaikanMember] = useState(false);
-  const [auditSponsorChecked, setAuditSponsorChecked] = useState(false);
-  const [naikanSponsorChecked, setNaikanSponsorChecked] = useState(false);
-  const [auditObserverChecked, setAuditObserverChecked] = useState(false);
-  const [naikanObserverChecked, setNaikanObserverChecked] = useState(false);
+  
   const [contractType, setContractType] = useState<"corporate" | "individual">("corporate");
   const [gender, setGender] = useState<"male" | "female" | "">("");
   const [listingCategory, setListingCategory] = useState<string>("");
@@ -52,7 +54,6 @@ export default function NewCustomerPage() {
   const listingOptions = LISTING_OPTIONS;
   const prefectures = PREFECTURES;
   const auditMemberTypes = AUDIT_MEMBER_TYPES;
-
 
   const handleAddSubEmail = () => {
     if (subEmails.length < 3) {
@@ -73,42 +74,19 @@ export default function NewCustomerPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 非会員の場合はmemberCategoryがundefined、communitiesが空配列
-    if (!memberCategory) {
-      // 非会員の場合、コミュニティのチェックが外れていることを確認
-      if (auditMemberChecked || naikanMember || auditSponsorChecked || naikanSponsorChecked || auditObserverChecked || naikanObserverChecked) {
-        toast.error("非会員の場合は、コミュニティの選択を外してください");
+    // コミュニティが選択されている場合のバリデーション
+    if (auditOrganizationChecked || naikanOrganizationChecked) {
+      // ベンチャー監査役協会の会員を選択した場合、会員種別を選択しているかチェック
+      if (memberCategory === "member" && auditOrganizationChecked && !auditMemberType) {
+        toast.error("ベンチャー監査役協会の会員種別を選択してください");
         return;
       }
-    }
-
-    // 会員を選択した場合、少なくとも1つのコミュニティを選択しているかチェック
-    if (memberCategory === "member" && !auditMemberChecked && !naikanMember) {
-      toast.error("会員を選択した場合、少なくとも1つのコミュニティを選択してください");
-      return;
-    }
-
-    // ベンチャー監査役協会の会員を選択した場合、会員種別を選択しているかチェック
-    if (memberCategory === "member" && auditMemberChecked && !auditMemberType) {
-      toast.error("ベンチャー監査役協会の会員種別を選択してください");
-      return;
-    }
-
-    // スポンサーを選択した場合、少なくとも1つのコミュニティを選択しているかチェック
-    if (memberCategory === "sponsor" && !auditSponsorChecked && !naikanSponsorChecked) {
-      toast.error("スポンサーを選択した場合、少なくとも1つのコミュニティを選択してください");
-      return;
-    }
-
-    // オブザーバーを選択した場合、少なくとも1つのコミュニティを選択しているかチェック
-    if (memberCategory === "observer" && !auditObserverChecked && !naikanObserverChecked) {
-      toast.error("オブザーバーを選択した場合、少なくとも1つのコミュニティを選択してください");
-      return;
     }
 
     toast.success("顧客情報を登録しました");
     router.push("/admin/customers");
   };
+
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -128,185 +106,110 @@ export default function NewCustomerPage() {
 
       <form onSubmit={handleSubmit} className="space-y-8 rounded-lg border p-8 shadow-sm">
         <div className="space-y-6">
+          {/* コミュニティ選択（最優先、チェックボックスで横並び） */}
           <div className="grid gap-2">
-            <Label>会員区分 <span className="text-red-500">*</span></Label>
-            <RadioGroup
-              value={memberCategory || ""}
-              onValueChange={(value) => {
-                const newCategory = value as "member" | "sponsor" | "observer" | "";
-                if (newCategory === "") {
-                  setMemberCategory(undefined);
-                } else {
-                  setMemberCategory(newCategory);
-                }
-                // 切り替え時にクリア
-                if (newCategory === "") {
-                  // 非会員の場合
-                  setAuditMemberChecked(false);
-                  setAuditMemberType("");
-                  setAuditMemberPremium(false);
-                  setNaikanMember(false);
-                  setAuditSponsorChecked(false);
-                  setNaikanSponsorChecked(false);
-                  setAuditObserverChecked(false);
-                  setNaikanObserverChecked(false);
-                } else if (newCategory === "member") {
-                  setAuditSponsorChecked(false);
-                  setNaikanSponsorChecked(false);
-                  setAuditObserverChecked(false);
-                  setNaikanObserverChecked(false);
-                } else if (newCategory === "sponsor") {
-                  setAuditMemberChecked(false);
-                  setAuditMemberType("");
-                  setAuditMemberPremium(false);
-                  setNaikanMember(false);
-                  setAuditObserverChecked(false);
-                  setNaikanObserverChecked(false);
-                } else if (newCategory === "observer") {
-                  setAuditMemberChecked(false);
-                  setAuditMemberType("");
-                  setAuditMemberPremium(false);
-                  setNaikanMember(false);
-                  setAuditSponsorChecked(false);
-                  setNaikanSponsorChecked(false);
-                }
-              }}
-            >
-              <div className="flex items-center gap-6">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="member" id="member" />
-                  <Label htmlFor="member" className="cursor-pointer">会員</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="" id="non-member" />
-                  <Label htmlFor="non-member" className="cursor-pointer">非会員</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="sponsor" id="sponsor" />
-                  <Label htmlFor="sponsor" className="cursor-pointer">スポンサー</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="observer" id="observer" />
-                  <Label htmlFor="observer" className="cursor-pointer">オブザーバー</Label>
-                </div>
+            <Label>コミュニティ</Label>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="audit-org-check"
+                  checked={auditOrganizationChecked}
+                  onCheckedChange={(checked) => {
+                    setAuditOrganizationChecked(checked === true);
+                    if (!checked) {
+                      setAuditMemberType("");
+                      setAuditMemberPremium(false);
+                    }
+                  }}
+                />
+                <Label htmlFor="audit-org-check" className="cursor-pointer font-medium">
+                  ベンチャー監査役協会
+                </Label>
               </div>
-            </RadioGroup>
-            
-            {/* 会員の場合 */}
-            {memberCategory === "member" && (
-              <div className="ml-6 mt-4 space-y-4">
-                {/* ベンチャー監査役協会 */}
-                <div className="grid gap-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="audit-check"
-                      checked={auditMemberChecked}
-                      onCheckedChange={(checked) => {
-                        setAuditMemberChecked(checked === true);
-                        if (!checked) {
-                          setAuditMemberType("");
-                          setAuditMemberPremium(false);
-                        }
-                      }}
-                    />
-                    <Label htmlFor="audit-check" className="cursor-pointer font-medium">ベンチャー監査役協会</Label>
-                  </div>
-                  {auditMemberChecked && (
-                    <div className="ml-6">
-                      <div className="flex items-center gap-4">
-                        <Select value={auditMemberType} onValueChange={setAuditMemberType}>
-                          <SelectTrigger className="w-1/2 bg-white">
-                            <SelectValue placeholder="会員種別を選択" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-white">
-                            {auditMemberTypes.map((type) => (
-                              <SelectItem
-                                key={type.value}
-                                value={type.value}
-                                className="bg-white hover:bg-gray-100"
-                              >
-                                {type.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <div className="flex items-center space-x-2 shrink-0">
-                          <Checkbox
-                            id="audit-premium-check"
-                            checked={auditMemberPremium}
-                            onCheckedChange={(checked) => setAuditMemberPremium(checked === true)}
-                          />
-                          <Label htmlFor="audit-premium-check" className="cursor-pointer">プレミアム会員</Label>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* ないかんMeetup */}
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="naikan-check"
-                    checked={naikanMember}
-                    onCheckedChange={(checked) => setNaikanMember(checked === true)}
-                  />
-                  <Label htmlFor="naikan-check" className="cursor-pointer font-medium">ないかんMeetup</Label>
-                </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="naikan-org-check"
+                  checked={naikanOrganizationChecked}
+                  onCheckedChange={(checked) => setNaikanOrganizationChecked(checked === true)}
+                />
+                <Label htmlFor="naikan-org-check" className="cursor-pointer font-medium">
+                  ないかんMeetup
+                </Label>
               </div>
-            )}
-
-            {/* スポンサーの場合 */}
-            {memberCategory === "sponsor" && (
-              <div className="ml-6 mt-4 space-y-4">
-                {/* ベンチャー監査役協会 */}
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="audit-sponsor-check"
-                    checked={auditSponsorChecked}
-                    onCheckedChange={(checked) => setAuditSponsorChecked(checked === true)}
-                  />
-                  <Label htmlFor="audit-sponsor-check" className="cursor-pointer font-medium">ベンチャー監査役協会</Label>
-                </div>
-
-                {/* ないかんMeetup */}
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="naikan-sponsor-check"
-                    checked={naikanSponsorChecked}
-                    onCheckedChange={(checked) => setNaikanSponsorChecked(checked === true)}
-                  />
-                  <Label htmlFor="naikan-sponsor-check" className="cursor-pointer font-medium">ないかんMeetup</Label>
-                </div>
-              </div>
-            )}
-
-            {/* オブザーバーの場合 */}
-            {memberCategory === "observer" && (
-              <div className="ml-6 mt-4 space-y-4">
-                {/* ベンチャー監査役協会 */}
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="audit-observer-check"
-                    checked={auditObserverChecked}
-                    onCheckedChange={(checked) => setAuditObserverChecked(checked === true)}
-                  />
-                  <Label htmlFor="audit-observer-check" className="cursor-pointer font-medium">ベンチャー監査役協会</Label>
-                </div>
-
-                {/* ないかんMeetup */}
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="naikan-observer-check"
-                    checked={naikanObserverChecked}
-                    onCheckedChange={(checked) => setNaikanObserverChecked(checked === true)}
-                  />
-                  <Label htmlFor="naikan-observer-check" className="cursor-pointer font-medium">ないかんMeetup</Label>
-                </div>
-              </div>
-            )}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              何も選択しない場合は非会員として登録されます
+            </p>
           </div>
 
-          {memberCategory === "member" && (
+          {/* 会員区分選択（コミュニティが選択されている場合のみ表示） */}
+          {(auditOrganizationChecked || naikanOrganizationChecked) && (
+            <div className="grid gap-2">
+              <Label>会員区分 <span className="text-red-500">*</span></Label>
+              <RadioGroup
+                value={memberCategory}
+                onValueChange={(value) => {
+                  const newCategory = value as "member" | "sponsor" | "observer";
+                  setMemberCategory(newCategory);
+                  // 切り替え時にクリア
+                  if (newCategory !== "member") {
+                    setAuditMemberType("");
+                    setAuditMemberPremium(false);
+                  }
+                }}
+              >
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="member" id="member" />
+                    <Label htmlFor="member" className="cursor-pointer">会員</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="sponsor" id="sponsor" />
+                    <Label htmlFor="sponsor" className="cursor-pointer">スポンサー</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="observer" id="observer" />
+                    <Label htmlFor="observer" className="cursor-pointer">オブザーバー</Label>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
+
+          {/* ベンチャー監査役協会の会員種別（会員区分が「会員」でベンチャー監査役協会を選択している場合のみ表示） */}
+          {memberCategory === "member" && auditOrganizationChecked && (
+            <div className="grid gap-2">
+              <Label>ベンチャー監査役協会 会員種別 <span className="text-red-500">*</span></Label>
+              <div className="flex items-center gap-4">
+                <Select value={auditMemberType} onValueChange={setAuditMemberType}>
+                  <SelectTrigger className="w-1/2 bg-white">
+                    <SelectValue placeholder="会員種別を選択" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {auditMemberTypes.map((type) => (
+                      <SelectItem
+                        key={type.value}
+                        value={type.value}
+                        className="bg-white hover:bg-gray-100"
+                      >
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center space-x-2 shrink-0">
+                  <Checkbox
+                    id="audit-premium-check"
+                    checked={auditMemberPremium}
+                    onCheckedChange={(checked) => setAuditMemberPremium(checked === true)}
+                  />
+                  <Label htmlFor="audit-premium-check" className="cursor-pointer">プレミアム会員</Label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(auditOrganizationChecked || naikanOrganizationChecked) && memberCategory === "member" && (
             <div className="grid gap-2">
               <Label>契約主体 <span className="text-red-500">*</span></Label>
               <RadioGroup
