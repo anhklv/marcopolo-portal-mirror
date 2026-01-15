@@ -1,0 +1,98 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - alert [ref=e11]
+  - generic [ref=e12]:
+    - generic [ref=e13]:
+      - link "Marcopolo Admin" [ref=e15] [cursor=pointer]:
+        - /url: /admin/customers
+        - generic [ref=e16]: Marcopolo Admin
+      - navigation [ref=e18]:
+        - link "顧客管理" [ref=e19] [cursor=pointer]:
+          - /url: /admin/customers
+          - img [ref=e20]
+          - text: 顧客管理
+        - link "イベント管理" [ref=e25] [cursor=pointer]:
+          - /url: /admin/events
+          - img [ref=e26]
+          - text: イベント管理
+      - generic [ref=e28]:
+        - button "開発メニュー" [ref=e30] [cursor=pointer]:
+          - img [ref=e31]
+          - generic [ref=e34]: 開発メニュー
+          - img [ref=e35]
+        - generic [ref=e37]:
+          - button "設定" [ref=e38] [cursor=pointer]:
+            - img [ref=e39]
+            - generic [ref=e42]: 設定
+            - img [ref=e43]
+          - button "ログアウト" [ref=e45] [cursor=pointer]:
+            - img
+            - text: ログアウト
+    - main [ref=e46]:
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - link [ref=e49] [cursor=pointer]:
+            - /url: /admin/events
+            - img
+          - generic [ref=e50]:
+            - heading "イベント作成" [level=1] [ref=e51]
+            - paragraph [ref=e52]: 新しいイベントを作成します。
+        - generic [ref=e53]:
+          - generic [ref=e54]:
+            - generic [ref=e55]:
+              - generic [ref=e56]:
+                - text: イベント種別
+                - generic [ref=e57]: "*"
+              - combobox [ref=e58] [cursor=pointer]:
+                - generic: ベンチャー監査役の会
+                - img
+              - combobox [ref=e59] [cursor=pointer]
+            - generic [ref=e60]:
+              - generic [ref=e61]:
+                - text: イベント名
+                - generic [ref=e62]: "*"
+              - textbox "イベント名 *" [ref=e63]:
+                - /placeholder: "例: 第10回 監査役交流会"
+            - generic [ref=e64]:
+              - generic [ref=e65]:
+                - text: 開催日時
+                - generic [ref=e66]: "*"
+              - textbox "開催日時 *" [ref=e67]
+            - generic [ref=e68]:
+              - generic [ref=e69]: イベント概要
+              - textbox "イベント概要" [ref=e70]:
+                - /placeholder: イベントの概要を入力してください
+            - generic [ref=e71]:
+              - generic [ref=e72]: タイムテーブル
+              - textbox "タイムテーブル" [ref=e73]:
+                - /placeholder: タイムテーブルを入力してください
+            - generic [ref=e74]:
+              - generic [ref=e75]: 場所
+              - textbox "場所" [ref=e76]:
+                - /placeholder: "例: 東京都港区六本木 1-1-1 会議室A"
+            - generic [ref=e77]:
+              - generic [ref=e78]: 備考
+              - textbox "備考" [ref=e79]:
+                - /placeholder: 備考を入力してください
+            - generic [ref=e80]:
+              - generic [ref=e81]: 回答期限
+              - textbox "回答期限" [ref=e82]
+              - paragraph [ref=e83]: 回答期限を設定しない場合、イベント開催日まで回答を受け付けます。
+            - generic [ref=e84]:
+              - checkbox "オンライン参加を可能にする" [ref=e85] [cursor=pointer]
+              - checkbox
+              - generic [ref=e86] [cursor=pointer]: オンライン参加を可能にする
+            - generic [ref=e87]:
+              - checkbox "懇親会を開催する" [ref=e88] [cursor=pointer]
+              - checkbox
+              - generic [ref=e89] [cursor=pointer]: 懇親会を開催する
+          - generic [ref=e90]:
+            - link "キャンセル" [ref=e91] [cursor=pointer]:
+              - /url: /admin/events
+            - button "作成する" [ref=e92] [cursor=pointer]
+  - region "Notifications alt+T"
+```

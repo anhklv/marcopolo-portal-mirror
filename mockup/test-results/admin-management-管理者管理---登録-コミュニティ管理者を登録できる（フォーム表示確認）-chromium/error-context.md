@@ -1,0 +1,113 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - alert [ref=e11]
+  - generic [ref=e12]:
+    - generic [ref=e13]:
+      - link "Marcopolo Admin" [ref=e15] [cursor=pointer]:
+        - /url: /admin/customers
+        - generic [ref=e16]: Marcopolo Admin
+      - navigation [ref=e18]:
+        - link "顧客管理" [ref=e19] [cursor=pointer]:
+          - /url: /admin/customers
+          - img [ref=e20]
+          - text: 顧客管理
+        - link "イベント管理" [ref=e25] [cursor=pointer]:
+          - /url: /admin/events
+          - img [ref=e26]
+          - text: イベント管理
+      - generic [ref=e28]:
+        - button "開発メニュー" [ref=e30] [cursor=pointer]:
+          - img [ref=e31]
+          - generic [ref=e34]: 開発メニュー
+          - img [ref=e35]
+        - generic [ref=e37]:
+          - button "設定" [ref=e38] [cursor=pointer]:
+            - img [ref=e39]
+            - generic [ref=e42]: 設定
+            - img [ref=e43]
+          - button "ログアウト" [ref=e45] [cursor=pointer]:
+            - img
+            - text: ログアウト
+    - main [ref=e46]:
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - link [ref=e49] [cursor=pointer]:
+            - /url: /admin/admins
+            - img
+          - generic [ref=e50]:
+            - heading "管理者登録" [level=1] [ref=e51]
+            - paragraph [ref=e52]: 新しい管理者アカウントを作成します。
+        - generic [ref=e53]:
+          - generic [ref=e54]:
+            - generic [ref=e56]: 基本情報
+            - generic [ref=e57]:
+              - generic [ref=e58]:
+                - generic [ref=e59]:
+                  - generic [ref=e60]:
+                    - text: 姓
+                    - generic [ref=e61]: "*"
+                  - textbox "姓 *" [ref=e62]:
+                    - /placeholder: "例: 山田"
+                - generic [ref=e63]:
+                  - generic [ref=e64]:
+                    - text: 名
+                    - generic [ref=e65]: "*"
+                  - textbox "名 *" [ref=e66]:
+                    - /placeholder: "例: 太郎"
+              - generic [ref=e67]:
+                - generic [ref=e68]:
+                  - text: メールアドレス
+                  - generic [ref=e69]: "*"
+                - textbox "メールアドレス *" [ref=e70]:
+                  - /placeholder: admin@example.com
+              - generic [ref=e71]:
+                - generic [ref=e72]:
+                  - text: パスワード
+                  - generic [ref=e73]: "*"
+                - textbox "パスワード *" [ref=e74]:
+                  - /placeholder: 12文字以上
+                - paragraph [ref=e75]: パスワードは12文字以上で設定してください。
+          - generic [ref=e76]:
+            - generic [ref=e78]: 管理者権限
+            - generic [ref=e79]:
+              - generic [ref=e80]:
+                - generic [ref=e81]:
+                  - text: 権限
+                  - generic [ref=e82]: "*"
+                - radiogroup [ref=e83]:
+                  - generic [ref=e84]:
+                    - generic [ref=e85]:
+                      - radio "特権管理者" [ref=e86] [cursor=pointer]
+                      - radio
+                      - generic [ref=e87] [cursor=pointer]: 特権管理者
+                    - paragraph [ref=e88]: すべての機能にアクセスでき、管理者の追加・編集が可能です。
+                    - generic [ref=e89]:
+                      - radio "コミュニティ管理者" [checked] [ref=e90] [cursor=pointer]:
+                        - img [ref=e91]
+                      - radio [checked]
+                      - generic [ref=e93] [cursor=pointer]: コミュニティ管理者
+                    - paragraph [ref=e94]: 担当コミュニティの顧客・イベントのみ管理できます。
+              - generic [ref=e95]:
+                - generic [ref=e96]:
+                  - text: コミュニティスコープ
+                  - generic [ref=e97]: "*"
+                - generic [ref=e98]:
+                  - generic [ref=e99]:
+                    - checkbox "ベンチャー監査役の会" [ref=e100] [cursor=pointer]
+                    - checkbox
+                    - generic [ref=e101] [cursor=pointer]: ベンチャー監査役の会
+                  - generic [ref=e102]:
+                    - checkbox "ないかんMeetup" [ref=e103] [cursor=pointer]
+                    - checkbox
+                    - generic [ref=e104] [cursor=pointer]: ないかんMeetup
+                - paragraph [ref=e105]: 複数のコミュニティを選択できます。
+          - generic [ref=e106]:
+            - link "キャンセル" [ref=e107] [cursor=pointer]:
+              - /url: /admin/admins
+            - button "登録する" [ref=e108] [cursor=pointer]
+  - region "Notifications alt+T"
+```

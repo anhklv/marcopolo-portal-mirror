@@ -1,0 +1,141 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - alert [ref=e11]
+  - generic [ref=e12]:
+    - generic [ref=e13]:
+      - link "Marcopolo Admin" [ref=e15] [cursor=pointer]:
+        - /url: /admin/customers
+        - generic [ref=e16]: Marcopolo Admin
+      - navigation [ref=e18]:
+        - link "顧客管理" [ref=e19] [cursor=pointer]:
+          - /url: /admin/customers
+          - img [ref=e20]
+          - text: 顧客管理
+        - link "イベント管理" [ref=e25] [cursor=pointer]:
+          - /url: /admin/events
+          - img [ref=e26]
+          - text: イベント管理
+      - generic [ref=e28]:
+        - button "開発メニュー" [ref=e30] [cursor=pointer]:
+          - img [ref=e31]
+          - generic [ref=e34]: 開発メニュー
+          - img [ref=e35]
+        - generic [ref=e37]:
+          - button "設定" [ref=e38] [cursor=pointer]:
+            - img [ref=e39]
+            - generic [ref=e42]: 設定
+            - img [ref=e43]
+          - button "ログアウト" [ref=e45] [cursor=pointer]:
+            - img
+            - text: ログアウト
+    - main [ref=e46]:
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - heading "顧客管理" [level=1] [ref=e50]
+            - paragraph [ref=e51]: 会員・非会員を含むすべての顧客情報を管理します。
+          - link "新規登録" [ref=e53] [cursor=pointer]:
+            - /url: /admin/customers/new
+            - img
+            - text: 新規登録
+        - generic [ref=e54]:
+          - generic [ref=e55]:
+            - img [ref=e56]
+            - searchbox "名前、会社名、メールアドレスで検索..." [ref=e59]
+          - button "コミュニティ" [ref=e60] [cursor=pointer]:
+            - generic [ref=e61]:
+              - img
+              - generic [ref=e62]: コミュニティ
+            - img
+          - button "アクティブ" [ref=e63] [cursor=pointer]:
+            - generic [ref=e64]: アクティブ
+            - img
+        - generic [ref=e66]: 5件
+        - table [ref=e69]:
+          - rowgroup [ref=e70]:
+            - row "ID 氏名 会社名 会員区分 ステータス 登録日 操作" [ref=e71]:
+              - columnheader "ID" [ref=e72]
+              - columnheader "氏名" [ref=e73]
+              - columnheader "会社名" [ref=e74]
+              - columnheader "会員区分" [ref=e75]
+              - columnheader "ステータス" [ref=e76]
+              - columnheader "登録日" [ref=e77]
+              - columnheader "操作" [ref=e78]
+          - rowgroup [ref=e79]:
+            - row "1 山田 太郎 株式会社東京貿易 ベンチャー監査役の会(正会員) ないかんMeetup(会員) アクティブ 2024年1月10日 編集" [ref=e80] [cursor=pointer]:
+              - cell "1" [ref=e81]
+              - cell "山田 太郎" [ref=e82]
+              - cell "株式会社東京貿易" [ref=e83]
+              - cell "ベンチャー監査役の会(正会員) ないかんMeetup(会員)" [ref=e84]:
+                - generic [ref=e85]:
+                  - generic [ref=e86]: ベンチャー監査役の会(正会員)
+                  - generic [ref=e87]: ないかんMeetup(会員)
+              - cell "アクティブ" [ref=e88]:
+                - generic [ref=e89]: アクティブ
+              - cell "2024年1月10日" [ref=e90]
+              - cell "編集" [ref=e91]:
+                - link "編集" [ref=e92]:
+                  - /url: /admin/customers/C001/edit
+            - row "2 高橋 健太 株式会社サンライズ ベンチャー監査役の会(正会員) ないかんMeetup(会員) アクティブ 2024年5月12日 編集" [ref=e93] [cursor=pointer]:
+              - cell "2" [ref=e94]
+              - cell "高橋 健太" [ref=e95]
+              - cell "株式会社サンライズ" [ref=e96]
+              - cell "ベンチャー監査役の会(正会員) ないかんMeetup(会員)" [ref=e97]:
+                - generic [ref=e98]:
+                  - generic [ref=e99]: ベンチャー監査役の会(正会員)
+                  - generic [ref=e100]: ないかんMeetup(会員)
+              - cell "アクティブ" [ref=e101]:
+                - generic [ref=e102]: アクティブ
+              - cell "2024年5月12日" [ref=e103]
+              - cell "編集" [ref=e104]:
+                - link "編集" [ref=e105]:
+                  - /url: /admin/customers/C006/edit
+            - row "3 中村 雄一 株式会社ファイナンスパートナーズ ベンチャー監査役の会(オンライン会員) アクティブ 2024年7月18日 編集" [ref=e106] [cursor=pointer]:
+              - cell "3" [ref=e107]
+              - cell "中村 雄一" [ref=e108]
+              - cell "株式会社ファイナンスパートナーズ" [ref=e109]
+              - cell "ベンチャー監査役の会(オンライン会員)" [ref=e110]:
+                - generic [ref=e112]: ベンチャー監査役の会(オンライン会員)
+              - cell "アクティブ" [ref=e113]:
+                - generic [ref=e114]: アクティブ
+              - cell "2024年7月18日" [ref=e115]
+              - cell "編集" [ref=e116]:
+                - link "編集" [ref=e117]:
+                  - /url: /admin/customers/C008/edit
+            - row "4 加藤 大輔 株式会社ストラテジックアドバイザーズ ベンチャー監査役の会(正会員) プレミアム アクティブ 2024年9月10日 編集" [ref=e118] [cursor=pointer]:
+              - cell "4" [ref=e119]
+              - cell "加藤 大輔" [ref=e120]
+              - cell "株式会社ストラテジックアドバイザーズ" [ref=e121]
+              - cell "ベンチャー監査役の会(正会員) プレミアム" [ref=e122]:
+                - generic [ref=e123]:
+                  - generic [ref=e124]: ベンチャー監査役の会(正会員)
+                  - generic [ref=e125]: プレミアム
+              - cell "アクティブ" [ref=e126]:
+                - generic [ref=e127]: アクティブ
+              - cell "2024年9月10日" [ref=e128]
+              - cell "編集" [ref=e129]:
+                - link "編集" [ref=e130]:
+                  - /url: /admin/customers/C010/edit
+            - row "5 松本 健一 株式会社コーポレートガバナンス ベンチャー監査役の会(正会員) ないかんMeetup(会員) アクティブ 2024年11月1日 編集" [ref=e131] [cursor=pointer]:
+              - cell "5" [ref=e132]
+              - cell "松本 健一" [ref=e133]
+              - cell "株式会社コーポレートガバナンス" [ref=e134]
+              - cell "ベンチャー監査役の会(正会員) ないかんMeetup(会員)" [ref=e135]:
+                - generic [ref=e136]:
+                  - generic [ref=e137]: ベンチャー監査役の会(正会員)
+                  - generic [ref=e138]: ないかんMeetup(会員)
+              - cell "アクティブ" [ref=e139]:
+                - generic [ref=e140]: アクティブ
+              - cell "2024年11月1日" [ref=e141]
+              - cell "編集" [ref=e142]:
+                - link "編集" [ref=e143]:
+                  - /url: /admin/customers/C012/edit
+        - button "CSVダウンロード" [ref=e145] [cursor=pointer]:
+          - img
+          - text: CSVダウンロード
+  - region "Notifications alt+T"
+```

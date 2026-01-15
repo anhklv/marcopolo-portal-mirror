@@ -1,0 +1,242 @@
+# Page snapshot
+
+```yaml
+- generic:
+  - button "Open Next.js Dev Tools" [ref=e6] [cursor=pointer]:
+    - img [ref=e7]
+  - alert
+  - generic:
+    - generic:
+      - generic:
+        - link:
+          - /url: /admin/customers
+          - generic: Marcopolo Admin
+      - generic:
+        - navigation:
+          - link:
+            - /url: /admin/customers
+            - img
+            - text: 顧客管理
+          - link:
+            - /url: /admin/events
+            - img
+            - text: イベント管理
+      - generic:
+        - generic:
+          - button:
+            - img
+            - generic: 開発メニュー
+            - img
+        - generic:
+          - button [expanded]:
+            - img
+            - generic: 設定
+            - img
+          - button:
+            - img
+            - text: ログアウト
+    - main:
+      - generic:
+        - generic:
+          - generic:
+            - heading [level=1]: 顧客管理
+            - paragraph: 会員・非会員を含むすべての顧客情報を管理します。
+          - generic:
+            - link:
+              - /url: /admin/customers/new
+              - img
+              - text: 新規登録
+        - generic:
+          - generic:
+            - img
+            - searchbox
+          - button:
+            - generic:
+              - img
+              - generic: コミュニティ
+            - img
+          - button:
+            - generic: アクティブ
+            - img
+        - generic:
+          - generic: 11件
+        - generic:
+          - generic:
+            - table:
+              - rowgroup:
+                - row:
+                  - columnheader: ID
+                  - columnheader: 氏名
+                  - columnheader: 会社名
+                  - columnheader: 会員区分
+                  - columnheader: ステータス
+                  - columnheader: 登録日
+                  - columnheader: 操作
+              - rowgroup:
+                - row:
+                  - cell: "1"
+                  - cell: 山田 太郎
+                  - cell: 株式会社東京貿易
+                  - cell:
+                    - generic:
+                      - generic: ベンチャー監査役の会(正会員)
+                      - generic: ないかんMeetup(会員)
+                  - cell:
+                    - generic: アクティブ
+                  - cell: 2024年1月10日
+                  - cell:
+                    - link:
+                      - /url: /admin/customers/C001/edit
+                      - text: 編集
+                - row:
+                  - cell: "2"
+                  - cell: 鈴木 一郎
+                  - cell: マルコポーロ商事
+                  - cell:
+                    - generic:
+                      - generic: ないかんMeetup(会員)
+                  - cell:
+                    - generic: アクティブ
+                  - cell: 2024年2月15日
+                  - cell:
+                    - link:
+                      - /url: /admin/customers/C002/edit
+                      - text: 編集
+                - row:
+                  - cell: "3"
+                  - cell: 佐藤 花子
+                  - cell: グローバルテック株式会社
+                  - cell:
+                    - generic:
+                      - generic: 非会員
+                  - cell:
+                    - generic: アクティブ
+                  - cell: 2024年3月5日
+                  - cell:
+                    - link:
+                      - /url: /admin/customers/C003/edit
+                      - text: 編集
+                - row:
+                  - cell: "4"
+                  - cell: 伊藤 美咲
+                  - cell: フリーランス
+                  - cell:
+                    - generic:
+                      - generic: 非会員
+                  - cell:
+                    - generic: アクティブ
+                  - cell: 2024年4月1日
+                  - cell:
+                    - link:
+                      - /url: /admin/customers/C005/edit
+                      - text: 編集
+                - row:
+                  - cell: "5"
+                  - cell: 高橋 健太
+                  - cell: 株式会社サンライズ
+                  - cell:
+                    - generic:
+                      - generic: ベンチャー監査役の会(正会員)
+                      - generic: ないかんMeetup(会員)
+                  - cell:
+                    - generic: アクティブ
+                  - cell: 2024年5月12日
+                  - cell:
+                    - link:
+                      - /url: /admin/customers/C006/edit
+                      - text: 編集
+                - row:
+                  - cell: "6"
+                  - cell: 渡辺 麻衣
+                  - cell: テクノロジーソリューションズ株式会社
+                  - cell:
+                    - generic:
+                      - generic: ないかんMeetup(会員)
+                  - cell:
+                    - generic: アクティブ
+                  - cell: 2024年6月3日
+                  - cell:
+                    - link:
+                      - /url: /admin/customers/C007/edit
+                      - text: 編集
+                - row:
+                  - cell: "7"
+                  - cell: 中村 雄一
+                  - cell: 株式会社ファイナンスパートナーズ
+                  - cell:
+                    - generic:
+                      - generic: ベンチャー監査役の会(オンライン会員)
+                  - cell:
+                    - generic: アクティブ
+                  - cell: 2024年7月18日
+                  - cell:
+                    - link:
+                      - /url: /admin/customers/C008/edit
+                      - text: 編集
+                - row:
+                  - cell: "8"
+                  - cell: 小林 さくら
+                  - cell: デジタルイノベーション株式会社
+                  - cell:
+                    - generic:
+                      - generic: ないかんMeetup(会員)
+                  - cell:
+                    - generic: アクティブ
+                  - cell: 2024年8月22日
+                  - cell:
+                    - link:
+                      - /url: /admin/customers/C009/edit
+                      - text: 編集
+                - row:
+                  - cell: "9"
+                  - cell: 加藤 大輔
+                  - cell: 株式会社ストラテジックアドバイザーズ
+                  - cell:
+                    - generic:
+                      - generic: ベンチャー監査役の会(正会員)
+                      - generic: プレミアム
+                  - cell:
+                    - generic: アクティブ
+                  - cell: 2024年9月10日
+                  - cell:
+                    - link:
+                      - /url: /admin/customers/C010/edit
+                      - text: 編集
+                - row:
+                  - cell: "10"
+                  - cell: 吉田 由美
+                  - cell: フリーランス
+                  - cell:
+                    - generic:
+                      - generic: 非会員
+                  - cell:
+                    - generic: アクティブ
+                  - cell: 2024年10月5日
+                  - cell:
+                    - link:
+                      - /url: /admin/customers/C011/edit
+                      - text: 編集
+                - row:
+                  - cell: "11"
+                  - cell: 松本 健一
+                  - cell: 株式会社コーポレートガバナンス
+                  - cell:
+                    - generic:
+                      - generic: ベンチャー監査役の会(正会員)
+                      - generic: ないかんMeetup(会員)
+                  - cell:
+                    - generic: アクティブ
+                  - cell: 2024年11月1日
+                  - cell:
+                    - link:
+                      - /url: /admin/customers/C012/edit
+                      - text: 編集
+        - generic:
+          - button:
+            - img
+            - text: CSVダウンロード
+  - region "Notifications alt+T"
+  - menu "設定" [active] [ref=e10]:
+    - menuitem "管理者管理" [ref=e11] [cursor=pointer]
+    - menuitem "パスワード変更" [ref=e12] [cursor=pointer]
+```
