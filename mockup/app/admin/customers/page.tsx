@@ -360,36 +360,49 @@ export default function CustomersPage() {
               <div className="space-y-2">
                 <Label className="text-sm font-semibold">コミュニティ</Label>
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="org-audit"
-                      checked={organizations.includes("ベンチャー監査役の会")}
-                      onCheckedChange={(checked) =>
-                        handleOrganizationChange("ベンチャー監査役の会", checked === true)
-                      }
-                    />
-                    <Label htmlFor="org-audit" className="cursor-pointer text-sm">ベンチャー監査役の会</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="org-naikan"
-                      checked={organizations.includes("ないかんMeetup")}
-                      onCheckedChange={(checked) =>
-                        handleOrganizationChange("ないかんMeetup", checked === true)
-                      }
-                    />
-                    <Label htmlFor="org-naikan" className="cursor-pointer text-sm">ないかんMeetup</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="org-non-member"
-                      checked={organizations.includes("非会員")}
-                      onCheckedChange={(checked) =>
-                        handleOrganizationChange("非会員", checked === true)
-                      }
-                    />
-                    <Label htmlFor="org-non-member" className="cursor-pointer text-sm">非会員</Label>
-                  </div>
+                  {/* 特権管理者またはベンチャー監査役の会の権限がある場合のみ表示 */}
+                  {(currentAdmin?.role === "super" || 
+                    (currentAdmin?.role === "community_admin" && 
+                     currentAdmin.communityScopes?.includes("ベンチャー監査役の会"))) && (
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="org-audit"
+                        checked={organizations.includes("ベンチャー監査役の会")}
+                        onCheckedChange={(checked) =>
+                          handleOrganizationChange("ベンチャー監査役の会", checked === true)
+                        }
+                      />
+                      <Label htmlFor="org-audit" className="cursor-pointer text-sm">ベンチャー監査役の会</Label>
+                    </div>
+                  )}
+                  {/* 特権管理者またはないかんMeetupの権限がある場合のみ表示 */}
+                  {(currentAdmin?.role === "super" || 
+                    (currentAdmin?.role === "community_admin" && 
+                     currentAdmin.communityScopes?.includes("ないかんMeetup"))) && (
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="org-naikan"
+                        checked={organizations.includes("ないかんMeetup")}
+                        onCheckedChange={(checked) =>
+                          handleOrganizationChange("ないかんMeetup", checked === true)
+                        }
+                      />
+                      <Label htmlFor="org-naikan" className="cursor-pointer text-sm">ないかんMeetup</Label>
+                    </div>
+                  )}
+                  {/* 非会員は特権管理者のみ表示 */}
+                  {currentAdmin?.role === "super" && (
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="org-non-member"
+                        checked={organizations.includes("非会員")}
+                        onCheckedChange={(checked) =>
+                          handleOrganizationChange("非会員", checked === true)
+                        }
+                      />
+                      <Label htmlFor="org-non-member" className="cursor-pointer text-sm">非会員</Label>
+                    </div>
+                  )}
                 </div>
               </div>
 

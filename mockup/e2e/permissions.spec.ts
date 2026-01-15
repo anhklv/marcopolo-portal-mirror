@@ -181,21 +181,22 @@ test.describe('権限チェック - 顧客登録', () => {
     await page.goto('/admin/customers/new');
     await page.waitForLoadState('networkidle');
 
-    // フォームに入力
-    await page.locator('input#lastName').fill('テスト');
-    await page.locator('input#firstName').fill('花子');
-    await page.locator('input#email').fill(`test${Date.now()}@example.com`);
+    // コミュニティ管理者の場合、権限外のコミュニティ（ないかんMeetup）のチェックボックスは表示されないことを確認
+    const naikanCheckbox = page.locator('#naikan-community');
+    const naikanCount = await naikanCheckbox.count();
+    expect(naikanCount).toBe(0);
 
-    // 権限外のコミュニティ（ないかんMeetup）のみを選択
-    await page.locator('button#naikan-community').click();
+    // 権限のあるコミュニティ（ベンチャー監査役の会）のみが表示されることを確認
+    // コミュニティ管理者の場合、コミュニティはテキスト表示になるため、チェックボックスは存在しない
+    // コミュニティセクション内で「ベンチャー監査役の会」がテキストで表示されていることを確認
+    const communitySection = page.locator('div.grid.gap-2').filter({ hasText: 'コミュニティ' });
+    const communityText = communitySection.locator('text=ベンチャー監査役の会').first();
+    await expect(communityText).toBeVisible();
 
-    // 送信を試みる
-    await page.locator('button[type="submit"]').click();
-
-    // エラーメッセージが表示されることを確認
-    await page.waitForTimeout(1000);
-    const errorToast = page.locator('text=この顧客を登録する権限がありません');
-    await expect(errorToast).toBeVisible();
+    // 権限外のコミュニティ（ないかんMeetup）が表示されないことを確認
+    const naikanText = communitySection.locator('text=ないかんMeetup');
+    const naikanTextCount = await naikanText.count();
+    expect(naikanTextCount).toBe(0);
   });
 });
 

@@ -59,7 +59,7 @@ export default function NewAdminPage() {
     }
 
     if (role === "community_admin" && communityScopes.length === 0) {
-      toast.error("コミュニティスコープを1つ以上選択してください");
+      toast.error("対象コミュニティを1つ以上選択してください");
       return;
     }
 
@@ -189,7 +189,7 @@ export default function NewAdminPage() {
             {role === "community_admin" && (
               <div className="grid gap-2">
                 <Label className="text-base font-medium">
-                  コミュニティスコープ <span className="text-red-500">*</span>
+                  対象コミュニティ <span className="text-red-500">*</span>
                 </Label>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">

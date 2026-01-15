@@ -14,18 +14,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { admins } from "@/lib/data/mock";
 import type { Admin } from "@/lib/types";
 import { ADMIN_ROLE_LABELS } from "@/lib/constants/admin";
-import { Plus, Search, Trash2 } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/lib/contexts/auth.context";
@@ -34,8 +26,6 @@ export default function AdminsPage() {
   const router = useRouter();
   const { currentAdmin } = useAuth();
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
 
   // 特権管理者のみアクセス可能
   useEffect(() => {
@@ -67,18 +57,6 @@ export default function AdminsPage() {
     });
   }, [searchKeyword]);
 
-  const handleDeleteClick = (admin: Admin) => {
-    setSelectedAdmin(admin);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleDelete = () => {
-    if (selectedAdmin) {
-      toast.success(`${selectedAdmin.lastName}${selectedAdmin.firstName}を削除しました`);
-      setIsDeleteDialogOpen(false);
-      setSelectedAdmin(null);
-    }
-  };
 
   if (currentAdmin?.role !== "super") {
     return null;
@@ -143,41 +121,25 @@ export default function AdminsPage() {
               filteredAdmins.map((admin, index) => (
                 <TableRow
                   key={admin.id}
-                  className="cursor-pointer hover:bg-gray-50"
-                  tabIndex={0}
-                  onClick={() => {
-                    router.push(`/admin/admins/${admin.id}/edit`);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      router.push(`/admin/admins/${admin.id}/edit`);
-                    }
-                  }}
+                  className="hover:bg-gray-50"
                 >
                   <TableCell className="font-medium">{index + 1}</TableCell>
                   <TableCell>{`${admin.lastName} ${admin.firstName}`}</TableCell>
                   <TableCell>{admin.email}</TableCell>
                   <TableCell>
                     <Badge variant={admin.role === "super" ? "default" : "secondary"}>
-                      {ADMIN_ROLE_LABELS[admin.role]}
+                      {admin.role === "community_admin" && admin.communityScopes
+                        ? `${ADMIN_ROLE_LABELS[admin.role]}(${admin.communityScopes.join("、")})`
+                        : ADMIN_ROLE_LABELS[admin.role]}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     {admin.lastLoginAt ? formatDate(admin.lastLoginAt) : "-"}
                   </TableCell>
-                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                  <TableCell className="text-right">
                     <div className="flex gap-2 justify-end">
                       <Button variant="outline" size="sm" asChild>
                         <Link href={`/admin/admins/${admin.id}/edit`}>編集</Link>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => handleDeleteClick(admin)}
-                      >
-                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -187,39 +149,6 @@ export default function AdminsPage() {
           </TableBody>
         </Table>
       </div>
-
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="bg-white">
-          <DialogHeader>
-            <DialogTitle>管理者を削除</DialogTitle>
-            <DialogDescription>
-              {selectedAdmin && (
-                <>
-                  {selectedAdmin.lastName}{selectedAdmin.firstName}（{selectedAdmin.email}）を削除してもよろしいですか？
-                  <br />
-                  この操作は取り消せません。
-                </>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteDialogOpen(false)}
-              className="cursor-pointer"
-            >
-              キャンセル
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleDelete}
-              className="cursor-pointer text-destructive hover:text-destructive"
-            >
-              削除
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

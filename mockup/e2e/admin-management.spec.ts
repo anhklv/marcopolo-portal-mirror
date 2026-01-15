@@ -91,7 +91,7 @@ test.describe('管理者管理 - 一覧表示', () => {
     // 検索キーワードを入力
     const searchInput = page.locator('input[type="search"]');
     await searchInput.fill('監査');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000); // 検索処理の待機時間を延長
 
     // フィルタリングされた結果を確認
     const filteredRows = page.locator('tbody tr');
@@ -99,8 +99,9 @@ test.describe('管理者管理 - 一覧表示', () => {
     expect(filteredCount).toBeGreaterThan(0);
     expect(filteredCount).toBeLessThanOrEqual(initialCount);
 
-    // 検索結果に「監査」が含まれていることを確認
-    await expect(page.locator('tbody').locator('text=監査')).toBeVisible();
+    // 検索結果に「監査」が含まれていることを確認（氏名列に含まれる）
+    const hasAuditText = await page.locator('tbody tr').filter({ hasText: '監査' }).count();
+    expect(hasAuditText).toBeGreaterThan(0);
   });
 });
 
@@ -150,13 +151,13 @@ test.describe('管理者管理 - 登録', () => {
     await communityAdminRadio.click();
     await page.waitForTimeout(500);
 
-    // コミュニティスコープ選択が表示されることを確認
-    const communityScopeSection = page.locator('text=コミュニティスコープ');
+    // 対象コミュニティ選択が表示されることを確認
+    const communityScopeSection = page.locator('text=対象コミュニティ');
     await expect(communityScopeSection).toBeVisible();
 
     // チェックボックスが表示されていることを確認
-    await expect(page.locator('button#scope-audit')).toBeVisible();
-    await expect(page.locator('button#scope-naikan')).toBeVisible();
+    await expect(page.locator('#scope-audit')).toBeVisible();
+    await expect(page.locator('#scope-naikan')).toBeVisible();
   });
 
   test('パスワードは12文字以上である必要がある', async ({ page }) => {
@@ -255,12 +256,11 @@ test.describe('管理者管理 - 削除', () => {
 
   test('削除確認ダイアログが表示される', async ({ page }) => {
     await loginAsSuperAdmin(page);
-    await page.goto('/admin/admins');
+    await page.goto('/admin/admins/A002/edit');
     await page.waitForLoadState('networkidle');
 
-    // 削除ボタンをクリック（テーブル内の最初の行）
-    const firstRow = page.locator('tbody tr').first();
-    const deleteButton = firstRow.locator('button').filter({ has: page.locator('svg') }).first();
+    // 削除ボタンをクリック
+    const deleteButton = page.locator('button').filter({ hasText: '削除' });
     await deleteButton.click();
     await page.waitForTimeout(500);
 

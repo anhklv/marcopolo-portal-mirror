@@ -33,11 +33,29 @@ import type { CommunityScope } from "@/lib/types";
 
 export default function NewCustomerPage() {
   const router = useRouter();
-  const { hasPermission } = useAuth();
+  const { hasPermission, currentAdmin } = useAuth();
 
-  // コミュニティ選択
-  const [auditCommunityChecked, setAuditCommunityChecked] = useState(false);
-  const [naikanCommunityChecked, setNaikanCommunityChecked] = useState(false);
+  // コミュニティ選択 - コミュニティ管理者の場合は権限のあるコミュニティを初期値として設定
+  const getInitialAuditCommunity = () => {
+    if (currentAdmin?.role === "super") return false;
+    if (currentAdmin?.role === "community_admin" && 
+        currentAdmin.communityScopes?.includes("ベンチャー監査役の会")) {
+      return true;
+    }
+    return false;
+  };
+
+  const getInitialNaikanCommunity = () => {
+    if (currentAdmin?.role === "super") return false;
+    if (currentAdmin?.role === "community_admin" && 
+        currentAdmin.communityScopes?.includes("ないかんMeetup")) {
+      return true;
+    }
+    return false;
+  };
+
+  const [auditCommunityChecked, setAuditCommunityChecked] = useState(getInitialAuditCommunity());
+  const [naikanCommunityChecked, setNaikanCommunityChecked] = useState(getInitialNaikanCommunity());
 
   // 会員区分
   const [memberCategory, setMemberCategory] = useState<"member" | "sponsor" | "observer" | undefined>("member");
@@ -162,25 +180,38 @@ export default function NewCustomerPage() {
             {/* コミュニティ選択 */}
             <div className="grid gap-2">
               <Label className="text-base font-medium">コミュニティ</Label>
-              <div className="flex items-center gap-6">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="audit-community" 
-                    checked={auditCommunityChecked} 
-                    onCheckedChange={(c) => setAuditCommunityChecked(c === true)} 
-                  />
-                  <Label htmlFor="audit-community" className="cursor-pointer">ベンチャー監査役の会</Label>
+              {currentAdmin?.role === "super" ? (
+                <>
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="audit-community" 
+                        checked={auditCommunityChecked} 
+                        onCheckedChange={(c) => setAuditCommunityChecked(c === true)} 
+                      />
+                      <Label htmlFor="audit-community" className="cursor-pointer">ベンチャー監査役の会</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="naikan-community" 
+                        checked={naikanCommunityChecked} 
+                        onCheckedChange={(c) => setNaikanCommunityChecked(c === true)} 
+                      />
+                      <Label htmlFor="naikan-community" className="cursor-pointer">ないかんMeetup</Label>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">何も選択しない場合は非会員として登録されます</p>
+                </>
+              ) : (
+                <div className="text-sm text-foreground">
+                  {currentAdmin?.communityScopes?.map((scope, index) => (
+                    <span key={scope}>
+                      {index > 0 && "、"}
+                      {scope}
+                    </span>
+                  ))}
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="naikan-community" 
-                    checked={naikanCommunityChecked} 
-                    onCheckedChange={(c) => setNaikanCommunityChecked(c === true)} 
-                  />
-                  <Label htmlFor="naikan-community" className="cursor-pointer">ないかんMeetup</Label>
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground">何も選択しない場合は非会員として登録されます</p>
+              )}
             </div>
 
             {/* 会員区分・詳細 (コミュニティが選択されている場合のみ) */}

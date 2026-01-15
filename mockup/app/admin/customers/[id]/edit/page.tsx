@@ -48,7 +48,7 @@ export default function CustomerEditPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { hasPermission } = useAuth();
+  const { hasPermission, currentAdmin } = useAuth();
   const customer = customers.find((c) => c.id === id);
 
   if (!customer) {
@@ -219,31 +219,44 @@ export default function CustomerEditPage({
             {/* コミュニティ選択 */}
             <div className="grid gap-2">
               <Label className="text-base font-medium">コミュニティ</Label>
-              <div className="flex items-center gap-6">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="audit-community" 
-                    checked={auditCommunityChecked} 
-                    onCheckedChange={(c) => {
-                      setAuditCommunityChecked(c === true);
-                      if (!c) {
-                        setAuditMemberType("");
-                        setAuditMemberPremium(false);
-                      }
-                    }} 
-                  />
-                  <Label htmlFor="audit-community" className="cursor-pointer">ベンチャー監査役の会</Label>
+              {currentAdmin?.role === "super" ? (
+                <>
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="audit-community"
+                        checked={auditCommunityChecked}
+                        onCheckedChange={(c) => {
+                          setAuditCommunityChecked(c === true);
+                          if (!c) {
+                            setAuditMemberType("");
+                            setAuditMemberPremium(false);
+                          }
+                        }}
+                      />
+                      <Label htmlFor="audit-community" className="cursor-pointer">ベンチャー監査役の会</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="naikan-community"
+                        checked={naikanCommunityChecked}
+                        onCheckedChange={(c) => setNaikanCommunityChecked(c === true)}
+                      />
+                      <Label htmlFor="naikan-community" className="cursor-pointer">ないかんMeetup</Label>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">何も選択しない場合は非会員として登録されます</p>
+                </>
+              ) : (
+                <div className="text-sm text-foreground">
+                  {currentAdmin?.communityScopes?.map((scope, index) => (
+                    <span key={scope}>
+                      {index > 0 && "、"}
+                      {scope}
+                    </span>
+                  ))}
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="naikan-community" 
-                    checked={naikanCommunityChecked} 
-                    onCheckedChange={(c) => setNaikanCommunityChecked(c === true)} 
-                  />
-                  <Label htmlFor="naikan-community" className="cursor-pointer">ないかんMeetup</Label>
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground">何も選択しない場合は非会員として登録されます</p>
+              )}
             </div>
 
             {/* 会員区分・詳細 (コミュニティが選択されている場合のみ) */}

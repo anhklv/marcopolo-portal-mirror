@@ -9,8 +9,17 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { admins } from "@/lib/data/mock";
 import type { AdminRole, CommunityScope } from "@/lib/types";
 import { ADMIN_ROLE_LABELS, COMMUNITY_SCOPE_LABELS } from "@/lib/constants/admin";
@@ -35,6 +44,7 @@ export default function AdminEditPage({
   );
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // 特権管理者のみアクセス可能
   useEffect(() => {
@@ -84,7 +94,7 @@ export default function AdminEditPage({
     }
 
     if (role === "community_admin" && communityScopes.length === 0) {
-      toast.error("コミュニティスコープを1つ以上選択してください");
+      toast.error("対象コミュニティを1つ以上選択してください");
       return;
     }
 
@@ -111,6 +121,12 @@ export default function AdminEditPage({
     toast.success("パスワードをリセットしました");
     setShowPasswordReset(false);
     setNewPassword("");
+  };
+
+  const handleDelete = () => {
+    toast.success(`${admin.lastName}${admin.firstName}を削除しました`);
+    setIsDeleteDialogOpen(false);
+    router.push("/admin/admins");
   };
 
   if (currentAdmin?.role !== "super") {
@@ -227,7 +243,7 @@ export default function AdminEditPage({
             {role === "community_admin" && (
               <div className="grid gap-2">
                 <Label className="text-base font-medium">
-                  コミュニティスコープ <span className="text-red-500">*</span>
+                  対象コミュニティ <span className="text-red-500">*</span>
                 </Label>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
@@ -320,11 +336,46 @@ export default function AdminEditPage({
           </CardContent>
         </Card>
 
-        <div className="flex justify-end gap-4">
-          <Button variant="outline" asChild>
-            <Link href="/admin/admins">キャンセル</Link>
-          </Button>
-          <Button type="submit" variant="default" className="cursor-pointer">
+        <div className="flex justify-between items-center pt-4 border-t">
+          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+              >
+                <Trash2 className="h-4 w-4" />
+                削除
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-white">
+              <DialogHeader>
+                <DialogTitle>管理者を削除</DialogTitle>
+                <DialogDescription>
+                  {admin.lastName}{admin.firstName}（{admin.email}）を削除してもよろしいですか？
+                  <br />
+                  この操作は取り消せません。
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDeleteDialogOpen(false)}
+                  className="cursor-pointer"
+                >
+                  キャンセル
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleDelete}
+                  className="cursor-pointer text-destructive hover:text-destructive"
+                >
+                  削除
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Button type="submit" variant="outline" className="cursor-pointer">
             更新する
           </Button>
         </div>

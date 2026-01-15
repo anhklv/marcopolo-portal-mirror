@@ -79,7 +79,7 @@ export default function LoginPage() {
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" variant="outline" className="w-full" disabled={isLoading}>
             {isLoading ? "ログイン中..." : "ログイン"}
           </Button>
         </form>
