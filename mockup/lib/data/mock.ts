@@ -13,6 +13,7 @@ import type {
   SurveyResponse,
   FixedSurveyResponse,
   SurveyToken,
+  Admin,
 } from "@/lib/types";
 
 // 型定義を再エクスポート（既存コードとの互換性のため）
@@ -30,6 +31,7 @@ export type {
   SurveyResponse,
   FixedSurveyResponse,
   SurveyToken,
+  Admin,
 };
 
 // イベントのステータスを自動判定する関数
@@ -915,3 +917,55 @@ export function hasResponded(surveyId: string, customerId: string): boolean {
     (sr) => sr.surveyId === surveyId && sr.customerId === customerId
   );
 }
+
+// ===================================
+// 管理者データ
+// ===================================
+
+export const admins: Admin[] = [
+  {
+    id: "A001",
+    firstName: "太郎",
+    lastName: "管理",
+    email: "admin@example.com",
+    password: "password123",
+    role: "super",
+    lastLoginAt: "2026-01-15T10:00:00+09:00",
+    createdAt: "2024-01-01T00:00:00+09:00",
+    updatedAt: "2024-01-01T00:00:00+09:00",
+  },
+  {
+    id: "A002",
+    firstName: "花子",
+    lastName: "監査",
+    email: "venture@example.com",
+    password: "password123",
+    role: "community_admin",
+    communityScopes: ["ベンチャー監査役の会"],
+    lastLoginAt: "2026-01-14T15:30:00+09:00",
+    createdAt: "2024-02-01T00:00:00+09:00",
+    updatedAt: "2024-02-01T00:00:00+09:00",
+  },
+  {
+    id: "A003",
+    firstName: "次郎",
+    lastName: "内監",
+    email: "naikan@example.com",
+    password: "password123",
+    role: "community_admin",
+    communityScopes: ["ないかんMeetup"],
+    createdAt: "2024-03-01T00:00:00+09:00",
+    updatedAt: "2024-03-01T00:00:00+09:00",
+  },
+  {
+    id: "A004",
+    firstName: "三郎",
+    lastName: "両方",
+    email: "both@example.com",
+    password: "password123",
+    role: "community_admin",
+    communityScopes: ["ベンチャー監査役の会", "ないかんMeetup"],
+    createdAt: "2024-04-01T00:00:00+09:00",
+    updatedAt: "2024-04-01T00:00:00+09:00",
+  },
+];
