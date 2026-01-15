@@ -55,6 +55,21 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
+  button,
+  [role="button"],
+  a,
+  input[type="checkbox"],
+  input[type="radio"],
+  select {
+    cursor: pointer;
+  }
+  button:disabled,
+  [role="button"]:disabled,
+  input[type="checkbox"]:disabled,
+  input[type="radio"]:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
 }
 
 .markdown-content {

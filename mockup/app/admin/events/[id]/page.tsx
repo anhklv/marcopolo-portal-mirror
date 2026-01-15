@@ -119,9 +119,9 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   // 未回答者リスト
   const noResponseAttendees = allAttendees.filter((a) => a.rsvpStatus === "未回答");
 
-  // アンケート結果のデータ（ベンチャー監査役協会の場合のみ）
+  // アンケート結果のデータ（ベンチャー監査役の会の場合のみ）
   const surveyResults = useMemo(() => {
-    if (!survey || ((event as any).eventType || "ベンチャー監査役協会") !== "ベンチャー監査役協会") {
+    if (!survey || ((event as any).eventType || "ベンチャー監査役の会") !== "ベンチャー監査役の会") {
       return null;
     }
     const responses = getSurveyResponses(survey.id);
@@ -171,7 +171,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           <div>
             <div className="flex items-center gap-3">
               <Badge variant="outline" className="text-xs">
-                {(event as any).eventType || "ベンチャー監査役協会"}
+                {(event as any).eventType || "ベンチャー監査役の会"}
               </Badge>
               <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
             </div>
@@ -206,7 +206,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 </Link>
               </DropdownMenuItem>
             )}
-            {((event as any).eventType || "ベンチャー監査役協会") === "ベンチャー監査役協会" && (
+            {((event as any).eventType || "ベンチャー監査役の会") === "ベンチャー監査役の会" && (
               <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
                 <Link href={`/admin/events/${id}/survey/create`} className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
@@ -254,7 +254,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 <TabsList>
                     <TabsTrigger value="attendees" className="cursor-pointer">参加状況</TabsTrigger>
                     <TabsTrigger value="detail" className="cursor-pointer">詳細</TabsTrigger>
-                    {((event as any).eventType || "ベンチャー監査役協会") === "ベンチャー監査役協会" && (
+                    {((event as any).eventType || "ベンチャー監査役の会") === "ベンチャー監査役の会" && (
                       <TabsTrigger value="survey" className="cursor-pointer">アンケート結果</TabsTrigger>
                     )}
                 </TabsList>
@@ -410,7 +410,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                             <div className="grid gap-4">
                                 <div>
                                     <Label className="text-sm font-medium text-muted-foreground">イベント種別</Label>
-                                    <div className="mt-1 text-base">{(event as any).eventType || "ベンチャー監査役協会"}</div>
+                                    <div className="mt-1 text-base">{(event as any).eventType || "ベンチャー監査役の会"}</div>
                                 </div>
                                 
                                 <div>
@@ -457,7 +457,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                     </Card>
                 </TabsContent>
 
-                {((event as any).eventType || "ベンチャー監査役協会") === "ベンチャー監査役協会" && (
+                {((event as any).eventType || "ベンチャー監査役の会") === "ベンチャー監査役の会" && (
                   <TabsContent value="survey" className="space-y-4">
                     {survey && surveyResults && surveyResults.respondedCustomers.length > 0 ? (
                       <>
@@ -562,10 +562,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                               </div>
                             )}
 
-                            {/* 固定設問: ベンチャー監査役協会への入会について */}
+                            {/* 固定設問: ベンチャー監査役の会への入会について */}
                             {surveyResults.respondedCustomers.some((item) => item.customer!.communities.length === 0) && (
                               <div className="space-y-2 pt-4 border-t">
-                                <div className="font-medium">ベンチャー監査役協会への入会について</div>
+                                <div className="font-medium">ベンチャー監査役の会への入会について</div>
                                 {(() => {
                                   const membershipResponses = surveyResults.fixedResponses.filter((fr) => {
                                     const customer = customers.find((c) => c.id === fr.customerId);
@@ -621,7 +621,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                     {surveyResults.respondedCustomers.some((item) => item.customer!.communities.length === 0) && (
                                       <>
                                         <TableHead>今後の参加について</TableHead>
-                                        <TableHead>ベンチャー監査役協会への入会について</TableHead>
+                                        <TableHead>ベンチャー監査役の会への入会について</TableHead>
                                       </>
                                     )}
                                     <TableHead>ご意見・ご提案・感想等</TableHead>
@@ -846,7 +846,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                   参加回答フォーム (サンプル)
                 </Link>
               </div>
-              {event.eventType === "ベンチャー監査役協会" && (
+              {event.eventType === "ベンチャー監査役の会" && (
                 <>
                   <div>
                     <Link

@@ -74,7 +74,7 @@ export const customers: Customer[] = [
     originIndustry: "事業会社",
     membershipQualification: "監査役",
     memberCategory: "member",
-    communities: ["ベンチャー監査役協会", "ないかんMeetup"],
+    communities: ["ベンチャー監査役の会", "ないかんMeetup"],
     contractType: "corporate",
     auditMemberType: "regular",
     auditMemberPremium: false,
@@ -128,7 +128,7 @@ export const customers: Customer[] = [
     originIndustry: "製造業",
     membershipQualification: "監査役",
     memberCategory: "member",
-    communities: ["ベンチャー監査役協会"],
+    communities: ["ベンチャー監査役の会"],
     contractType: "corporate",
     auditMemberType: "regular",
     status: "inactive",
@@ -161,7 +161,7 @@ export const customers: Customer[] = [
     originIndustry: "事業会社",
     membershipQualification: "監査役",
     memberCategory: "member",
-    communities: ["ベンチャー監査役協会", "ないかんMeetup"],
+    communities: ["ベンチャー監査役の会", "ないかんMeetup"],
     contractType: "corporate",
     auditMemberType: "regular",
     note: "新規入会（両方の会員）",
@@ -199,7 +199,7 @@ export const customers: Customer[] = [
     originIndustry: "金融機関",
     membershipQualification: "監査役",
     memberCategory: "member",
-    communities: ["ベンチャー監査役協会"],
+    communities: ["ベンチャー監査役の会"],
     contractType: "corporate",
     auditMemberType: "online",
     note: "紹介者: 山田",
@@ -237,7 +237,7 @@ export const customers: Customer[] = [
     originIndustry: "コンサルティング",
     membershipQualification: "監査役",
     memberCategory: "member",
-    communities: ["ベンチャー監査役協会"],
+    communities: ["ベンチャー監査役の会"],
     contractType: "corporate",
     auditMemberType: "regular",
     auditMemberPremium: true,
@@ -272,7 +272,7 @@ export const customers: Customer[] = [
     originIndustry: "事業会社",
     membershipQualification: "監査役",
     memberCategory: "member",
-    communities: ["ベンチャー監査役協会", "ないかんMeetup"],
+    communities: ["ベンチャー監査役の会", "ないかんMeetup"],
     contractType: "corporate",
     auditMemberType: "regular",
     note: "両方の会員",
@@ -288,7 +288,7 @@ export const events: Event[] = [
     date: "2028-06-15T18:00:00+09:00",
     location: "東京都港区六本木 1-1-1 会議室A",
     description: "定例の監査役交流会です。今回のテーマは「ガバナンス改革」について。\n\n企業のガバナンス改革において、監査役が果たすべき役割について、実務経験豊富な監査役の方々と意見交換を行います。近年のコーポレートガバナンス・コードの改訂や、ESG経営の重要性が高まる中、監査役としてどのような視点で経営を監視すべきか、具体的な事例を交えながら議論します。",
-    eventType: "ベンチャー監査役協会",
+    eventType: "ベンチャー監査役の会",
     timetable: "18:00-18:30  受付・名刺交換\n18:30-19:00  開会挨拶・テーマ説明\n19:00-20:30  パネルディスカッション「ガバナンス改革と監査役の役割」\n20:30-21:00  質疑応答・意見交換\n21:00-       懇親会",
     note: "会場は最寄り駅から徒歩5分です。\n駐車場はございませんので、公共交通機関をご利用ください。\n懇親会は別会場で開催いたします。\nオンライン参加の方にはZoomのURLを別途お送りいたします。",
     attendeesCount: 24,
@@ -326,7 +326,7 @@ export const events: Event[] = [
     date: "2024-03-20T18:00:00+09:00",
     location: "東京都港区六本木 1-1-1 会議室A",
     description: "定例の監査役交流会です。今回のテーマは「リスク管理の実践」について。\n\n企業経営においてリスク管理は重要なテーマです。監査役として、経営陣が適切にリスクを識別・評価・対応しているかを監視する立場から、実践的なリスク管理のあり方について議論します。特に、新興リスク（サイバーセキュリティ、気候変動リスクなど）への対応についても取り上げます。",
-    eventType: "ベンチャー監査役協会",
+    eventType: "ベンチャー監査役の会",
     timetable: "18:00-18:30  受付・名刺交換\n18:30-19:00  開会挨拶・テーマ説明\n19:00-20:30  パネルディスカッション「リスク管理の実践」\n20:30-21:00  質疑応答・意見交換\n21:00-       懇親会",
     note: "会場は最寄り駅から徒歩5分です。\n駐車場はございませんので、公共交通機関をご利用ください。\n懇親会は別会場で開催いたします。",
     attendeesCount: 28,
@@ -349,8 +349,8 @@ export const events: Event[] = [
     title: "【新年会】監査役・内部監査人交流会",
     date: "2024-01-25T18:30:00+09:00",
     location: "東京都中央区銀座 レストラン",
-    description: "新年を祝う交流会。親睦を深めながら情報交換を行います。\n\nベンチャー監査役協会とないかんMeetupの合同新年会です。監査役や内部監査人として活動されている皆様が一堂に会し、新年の抱負を語り合いながら、親睦を深める場です。異なる立場の方々との交流を通じて、新たな視点や気づきを得られる機会となることを期待しています。",
-    eventType: "ベンチャー監査役協会",
+    description: "新年を祝う交流会。親睦を深めながら情報交換を行います。\n\nベンチャー監査役の会とないかんMeetupの合同新年会です。監査役や内部監査人として活動されている皆様が一堂に会し、新年の抱負を語り合いながら、親睦を深める場です。異なる立場の方々との交流を通じて、新たな視点や気づきを得られる機会となることを期待しています。",
+    eventType: "ベンチャー監査役の会",
     timetable: "18:30-19:00  受付・ドリンク\n19:00-19:15  開会挨拶・乾杯\n19:15-20:30  食事・歓談\n20:30-21:00  新年の抱負を語る会\n21:00-       二次会（希望者のみ）",
     note: "会場の詳細な住所は参加確定後にお知らせいたします。\n会費は当日現金でお支払いください（5,000円程度を予定）。\nアレルギーや食事制限がある方は事前にお知らせください。\n二次会は別会場で開催いたします（参加費別途）。",
     attendeesCount: 35,
@@ -364,7 +364,7 @@ export const events: Event[] = [
     date: "2028-08-25T18:00:00+09:00",
     location: "東京都港区六本木 1-1-1 会議室A",
     description: "定例の監査役交流会です。今回のテーマは「ESG経営と監査の役割」について。\n\nESG（環境・社会・ガバナンス）経営が企業価値向上の鍵となる中、監査役としてESG経営をどのように監視すべきかが重要な課題となっています。本交流会では、ESG経営の実践事例や、ESG情報の開示・監査のあり方について、実務経験豊富な監査役の方々と議論します。",
-    eventType: "ベンチャー監査役協会",
+    eventType: "ベンチャー監査役の会",
     timetable: "18:00-18:30  受付・名刺交換\n18:30-19:00  開会挨拶・テーマ説明\n19:00-20:30  パネルディスカッション「ESG経営と監査の役割」\n20:30-21:00  質疑応答・意見交換\n21:00-       懇親会",
     note: "会場は最寄り駅から徒歩5分です。\n駐車場はございませんので、公共交通機関をご利用ください。\n懇親会は別会場で開催いたします。\n※本イベントは現在一時停止中です。",
     attendeesCount: 18,
@@ -389,7 +389,7 @@ export const events: Event[] = [
     date: "2028-10-12T14:00:00+09:00",
     location: "東京都千代田区丸の内 セミナールーム",
     description: "社外監査役の最新動向について、専門家を招いてセミナーを開催します。\n\n社外監査役の実務は日々進化しています。本セミナーでは、監査法人の監査部門で長年実務に携わってこられた専門家をお招きし、社外監査役の最新動向についてお話しいただきます。\n\n特に、リスクベース監査の実践、データ分析を活用した監査手法、監査報告書の作成方法など、実務に直結する内容を扱います。",
-    eventType: "ベンチャー監査役協会",
+    eventType: "ベンチャー監査役の会",
     timetable: "13:30-14:00  受付\n14:00-14:10  開会挨拶\n14:10-15:40  講演「社外監査役の最新動向と実践」\n15:40-16:00  休憩\n16:00-16:50  質疑応答・ディスカッション\n16:50-17:00  閉会挨拶",
     note: "会場の詳細な住所は参加確定後にお知らせいたします。\nセミナー資料は事前にPDFでお送りいたします。\nオンライン参加も可能です（Zoom）。\nCPE（継続専門教育）単位の申請を予定しています。",
     attendeesCount: 32,
@@ -403,7 +403,7 @@ export const events: Event[] = [
     date: "2026-11-14T22:00:00+09:00",
     location: "東京都港区六本木 1-1-1 会議室A",
     description: "定例の監査役交流会です。今回のテーマは「コーポレートガバナンスの実践」について。\n\nコーポレートガバナンスは企業の健全な経営を支える重要な仕組みです。監査役として、経営陣や取締役会が適切にガバナンスを実践しているかを監視する立場から、実践的なコーポレートガバナンスのあり方について議論します。\n\n特に、取締役会の実効性向上、経営陣との適切な距離感、ステークホルダーとの対話など、監査役の実務に直結するテーマを取り上げます。",
-    eventType: "ベンチャー監査役協会",
+    eventType: "ベンチャー監査役の会",
     timetable: "22:00-22:30  受付・名刺交換\n22:30-23:00  開会挨拶・テーマ説明\n23:00-24:30  パネルディスカッション「コーポレートガバナンスの実践」\n24:30-25:00  質疑応答・意見交換\n25:00-       懇親会",
     note: "会場は最寄り駅から徒歩5分です。\n駐車場はございませんので、公共交通機関をご利用ください。\n懇親会は別会場で開催いたします。\nオンライン参加の方にはZoomのURLを別途お送りいたします。",
     attendeesCount: 20,
@@ -687,10 +687,10 @@ export function getRSVPByEmail(eventId: string, email: string): RSVP | null {
 export function getCommunityDisplayName(communities: Community[]): string {
   if (communities.length === 0) return "非会員";
 
-  // ソートして表示順を固定（ベンチャー監査役協会が先）
+  // ソートして表示順を固定（ベンチャー監査役の会が先）
   const sorted = [...communities].sort();
 
-  if (sorted.length === 2) return "ベンチャー監査役協会・ないかんMeetup";
+  if (sorted.length === 2) return "ベンチャー監査役の会・ないかんMeetup";
   return sorted[0];
 }
 

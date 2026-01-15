@@ -76,7 +76,7 @@ export function getInviteEmailTemplate(event: EventData): { title: string; body:
   const title = `【${event.title}】ご案内`;
   const body = `いつも大変お世話になっております。
 
-一般社団法人ベンチャー監査役協会の黒坂です。
+一般社団法人ベンチャー監査役の会の黒坂です。
 ${event.title}のご案内です。
 
 ${event.description ? `【イベント概要】\n${event.description}\n\n` : ""}${event.date ? `【開催日時】\n${formatEventDate(event.date)}\n\n` : ""}${event.timetable ? `【タイムテーブル】\n${event.timetable}\n\n` : ""}${event.location ? `【場所】\n${event.location}\n\n` : ""}ご参加の可否について、以下のURLよりご回答をお願いいたします。
@@ -96,7 +96,7 @@ export function getRemindEmailTemplate(event: EventData): { title: string; body:
   const title = `【${event.title}】参加可否のご回答をお願いします`;
   const body = `いつも大変お世話になっております。
 
-一般社団法人ベンチャー監査役協会の黒坂です。
+一般社団法人ベンチャー監査役の会の黒坂です。
 ${event.title}のご案内です。
 
 ${event.description ? `【イベント概要】\n${event.description}\n\n` : ""}${event.date ? `【開催日時】\n${formatEventDate(event.date)}\n\n` : ""}${event.timetable ? `【タイムテーブル】\n${event.timetable}\n\n` : ""}${event.location ? `【場所】\n${event.location}\n\n` : ""}まだ参加可否のご回答をいただいておりません。

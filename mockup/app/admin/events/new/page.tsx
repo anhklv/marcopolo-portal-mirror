@@ -35,7 +35,7 @@ export default function NewEventPage() {
   const [createdEventId, setCreatedEventId] = useState<string | null>(null);
 
   // フォームデータ
-  const [eventType, setEventType] = useState<EventType>("ベンチャー監査役協会");
+  const [eventType, setEventType] = useState<EventType>("ベンチャー監査役の会");
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [overview, setOverview] = useState("");

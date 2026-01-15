@@ -54,7 +54,7 @@ export default function EventInvitePage({
   const [emailBody, setEmailBody] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [memberCategories, setMemberCategories] = useState<("member" | "sponsor" | "observer")[]>([]);
-  const [organizations, setOrganizations] = useState<("ベンチャー監査役協会" | "ないかんMeetup" | "非会員")[]>([]);
+  const [organizations, setOrganizations] = useState<("ベンチャー監査役の会" | "ないかんMeetup" | "非会員")[]>([]);
   const [auditMemberTypes, setAuditMemberTypes] = useState<("regular" | "online")[]>([]);
   const [premiumOnly, setPremiumOnly] = useState(false);
   const [inviteStatuses, setInviteStatuses] = useState<string[]>([]);
@@ -134,12 +134,12 @@ export default function EventInvitePage({
     }
   };
 
-  const handleOrganizationChange = (org: "ベンチャー監査役協会" | "ないかんMeetup" | "非会員", checked: boolean) => {
+  const handleOrganizationChange = (org: "ベンチャー監査役の会" | "ないかんMeetup" | "非会員", checked: boolean) => {
     if (checked) {
       setOrganizations([...organizations, org]);
     } else {
       setOrganizations(organizations.filter((o) => o !== org));
-      if (org === "ベンチャー監査役協会") {
+      if (org === "ベンチャー監査役の会") {
         setAuditMemberTypes([]);
         setPremiumOnly(false);
       }
@@ -178,7 +178,7 @@ export default function EventInvitePage({
       parts.push(`(${categoryLabels.join("・")})`);
     }
     
-    if (organizations.includes("ベンチャー監査役協会") && auditMemberTypes.length > 0) {
+    if (organizations.includes("ベンチャー監査役の会") && auditMemberTypes.length > 0) {
       if (auditMemberTypes.length === 1) {
         const typeLabel = auditMemberTypes[0] === "regular" ? "正会員" : "オンライン会員";
         parts.push(typeLabel);
@@ -224,13 +224,13 @@ export default function EventInvitePage({
           customer.company?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
           customer.email.toLowerCase().includes(searchKeyword.toLowerCase());
 
-        // 所属コミュニティフィルタ（ベンチャー監査役協会、ないかんMeetup、非会員）
+        // 所属コミュニティフィルタ（ベンチャー監査役の会、ないかんMeetup、非会員）
         let matchesOrganizations = true;
         if (organizations.length > 0) {
           const hasNonMember = organizations.includes("非会員");
           const hasOrganizations = organizations.some((org) => {
-            if (org === "ベンチャー監査役協会") {
-              return customer.communities.includes("ベンチャー監査役協会");
+            if (org === "ベンチャー監査役の会") {
+              return customer.communities.includes("ベンチャー監査役の会");
             }
             if (org === "ないかんMeetup") {
               return customer.communities.includes("ないかんMeetup");
@@ -254,9 +254,9 @@ export default function EventInvitePage({
           matchesMemberCategory = customer.memberCategory ? memberCategories.includes(customer.memberCategory) : false;
         }
 
-        // ベンチャー監査役協会の会員種別フィルタ
+        // ベンチャー監査役の会の会員種別フィルタ
         let matchesAuditMemberType = true;
-        if (organizations.includes("ベンチャー監査役協会") && auditMemberTypes.length > 0) {
+        if (organizations.includes("ベンチャー監査役の会") && auditMemberTypes.length > 0) {
           if (memberCategories.length === 0) {
             matchesAuditMemberType = 
               (customer.memberCategory === "member" && customer.auditMemberType && auditMemberTypes.includes(customer.auditMemberType)) ||
@@ -431,13 +431,13 @@ export default function EventInvitePage({
                         <div className="flex items-center space-x-2">
                           <Checkbox
                             id="org-audit-invite"
-                            checked={organizations.includes("ベンチャー監査役協会")}
+                            checked={organizations.includes("ベンチャー監査役の会")}
                             onCheckedChange={(checked) =>
-                              handleOrganizationChange("ベンチャー監査役協会", checked === true)
+                              handleOrganizationChange("ベンチャー監査役の会", checked === true)
                             }
                           />
                           <Label htmlFor="org-audit-invite" className="cursor-pointer text-sm">
-                            ベンチャー監査役協会
+                            ベンチャー監査役の会
                           </Label>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -466,7 +466,7 @@ export default function EventInvitePage({
                     </div>
 
                     {/* 会員区分選択（コミュニティを選択した場合のみ表示） */}
-                    {(organizations.includes("ベンチャー監査役協会") || organizations.includes("ないかんMeetup")) && (
+                    {(organizations.includes("ベンチャー監査役の会") || organizations.includes("ないかんMeetup")) && (
                       <div className="space-y-2 border-t pt-4">
                         <Label className="text-sm font-semibold">会員区分</Label>
                         <div className="space-y-2">
@@ -504,10 +504,10 @@ export default function EventInvitePage({
                       </div>
                     )}
 
-                    {/* ベンチャー監査役協会の会員種別（ベンチャー監査役協会を選択している場合のみ表示） */}
-                    {organizations.includes("ベンチャー監査役協会") && (
+                    {/* ベンチャー監査役の会の会員種別（ベンチャー監査役の会を選択している場合のみ表示） */}
+                    {organizations.includes("ベンチャー監査役の会") && (
                       <div className="space-y-2 border-t pt-4">
-                        <Label className="text-sm font-semibold">ベンチャー監査役協会 会員種別</Label>
+                        <Label className="text-sm font-semibold">ベンチャー監査役の会 会員種別</Label>
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
                             <Checkbox
@@ -533,8 +533,8 @@ export default function EventInvitePage({
                       </div>
                     )}
 
-                    {/* プレミアム会員（ベンチャー監査役協会を選択している場合のみ表示） */}
-                    {organizations.includes("ベンチャー監査役協会") && (
+                    {/* プレミアム会員（ベンチャー監査役の会を選択している場合のみ表示） */}
+                    {organizations.includes("ベンチャー監査役の会") && (
                       <div className="space-y-2 border-t pt-4">
                         <div className="flex items-center space-x-2">
                           <Checkbox
@@ -676,7 +676,7 @@ export default function EventInvitePage({
                                 </Badge>
                               );
                             } else if (customer.memberCategory === "member") {
-                              const hasAudit = customer.communities.includes("ベンチャー監査役協会");
+                              const hasAudit = customer.communities.includes("ベンチャー監査役の会");
                               const hasNaikan = customer.communities.includes("ないかんMeetup");
                               
                               if (hasNaikan && !hasAudit) {
@@ -689,14 +689,14 @@ export default function EventInvitePage({
                                 const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                                 badges.push(
                                   <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
-                                    ベンチャー監査役協会({auditType})
+                                    ベンチャー監査役の会({auditType})
                                   </Badge>
                                 );
                               } else if (hasAudit && hasNaikan) {
                                 const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                                 badges.push(
                                   <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
-                                    ベンチャー監査役協会({auditType})
+                                    ベンチャー監査役の会({auditType})
                                   </Badge>
                                 );
                                 badges.push(
@@ -721,10 +721,10 @@ export default function EventInvitePage({
                                   </Badge>
                                 );
                               }
-                              if (customer.communities.includes("ベンチャー監査役協会")) {
+                              if (customer.communities.includes("ベンチャー監査役の会")) {
                                 badges.push(
                                   <Badge key="sponsor-audit" variant="default" className="text-xs px-2 py-0.5">
-                                    ベンチャー監査役協会(スポンサー)
+                                    ベンチャー監査役の会(スポンサー)
                                   </Badge>
                                 );
                               }
@@ -736,10 +736,10 @@ export default function EventInvitePage({
                                   </Badge>
                                 );
                               }
-                              if (customer.communities.includes("ベンチャー監査役協会")) {
+                              if (customer.communities.includes("ベンチャー監査役の会")) {
                                 badges.push(
                                   <Badge key="observer-audit" variant="default" className="text-xs px-2 py-0.5">
-                                    ベンチャー監査役協会(オブザーバー)
+                                    ベンチャー監査役の会(オブザーバー)
                                   </Badge>
                                 );
                               }

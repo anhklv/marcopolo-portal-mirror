@@ -110,10 +110,10 @@ export default function CustomerDetailPage({
         </Button>
       </div>
 
-      {/* 会員情報など */}
+      {/* 会員情報 */}
       <Card>
         <CardHeader>
-          <CardTitle>会員情報など</CardTitle>
+          <CardTitle>会員情報</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -131,7 +131,7 @@ export default function CustomerDetailPage({
                       </Badge>
                     );
                   } else if (customer.memberCategory === "member") {
-                    const hasAudit = customer.communities.includes("ベンチャー監査役協会");
+                    const hasAudit = customer.communities.includes("ベンチャー監査役の会");
                     const hasNaikan = customer.communities.includes("ないかんMeetup");
                     
                     if (hasNaikan && !hasAudit) {
@@ -144,14 +144,14 @@ export default function CustomerDetailPage({
                       const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                       badges.push(
                         <Badge key="audit-member" variant="default" className="text-base px-3 py-1">
-                          ベンチャー監査役協会({auditType})
+                          ベンチャー監査役の会({auditType})
                         </Badge>
                       );
                     } else if (hasAudit && hasNaikan) {
                       const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                       badges.push(
                         <Badge key="audit-member" variant="default" className="text-base px-3 py-1">
-                          ベンチャー監査役協会({auditType})
+                          ベンチャー監査役の会({auditType})
                         </Badge>
                       );
                       badges.push(
@@ -177,10 +177,10 @@ export default function CustomerDetailPage({
                         </Badge>
                       );
                     }
-                    if (customer.communities.includes("ベンチャー監査役協会")) {
+                    if (customer.communities.includes("ベンチャー監査役の会")) {
                       badges.push(
                         <Badge key="sponsor-audit" variant="default" className="text-base px-3 py-1">
-                          ベンチャー監査役協会(スポンサー)
+                          ベンチャー監査役の会(スポンサー)
                         </Badge>
                       );
                     }
@@ -192,10 +192,10 @@ export default function CustomerDetailPage({
                         </Badge>
                       );
                     }
-                    if (customer.communities.includes("ベンチャー監査役協会")) {
+                    if (customer.communities.includes("ベンチャー監査役の会")) {
                       badges.push(
                         <Badge key="observer-audit" variant="default" className="text-base px-3 py-1">
-                          ベンチャー監査役協会(オブザーバー)
+                          ベンチャー監査役の会(オブザーバー)
                         </Badge>
                       );
                     }
@@ -299,6 +299,17 @@ export default function CustomerDetailPage({
                 <p className="text-base">{GENDER_LABELS[customer.gender]}</p>
               </div>
             ) : null}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* その他情報 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>その他情報</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
             {customer.listingCategory ? (
               <div>
                 <p className="text-sm font-medium text-muted-foreground">上場区分</p>

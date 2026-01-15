@@ -39,7 +39,7 @@ export default function NewCustomerPage() {
   // 会員区分
   const [memberCategory, setMemberCategory] = useState<"member" | "sponsor" | "observer" | undefined>("member");
 
-  // ベンチャー監査役協会 詳細
+  // ベンチャー監査役の会 詳細
   const [auditMemberType, setAuditMemberType] = useState<string>("");
   const [auditMemberPremium, setAuditMemberPremium] = useState(false);
   const [auditJoinedAt, setAuditJoinedAt] = useState<string>("");
@@ -107,9 +107,9 @@ export default function NewCustomerPage() {
         return;
       }
 
-      // ベンチャー監査役協会が選択され、かつ会員の場合、会員種別は必須
+      // ベンチャー監査役の会が選択され、かつ会員の場合、会員種別は必須
       if (auditCommunityChecked && memberCategory === "member" && !auditMemberType) {
-        toast.error("ベンチャー監査役協会の会員種別を選択してください");
+        toast.error("ベンチャー監査役の会の会員種別を選択してください");
         return;
       }
     }
@@ -152,7 +152,7 @@ export default function NewCustomerPage() {
                     checked={auditCommunityChecked} 
                     onCheckedChange={(c) => setAuditCommunityChecked(c === true)} 
                   />
-                  <Label htmlFor="audit-community" className="cursor-pointer">ベンチャー監査役協会</Label>
+                  <Label htmlFor="audit-community" className="cursor-pointer">ベンチャー監査役の会</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox 
@@ -213,15 +213,15 @@ export default function NewCustomerPage() {
                   </RadioGroup>
                 </div>
 
-                {/* ベンチャー監査役協会 詳細 */}
+                {/* ベンチャー監査役の会 詳細 */}
                 {auditCommunityChecked && (
                   <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
-                    <Label className="font-semibold text-base">ベンチャー監査役協会</Label>
+                    <Label className="font-semibold text-base">ベンチャー監査役の会</Label>
                     
                     {/* 会員の場合のみ会員種別とプレミアム表示 */}
                     {memberCategory === "member" && (
                       <div className="grid gap-2">
-                        <Label className="text-sm font-medium">ベンチャー監査役協会 会員種別 <span className="text-red-500">*</span></Label>
+                        <Label className="text-sm font-medium">ベンチャー監査役の会 会員種別 <span className="text-red-500">*</span></Label>
                         <div className="flex items-center gap-4">
                           <Select value={auditMemberType} onValueChange={setAuditMemberType}>
                             <SelectTrigger className="w-[300px] bg-white">

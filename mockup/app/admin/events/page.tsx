@@ -180,7 +180,7 @@ export default function EventsPage() {
             </div>
             <div className="p-2 max-h-[300px] overflow-y-auto">
               {[
-                { value: "ベンチャー監査役協会", label: "ベンチャー監査役協会" },
+                { value: "ベンチャー監査役の会", label: "ベンチャー監査役の会" },
                 { value: "ないかんMeetup", label: "ないかんMeetup" },
                 { value: "その他", label: "その他" },
               ]

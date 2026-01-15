@@ -88,7 +88,7 @@ export const LISTING_OPTIONS = [
   { exchange: "札幌証券取引所", markets: ["本則市場", "アンビシャス"] },
 ] as const;
 
-// ベンチャー監査役協会の会員種別
+// ベンチャー監査役の会の会員種別
 export const AUDIT_MEMBER_TYPES = [
   { value: "regular", label: "正会員" },
   { value: "online", label: "オンライン会員" },

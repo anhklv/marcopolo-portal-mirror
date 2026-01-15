@@ -238,7 +238,7 @@ export default function EventRemindPage({
                                   </Badge>
                                 );
                               } else if (attendee.memberCategory === "member") {
-                                const hasAudit = attendee.communities.includes("ベンチャー監査役協会");
+                                const hasAudit = attendee.communities.includes("ベンチャー監査役の会");
                                 const hasNaikan = attendee.communities.includes("ないかんMeetup");
                                 
                                 if (hasNaikan && !hasAudit) {
@@ -251,14 +251,14 @@ export default function EventRemindPage({
                                   const auditType = attendee.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                                   badges.push(
                                     <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
-                                      ベンチャー監査役協会({auditType})
+                                      ベンチャー監査役の会({auditType})
                                     </Badge>
                                   );
                                 } else if (hasAudit && hasNaikan) {
                                   const auditType = attendee.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                                   badges.push(
                                     <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
-                                      ベンチャー監査役協会({auditType})
+                                      ベンチャー監査役の会({auditType})
                                     </Badge>
                                   );
                                   badges.push(
@@ -283,10 +283,10 @@ export default function EventRemindPage({
                                     </Badge>
                                   );
                                 }
-                                if (attendee.communities.includes("ベンチャー監査役協会")) {
+                                if (attendee.communities.includes("ベンチャー監査役の会")) {
                                   badges.push(
                                     <Badge key="sponsor-audit" variant="default" className="text-xs px-2 py-0.5">
-                                      ベンチャー監査役協会(スポンサー)
+                                      ベンチャー監査役の会(スポンサー)
                                     </Badge>
                                   );
                                 }
@@ -298,10 +298,10 @@ export default function EventRemindPage({
                                     </Badge>
                                   );
                                 }
-                                if (attendee.communities.includes("ベンチャー監査役協会")) {
+                                if (attendee.communities.includes("ベンチャー監査役の会")) {
                                   badges.push(
                                     <Badge key="observer-audit" variant="default" className="text-xs px-2 py-0.5">
-                                      ベンチャー監査役協会(オブザーバー)
+                                      ベンチャー監査役の会(オブザーバー)
                                     </Badge>
                                   );
                                 }

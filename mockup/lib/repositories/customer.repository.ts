@@ -8,8 +8,8 @@ import type { IRepository } from "./base.repository";
 export interface CustomerFilters {
   keyword?: string; // 名前、会社名、メールアドレスで検索
   memberCategories?: MemberCategory[]; // 会員区分でフィルタ（会員の場合のみ）
-  organizations?: string[]; // コミュニティ（ベンチャー監査役協会、ないかんMeetup、非会員）でフィルタ
-  auditMemberTypes?: ("regular" | "online")[]; // ベンチャー監査役協会の会員種別
+  organizations?: string[]; // コミュニティ（ベンチャー監査役の会、ないかんMeetup、非会員）でフィルタ
+  auditMemberTypes?: ("regular" | "online")[]; // ベンチャー監査役の会の会員種別
   premiumOnly?: boolean; // プレミアム会員のみ
   statuses?: ("active" | "inactive")[]; // ステータスでフィルタ
 }
@@ -41,7 +41,7 @@ class MockCustomerRepository implements IRepository<Customer> {
       );
     }
 
-    // 所属コミュニティでフィルタ（ベンチャー監査役協会、ないかんMeetup、非会員）
+    // 所属コミュニティでフィルタ（ベンチャー監査役の会、ないかんMeetup、非会員）
     if (filters?.organizations && filters.organizations.length > 0) {
       results = results.filter((c) => {
         const hasNonMember = filters.organizations!.includes("非会員");
@@ -58,7 +58,7 @@ class MockCustomerRepository implements IRepository<Customer> {
       });
     }
 
-    // ベンチャー監査役協会の会員種別でフィルタ
+    // ベンチャー監査役の会の会員種別でフィルタ
     if (
       filters?.auditMemberTypes &&
       filters.auditMemberTypes.length > 0

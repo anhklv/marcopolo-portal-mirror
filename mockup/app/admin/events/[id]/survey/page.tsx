@@ -237,13 +237,13 @@ export default function EventSurveyPage({
     );
   }
 
-  // ベンチャー監査役協会のイベントのみアンケート送信可能
-  const eventType = (event as any).eventType || "ベンチャー監査役協会";
-  if (eventType !== "ベンチャー監査役協会") {
+  // ベンチャー監査役の会のイベントのみアンケート送信可能
+  const eventType = (event as any).eventType || "ベンチャー監査役の会";
+  if (eventType !== "ベンチャー監査役の会") {
     return (
       <div className="max-w-4xl space-y-6">
         <div className="text-center py-12">
-          <p className="text-muted-foreground">アンケートメールはベンチャー監査役協会のイベントのみ送信できます。</p>
+          <p className="text-muted-foreground">アンケートメールはベンチャー監査役の会のイベントのみ送信できます。</p>
           <Button variant="outline" asChild className="mt-4">
             <Link href={`/admin/events/${id}`}>イベント詳細に戻る</Link>
           </Button>
@@ -343,7 +343,7 @@ export default function EventSurveyPage({
                                 </Badge>
                               );
                             } else if (attendee.memberCategory === "member") {
-                              const hasAudit = attendee.communities.includes("ベンチャー監査役協会");
+                              const hasAudit = attendee.communities.includes("ベンチャー監査役の会");
                               const hasNaikan = attendee.communities.includes("ないかんMeetup");
                               
                               if (hasNaikan && !hasAudit) {
@@ -356,14 +356,14 @@ export default function EventSurveyPage({
                                 const auditType = attendee.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                                 badges.push(
                                   <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
-                                    ベンチャー監査役協会({auditType})
+                                    ベンチャー監査役の会({auditType})
                                   </Badge>
                                 );
                               } else if (hasAudit && hasNaikan) {
                                 const auditType = attendee.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                                 badges.push(
                                   <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
-                                    ベンチャー監査役協会({auditType})
+                                    ベンチャー監査役の会({auditType})
                                   </Badge>
                                 );
                                 badges.push(
@@ -388,10 +388,10 @@ export default function EventSurveyPage({
                                   </Badge>
                                 );
                               }
-                              if (attendee.communities.includes("ベンチャー監査役協会")) {
+                              if (attendee.communities.includes("ベンチャー監査役の会")) {
                                 badges.push(
                                   <Badge key="sponsor-audit" variant="default" className="text-xs px-2 py-0.5">
-                                    ベンチャー監査役協会(スポンサー)
+                                    ベンチャー監査役の会(スポンサー)
                                   </Badge>
                                 );
                               }
@@ -403,10 +403,10 @@ export default function EventSurveyPage({
                                   </Badge>
                                 );
                               }
-                              if (attendee.communities.includes("ベンチャー監査役協会")) {
+                              if (attendee.communities.includes("ベンチャー監査役の会")) {
                                 badges.push(
                                   <Badge key="observer-audit" variant="default" className="text-xs px-2 py-0.5">
-                                    ベンチャー監査役協会(オブザーバー)
+                                    ベンチャー監査役の会(オブザーバー)
                                   </Badge>
                                 );
                               }

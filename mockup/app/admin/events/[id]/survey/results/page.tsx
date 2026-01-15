@@ -210,10 +210,10 @@ export default function SurveyResultsPage({
             </div>
           )}
 
-          {/* 固定設問: ベンチャー監査役協会への入会について */}
+          {/* 固定設問: ベンチャー監査役の会への入会について */}
           {respondedCustomers.some((item) => item.customer!.communities.length === 0) && (
             <div className="space-y-2 pt-4 border-t">
-              <div className="font-medium">ベンチャー監査役協会への入会について</div>
+              <div className="font-medium">ベンチャー監査役の会への入会について</div>
               {(() => {
                 const membershipResponses = fixedResponses.filter((fr) => {
                   const customer = customers.find((c) => c.id === fr.customerId);
@@ -271,7 +271,7 @@ export default function SurveyResultsPage({
                 {respondedCustomers.some((item) => item.customer!.communities.length === 0) && (
                   <>
                     <TableHead>今後の参加について</TableHead>
-                    <TableHead>ベンチャー監査役協会への入会について</TableHead>
+                    <TableHead>ベンチャー監査役の会への入会について</TableHead>
                   </>
                 )}
                 <TableHead>ご意見・ご提案・感想等</TableHead>

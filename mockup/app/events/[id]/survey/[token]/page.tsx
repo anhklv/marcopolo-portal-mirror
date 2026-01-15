@@ -53,8 +53,8 @@ export default function SurveyAnswerPage({
     // モック用：demo-tokenの場合はダミーデータを使用（会員向け）
     if (token === "demo-token") {
       const demoCustomer = customers[0];
-      // ベンチャー監査役協会のイベントの場合は2つの設問を設定
-      const questions = event?.eventType === "ベンチャー監査役協会"
+      // ベンチャー監査役の会のイベントの場合は2つの設問を設定
+      const questions = event?.eventType === "ベンチャー監査役の会"
         ? [
             { id: "q1", title: "第1部　ベンチャー企業における常勤監査役の役割", order: 1 },
             { id: "q2", title: "第2部　監査役座談会", order: 2 },
@@ -80,7 +80,7 @@ export default function SurveyAnswerPage({
       setFixedAnswers({
         afterParty: event?.hasAfterParty ? { rating: "", reason: "" } : undefined,
         futureParticipation: { rating: "", reason: "" }, // 全員必須
-        membership: event?.eventType === "ベンチャー監査役協会" && !demoCustomer.communities.includes("ベンチャー監査役協会") ? { rating: "", reason: "" } : undefined,
+        membership: event?.eventType === "ベンチャー監査役の会" && !demoCustomer.communities.includes("ベンチャー監査役の会") ? { rating: "", reason: "" } : undefined,
         comments: "",
       });
       setDataLoaded(true);
@@ -99,7 +99,7 @@ export default function SurveyAnswerPage({
           questions = JSON.parse(previewQuestionsJson) as SurveyQuestion[];
         } catch (e) {
           // JSON解析に失敗した場合はデフォルトの設問を使用
-          questions = event?.eventType === "ベンチャー監査役協会"
+          questions = event?.eventType === "ベンチャー監査役の会"
             ? [
                 { id: "q1", title: "第1部　ベンチャー企業における常勤監査役の役割", order: 1 },
                 { id: "q2", title: "第2部　監査役座談会", order: 2 },
@@ -110,7 +110,7 @@ export default function SurveyAnswerPage({
         }
       } else {
         // プレビュー用の設問がない場合はデフォルトの設問を使用
-        questions = event?.eventType === "ベンチャー監査役協会"
+        questions = event?.eventType === "ベンチャー監査役の会"
           ? [
               { id: "q1", title: "第1部　ベンチャー企業における常勤監査役の役割", order: 1 },
               { id: "q2", title: "第2部　監査役座談会", order: 2 },
@@ -137,7 +137,7 @@ export default function SurveyAnswerPage({
       setFixedAnswers({
         afterParty: event?.hasAfterParty ? { rating: "", reason: "" } : undefined,
         futureParticipation: { rating: "", reason: "" }, // 全員必須
-        membership: event?.eventType === "ベンチャー監査役協会" && !demoCustomer.communities.includes("ベンチャー監査役協会") ? { rating: "", reason: "" } : undefined,
+        membership: event?.eventType === "ベンチャー監査役の会" && !demoCustomer.communities.includes("ベンチャー監査役の会") ? { rating: "", reason: "" } : undefined,
         comments: "",
       });
       setDataLoaded(true);
@@ -170,7 +170,7 @@ export default function SurveyAnswerPage({
         setFixedAnswers({
           afterParty: event?.hasAfterParty ? { rating: "", reason: "" } : undefined,
           futureParticipation: { rating: "", reason: "" }, // 全員必須
-          membership: event?.eventType === "ベンチャー監査役協会" && !customerData.communities.includes("ベンチャー監査役協会") ? { rating: "", reason: "" } : undefined,
+          membership: event?.eventType === "ベンチャー監査役の会" && !customerData.communities.includes("ベンチャー監査役の会") ? { rating: "", reason: "" } : undefined,
           comments: "",
         });
       }
@@ -203,7 +203,7 @@ export default function SurveyAnswerPage({
       return;
     }
 
-    // 懇親会とベンチャー監査役協会への入会については任意（バリデーションなし）
+    // 懇親会とベンチャー監査役の会への入会については任意（バリデーションなし）
 
     // 回答を保存
     surveyData.survey.questions.forEach((q: any) => {
@@ -422,11 +422,11 @@ export default function SurveyAnswerPage({
             </div>
           )}
 
-          {/* 固定設問: ベンチャー監査役協会への入会について（ベンチャー監査役協会のイベントで、ベンチャー監査役協会に未所属の場合のみ） */}
-          {event?.eventType === "ベンチャー監査役協会" && !customer.communities.includes("ベンチャー監査役協会") && (
+          {/* 固定設問: ベンチャー監査役の会への入会について（ベンチャー監査役の会のイベントで、ベンチャー監査役の会に未所属の場合のみ） */}
+          {event?.eventType === "ベンチャー監査役の会" && !customer.communities.includes("ベンチャー監査役の会") && (
             <div className="space-y-4 pt-4">
               <div>
-                <Label className="text-base font-medium">ベンチャー監査役協会への入会について</Label>
+                <Label className="text-base font-medium">ベンチャー監査役の会への入会について</Label>
               </div>
 
               <RadioGroup

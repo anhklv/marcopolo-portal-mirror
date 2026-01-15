@@ -2,7 +2,7 @@ import type { EventType } from "@/lib/types";
 
 // イベント種別の選択肢
 export const EVENT_TYPES: readonly EventType[] = [
-  "ベンチャー監査役協会",
+  "ベンチャー監査役の会",
   "ないかんMeetup",
   "その他",
 ] as const;

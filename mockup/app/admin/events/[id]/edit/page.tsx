@@ -64,7 +64,7 @@ export default function EventEditPage({
     return dateStr.slice(0, 16);
   };
 
-  const [eventType, setEventType] = useState<EventType>((event as any).eventType || "ベンチャー監査役協会");
+  const [eventType, setEventType] = useState<EventType>((event as any).eventType || "ベンチャー監査役の会");
   const [title, setTitle] = useState(event.title);
   const [date, setDate] = useState(formatDateForInput(event.date));
   const [overview, setOverview] = useState(event.description);

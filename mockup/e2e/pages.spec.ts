@@ -108,7 +108,7 @@ test('アンケート回答（非会員向けデモトークン）が200を返�
   expect(response?.status()).toBe(200);
 });
 
-test('ベンチャー監査役協会のイベントのアンケート回答（デモトークン）が200を返す', async ({ page }) => {
+test('ベンチャー監査役の会のイベントのアンケート回答（デモトークン）が200を返す', async ({ page }) => {
   const response = await page.goto('/events/E001/survey/demo-token');
   expect(response?.status()).toBe(200);
 });
@@ -145,12 +145,12 @@ test('顧客一覧のフィルタ機能が動作する', async ({ page }) => {
   await searchInput.clear();
   await page.waitForTimeout(500);
 
-  // コミュニティフィルタ（ベンチャー監査役協会）
+  // コミュニティフィルタ（ベンチャー監査役の会）
   const filterButton = page.locator('button').filter({ hasText: 'コミュニティ' }).first();
   await filterButton.click();
   await page.waitForTimeout(300);
   
-  // ベンチャー監査役協会のチェックボックスをクリック
+  // ベンチャー監査役の会のチェックボックスをクリック
   const auditCheckbox = page.locator('#org-audit');
   await auditCheckbox.click();
   await page.waitForTimeout(500);
