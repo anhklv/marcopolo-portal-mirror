@@ -220,7 +220,7 @@ test.describe('権限チェック - イベント登録', () => {
     await page.locator('input#title').fill('テストイベント');
 
     // 開催日を入力
-    await page.locator('input#eventDate').fill('2026-02-01');
+    await page.locator('input#date').fill('2026-02-01T10:00');
 
     // 送信を試みる
     await page.locator('button[type="submit"]').click();

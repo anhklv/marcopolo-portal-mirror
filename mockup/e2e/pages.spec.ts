@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-test('トップページが/admin/customersにリダイレクトする', async ({ page }) => {
+test('トップページが/admin/loginにリダイレクトする', async ({ page }) => {
   const response = await page.goto('/', { waitUntil: 'networkidle' });
-  await page.waitForURL('**/admin/customers');
-  // リダイレクト後、最終的に/admin/customersページが200を返すことを確認
+  await page.waitForURL('**/admin/login');
+  // リダイレクト後、最終的に/admin/loginページが200を返すことを確認
   expect(response?.status()).toBe(200);
-  expect(page.url()).toContain('/admin/customers');
+  expect(page.url()).toContain('/admin/login');
 });
 
 test('顧客一覧が200を返す', async ({ page }) => {
@@ -124,6 +124,13 @@ test('その他のイベント詳細が200を返す', async ({ page }) => {
 });
 
 test('顧客一覧のフィルタ機能が動作する', async ({ page }) => {
+  // ログインしてから顧客一覧へ
+  await page.goto('/admin/login');
+  await page.locator('input[type="email"]').fill('admin@example.com');
+  await page.locator('input[type="password"]').fill('password123');
+  await page.locator('button[type="submit"]').click();
+  await page.waitForURL('**/admin/customers', { timeout: 10000 });
+
   await page.goto('/admin/customers');
   await page.waitForLoadState('networkidle');
 
@@ -205,4 +212,3 @@ test('顧客一覧のフィルタ機能が動作する', async ({ page }) => {
   await page.keyboard.press('Escape');
   await page.waitForTimeout(300);
 });
-
