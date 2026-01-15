@@ -710,8 +710,8 @@ export const surveys: Survey[] = [
     id: "SUR006",
     eventId: "E006",
     questions: [
-      { id: "q1", title: "セッションの感想", order: 1 },
-      { id: "q2", title: "交流会の雰囲気", order: 2 },
+      { id: "q1", title: "第1部　ベンチャー企業における常勤監査役の役割", order: 1 },
+      { id: "q2", title: "第2部　監査役座談会", order: 2 },
     ],
     createdAt: "2024-01-26T10:00:00+09:00",
   },
