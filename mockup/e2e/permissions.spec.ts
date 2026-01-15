@@ -163,13 +163,13 @@ test.describe('権限チェック - 顧客登録', () => {
     await page.waitForLoadState('networkidle');
 
     // フォームに入力
-    await page.locator('input[name="lastName"]').fill('テスト');
-    await page.locator('input[name="firstName"]').fill('太郎');
-    await page.locator('input[name="email"]').fill(`test${Date.now()}@example.com`);
+    await page.locator('input#lastName').fill('テスト');
+    await page.locator('input#firstName').fill('太郎');
+    await page.locator('input#email').fill(`test${Date.now()}@example.com`);
 
     // 両方のコミュニティを選択
-    await page.locator('input[name="auditCommunity"]').check();
-    await page.locator('input[name="naikanCommunity"]').check();
+    await page.locator('button#audit-community').click();
+    await page.locator('button#naikan-community').click();
 
     // 送信（実際の保存は行われないが、エラーが出ないことを確認）
     // ※実際のモックデータへの保存はlocalStorageベースなので、テストでは検証しない
@@ -182,12 +182,12 @@ test.describe('権限チェック - 顧客登録', () => {
     await page.waitForLoadState('networkidle');
 
     // フォームに入力
-    await page.locator('input[name="lastName"]').fill('テスト');
-    await page.locator('input[name="firstName"]').fill('花子');
-    await page.locator('input[name="email"]').fill(`test${Date.now()}@example.com`);
+    await page.locator('input#lastName').fill('テスト');
+    await page.locator('input#firstName').fill('花子');
+    await page.locator('input#email').fill(`test${Date.now()}@example.com`);
 
     // 権限外のコミュニティ（ないかんMeetup）のみを選択
-    await page.locator('input[name="naikanCommunity"]').check();
+    await page.locator('button#naikan-community').click();
 
     // 送信を試みる
     await page.locator('button[type="submit"]').click();
@@ -206,11 +206,8 @@ test.describe('権限チェック - イベント登録', () => {
     await page.goto('/admin/events/new');
     await page.waitForLoadState('networkidle');
 
-    // フォームに入力
-    await page.locator('input[name="title"]').fill('テストイベント');
-
-    // イベント種別セレクトを開く
-    const eventTypeButton = page.locator('button[role="combobox"]').filter({ hasText: /イベント種別/ }).first();
+    // イベント種別を選択（ないかんMeetup）
+    const eventTypeButton = page.locator('button[role="combobox"]').first();
     await eventTypeButton.click();
     await page.waitForTimeout(300);
 
@@ -219,8 +216,11 @@ test.describe('権限チェック - イベント登録', () => {
     await naikanOption.click();
     await page.waitForTimeout(300);
 
+    // タイトルを入力
+    await page.locator('input#title').fill('テストイベント');
+
     // 開催日を入力
-    await page.locator('input[name="eventDate"]').fill('2026-02-01');
+    await page.locator('input#eventDate').fill('2026-02-01');
 
     // 送信を試みる
     await page.locator('button[type="submit"]').click();

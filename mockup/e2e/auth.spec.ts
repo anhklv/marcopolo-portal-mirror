@@ -58,15 +58,11 @@ test.describe('認証フロー', () => {
     await page.locator('button[type="submit"]').click();
     await page.waitForURL('**/admin/customers', { timeout: 10000 });
 
-    // サイドバーの設定メニューを開く
-    await page.locator('button').filter({ hasText: '設定' }).click();
-    await page.waitForTimeout(300);
-
-    // ログアウトボタンをクリック
-    await page.locator('text=ログアウト').click();
+    // ログアウトボタンをクリック（サイドバーに直接配置されている）
+    await page.locator('button').filter({ hasText: 'ログアウト' }).click();
 
     // ログインページにリダイレクトされることを確認
-    await page.waitForURL('**/admin/login');
+    await page.waitForURL('**/admin/login', { timeout: 5000 });
     expect(page.url()).toContain('/admin/login');
   });
 

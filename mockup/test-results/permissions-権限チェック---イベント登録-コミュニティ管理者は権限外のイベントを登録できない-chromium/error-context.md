@@ -1,7 +1,7 @@
 # Page snapshot
 
 ```yaml
-- generic [active] [ref=e1]:
+- generic [ref=e1]:
   - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
     - img [ref=e8]
   - alert [ref=e11]
@@ -48,15 +48,16 @@
                 - text: イベント種別
                 - generic [ref=e57]: "*"
               - combobox [ref=e58] [cursor=pointer]:
-                - generic: ベンチャー監査役の会
+                - generic: ないかんMeetup
                 - img
               - combobox [ref=e59] [cursor=pointer]
             - generic [ref=e60]:
               - generic [ref=e61]:
                 - text: イベント名
                 - generic [ref=e62]: "*"
-              - textbox "イベント名 *" [ref=e63]:
+              - textbox "イベント名 *" [active] [ref=e63]:
                 - /placeholder: "例: 第10回 監査役交流会"
+                - text: テストイベント
             - generic [ref=e64]:
               - generic [ref=e65]:
                 - text: 開催日時

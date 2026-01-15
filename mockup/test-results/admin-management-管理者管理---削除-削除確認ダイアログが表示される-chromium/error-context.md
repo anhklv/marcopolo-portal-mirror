@@ -1,112 +1,126 @@
 # Page snapshot
 
 ```yaml
-- generic [active] [ref=e1]:
-  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
-    - img [ref=e8]
-  - alert [ref=e11]
-  - generic [ref=e12]:
-    - generic [ref=e13]:
-      - link "Marcopolo Admin" [ref=e15] [cursor=pointer]:
-        - /url: /admin/customers
-        - generic [ref=e16]: Marcopolo Admin
-      - navigation [ref=e18]:
-        - link "顧客管理" [ref=e19] [cursor=pointer]:
+- generic:
+  - button "Open Next.js Dev Tools" [ref=e6] [cursor=pointer]:
+    - img [ref=e7]
+  - alert
+  - generic:
+    - generic:
+      - generic:
+        - link:
           - /url: /admin/customers
-          - img [ref=e20]
-          - text: 顧客管理
-        - link "イベント管理" [ref=e25] [cursor=pointer]:
-          - /url: /admin/events
-          - img [ref=e26]
-          - text: イベント管理
-      - generic [ref=e28]:
-        - button "開発メニュー" [ref=e30] [cursor=pointer]:
-          - img [ref=e31]
-          - generic [ref=e34]: 開発メニュー
-          - img [ref=e35]
-        - generic [ref=e37]:
-          - button "設定" [ref=e38] [cursor=pointer]:
-            - img [ref=e39]
-            - generic [ref=e42]: 設定
-            - img [ref=e43]
-          - button "ログアウト" [ref=e45] [cursor=pointer]:
+          - generic: Marcopolo Admin
+      - generic:
+        - navigation:
+          - link:
+            - /url: /admin/customers
+            - img
+            - text: 顧客管理
+          - link:
+            - /url: /admin/events
+            - img
+            - text: イベント管理
+      - generic:
+        - generic:
+          - button:
+            - img
+            - generic: 開発メニュー
+            - img
+        - generic:
+          - button [expanded]:
+            - img
+            - generic: 設定
+            - img
+          - button:
             - img
             - text: ログアウト
-    - main [ref=e46]:
-      - generic [ref=e47]:
-        - generic [ref=e48]:
-          - generic [ref=e49]:
-            - heading "管理者管理" [level=1] [ref=e50]
-            - paragraph [ref=e51]: システムを利用する管理者アカウントを管理します。
-          - link "新規登録" [ref=e52] [cursor=pointer]:
+    - main:
+      - generic:
+        - generic:
+          - generic:
+            - heading [level=1]: 管理者管理
+            - paragraph: システムを利用する管理者アカウントを管理します。
+          - link:
             - /url: /admin/admins/new
             - img
             - text: 新規登録
-        - generic [ref=e54]:
-          - img [ref=e55]
-          - searchbox "名前、メールアドレスで検索..." [ref=e58]
-        - generic [ref=e60]: 4件
-        - table [ref=e63]:
-          - rowgroup [ref=e64]:
-            - row "ID 氏名 メールアドレス 管理者権限 最終ログイン 操作" [ref=e65]:
-              - columnheader "ID" [ref=e66]
-              - columnheader "氏名" [ref=e67]
-              - columnheader "メールアドレス" [ref=e68]
-              - columnheader "管理者権限" [ref=e69]
-              - columnheader "最終ログイン" [ref=e70]
-              - columnheader "操作" [ref=e71]
-          - rowgroup [ref=e72]:
-            - row "1 管理 太郎 admin@example.com 特権管理者 2026年1月15日 編集" [ref=e73] [cursor=pointer]:
-              - cell "1" [ref=e74]
-              - cell "管理 太郎" [ref=e75]
-              - cell "admin@example.com" [ref=e76]
-              - cell "特権管理者" [ref=e77]:
-                - generic [ref=e78]: 特権管理者
-              - cell "2026年1月15日" [ref=e79]
-              - cell "編集" [ref=e80]:
-                - generic [ref=e81]:
-                  - link "編集" [ref=e82]:
-                    - /url: /admin/admins/A001/edit
-                  - button [ref=e83]:
-                    - img
-            - row "2 監査 花子 venture@example.com コミュニティ管理者 2026年1月14日 編集" [ref=e84] [cursor=pointer]:
-              - cell "2" [ref=e85]
-              - cell "監査 花子" [ref=e86]
-              - cell "venture@example.com" [ref=e87]
-              - cell "コミュニティ管理者" [ref=e88]:
-                - generic [ref=e89]: コミュニティ管理者
-              - cell "2026年1月14日" [ref=e90]
-              - cell "編集" [ref=e91]:
-                - generic [ref=e92]:
-                  - link "編集" [ref=e93]:
-                    - /url: /admin/admins/A002/edit
-                  - button [ref=e94]:
-                    - img
-            - row "3 内監 次郎 naikan@example.com コミュニティ管理者 - 編集" [ref=e95] [cursor=pointer]:
-              - cell "3" [ref=e96]
-              - cell "内監 次郎" [ref=e97]
-              - cell "naikan@example.com" [ref=e98]
-              - cell "コミュニティ管理者" [ref=e99]:
-                - generic [ref=e100]: コミュニティ管理者
-              - cell "-" [ref=e101]
-              - cell "編集" [ref=e102]:
-                - generic [ref=e103]:
-                  - link "編集" [ref=e104]:
-                    - /url: /admin/admins/A003/edit
-                  - button [ref=e105]:
-                    - img
-            - row "4 両方 三郎 both@example.com コミュニティ管理者 - 編集" [ref=e106] [cursor=pointer]:
-              - cell "4" [ref=e107]
-              - cell "両方 三郎" [ref=e108]
-              - cell "both@example.com" [ref=e109]
-              - cell "コミュニティ管理者" [ref=e110]:
-                - generic [ref=e111]: コミュニティ管理者
-              - cell "-" [ref=e112]
-              - cell "編集" [ref=e113]:
-                - generic [ref=e114]:
-                  - link "編集" [ref=e115]:
-                    - /url: /admin/admins/A004/edit
-                  - button [ref=e116]:
-                    - img
+        - generic:
+          - generic:
+            - img
+            - searchbox
+        - generic:
+          - generic: 4件
+        - generic:
+          - generic:
+            - table:
+              - rowgroup:
+                - row:
+                  - columnheader: ID
+                  - columnheader: 氏名
+                  - columnheader: メールアドレス
+                  - columnheader: 管理者権限
+                  - columnheader: 最終ログイン
+                  - columnheader: 操作
+              - rowgroup:
+                - row:
+                  - cell: "1"
+                  - cell: 管理 太郎
+                  - cell: admin@example.com
+                  - cell:
+                    - generic: 特権管理者
+                  - cell: 2026年1月15日
+                  - cell:
+                    - generic:
+                      - link:
+                        - /url: /admin/admins/A001/edit
+                        - text: 編集
+                      - button:
+                        - img
+                - row:
+                  - cell: "2"
+                  - cell: 監査 花子
+                  - cell: venture@example.com
+                  - cell:
+                    - generic: コミュニティ管理者
+                  - cell: 2026年1月14日
+                  - cell:
+                    - generic:
+                      - link:
+                        - /url: /admin/admins/A002/edit
+                        - text: 編集
+                      - button:
+                        - img
+                - row:
+                  - cell: "3"
+                  - cell: 内監 次郎
+                  - cell: naikan@example.com
+                  - cell:
+                    - generic: コミュニティ管理者
+                  - cell: "-"
+                  - cell:
+                    - generic:
+                      - link:
+                        - /url: /admin/admins/A003/edit
+                        - text: 編集
+                      - button:
+                        - img
+                - row:
+                  - cell: "4"
+                  - cell: 両方 三郎
+                  - cell: both@example.com
+                  - cell:
+                    - generic: コミュニティ管理者
+                  - cell: "-"
+                  - cell:
+                    - generic:
+                      - link:
+                        - /url: /admin/admins/A004/edit
+                        - text: 編集
+                      - button:
+                        - img
   - region "Notifications alt+T"
+  - menu "設定" [active] [ref=e10]:
+    - menuitem "管理者管理" [ref=e11] [cursor=pointer]
+    - menuitem "パスワード変更" [ref=e12] [cursor=pointer]
 ```

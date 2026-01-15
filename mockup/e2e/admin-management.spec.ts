@@ -127,18 +127,14 @@ test.describe('管理者管理 - 登録', () => {
     await page.waitForLoadState('networkidle');
 
     // フォーム要素が表示されていることを確認
-    await expect(page.locator('input[name="lastName"]')).toBeVisible();
-    await expect(page.locator('input[name="firstName"]')).toBeVisible();
-    await expect(page.locator('input[name="email"]')).toBeVisible();
-    await expect(page.locator('input[name="password"]')).toBeVisible();
+    await expect(page.locator('input#lastName')).toBeVisible();
+    await expect(page.locator('input#firstName')).toBeVisible();
+    await expect(page.locator('input#email')).toBeVisible();
+    await expect(page.locator('input#password')).toBeVisible();
 
-    // ロール選択
-    const roleButton = page.locator('button[role="combobox"]').first();
-    await roleButton.click();
-    await page.waitForTimeout(300);
-
-    // 特権管理者を選択
-    await page.locator('text=特権管理者').first().click();
+    // ロール選択 - RadioGroupItem を探す
+    const superRadio = page.locator('button#super');
+    await superRadio.click();
     await page.waitForTimeout(300);
 
     // コミュニティスコープ選択が表示されていないことを確認（特権管理者には不要）
@@ -151,13 +147,9 @@ test.describe('管理者管理 - 登録', () => {
     await page.goto('/admin/admins/new');
     await page.waitForLoadState('networkidle');
 
-    // ロール選択
-    const roleButton = page.locator('button[role="combobox"]').first();
-    await roleButton.click();
-    await page.waitForTimeout(300);
-
-    // コミュニティ管理者を選択
-    await page.locator('text=コミュニティ管理者').first().click();
+    // ロール選択 - コミュニティ管理者を選択
+    const communityAdminRadio = page.locator('button#community_admin');
+    await communityAdminRadio.click();
     await page.waitForTimeout(500);
 
     // コミュニティスコープ選択が表示されることを確認
@@ -165,8 +157,8 @@ test.describe('管理者管理 - 登録', () => {
     await expect(communityScopeSection).toBeVisible();
 
     // チェックボックスが表示されていることを確認
-    await expect(page.locator('input[value="ベンチャー監査役の会"]')).toBeVisible();
-    await expect(page.locator('input[value="ないかんMeetup"]')).toBeVisible();
+    await expect(page.locator('button#scope-audit')).toBeVisible();
+    await expect(page.locator('button#scope-naikan')).toBeVisible();
   });
 
   test('パスワードは12文字以上である必要がある', async ({ page }) => {
@@ -175,16 +167,14 @@ test.describe('管理者管理 - 登録', () => {
     await page.waitForLoadState('networkidle');
 
     // フォームに入力（パスワードは11文字）
-    await page.locator('input[name="lastName"]').fill('テスト');
-    await page.locator('input[name="firstName"]').fill('太郎');
-    await page.locator('input[name="email"]').fill(`test${Date.now()}@example.com`);
-    await page.locator('input[name="password"]').fill('short12345'); // 11文字
+    await page.locator('input#lastName').fill('テスト');
+    await page.locator('input#firstName').fill('太郎');
+    await page.locator('input#email').fill(`test${Date.now()}@example.com`);
+    await page.locator('input#password').fill('short12345'); // 10文字
 
-    // ロール選択
-    const roleButton = page.locator('button[role="combobox"]').first();
-    await roleButton.click();
-    await page.waitForTimeout(300);
-    await page.locator('text=特権管理者').first().click();
+    // ロール選択 - 特権管理者を選択
+    const superRadio = page.locator('button#super');
+    await superRadio.click();
     await page.waitForTimeout(300);
 
     // 送信を試みる
@@ -218,9 +208,9 @@ test.describe('管理者管理 - 編集', () => {
     await page.waitForLoadState('networkidle');
 
     // フォーム要素に値が入っていることを確認
-    const lastNameInput = page.locator('input[name="lastName"]');
-    const firstName = page.locator('input[name="firstName"]');
-    const emailInput = page.locator('input[name="email"]');
+    const lastNameInput = page.locator('input#lastName');
+    const firstName = page.locator('input#firstName');
+    const emailInput = page.locator('input#email');
 
     await expect(lastNameInput).toHaveValue('管理');
     await expect(firstName).toHaveValue('太郎');
@@ -232,9 +222,9 @@ test.describe('管理者管理 - 編集', () => {
     await page.goto('/admin/admins/A001/edit');
     await page.waitForLoadState('networkidle');
 
-    // ロールフィールドが読み取り専用であることを確認
-    const roleButton = page.locator('button[role="combobox"]').first();
-    const isDisabled = await roleButton.isDisabled();
+    // ロールのRadioGroupItemが無効化されていることを確認
+    const superRadio = page.locator('button#super');
+    const isDisabled = await superRadio.isDisabled();
     expect(isDisabled).toBe(true);
   });
 
@@ -259,8 +249,8 @@ test.describe('管理者管理 - 削除', () => {
     await page.goto('/admin/admins');
     await page.waitForLoadState('networkidle');
 
-    // 削除ボタンが表示されることを確認
-    const deleteButtons = page.locator('button').filter({ hasText: '削除' });
+    // 削除ボタン（ゴミ箱アイコン）が表示されることを確認
+    const deleteButtons = page.locator('button').filter({ has: page.locator('svg') }).filter({ hasText: '' });
     const count = await deleteButtons.count();
     expect(count).toBeGreaterThan(0);
   });
@@ -271,12 +261,13 @@ test.describe('管理者管理 - 削除', () => {
     await page.waitForLoadState('networkidle');
 
     // 削除ボタンをクリック（2番目の管理者を削除）
-    const deleteButton = page.locator('button').filter({ hasText: '削除' }).nth(1);
+    const deleteButtons = page.locator('button').filter({ has: page.locator('svg') });
+    const deleteButton = deleteButtons.nth(1);
     await deleteButton.click();
     await page.waitForTimeout(500);
 
     // 確認ダイアログが表示されることを確認
-    const confirmDialog = page.locator('text=本当に削除しますか');
+    const confirmDialog = page.locator('text=管理者を削除');
     await expect(confirmDialog).toBeVisible();
 
     // キャンセルボタンがあることを確認
