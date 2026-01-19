@@ -31,6 +31,7 @@ import {
 } from "@/lib/constants/customer";
 import { useAuth } from "@/lib/contexts/auth.context";
 import type { CommunityScope } from "@/lib/types";
+import { DatePickerWithInput } from "@/components/ui/date-picker-with-input";
 
 export default function NewCustomerPage() {
   const router = useRouter();
@@ -64,13 +65,29 @@ export default function NewCustomerPage() {
   // ベンチャー監査役の会 詳細
   const [auditMemberType, setAuditMemberType] = useState<string>("");
   const [auditMemberPremium, setAuditMemberPremium] = useState(false);
-  const [auditJoinedAt, setAuditJoinedAt] = useState<string>("");
-  const [auditResignedAt, setAuditResignedAt] = useState<string>("");
+  const [auditJoinedAt, setAuditJoinedAt] = useState<Date | undefined>(undefined);
+  const [auditResignedAt, setAuditResignedAt] = useState<Date | undefined>(undefined);
 
   // ないかんMeetup 詳細
-  const [naikanJoinedAt, setNaikanJoinedAt] = useState<string>("");
-  const [naikanResignedAt, setNaikanResignedAt] = useState<string>("");
+  const [naikanJoinedAt, setNaikanJoinedAt] = useState<Date | undefined>(undefined);
+  const [naikanResignedAt, setNaikanResignedAt] = useState<Date | undefined>(undefined);
   const [naikanAffiliation, setNaikanAffiliation] = useState<string>("");
+
+  // 日付をYYYY-MM-DD形式の文字列に変換
+  const formatDateToString = (date: Date | undefined): string => {
+    if (!date) return "";
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // YYYY-MM-DD形式の文字列をDateに変換
+  const parseDateString = (dateStr: string): Date | undefined => {
+    if (!dateStr) return undefined;
+    const date = new Date(dateStr);
+    return isNaN(date.getTime()) ? undefined : date;
+  };
 
   // 契約主体
   const [contractType, setContractType] = useState<"corporate" | "individual">("corporate");
@@ -185,25 +202,55 @@ export default function NewCustomerPage() {
             {/* コミュニティ選択 */}
             <div className="grid gap-2">
               <Label className="text-base font-medium">コミュニティ</Label>
-              {currentAdmin?.role === "super" ? (
+              {currentAdmin?.role === "super" || 
+               (currentAdmin?.role === "community_admin" && 
+                currentAdmin.communityScopes && 
+                currentAdmin.communityScopes.length > 1) ? (
                 <>
                   <div className="flex items-center gap-6">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="audit-community" 
-                        checked={auditCommunityChecked} 
-                        onCheckedChange={(c) => setAuditCommunityChecked(c === true)} 
-                      />
-                      <Label htmlFor="audit-community" className="cursor-pointer">ベンチャー監査役の会</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="naikan-community" 
-                        checked={naikanCommunityChecked} 
-                        onCheckedChange={(c) => setNaikanCommunityChecked(c === true)} 
-                      />
-                      <Label htmlFor="naikan-community" className="cursor-pointer">ないかんMeetup</Label>
-                    </div>
+                    {currentAdmin?.role === "super" ? (
+                      <>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="audit-community" 
+                            checked={auditCommunityChecked} 
+                            onCheckedChange={(c) => setAuditCommunityChecked(c === true)} 
+                          />
+                          <Label htmlFor="audit-community" className="cursor-pointer">ベンチャー監査役の会</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="naikan-community" 
+                            checked={naikanCommunityChecked} 
+                            onCheckedChange={(c) => setNaikanCommunityChecked(c === true)} 
+                          />
+                          <Label htmlFor="naikan-community" className="cursor-pointer">ないかんMeetup</Label>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {currentAdmin?.communityScopes?.includes("ベンチャー監査役の会") && (
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id="audit-community" 
+                              checked={auditCommunityChecked} 
+                              onCheckedChange={(c) => setAuditCommunityChecked(c === true)} 
+                            />
+                            <Label htmlFor="audit-community" className="cursor-pointer">ベンチャー監査役の会</Label>
+                          </div>
+                        )}
+                        {currentAdmin?.communityScopes?.includes("ないかんMeetup") && (
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id="naikan-community" 
+                              checked={naikanCommunityChecked} 
+                              onCheckedChange={(c) => setNaikanCommunityChecked(c === true)} 
+                            />
+                            <Label htmlFor="naikan-community" className="cursor-pointer">ないかんMeetup</Label>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                   <p className="text-sm text-muted-foreground">何も選択しない場合は非会員として登録されます</p>
                 </>
@@ -335,24 +382,20 @@ export default function NewCustomerPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="auditJoinedAt" className="text-sm">入会日</Label>
-                        <Input 
-                          id="auditJoinedAt" 
-                          type="date" 
-                          value={auditJoinedAt} 
-                          onChange={(e) => setAuditJoinedAt(e.target.value)} 
-                          className="bg-white" 
+                      <div className="flex flex-col gap-3">
+                        <Label htmlFor="auditJoinedAt" className="px-1 text-sm">入会日</Label>
+                        <DatePickerWithInput
+                          id="auditJoinedAt"
+                          date={auditJoinedAt}
+                          setDate={setAuditJoinedAt}
                         />
                       </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="auditResignedAt" className="text-sm">脱退日</Label>
-                        <Input 
-                          id="auditResignedAt" 
-                          type="date" 
-                          value={auditResignedAt} 
-                          onChange={(e) => setAuditResignedAt(e.target.value)} 
-                          className="bg-white" 
+                      <div className="flex flex-col gap-3">
+                        <Label htmlFor="auditResignedAt" className="px-1 text-sm">脱退日</Label>
+                        <DatePickerWithInput
+                          id="auditResignedAt"
+                          date={auditResignedAt}
+                          setDate={setAuditResignedAt}
                         />
                       </div>
                     </div>
@@ -382,24 +425,20 @@ export default function NewCustomerPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="naikanJoinedAt" className="text-sm">入会日</Label>
-                        <Input 
-                          id="naikanJoinedAt" 
-                          type="date" 
-                          value={naikanJoinedAt} 
-                          onChange={(e) => setNaikanJoinedAt(e.target.value)} 
-                          className="bg-white" 
+                      <div className="flex flex-col gap-3">
+                        <Label htmlFor="naikanJoinedAt" className="px-1 text-sm">入会日</Label>
+                        <DatePickerWithInput
+                          id="naikanJoinedAt"
+                          date={naikanJoinedAt}
+                          setDate={setNaikanJoinedAt}
                         />
                       </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="naikanResignedAt" className="text-sm">脱退日</Label>
-                        <Input 
-                          id="naikanResignedAt" 
-                          type="date" 
-                          value={naikanResignedAt} 
-                          onChange={(e) => setNaikanResignedAt(e.target.value)} 
-                          className="bg-white" 
+                      <div className="flex flex-col gap-3">
+                        <Label htmlFor="naikanResignedAt" className="px-1 text-sm">脱退日</Label>
+                        <DatePickerWithInput
+                          id="naikanResignedAt"
+                          date={naikanResignedAt}
+                          setDate={setNaikanResignedAt}
                         />
                       </div>
                     </div>

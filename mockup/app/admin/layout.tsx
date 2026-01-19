@@ -21,6 +21,23 @@ export default function AdminLayout({
     }
   }, [isAuthenticated, pathname, router]);
 
+  useEffect(() => {
+    const { style } = document.body;
+    const prevBodyOverflow = style.overflow;
+    const prevBodyHeight = style.height;
+    const prevHtmlHeight = document.documentElement.style.height;
+
+    style.overflow = "hidden";
+    style.height = "100%";
+    document.documentElement.style.height = "100%";
+
+    return () => {
+      style.overflow = prevBodyOverflow;
+      style.height = prevBodyHeight;
+      document.documentElement.style.height = prevHtmlHeight;
+    };
+  }, []);
+
   // 未認証の場合は何も表示しない
   if (!isAuthenticated && pathname !== "/admin/login") {
     return null;
@@ -34,7 +51,7 @@ export default function AdminLayout({
   return (
     <div className="flex h-screen w-full overflow-hidden">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-white p-8">
+      <main className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain bg-white p-8">
         {children}
       </main>
     </div>

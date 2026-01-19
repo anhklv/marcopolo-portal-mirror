@@ -71,13 +71,13 @@ export function Sidebar() {
   const isDevMenuActive = devMenuItems.some((item) => pathname === item.href);
 
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-white">
-      <div className="flex h-14 items-center border-b px-6 bg-white">
+    <div className="flex h-screen w-64 flex-col border-r bg-white flex-shrink-0 overflow-hidden">
+      <div className="flex h-14 items-center border-b px-6 bg-white flex-shrink-0">
         <Link className="flex items-center gap-2 font-semibold" href="/admin/customers">
           <span className="text-lg font-bold">Marcopolo Admin</span>
         </Link>
       </div>
-      <div className="flex-1 overflow-auto py-2 bg-white">
+      <div className="flex-1 overflow-auto py-2 bg-white min-h-0">
         <nav className="grid items-start px-4 text-sm font-medium">
           {routes.map((route) => (
             <Link
@@ -96,7 +96,7 @@ export function Sidebar() {
           ))}
         </nav>
       </div>
-      <div className="mt-auto bg-white">
+      <div className="mt-auto bg-white flex-shrink-0">
         <div className="px-4 py-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
