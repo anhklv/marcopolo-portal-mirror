@@ -27,6 +27,7 @@ export type Customer = {
   auditResignedAt?: string; // ベンチャー監査役の会 脱退日
   naikanJoinedAt?: string; // ないかんMeetup 入会日
   naikanResignedAt?: string; // ないかんMeetup 脱退日
+  naikanAffiliation?: string; // ないかんMeetup 所属
   note?: string; // 備考 - 任意
   status: "active" | "inactive";
   registeredAt: string;

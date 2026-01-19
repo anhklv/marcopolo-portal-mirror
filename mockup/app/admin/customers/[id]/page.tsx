@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -118,7 +119,7 @@ export default function CustomerDetailPage({
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm font-medium text-muted-foreground mb-2">会員区分</p>
+              <p className="text-sm font-medium text-muted-foreground mb-2">コミュニティ</p>
               <div className="flex gap-2 flex-wrap items-center">
                 {(() => {
                   const badges: React.ReactElement[] = [];
@@ -130,33 +131,18 @@ export default function CustomerDetailPage({
                         非会員
                       </Badge>
                     );
-                  } else if (customer.memberCategory === "member") {
-                    const hasAudit = customer.communities.includes("ベンチャー監査役の会");
-                    const hasNaikan = customer.communities.includes("ないかんMeetup");
-                    
-                    if (hasNaikan && !hasAudit) {
+                  } else {
+                    if (customer.communities.includes("ベンチャー監査役の会")) {
                       badges.push(
-                        <Badge key="naikan-member" variant="default" className="text-base px-3 py-1">
-                          ないかんMeetup(会員)
+                        <Badge key="audit" variant="default" className="text-base px-3 py-1">
+                          ベンチャー監査役の会
                         </Badge>
                       );
-                    } else if (hasAudit && !hasNaikan) {
-                      const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
+                    }
+                    if (customer.communities.includes("ないかんMeetup")) {
                       badges.push(
-                        <Badge key="audit-member" variant="default" className="text-base px-3 py-1">
-                          ベンチャー監査役の会({auditType})
-                        </Badge>
-                      );
-                    } else if (hasAudit && hasNaikan) {
-                      const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
-                      badges.push(
-                        <Badge key="audit-member" variant="default" className="text-base px-3 py-1">
-                          ベンチャー監査役の会({auditType})
-                        </Badge>
-                      );
-                      badges.push(
-                        <Badge key="naikan-member" variant="default" className="text-base px-3 py-1">
-                          ないかんMeetup(会員)
+                        <Badge key="naikan" variant="default" className="text-base px-3 py-1">
+                          ないかんMeetup
                         </Badge>
                       );
                     }
@@ -166,36 +152,6 @@ export default function CustomerDetailPage({
                       badges.push(
                         <Badge key="premium" variant="default" className="text-xs px-2 py-0.5 bg-slate-600 hover:bg-slate-700 text-white">
                           プレミアム
-                        </Badge>
-                      );
-                    }
-                  } else if (customer.memberCategory === "sponsor") {
-                    if (customer.communities.includes("ないかんMeetup")) {
-                      badges.push(
-                        <Badge key="sponsor-naikan" variant="default" className="text-base px-3 py-1">
-                          ないかんMeetup(スポンサー)
-                        </Badge>
-                      );
-                    }
-                    if (customer.communities.includes("ベンチャー監査役の会")) {
-                      badges.push(
-                        <Badge key="sponsor-audit" variant="default" className="text-base px-3 py-1">
-                          ベンチャー監査役の会(スポンサー)
-                        </Badge>
-                      );
-                    }
-                  } else if (customer.memberCategory === "observer") {
-                    if (customer.communities.includes("ないかんMeetup")) {
-                      badges.push(
-                        <Badge key="observer-naikan" variant="default" className="text-base px-3 py-1">
-                          ないかんMeetup(オブザーバー)
-                        </Badge>
-                      );
-                    }
-                    if (customer.communities.includes("ベンチャー監査役の会")) {
-                      badges.push(
-                        <Badge key="observer-audit" variant="default" className="text-base px-3 py-1">
-                          ベンチャー監査役の会(オブザーバー)
                         </Badge>
                       );
                     }
@@ -227,6 +183,90 @@ export default function CustomerDetailPage({
               <p className="text-base">{formatDate(customer.registeredAt)}</p>
             </div>
           </div>
+
+          {/* ベンチャー監査役の会 詳細 */}
+          {customer.communities.includes("ベンチャー監査役の会") && (
+            <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
+              <div className="flex items-center justify-between">
+                <Label className="font-semibold text-base">ベンチャー監査役の会</Label>
+                {customer.memberCategory === "member" && customer.auditMemberType && (
+                  <Badge variant="outline" className="text-sm">
+                    {customer.auditMemberType === "regular" ? "正会員" : "オンライン会員"}
+                  </Badge>
+                )}
+                {customer.memberCategory === "sponsor" && (
+                  <Badge variant="outline" className="text-sm">スポンサー</Badge>
+                )}
+                {customer.memberCategory === "observer" && (
+                  <Badge variant="outline" className="text-sm">オブザーバー</Badge>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {customer.membershipQualification ? (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">入会資格</p>
+                    <p className="text-base">{customer.membershipQualification}</p>
+                  </div>
+                ) : null}
+                {customer.originIndustry ? (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">出身業種</p>
+                    <p className="text-base">{customer.originIndustry}</p>
+                  </div>
+                ) : null}
+                {customer.auditJoinedAt ? (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">入会日</p>
+                    <p className="text-base">{formatDate(customer.auditJoinedAt)}</p>
+                  </div>
+                ) : null}
+                {customer.auditResignedAt ? (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">脱退日</p>
+                    <p className="text-base">{formatDate(customer.auditResignedAt)}</p>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
+
+          {/* ないかんMeetup 詳細 */}
+          {customer.communities.includes("ないかんMeetup") && (
+            <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
+              <div className="flex items-center justify-between">
+                <Label className="font-semibold text-base">ないかんMeetup</Label>
+                {customer.memberCategory === "member" && (
+                  <Badge variant="outline" className="text-sm">会員</Badge>
+                )}
+                {customer.memberCategory === "sponsor" && (
+                  <Badge variant="outline" className="text-sm">スポンサー</Badge>
+                )}
+                {customer.memberCategory === "observer" && (
+                  <Badge variant="outline" className="text-sm">オブザーバー</Badge>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {customer.naikanAffiliation ? (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">所属</p>
+                    <p className="text-base">{customer.naikanAffiliation}</p>
+                  </div>
+                ) : null}
+                {customer.naikanJoinedAt ? (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">入会日</p>
+                    <p className="text-base">{formatDate(customer.naikanJoinedAt)}</p>
+                  </div>
+                ) : null}
+                {customer.naikanResignedAt ? (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">脱退日</p>
+                    <p className="text-base">{formatDate(customer.naikanResignedAt)}</p>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -273,8 +313,14 @@ export default function CustomerDetailPage({
             ) : null}
             {customer.company ? (
               <div>
-                <p className="text-sm font-medium text-muted-foreground">会社名・所属</p>
+                <p className="text-sm font-medium text-muted-foreground">会社名</p>
                 <p className="text-base">{customer.company}</p>
+              </div>
+            ) : null}
+            {customer.listingCategory ? (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">上場区分</p>
+                <p className="text-base">{customer.listingCategory}</p>
               </div>
             ) : null}
             {(customer.postalCode || customer.prefecture || customer.city) ? (
@@ -297,35 +343,6 @@ export default function CustomerDetailPage({
               <div>
                 <p className="text-sm font-medium text-muted-foreground">性別</p>
                 <p className="text-base">{GENDER_LABELS[customer.gender]}</p>
-              </div>
-            ) : null}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* その他情報 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>その他情報</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            {customer.listingCategory ? (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">上場区分</p>
-                <p className="text-base">{customer.listingCategory}</p>
-              </div>
-            ) : null}
-            {customer.originIndustry ? (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">出身業種</p>
-                <p className="text-base">{customer.originIndustry}</p>
-              </div>
-            ) : null}
-            {customer.membershipQualification ? (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">入会資格</p>
-                <p className="text-base">{customer.membershipQualification}</p>
               </div>
             ) : null}
             {customer.note ? (

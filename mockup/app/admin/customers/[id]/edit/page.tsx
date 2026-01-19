@@ -38,6 +38,7 @@ import {
   MEMBERSHIP_QUALIFICATIONS,
   LISTING_OPTIONS,
   AUDIT_MEMBER_TYPES,
+  NAIKAN_AFFILIATIONS,
 } from "@/lib/constants/customer";
 import { useAuth } from "@/lib/contexts/auth.context";
 
@@ -98,6 +99,7 @@ export default function CustomerEditPage({
   // ないかんMeetup 詳細
   const [naikanJoinedAt, setNaikanJoinedAt] = useState<string>(customer.naikanJoinedAt || "");
   const [naikanResignedAt, setNaikanResignedAt] = useState<string>(customer.naikanResignedAt || "");
+  const [naikanAffiliation, setNaikanAffiliation] = useState<string>(customer.naikanAffiliation || "");
 
   // 契約主体
   const [contractType, setContractType] = useState<"corporate" | "individual">(
@@ -131,6 +133,7 @@ export default function CustomerEditPage({
   const listingOptions = LISTING_OPTIONS;
   const prefectures = PREFECTURES;
   const auditMemberTypes = AUDIT_MEMBER_TYPES;
+  const naikanAffiliations = NAIKAN_AFFILIATIONS;
 
   const handleAddSubEmail = () => {
     if (subEmails.length < 3) {
@@ -321,7 +324,7 @@ export default function CustomerEditPage({
                     {/* 会員の場合のみ会員種別とプレミアム表示 */}
                     {memberCategory === "member" && (
                       <div className="grid gap-2">
-                        <Label className="text-sm font-medium">ベンチャー監査役の会 会員種別 <span className="text-red-500">*</span></Label>
+                        <Label className="text-sm font-medium">会員種別 <span className="text-red-500">*</span></Label>
                         <div className="flex items-center gap-4">
                           <Select value={auditMemberType} onValueChange={setAuditMemberType}>
                             <SelectTrigger className="w-[300px] bg-white">
@@ -346,6 +349,40 @@ export default function CustomerEditPage({
                         </div>
                       </div>
                     )}
+
+                    {/* 入会資格 */}
+                    <div className="grid gap-2">
+                      <Label className="text-sm font-medium">入会資格</Label>
+                      <Select value={membershipQualification} onValueChange={setMembershipQualification}>
+                        <SelectTrigger className="w-full bg-white">
+                          <SelectValue placeholder="選択してください" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          {membershipQualifications.map((qualification) => (
+                            <SelectItem key={qualification} value={qualification} className="bg-white hover:bg-gray-100">
+                              {qualification}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* 出身業種 */}
+                    <div className="grid gap-2">
+                      <Label className="text-sm font-medium">出身業種</Label>
+                      <Select value={originIndustry} onValueChange={setOriginIndustry}>
+                        <SelectTrigger className="w-full bg-white">
+                          <SelectValue placeholder="選択してください" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          {originIndustries.map((industry) => (
+                            <SelectItem key={industry} value={industry} className="bg-white hover:bg-gray-100">
+                              {industry}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="grid gap-2">
@@ -376,6 +413,24 @@ export default function CustomerEditPage({
                 {naikanCommunityChecked && (
                   <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
                     <Label className="font-semibold text-base">ないかんMeetup</Label>
+                    
+                    {/* 所属 */}
+                    <div className="grid gap-2">
+                      <Label className="text-sm font-medium">所属</Label>
+                      <Select value={naikanAffiliation} onValueChange={setNaikanAffiliation}>
+                        <SelectTrigger className="w-full bg-white">
+                          <SelectValue placeholder="選択してください" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          {naikanAffiliations.map((affiliation) => (
+                            <SelectItem key={affiliation} value={affiliation} className="bg-white hover:bg-gray-100">
+                              {affiliation}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                       <div className="grid gap-2">
                         <Label htmlFor="naikanJoinedAt" className="text-sm">入会日</Label>
@@ -503,13 +558,53 @@ export default function CustomerEditPage({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="company">会社名・所属</Label>
+              <Label htmlFor="company">会社名</Label>
               <Input 
                 id="company" 
                 placeholder="例: 株式会社マルコポーロ" 
                 value={company}
                 onChange={e => setCompany(e.target.value)}
               />
+            </div>
+
+            <div className="grid gap-2">
+              <Label>上場区分</Label>
+              <Select 
+                value={listingCategory} 
+                onValueChange={(value) => {
+                  if (value === "選択してください") {
+                    setListingCategory("");
+                  } else {
+                    setListingCategory(value);
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full bg-white">
+                  <SelectValue placeholder="選択してください" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="選択してください" className="bg-white hover:bg-gray-100">
+                    選択してください
+                  </SelectItem>
+                  <SelectItem value="未上場" className="bg-white hover:bg-gray-100">
+                    未上場
+                  </SelectItem>
+                  {listingOptions.map((option) => (
+                    <SelectGroup key={option.exchange}>
+                      <SelectLabel className="bg-gray-100">{option.exchange}</SelectLabel>
+                      {option.markets.map((market) => (
+                        <SelectItem
+                          key={`${option.exchange}-${market}`}
+                          value={`${option.exchange}-${market}`}
+                          className="bg-white hover:bg-gray-100"
+                        >
+                          {market}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid gap-2">
@@ -590,86 +685,6 @@ export default function CustomerEditPage({
                   </div>
                 </div>
               </RadioGroup>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* その他情報セクション */}
-        <Card>
-          <CardHeader>
-            <CardTitle>その他情報</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-2">
-              <Label>上場区分</Label>
-              <Select 
-                value={listingCategory} 
-                onValueChange={(value) => {
-                  if (value === "選択してください") {
-                    setListingCategory("");
-                  } else {
-                    setListingCategory(value);
-                  }
-                }}
-              >
-                <SelectTrigger className="w-full bg-white">
-                  <SelectValue placeholder="選択してください" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="選択してください" className="bg-white hover:bg-gray-100">
-                    選択してください
-                  </SelectItem>
-                  <SelectItem value="未上場" className="bg-white hover:bg-gray-100">
-                    未上場
-                  </SelectItem>
-                  {listingOptions.map((option) => (
-                    <SelectGroup key={option.exchange}>
-                      <SelectLabel className="bg-gray-100">{option.exchange}</SelectLabel>
-                      {option.markets.map((market) => (
-                        <SelectItem
-                          key={`${option.exchange}-${market}`}
-                          value={`${option.exchange}-${market}`}
-                          className="bg-white hover:bg-gray-100"
-                        >
-                          {market}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label>出身業種</Label>
-              <Select value={originIndustry} onValueChange={setOriginIndustry}>
-                <SelectTrigger className="w-full bg-white">
-                  <SelectValue placeholder="選択してください" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {originIndustries.map((industry) => (
-                    <SelectItem key={industry} value={industry} className="bg-white hover:bg-gray-100">
-                      {industry}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label>入会資格</Label>
-              <Select value={membershipQualification} onValueChange={setMembershipQualification}>
-                <SelectTrigger className="w-full bg-white">
-                  <SelectValue placeholder="選択してください" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {membershipQualifications.map((qualification) => (
-                    <SelectItem key={qualification} value={qualification} className="bg-white hover:bg-gray-100">
-                      {qualification}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="grid gap-2">

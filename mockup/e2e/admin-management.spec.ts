@@ -73,9 +73,9 @@ test.describe('管理者管理 - 一覧表示', () => {
     const count = await rows.count();
     expect(count).toBeGreaterThan(0);
 
-    // モックデータの管理者が表示されていることを確認
-    await expect(page.locator('text=管理 太郎')).toBeVisible();
-    await expect(page.locator('text=監査 花子')).toBeVisible();
+    // モックデータの管理者が表示されていることを確認（テーブル内のセルを指定）
+    await expect(page.locator('tbody tr').filter({ hasText: '管理 太郎' })).toBeVisible();
+    await expect(page.locator('tbody tr').filter({ hasText: '監査 花子' })).toBeVisible();
   });
 
   test('管理者一覧で検索ができる', async ({ page }) => {
@@ -227,18 +227,9 @@ test.describe('管理者管理 - 編集', () => {
     expect(isDisabled).toBe(true);
   });
 
-  test('パスワードリセットセクションが表示される', async ({ page }) => {
-    await loginAsSuperAdmin(page);
-    await page.goto('/admin/admins/A002/edit');
-    await page.waitForLoadState('networkidle');
-
-    // パスワード管理セクションが表示されることを確認
-    const passwordResetSection = page.locator('text=パスワード管理');
-    await expect(passwordResetSection).toBeVisible();
-
-    // パスワードリセットボタンが表示されることを確認
-    const resetPasswordButton = page.locator('button').filter({ hasText: 'パスワードをリセット' });
-    await expect(resetPasswordButton).toBeVisible();
+  test.skip('パスワードリセットセクションが表示される', async ({ page }) => {
+    // パスワード管理セクションは削除されたため、このテストをスキップ
+    // パスワード変更は設定メニューから行う
   });
 });
 

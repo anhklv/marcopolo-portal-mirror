@@ -94,3 +94,21 @@ export const AUDIT_MEMBER_TYPES = [
   { value: "online", label: "オンライン会員" },
 ] as const;
 
+// ないかんMeetup 所属
+export const NAIKAN_AFFILIATIONS = [
+  "内部監査部門",
+  "常勤監査役・常勤監査等委員",
+  "代表者（社長・CEO）",
+  "CFO",
+  "管理部門長",
+  "経理部門",
+  "法務部門",
+  "総務部門",
+  "情報システム部門",
+  "経営企画部門",
+  "社長室",
+  "人事部門",
+  "IR部門",
+  "その他",
+] as const;
+

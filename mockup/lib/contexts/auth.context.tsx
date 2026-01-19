@@ -11,6 +11,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  switchAdmin: (adminId: string) => void;
   hasPermission: (resource: Resource, targetData?: any) => boolean;
 }
 
@@ -72,6 +73,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(STORAGE_KEY);
   };
 
+  const switchAdmin = (adminId: string) => {
+    const admin = admins.find((a) => a.id === adminId);
+    if (admin) {
+      const now = new Date().toISOString();
+      const updatedAdmin = { ...admin, lastLoginAt: now };
+      setCurrentAdmin(updatedAdmin);
+      setIsAuthenticated(true);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ adminId: admin.id }));
+    }
+  };
+
   const hasPermission = (resource: Resource, targetData?: any): boolean => {
     if (!currentAdmin) return false;
 
@@ -123,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated,
         login,
         logout,
+        switchAdmin,
         hasPermission,
       }}
     >

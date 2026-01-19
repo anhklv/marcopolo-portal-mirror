@@ -30,7 +30,10 @@ export default function AdminEditPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params);
+  // Next.js 16ではparamsはPromiseとして渡されるため、use()を使用
+  // React 19の機能で、Next.js 16でサポートされている
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
   const router = useRouter();
   const { currentAdmin } = useAuth();
   const admin = admins.find((a) => a.id === id);
@@ -42,8 +45,6 @@ export default function AdminEditPage({
   const [communityScopes, setCommunityScopes] = useState<CommunityScope[]>(
     admin?.communityScopes || []
   );
-  const [showPasswordReset, setShowPasswordReset] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // 特権管理者のみアクセス可能
@@ -98,29 +99,8 @@ export default function AdminEditPage({
       return;
     }
 
-    if (showPasswordReset && newPassword && newPassword.length < 12) {
-      toast.error("パスワードは12文字以上で入力してください");
-      return;
-    }
-
     toast.success("管理者情報を更新しました");
     router.push("/admin/admins");
-  };
-
-  const handlePasswordReset = () => {
-    if (!newPassword) {
-      toast.error("新しいパスワードを入力してください");
-      return;
-    }
-
-    if (newPassword.length < 12) {
-      toast.error("パスワードは12文字以上で入力してください");
-      return;
-    }
-
-    toast.success("パスワードをリセットしました");
-    setShowPasswordReset(false);
-    setNewPassword("");
   };
 
   const handleDelete = () => {
@@ -274,63 +254,6 @@ export default function AdminEditPage({
                 <p className="text-sm text-muted-foreground">
                   複数のコミュニティを選択できます。
                 </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>パスワード管理</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {!showPasswordReset ? (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowPasswordReset(true)}
-                className="cursor-pointer"
-              >
-                パスワードをリセット
-              </Button>
-            ) : (
-              <div className="space-y-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="newPassword">
-                    新しいパスワード <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="newPassword"
-                    type="password"
-                    placeholder="12文字以上"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    パスワードは12文字以上で設定してください。
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="default"
-                    onClick={handlePasswordReset}
-                    className="cursor-pointer"
-                  >
-                    リセットを実行
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setShowPasswordReset(false);
-                      setNewPassword("");
-                    }}
-                    className="cursor-pointer"
-                  >
-                    キャンセル
-                  </Button>
-                </div>
               </div>
             )}
           </CardContent>
