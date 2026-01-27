@@ -1,70 +1,110 @@
 # サーバー構成見積もり
 
-Next.js + PostgreSQL（Prisma）構成を前提とした見積もり。
+## 想定利用規模
+
+| 項目 | 規模 |
+|------|------|
+| 通常利用 | マルコポーロ社の社内数人 / 1日数アクセス |
+| イベント時 | 参加者100人想定 |
+| メール送信 | イベント案内（再案内含む）300通/月、アンケート200通/月 |
 
 ---
 
-## 構成案A: Cloud Run + Cloud SQL（東京）
+## 要約
 
-GCP完結の構成。レイテンシーが最も安定。
+構成案を2つ検討した結果、**案1（Vercel + Supabase）を採用する**。
 
-### 本番環境
+| 項目 | **案1（Vercel + Supabase）** | 案2（GCP） |
+|------|---------------------------------------|-------------|
+| **月額費用** | **約 $69（約10,400円）** | $80〜105（12,000〜15,800円） |
+| **運用の楽さ** | ◎ | △ |
+| **ステージング費用** | $0 | $12〜20/月 |
+| **バックアップ** | 日次バックアップ（7日間） | PITR（7日間） |
 
-| サービス | 構成 | 月額費用（税抜） |
-|---------|------|-----------------|
-| Cloud Run | 0.5 vCPU / 512MB RAM / 最小インスタンス0 | ~$5〜10 |
-| Cloud SQL (PostgreSQL) | db-custom-1-3840（1 vCPU / 3.75GB RAM）/ 20GB SSD | ~$35〜45 |
-| Cloud SQL PITR | 自動バックアップ + 7日間保持 | ~$3〜5 |
-| Cloud Storage | 10GB想定 / Standard | ~$0.3 |
-| Cloud Build | 月120分無料枠内 | $0 |
-| Cloud Tasks | メール送信の非同期処理 | $0（無料枠内） |
-| 独自ドメイン（.jp） | サブドメインでステージングと共有 | ~$4/月（年$40〜50） |
-| ネットワーク（Egress） | 低トラフィック | ~$1 |
+### 案1 採用理由
 
-**本番 小計: 約 $48〜65/月（約7,200〜9,800円）**
+- 運用の手間が少ない（開発者1人体制に適している）
+- 月額費用が安い
+- ステージング環境が実質無料
+- 体感できるレベルの性能差はない
 
-### ステージング環境
-
-| サービス | 構成 | 月額費用（税抜） |
-|---------|------|-----------------|
-| Cloud Run | 最小構成 / 必要時のみ起動 | ~$2〜5 |
-| Cloud SQL | db-f1-micro / 10GB SSD（バックアップなし） | ~$10〜15 |
-| Cloud Storage | 5GB想定 | ~$0.1 |
-
-**ステージング 小計: 約 $12〜20/月（約1,800〜3,000円）**
-
-### 外部サービス
-
-| サービス | プラン | 月額費用 |
-|---------|-------|---------|
-| GitHub | Free | $0 |
-| GitHub Actions | 無料枠内 | $0 |
-| Resend | Pro（月50,000通 / 1日上限なし） | $20 |
-| Sentry | Free（5,000エラー/月 / エラー監視・Slack通知） | $0 |
-
-**外部サービス 小計: $20/月（約3,000円）**
-
-### 構成A 合計
-
-| 項目 | 月額費用 |
-|------|---------|
-| 本番 | 約 $48〜65（7,200〜9,800円） |
-| ステージング | 約 $12〜20（1,800〜3,000円） |
-| 外部サービス | $20（3,000円） |
-| **合計** | **約 $80〜105/月（12,000〜15,800円）** |
-
-### 構成A 特徴
-
-- ✅ 同一リージョン（東京）でDBレイテンシー最小（1〜5ms）
-- ✅ GCP完結で請求管理が楽
-- ✅ PITRで任意の時点に復元可能
-- ❌ インフラ設定・運用の手間がやや多い
+> **費用に関する注意**: 月額 約$69（約10,400円）は現時点の見積もりです。利用量の変動や各サービスの料金改定により、前後する可能性があります。
 
 ---
 
-## 構成案B: Vercel + Supabase（東京）
+## 案1: サービス一覧
 
-運用が楽な構成。Next.jsとの相性が良い。
+| サービス | 用途 | 月額費用 |
+|---------|------|---------|
+| **Vercel** | Webサーバー（アプリの画面を配信） | $20 |
+| **Supabase** | データベース（顧客・イベント等のデータ保存） | $25 |
+| **Supabase Storage** | ファイル保存（画像等） | $0（Supabaseに含む） |
+| **独自ドメイン（.jp）** | Webサイトのアドレス | ~$4 |
+| **Resend** | メール配信（イベント案内・アンケート等） | $20 |
+| **Inngest** | メール一括送信の裏側の処理 | $0 |
+| **Sentry** | エラー監視（不具合の検知・Slack通知） | $0 |
+| **GitHub** | ソースコード管理・開発基盤 | $0 |
+| **合計** | | **約 $69/月（約10,400円）** |
+
+---
+
+## 案1: 構成図
+
+```mermaid
+graph TB
+    subgraph Users["ユーザー"]
+        Admin["管理者<br>（マルコポーロ社）"]
+        Guest["イベント参加者<br>（100人想定）"]
+    end
+
+    subgraph Domain["独自ドメイン（.jp）"]
+        Prod["example.jp"]
+        Stg["stg.example.jp"]
+    end
+
+    subgraph Vercel["Vercel - Webサーバー（Pro）"]
+        App["Next.js<br>本番"]
+        AppStg["Next.js<br>ステージング"]
+    end
+
+    subgraph Supabase["Supabase - データベース（東京）"]
+        DB["PostgreSQL<br>Pro / 8GB"]
+        DBStg["PostgreSQL<br>Free / 500MB"]
+        Storage["ファイル保存<br>（Pro に含む）"]
+    end
+
+    subgraph External["外部サービス"]
+        Resend["Resend<br>メール配信 / $20"]
+        Inngest["Inngest<br>メール一括送信処理"]
+        Sentry["Sentry<br>エラー監視"]
+    end
+
+    subgraph Dev["開発"]
+        GitHub["GitHub<br>ソースコード管理"]
+    end
+
+    Admin --> Prod
+    Guest --> Prod
+    Admin --> Stg
+
+    Prod --> App
+    Stg --> AppStg
+
+    App --> DB
+    App --> Storage
+    AppStg --> DBStg
+
+    App -- "非同期" --> Inngest
+    Inngest -- "メール送信" --> Resend
+    App -- "エラー監視" --> Sentry
+    Sentry -- "通知" --> Slack["Slack"]
+
+    GitHub -- "git push" --> Vercel
+```
+
+---
+
+## 案1: 費用内訳
 
 ### 本番環境
 
@@ -84,7 +124,7 @@ GCP完結の構成。レイテンシーが最も安定。
 | Vercel | Proに含まれる（プレビュー環境） | $0 |
 | Supabase | Free（500MB DB / 東京リージョン） | $0 |
 
-**ステージング 小計: 約 $0/月**
+**ステージング 小計: $0/月**
 
 ### 外部サービス
 
@@ -98,7 +138,7 @@ GCP完結の構成。レイテンシーが最も安定。
 
 **外部サービス 小計: $20/月（約3,000円）**
 
-### 構成B 合計
+### 合計
 
 | 項目 | 月額費用 |
 |------|---------|
@@ -106,29 +146,6 @@ GCP完結の構成。レイテンシーが最も安定。
 | ステージング | $0（0円） |
 | 外部サービス | $20（3,000円） |
 | **合計** | **約 $69/月（約10,400円）** |
-
-### 構成B 特徴
-
-- ✅ 運用が圧倒的に楽（デプロイはgit push のみ）
-- ✅ ステージングが実質無料（Vercelプレビュー + Supabase Free）
-- ✅ Next.jsとの相性が最高
-- ✅ 月額費用が安い
-- ❌ DBレイテンシーがやや大きい（10〜30ms）
-- ❌ サービスが分散（Vercel / Supabase / Resend）
-
----
-
-## 比較まとめ
-
-| 項目 | 構成A（GCP） | 構成B（Vercel + Supabase） |
-|------|-------------|---------------------------|
-| **月額費用** | $80〜105（12,000〜15,800円） | $69（10,400円） |
-| **DBレイテンシー** | ◎ 1〜5ms | ○ 10〜30ms |
-| **運用の楽さ** | △ | ◎ |
-| **デプロイ** | Cloud Build設定必要 | git pushのみ |
-| **ステージング費用** | $12〜20/月 | $0 |
-| **スケーラビリティ** | ◎ | ◎ |
-| **バックアップ** | PITR（7日間） | 日次バックアップ（7日間） |
 
 ---
 
@@ -139,16 +156,86 @@ GCP完結の構成。レイテンシーが最も安定。
 | 本番 | example.jp または app.example.jp |
 | ステージング | stg.example.jp |
 
-SSL証明書は両構成とも自動発行・更新。
+SSL証明書は自動発行・更新。
 
 ---
 
-## 推奨
+## 参考: 案2（不採用）
 
-**開発者1人・社内利用メイン**という条件であれば、**構成B（Vercel + Supabase）**を推奨。
+<details>
+<summary>案2: Cloud Run + Cloud SQL（東京）の詳細</summary>
 
-- 運用の手間が少ない
-- 月額費用が安い
-- 10〜30msのレイテンシーは体感でほぼわからない
+GCP完結の構成。レイテンシーが最も安定するが、運用の手間とコストが案1より大きい。
 
-将来的にトラフィックが増えたり、より厳密なレイテンシー要件が出てきた場合は、構成Aへの移行を検討。
+### 構成図
+
+```mermaid
+graph TB
+    subgraph Users["ユーザー"]
+        Admin["管理者<br>（マルコポーロ社）"]
+        Guest["イベント参加者<br>（100人想定）"]
+    end
+
+    subgraph Domain["独自ドメイン（.jp）"]
+        Prod["example.jp"]
+        Stg["stg.example.jp"]
+    end
+
+    subgraph GCP["Google Cloud Platform（東京）"]
+        CloudRun["Cloud Run<br>Webサーバー 本番"]
+        CloudRunStg["Cloud Run<br>Webサーバー ステージング"]
+        CloudSQL["Cloud SQL<br>データベース<br>1 vCPU / 3.75GB RAM"]
+        CloudSQLStg["Cloud SQL<br>データベース<br>f1-micro"]
+        GCS["Cloud Storage<br>ファイル保存"]
+        CloudBuild["Cloud Build<br>デプロイ"]
+        CloudTasks["Cloud Tasks<br>メール一括送信処理"]
+    end
+
+    subgraph External["外部サービス"]
+        Resend["Resend<br>メール配信 / $20"]
+        Sentry["Sentry<br>エラー監視"]
+    end
+
+    subgraph Dev["開発"]
+        GitHub["GitHub<br>ソースコード管理"]
+    end
+
+    Admin --> Prod
+    Guest --> Prod
+    Admin --> Stg
+
+    Prod --> CloudRun
+    Stg --> CloudRunStg
+
+    CloudRun --> CloudSQL
+    CloudRun --> GCS
+    CloudRunStg --> CloudSQLStg
+
+    CloudRun -- "非同期" --> CloudTasks
+    CloudTasks -- "メール送信" --> Resend
+    CloudRun -- "エラー監視" --> Sentry
+    Sentry -- "通知" --> Slack["Slack"]
+
+    GitHub -- "push" --> CloudBuild
+    CloudBuild -- "デプロイ" --> CloudRun
+```
+
+### 費用
+
+| 項目 | 月額費用 |
+|------|---------|
+| 本番 | 約 $48〜65（7,200〜9,800円） |
+| ステージング | 約 $12〜20（1,800〜3,000円） |
+| 外部サービス | $20（3,000円） |
+| **合計** | **約 $80〜105/月（12,000〜15,800円）** |
+
+### 不採用理由
+
+- 運用の手間が多い（Cloud Build、Cloud Run、Cloud SQLの設定・管理）
+- 月額費用が案1より高い
+- 開発者1人体制ではオーバースペック
+
+</details>
+
+## 相談
+* ドメインをどうするか
