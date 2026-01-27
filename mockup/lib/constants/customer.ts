@@ -88,9 +88,27 @@ export const LISTING_OPTIONS = [
   { exchange: "札幌証券取引所", markets: ["本則市場", "アンビシャス"] },
 ] as const;
 
-// ベンチャー監査役協会の会員種別
+// ベンチャー監査役の会の会員種別
 export const AUDIT_MEMBER_TYPES = [
   { value: "regular", label: "正会員" },
   { value: "online", label: "オンライン会員" },
+] as const;
+
+// ないかんMeetup 所属
+export const NAIKAN_AFFILIATIONS = [
+  "内部監査部門",
+  "常勤監査役・常勤監査等委員",
+  "代表者（社長・CEO）",
+  "CFO",
+  "管理部門長",
+  "経理部門",
+  "法務部門",
+  "総務部門",
+  "情報システム部門",
+  "経営企画部門",
+  "社長室",
+  "人事部門",
+  "IR部門",
+  "その他",
 ] as const;
 

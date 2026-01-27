@@ -22,3 +22,6 @@ export type {
   SurveyToken,
 } from "./survey";
 
+// Admin関連の型
+export type { AdminRole, CommunityScope, Admin } from "./admin";
+

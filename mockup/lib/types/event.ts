@@ -1,4 +1,4 @@
-export type EventType = "ベンチャー監査役協会" | "ないかんMeetup" | "その他";
+export type EventType = "ベンチャー監査役の会" | "ないかんMeetup" | "その他";
 
 export type Event = {
   id: string;

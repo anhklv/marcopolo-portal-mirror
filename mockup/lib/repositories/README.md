@@ -44,7 +44,7 @@ const newCustomer = await customerRepository.create({
   name: "新規顧客",
   email: "new@example.com",
   memberCategory: "member",
-  memberTypes: ["ベンチャー監査役協会"],
+  memberTypes: ["ベンチャー監査役の会"],
 });
 
 // 顧客を更新
@@ -67,7 +67,7 @@ const events = await eventRepository.findAll();
 // フィルター付きで検索
 const openEvents = await eventRepository.findAll({
   status: "open",
-  eventType: "ベンチャー監査役協会",
+  eventType: "ベンチャー監査役の会",
 });
 
 // イベントを作成
@@ -76,7 +76,7 @@ const newEvent = await eventRepository.create({
   date: "2024-12-31T18:00:00+09:00",
   location: "東京",
   description: "説明",
-  eventType: "ベンチャー監査役協会",
+  eventType: "ベンチャー監査役の会",
 });
 ```
 

@@ -13,7 +13,7 @@ export const FUTURE_PARTICIPATION_OPTIONS = [
   "参加しない",
 ] as const;
 
-// ベンチャー監査役協会への入会についての選択肢
+// ベンチャー監査役の会への入会についての選択肢
 export const MEMBERSHIP_OPTIONS = [
   "入会をしたい",
   "入会を検討したい",

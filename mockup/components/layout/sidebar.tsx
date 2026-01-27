@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   Users,
@@ -10,6 +10,8 @@ import {
   Settings,
   ChevronDown,
   FileText,
+  ChevronRight,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,10 +19,24 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/lib/contexts/auth.context";
+import { toast } from "sonner";
+import { admins } from "@/lib/data/mock";
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { currentAdmin, logout, switchAdmin } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    router.push("/admin/login");
+    toast.success("ログアウトしました");
+  };
 
   const routes = [
     {
@@ -55,13 +71,13 @@ export function Sidebar() {
   const isDevMenuActive = devMenuItems.some((item) => pathname === item.href);
 
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-white">
-      <div className="flex h-14 items-center border-b px-6 bg-white">
+    <div className="flex h-screen w-64 flex-col border-r bg-white flex-shrink-0 overflow-hidden">
+      <div className="flex h-14 items-center border-b px-6 bg-white flex-shrink-0">
         <Link className="flex items-center gap-2 font-semibold" href="/admin/customers">
           <span className="text-lg font-bold">Marcopolo Admin</span>
         </Link>
       </div>
-      <div className="flex-1 overflow-auto py-2 bg-white">
+      <div className="flex-1 overflow-auto py-2 bg-white min-h-0">
         <nav className="grid items-start px-4 text-sm font-medium">
           {routes.map((route) => (
             <Link
@@ -80,7 +96,7 @@ export function Sidebar() {
           ))}
         </nav>
       </div>
-      <div className="mt-auto bg-white">
+      <div className="mt-auto bg-white flex-shrink-0">
         <div className="px-4 py-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -98,6 +114,42 @@ export function Sidebar() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56 bg-white">
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger 
+                  className="bg-white hover:bg-gray-100 cursor-pointer admin-switch-trigger"
+                >
+                  <span>管理者切り替え</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent 
+                  className="bg-white w-64 admin-switch-content"
+                  sideOffset={8}
+                >
+                  {admins.map((admin) => {
+                    const isCurrentAdmin = currentAdmin?.id === admin.id;
+                    return (
+                      <DropdownMenuItem
+                        key={admin.id}
+                        className={cn(
+                          "bg-white hover:bg-gray-100 cursor-pointer",
+                          isCurrentAdmin && "bg-gray-100"
+                        )}
+                        onClick={() => {
+                          switchAdmin(admin.id);
+                          toast.success(`${admin.lastName} ${admin.firstName}に切り替えました`);
+                        }}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex flex-col">
+                            <span className="font-medium">{admin.lastName} {admin.firstName}</span>
+                            <span className="text-xs text-gray-500">{admin.email}</span>
+                          </div>
+                          {isCurrentAdmin && <Check className="h-4 w-4 shrink-0" />}
+                        </div>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
               {devMenuItems.map((item) => (
                 <DropdownMenuItem key={item.href} asChild className="bg-white hover:bg-gray-100">
                   <Link
@@ -115,6 +167,12 @@ export function Sidebar() {
           </DropdownMenu>
         </div>
         <div className="p-4 border-t">
+          {currentAdmin && (
+            <div className="px-3 py-2 mb-2 text-sm text-gray-600">
+              <span className="font-medium">{currentAdmin.lastName} {currentAdmin.firstName}</span>
+              <span className="ml-1">でログイン中</span>
+            </div>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -131,17 +189,19 @@ export function Sidebar() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56 bg-white">
-              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
-                <Link
-                  href="/admin/settings/email"
-                  className={cn(
-                    "cursor-pointer w-full",
-                    pathname === "/admin/settings/email" && "bg-gray-100"
-                  )}
-                >
-                  ログインID変更
-                </Link>
-              </DropdownMenuItem>
+              {currentAdmin?.role === "super" && (
+                <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
+                  <Link
+                    href="/admin/admins"
+                    className={cn(
+                      "cursor-pointer w-full",
+                      pathname.startsWith("/admin/admins") && "bg-gray-100"
+                    )}
+                  >
+                    管理者管理
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
                 <Link
                   href="/admin/settings/password"
@@ -155,7 +215,11 @@ export function Sidebar() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="ghost" className="w-full justify-start gap-2 text-red-500 hover:text-red-600 hover:bg-red-50">
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+            onClick={handleLogout}
+          >
             <LogOut className="h-4 w-4" />
             ログアウト
           </Button>

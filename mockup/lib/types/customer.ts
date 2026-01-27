@@ -1,4 +1,4 @@
-export type Community = "ベンチャー監査役協会" | "ないかんMeetup";
+export type Community = "ベンチャー監査役の会" | "ないかんMeetup";
 export type CommunityFilterValue = Community | "非会員"; // フィルター用（非会員を含む）
 export type MemberCategory = "member" | "sponsor" | "observer"; // 会員区分（会員の場合のみ）
 export type ContractType = "corporate" | "individual"; // 契約主体（法人・個人）
@@ -21,8 +21,13 @@ export type Customer = {
   communities: Community[]; // 所属コミュニティ（配列で複数所属可能、空配列=非会員）
   memberCategory?: MemberCategory; // 会員区分（会員の場合のみ、非会員の場合はundefined）
   contractType?: ContractType; // 契約主体（法人・個人）- 会員の場合のみ
-  auditMemberType?: "regular" | "online"; // ベンチャー監査役協会の会員種別
+  auditMemberType?: "regular" | "online"; // ベンチャー監査役の会の会員種別
   auditMemberPremium?: boolean; // プレミアム会員フラグ
+  auditJoinedAt?: string; // ベンチャー監査役の会 入会日
+  auditResignedAt?: string; // ベンチャー監査役の会 脱退日
+  naikanJoinedAt?: string; // ないかんMeetup 入会日
+  naikanResignedAt?: string; // ないかんMeetup 脱退日
+  naikanAffiliation?: string; // ないかんMeetup 所属
   note?: string; // 備考 - 任意
   status: "active" | "inactive";
   registeredAt: string;

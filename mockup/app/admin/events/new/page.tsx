@@ -18,7 +18,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Mail } from "lucide-react";
 import { events } from "@/lib/data/mock";
-import type { EventType } from "@/lib/types";
+import type { EventType, CommunityScope } from "@/lib/types";
 import { EVENT_TYPES } from "@/lib/constants/event";
 import { formatEventDate } from "@/lib/utils";
 import {
@@ -28,34 +28,87 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/lib/contexts/auth.context";
+import { DatePickerWithInput } from "@/components/ui/date-picker-with-input";
 
 export default function NewEventPage() {
   const router = useRouter();
+  const { hasPermission, currentAdmin } = useAuth();
   const [step, setStep] = useState<"form" | "success">("form");
   const [createdEventId, setCreatedEventId] = useState<string | null>(null);
 
+  // 初期値の設定
+  const getInitialEventType = (): EventType => {
+    if (currentAdmin?.role === "super") {
+      return "ベンチャー監査役の会"; // デフォルト値
+    }
+    if (currentAdmin?.role === "community_admin" && currentAdmin.communityScopes && currentAdmin.communityScopes.length > 0) {
+      return currentAdmin.communityScopes[0] as EventType;
+    }
+    return "ベンチャー監査役の会";
+  };
+
   // フォームデータ
-  const [eventType, setEventType] = useState<EventType>("ベンチャー監査役協会");
+  const [eventType, setEventType] = useState<EventType>(getInitialEventType());
   const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
+  
+  // 開催日時: 日付と時刻を分けて管理
+  const [eventDate, setEventDate] = useState<Date | undefined>(undefined);
+  const [eventTime, setEventTime] = useState("");
+  
+  // 回答期限: 日付と時刻を分けて管理
+  const [deadlineDate, setDeadlineDate] = useState<Date | undefined>(undefined);
+  const [deadlineTime, setDeadlineTime] = useState("");
+  
   const [overview, setOverview] = useState("");
   const [timetable, setTimetable] = useState("");
   const [location, setLocation] = useState("");
   const [note, setNote] = useState("");
-  const [responseDeadline, setResponseDeadline] = useState("");
   const [allowsOnline, setAllowsOnline] = useState(false);
   const [hasAfterParty, setHasAfterParty] = useState(false);
 
+  // 日付と時刻をdatetime-local形式に変換
+  const formatDateTime = (date: Date | undefined, time: string): string => {
+    if (!date || !time) return "";
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}T${time}`;
+  };
+
+  // datetime-local形式から日付と時刻を取得
+  const parseDateTime = (dateTime: string): { date: Date | undefined; time: string } => {
+    if (!dateTime) return { date: undefined, time: "" };
+    const [datePart, timePart] = dateTime.split("T");
+    if (!datePart || !timePart) return { date: undefined, time: "" };
+    const date = new Date(datePart + "T" + timePart);
+    const time = timePart.slice(0, 5); // HH:MM形式（秒を削除）
+    return { date: isNaN(date.getTime()) ? undefined : date, time };
+  };
+
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const date = formatDateTime(eventDate, eventTime);
     if (!title || !date) {
       toast.error("イベント名と開催日時は必須です");
+      return;
+    }
+
+    // 権限チェック
+    const eventData = {
+      eventType: eventType as CommunityScope,
+    };
+
+    if (!hasPermission("event", eventData)) {
+      toast.error("このイベントを登録する権限がありません");
       return;
     }
 
     // イベントを保存（モック: 実際はAPI呼び出し）
     // イベントIDを生成（モック: 実際はサーバーから返される）
     const eventId = `E${String(Date.now()).slice(-6)}`;
+
+    const responseDeadline = formatDateTime(deadlineDate, deadlineTime);
 
     // モックデータへ即時反映して、遷移先でも参照できるようにする
     events.push({
@@ -121,18 +174,37 @@ export default function NewEventPage() {
           <div className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="eventType">イベント種別 <span className="text-red-500">*</span></Label>
-              <Select value={eventType} onValueChange={(value) => setEventType(value as EventType)}>
-                <SelectTrigger className="w-full bg-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {EVENT_TYPES.map((type) => (
-                    <SelectItem key={type} value={type} className="bg-white hover:bg-gray-100">
-                      {type}
-                    </SelectItem>
+              {currentAdmin?.role === "super" || 
+               (currentAdmin?.role === "community_admin" && 
+                currentAdmin.communityScopes && 
+                currentAdmin.communityScopes.length > 1) ? (
+                <Select value={eventType} onValueChange={(value) => setEventType(value as EventType)}>
+                  <SelectTrigger className="w-full bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {(currentAdmin?.role === "super" 
+                      ? EVENT_TYPES 
+                      : EVENT_TYPES.filter((type) => 
+                          currentAdmin?.communityScopes?.includes(type as CommunityScope)
+                        )
+                    ).map((type) => (
+                      <SelectItem key={type} value={type} className="bg-white hover:bg-gray-100">
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="text-sm text-foreground">
+                  {currentAdmin?.communityScopes?.map((scope, index) => (
+                    <span key={scope}>
+                      {index > 0 && "、"}
+                      {scope}
+                    </span>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              )}
             </div>
 
             <div className="grid gap-2">
@@ -146,15 +218,32 @@ export default function NewEventPage() {
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="date">開催日時 <span className="text-red-500">*</span></Label>
-              <Input
-                id="date"
-                type="datetime-local"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
+            <div className="flex gap-4">
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="date-picker" className="px-1">
+                  開催日 <span className="text-red-500">*</span>
+                </Label>
+                <DatePickerWithInput
+                  id="date-picker"
+                  date={eventDate}
+                  setDate={setEventDate}
+                  className="w-32"
+                />
+              </div>
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="time-picker" className="px-1">
+                  時刻 <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="time"
+                  id="time-picker"
+                  step="60"
+                  value={eventTime}
+                  onChange={(e) => setEventTime(e.target.value)}
+                  className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-32"
+                  required={!!eventDate}
+                />
+              </div>
             </div>
 
             <div className="grid gap-2">
@@ -205,18 +294,36 @@ export default function NewEventPage() {
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="responseDeadline">回答期限</Label>
-              <Input
-                id="responseDeadline"
-                type="datetime-local"
-                value={responseDeadline}
-                onChange={(e) => setResponseDeadline(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                回答期限を設定しない場合、イベント開催日まで回答を受け付けます。
-              </p>
+            <div className="flex gap-4">
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="deadline-date-picker" className="px-1">
+                  回答期限日
+                </Label>
+                <DatePickerWithInput
+                  id="deadline-date-picker"
+                  date={deadlineDate}
+                  setDate={setDeadlineDate}
+                  className="w-32"
+                />
+              </div>
+              <div className="flex flex-col gap-3">
+                <Label htmlFor="deadline-time-picker" className="px-1">
+                  時刻
+                </Label>
+                <Input
+                  type="time"
+                  id="deadline-time-picker"
+                  step="60"
+                  value={deadlineTime}
+                  onChange={(e) => setDeadlineTime(e.target.value)}
+                  className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-32"
+                  disabled={!deadlineDate}
+                />
+              </div>
             </div>
+            <p className="text-xs text-muted-foreground px-1">
+              回答期限を設定しない場合、イベント開催日まで回答を受け付けます。
+            </p>
 
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -280,7 +387,9 @@ export default function NewEventPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <div className="text-lg font-bold">{title}</div>
-              <div className="text-sm text-muted-foreground">開催日時: {formatEventDate(date)}</div>
+              <div className="text-sm text-muted-foreground">
+                開催日時: {formatEventDate(formatDateTime(eventDate, eventTime))}
+              </div>
             </div>
 
             <div className="flex justify-end gap-4 pt-4">

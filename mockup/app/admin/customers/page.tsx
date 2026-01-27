@@ -22,19 +22,21 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { customers, getCommunityDisplayName } from "@/lib/data/mock";
-import type { Customer, CommunityFilterValue } from "@/lib/types";
+import type { CommunityScope } from "@/lib/types";
 import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/common";
 import { Plus, Search, Users, ChevronDown, Download } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
 import React from "react";
+import { useAuth } from "@/lib/contexts/auth.context";
 
 type MemberCategoryFilter = "member" | "sponsor" | "observer";
-type OrganizationFilter = "ベンチャー監査役協会" | "ないかんMeetup" | "非会員";
+type OrganizationFilter = "ベンチャー監査役の会" | "ないかんMeetup" | "非会員";
 type AuditMemberTypeFilter = "regular" | "online";
 
 export default function CustomersPage() {
   const router = useRouter();
+  const { currentAdmin } = useAuth();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [memberCategories, setMemberCategories] = useState<MemberCategoryFilter[]>([]);
   const [organizations, setOrganizations] = useState<OrganizationFilter[]>([]);
@@ -44,49 +46,59 @@ export default function CustomersPage() {
   const [statusSearch, setStatusSearch] = useState("");
 
   const handleMemberCategoryChange = (category: MemberCategoryFilter, checked: boolean) => {
-    if (checked) {
-      setMemberCategories([...memberCategories, category]);
-    } else {
-      setMemberCategories(memberCategories.filter((c) => c !== category));
-      // 会員を外した場合、ベンチャー監査役協会の会員種別もリセット
-      if (category === "member") {
-        setAuditMemberTypes([]);
-        setPremiumOnly(false);
+    setMemberCategories((prev) => {
+      const hasCategory = prev.includes(category);
+      if (checked) {
+        return hasCategory ? prev : [...prev, category];
       }
+      return hasCategory ? prev.filter((c) => c !== category) : prev;
+    });
+    // 会員を外した場合、ベンチャー監査役の会の会員種別もリセット
+    if (!checked && category === "member") {
+      setAuditMemberTypes((prev) => (prev.length > 0 ? [] : prev));
+      setPremiumOnly((prev) => (prev ? false : prev));
     }
   };
 
   const handleOrganizationChange = (org: OrganizationFilter, checked: boolean) => {
-    if (checked) {
-      setOrganizations([...organizations, org]);
-    } else {
-      setOrganizations(organizations.filter((o) => o !== org));
-      // ベンチャー監査役協会のチェックを外した場合、会員種別もリセット
-      if (org === "ベンチャー監査役協会") {
-        setAuditMemberTypes([]);
-        setPremiumOnly(false);
+    setOrganizations((prev) => {
+      const hasOrg = prev.includes(org);
+      if (checked) {
+        return hasOrg ? prev : [...prev, org];
+      }
+      return hasOrg ? prev.filter((o) => o !== org) : prev;
+    });
+    if (!checked) {
+      // ベンチャー監査役の会のチェックを外した場合、会員種別もリセット
+      if (org === "ベンチャー監査役の会") {
+        setAuditMemberTypes((prev) => (prev.length > 0 ? [] : prev));
+        setPremiumOnly((prev) => (prev ? false : prev));
       }
       // コミュニティを外した場合、会員区分もリセット
       if (org !== "非会員") {
-        setMemberCategories([]);
+        setMemberCategories((prev) => (prev.length > 0 ? [] : prev));
       }
     }
   };
 
   const handleAuditMemberTypeChange = (type: AuditMemberTypeFilter, checked: boolean) => {
-    if (checked) {
-      setAuditMemberTypes([...auditMemberTypes, type]);
-    } else {
-      setAuditMemberTypes(auditMemberTypes.filter((t) => t !== type));
-    }
+    setAuditMemberTypes((prev) => {
+      const hasType = prev.includes(type);
+      if (checked) {
+        return hasType ? prev : [...prev, type];
+      }
+      return hasType ? prev.filter((t) => t !== type) : prev;
+    });
   };
 
   const handleStatusChange = (status: string, checked: boolean) => {
-    if (checked) {
-      setStatuses([...statuses, status]);
-    } else {
-      setStatuses(statuses.filter((s) => s !== status));
-    }
+    setStatuses((prev) => {
+      const hasStatus = prev.includes(status);
+      if (checked) {
+        return hasStatus ? prev : [...prev, status];
+      }
+      return hasStatus ? prev.filter((s) => s !== status) : prev;
+    });
   };
 
   const getFilterDisplayText = () => {
@@ -109,7 +121,7 @@ export default function CustomersPage() {
       parts.push(`(${categoryLabels.join("・")})`);
     }
     
-    if (organizations.includes("ベンチャー監査役協会") && auditMemberTypes.length > 0) {
+    if (organizations.includes("ベンチャー監査役の会") && auditMemberTypes.length > 0) {
       if (auditMemberTypes.length === 1) {
         const typeLabel = auditMemberTypes[0] === "regular" ? "正会員" : "オンライン会員";
         parts.push(typeLabel);
@@ -197,7 +209,18 @@ export default function CustomersPage() {
   };
 
   const filteredCustomers = useMemo(() => {
-    const filtered = customers.filter((customer) => {
+    let filtered = [...customers];
+
+    // 管理者権限に応じてフィルタリング
+    if (currentAdmin?.role === "community_admin" && currentAdmin.communityScopes) {
+      filtered = filtered.filter((c) =>
+        c.communities.some((community) =>
+          currentAdmin.communityScopes!.includes(community as CommunityScope)
+        )
+      );
+    }
+
+    filtered = filtered.filter((customer) => {
       // フリーワード検索
       const matchesKeyword =
         searchKeyword === "" ||
@@ -205,13 +228,13 @@ export default function CustomersPage() {
         customer.company?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
         customer.email.toLowerCase().includes(searchKeyword.toLowerCase());
 
-      // 所属コミュニティフィルタ（ベンチャー監査役協会、ないかんMeetup、非会員）
+      // 所属コミュニティフィルタ（ベンチャー監査役の会、ないかんMeetup、非会員）
       let matchesOrganizations = true;
       if (organizations.length > 0) {
         const hasNonMember = organizations.includes("非会員");
         const hasOrganizations = organizations.some((org) => {
-          if (org === "ベンチャー監査役協会") {
-            return customer.communities.includes("ベンチャー監査役協会");
+          if (org === "ベンチャー監査役の会") {
+            return customer.communities.includes("ベンチャー監査役の会");
           }
           if (org === "ないかんMeetup") {
             return customer.communities.includes("ないかんMeetup");
@@ -235,10 +258,10 @@ export default function CustomersPage() {
         matchesMemberCategory = customer.memberCategory ? memberCategories.includes(customer.memberCategory) : false;
       }
 
-      // ベンチャー監査役協会の会員種別フィルタ
+      // ベンチャー監査役の会の会員種別フィルタ
       let matchesAuditMemberType = true;
-      if (organizations.includes("ベンチャー監査役協会") && auditMemberTypes.length > 0) {
-        // ベンチャー監査役協会を選択している場合
+      if (organizations.includes("ベンチャー監査役の会") && auditMemberTypes.length > 0) {
+        // ベンチャー監査役の会を選択している場合
         if (memberCategories.length === 0) {
           // 会員区分が未選択（すべて）の場合、正会員とスポンサーの両方を抽出
           matchesAuditMemberType = 
@@ -284,7 +307,7 @@ export default function CustomersPage() {
       if (a.status === "inactive" && b.status === "active") return 1;
       return 0;
     });
-  }, [searchKeyword, memberCategories, organizations, auditMemberTypes, premiumOnly, statuses]);
+  }, [currentAdmin, searchKeyword, memberCategories, organizations, auditMemberTypes, premiumOnly, statuses]);
 
   return (
     <div className="space-y-6">
@@ -337,41 +360,54 @@ export default function CustomersPage() {
               <div className="space-y-2">
                 <Label className="text-sm font-semibold">コミュニティ</Label>
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="org-audit"
-                      checked={organizations.includes("ベンチャー監査役協会")}
-                      onCheckedChange={(checked) =>
-                        handleOrganizationChange("ベンチャー監査役協会", checked === true)
-                      }
-                    />
-                    <Label htmlFor="org-audit" className="cursor-pointer text-sm">ベンチャー監査役協会</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="org-naikan"
-                      checked={organizations.includes("ないかんMeetup")}
-                      onCheckedChange={(checked) =>
-                        handleOrganizationChange("ないかんMeetup", checked === true)
-                      }
-                    />
-                    <Label htmlFor="org-naikan" className="cursor-pointer text-sm">ないかんMeetup</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="org-non-member"
-                      checked={organizations.includes("非会員")}
-                      onCheckedChange={(checked) =>
-                        handleOrganizationChange("非会員", checked === true)
-                      }
-                    />
-                    <Label htmlFor="org-non-member" className="cursor-pointer text-sm">非会員</Label>
-                  </div>
+                  {/* 特権管理者またはベンチャー監査役の会の権限がある場合のみ表示 */}
+                  {(currentAdmin?.role === "super" || 
+                    (currentAdmin?.role === "community_admin" && 
+                     currentAdmin.communityScopes?.includes("ベンチャー監査役の会"))) && (
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="org-audit"
+                        checked={organizations.includes("ベンチャー監査役の会")}
+                        onCheckedChange={(checked) =>
+                          handleOrganizationChange("ベンチャー監査役の会", checked === true)
+                        }
+                      />
+                      <Label htmlFor="org-audit" className="cursor-pointer text-sm">ベンチャー監査役の会</Label>
+                    </div>
+                  )}
+                  {/* 特権管理者またはないかんMeetupの権限がある場合のみ表示 */}
+                  {(currentAdmin?.role === "super" || 
+                    (currentAdmin?.role === "community_admin" && 
+                     currentAdmin.communityScopes?.includes("ないかんMeetup"))) && (
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="org-naikan"
+                        checked={organizations.includes("ないかんMeetup")}
+                        onCheckedChange={(checked) =>
+                          handleOrganizationChange("ないかんMeetup", checked === true)
+                        }
+                      />
+                      <Label htmlFor="org-naikan" className="cursor-pointer text-sm">ないかんMeetup</Label>
+                    </div>
+                  )}
+                  {/* 非会員は特権管理者のみ表示 */}
+                  {currentAdmin?.role === "super" && (
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="org-non-member"
+                        checked={organizations.includes("非会員")}
+                        onCheckedChange={(checked) =>
+                          handleOrganizationChange("非会員", checked === true)
+                        }
+                      />
+                      <Label htmlFor="org-non-member" className="cursor-pointer text-sm">非会員</Label>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* 会員区分選択（コミュニティを選択した場合のみ表示） */}
-              {(organizations.includes("ベンチャー監査役協会") || organizations.includes("ないかんMeetup")) && (
+              {(organizations.includes("ベンチャー監査役の会") || organizations.includes("ないかんMeetup")) && (
                 <div className="space-y-2 border-t pt-4">
                   <Label className="text-sm font-semibold">会員区分</Label>
                   <div className="space-y-2">
@@ -409,10 +445,10 @@ export default function CustomersPage() {
                 </div>
               )}
 
-              {/* ベンチャー監査役協会の会員種別（ベンチャー監査役協会を選択している場合のみ表示） */}
-              {organizations.includes("ベンチャー監査役協会") && (
+              {/* ベンチャー監査役の会の会員種別（ベンチャー監査役の会を選択している場合のみ表示） */}
+              {organizations.includes("ベンチャー監査役の会") && (
                 <div className="space-y-2 border-t pt-4">
-                  <Label className="text-sm font-semibold">ベンチャー監査役協会 会員種別</Label>
+                  <Label className="text-sm font-semibold">ベンチャー監査役の会 会員種別</Label>
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -438,8 +474,8 @@ export default function CustomersPage() {
                 </div>
               )}
 
-              {/* プレミアム会員（ベンチャー監査役協会を選択している場合のみ表示） */}
-              {organizations.includes("ベンチャー監査役協会") && (
+              {/* プレミアム会員（ベンチャー監査役の会を選択している場合のみ表示） */}
+              {organizations.includes("ベンチャー監査役の会") && (
                 <div className="space-y-2 border-t pt-4">
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -584,7 +620,7 @@ export default function CustomersPage() {
                             </Badge>
                           );
                         } else if (customer.memberCategory === "member") {
-                          const hasAudit = customer.communities.includes("ベンチャー監査役協会");
+                          const hasAudit = customer.communities.includes("ベンチャー監査役の会");
                           const hasNaikan = customer.communities.includes("ないかんMeetup");
                           
                           if (hasNaikan && !hasAudit) {
@@ -597,14 +633,14 @@ export default function CustomersPage() {
                             const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                             badges.push(
                               <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
-                                ベンチャー監査役協会({auditType})
+                                ベンチャー監査役の会({auditType})
                               </Badge>
                             );
                           } else if (hasAudit && hasNaikan) {
                             const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                             badges.push(
                               <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
-                                ベンチャー監査役協会({auditType})
+                                ベンチャー監査役の会({auditType})
                               </Badge>
                             );
                             badges.push(
@@ -630,10 +666,10 @@ export default function CustomersPage() {
                               </Badge>
                             );
                           }
-                          if (customer.communities.includes("ベンチャー監査役協会")) {
+                          if (customer.communities.includes("ベンチャー監査役の会")) {
                             badges.push(
                               <Badge key="sponsor-audit" variant="default" className="text-xs px-2 py-0.5">
-                                ベンチャー監査役協会(スポンサー)
+                                ベンチャー監査役の会(スポンサー)
                               </Badge>
                             );
                           }
@@ -645,10 +681,10 @@ export default function CustomersPage() {
                               </Badge>
                             );
                           }
-                          if (customer.communities.includes("ベンチャー監査役協会")) {
+                          if (customer.communities.includes("ベンチャー監査役の会")) {
                             badges.push(
                               <Badge key="observer-audit" variant="default" className="text-xs px-2 py-0.5">
-                                ベンチャー監査役協会(オブザーバー)
+                                ベンチャー監査役の会(オブザーバー)
                               </Badge>
                             );
                           }
