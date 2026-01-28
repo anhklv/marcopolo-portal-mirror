@@ -117,8 +117,8 @@ export default function SurveyCreatePage({
           </Link>
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold tracking-tight">アンケート管理</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight">アンケート管理</h1>
+          <p className="text-sm text-muted-foreground">
             アンケートの設問を編集します。固定の質問があるため、設問を設定しなくてもアンケート案内は可能です。
           </p>
         </div>

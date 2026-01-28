@@ -172,7 +172,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               <Badge variant="outline">
                 {(event as any).eventType || "ベンチャー監査役の会"}
               </Badge>
-              <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{event.title}</h1>
             </div>
           </div>
         </div>

@@ -202,8 +202,8 @@ export default function NewCustomerPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">顧客登録</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight">顧客登録</h1>
+          <p className="text-sm text-muted-foreground">
             新しい顧客情報をシステムに登録します。
           </p>
         </div>
@@ -767,9 +767,6 @@ export default function NewCustomerPage() {
         </Card>
 
         <div className="flex justify-end gap-4">
-          <Button variant="outline" asChild>
-            <Link href="/admin/customers">キャンセル</Link>
-          </Button>
           <Button type="submit" variant="default" className="cursor-pointer">登録する</Button>
         </div>
       </form>

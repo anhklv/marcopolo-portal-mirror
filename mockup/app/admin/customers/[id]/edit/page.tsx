@@ -64,8 +64,8 @@ export default function CustomerEditPage({
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">顧客が見つかりません</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">顧客が見つかりません</h1>
+            <p className="text-sm text-muted-foreground">
               指定された顧客IDの情報が見つかりませんでした。
             </p>
           </div>
@@ -220,8 +220,8 @@ export default function CustomerEditPage({
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">顧客編集</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight">顧客編集</h1>
+          <p className="text-sm text-muted-foreground">
             顧客情報を編集・更新します。
           </p>
         </div>

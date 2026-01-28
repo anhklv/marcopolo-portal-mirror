@@ -186,8 +186,8 @@ export default function EventRemindPage({
             </Link>
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">未回答者への再送</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">未回答者への再送</h1>
+            <p className="text-sm text-muted-foreground">
               未回答者へのリマインドメールを送信します。
             </p>
           </div>
@@ -342,8 +342,8 @@ export default function EventRemindPage({
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">未回答者への再送</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">未回答者への再送</h1>
+            <p className="text-sm text-muted-foreground">
               リマインドメールのタイトルと本文を編集できます。
             </p>
           </div>
@@ -404,8 +404,8 @@ export default function EventRemindPage({
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">未回答者への再送</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">未回答者への再送</h1>
+            <p className="text-sm text-muted-foreground">
               送信内容を確認して、テスト送信または送信を実行してください。
             </p>
           </div>

@@ -43,8 +43,8 @@ export default function CustomerDetailPage({
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">顧客が見つかりません</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">顧客が見つかりません</h1>
+            <p className="text-sm text-muted-foreground">
               指定された顧客IDの情報が見つかりませんでした。
             </p>
           </div>
@@ -97,8 +97,8 @@ export default function CustomerDetailPage({
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">顧客詳細</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">顧客詳細</h1>
+            <p className="text-sm text-muted-foreground">
               {customer.name}さんの詳細情報
             </p>
           </div>

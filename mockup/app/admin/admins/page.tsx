@@ -66,8 +66,8 @@ export default function AdminsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">管理者管理</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight">管理者管理</h1>
+          <p className="text-sm text-muted-foreground">
             システムを利用する管理者アカウントを管理します。
           </p>
         </div>

@@ -52,8 +52,8 @@ export default function EventEditPage({
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">イベントが見つかりません</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">イベントが見つかりません</h1>
+            <p className="text-sm text-muted-foreground">
               指定されたイベントIDの情報が見つかりませんでした。
             </p>
           </div>
@@ -173,8 +173,8 @@ export default function EventEditPage({
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">イベント編集</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight">イベント編集</h1>
+          <p className="text-sm text-muted-foreground">
             イベント情報を編集・更新します。
           </p>
         </div>

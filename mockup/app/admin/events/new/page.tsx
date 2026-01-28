@@ -163,8 +163,8 @@ export default function NewEventPage() {
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">イベント作成</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">イベント作成</h1>
+            <p className="text-sm text-muted-foreground">
               新しいイベントを作成します。
             </p>
           </div>
@@ -370,8 +370,8 @@ export default function NewEventPage() {
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">イベントを作成しました</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">イベントを作成しました</h1>
+            <p className="text-sm text-muted-foreground">
               イベント情報を保存しました。次に案内メールを送信しますか？
             </p>
           </div>

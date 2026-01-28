@@ -80,8 +80,8 @@ export default function NewAdminPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">管理者登録</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight">管理者登録</h1>
+          <p className="text-sm text-muted-foreground">
             新しい管理者アカウントを作成します。
           </p>
         </div>

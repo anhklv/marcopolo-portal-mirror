@@ -408,8 +408,8 @@ export default function EventInvitePage({
             </Link>
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">案内メール送信</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">案内メール送信</h1>
+            <p className="text-sm text-muted-foreground">
               案内メールを送信する顧客を選択してください。
             </p>
           </div>
@@ -848,8 +848,8 @@ export default function EventInvitePage({
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">案内メール送信</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">案内メール送信</h1>
+            <p className="text-sm text-muted-foreground">
               案内メールのタイトルと本文を編集できます。
             </p>
           </div>
@@ -910,8 +910,8 @@ export default function EventInvitePage({
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">案内メール送信</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">案内メール送信</h1>
+            <p className="text-sm text-muted-foreground">
               送信内容を確認して、テスト送信または送信を実行してください。
             </p>
           </div>

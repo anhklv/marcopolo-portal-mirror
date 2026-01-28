@@ -65,8 +65,8 @@ export default function AdminEditPage({
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">管理者が見つかりません</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">管理者が見つかりません</h1>
+            <p className="text-sm text-muted-foreground">
               指定された管理者IDの情報が見つかりませんでした。
             </p>
           </div>
@@ -122,8 +122,8 @@ export default function AdminEditPage({
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">管理者編集</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight">管理者編集</h1>
+          <p className="text-sm text-muted-foreground">
             管理者情報を編集・更新します。
           </p>
         </div>

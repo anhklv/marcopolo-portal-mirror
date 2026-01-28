@@ -56,8 +56,8 @@ export default function SurveyResultsPage({
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">アンケート結果</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">アンケート結果</h1>
+            <p className="text-sm text-muted-foreground">
               このイベントにはアンケートが作成されていません。
             </p>
           </div>
@@ -98,8 +98,8 @@ export default function SurveyResultsPage({
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">アンケート結果</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight">アンケート結果</h1>
+          <p className="text-sm text-muted-foreground">
             {event.title} のアンケート回答結果
           </p>
         </div>

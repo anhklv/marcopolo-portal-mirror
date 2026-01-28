@@ -67,8 +67,8 @@ export default function PasswordSettingsPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">パスワード変更</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight">パスワード変更</h1>
+          <p className="text-sm text-muted-foreground">
             ログインに使用するパスワードを変更します。
           </p>
         </div>

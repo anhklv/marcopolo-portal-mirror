@@ -136,8 +136,8 @@ export default function EventsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">イベント管理</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight">イベント管理</h1>
+          <p className="text-sm text-muted-foreground">
             イベントの作成、編集、案内管理を行います。
           </p>
         </div>
