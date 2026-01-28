@@ -21,12 +21,14 @@ test.describe('管理者管理 - アクセス権限', () => {
   test('特権管理者は管理者管理メニューにアクセスできる', async ({ page }) => {
     await loginAsSuperAdmin(page);
 
-    // サイドバーの設定メニューを開く
-    await page.locator('button').filter({ hasText: '設定' }).click();
+    // サイドバーフッターのアバターボタンをクリックしてドロップダウンメニューを開く
+    // MoreVerticalアイコンを含むボタンを探す
+    const avatarButton = page.locator('[data-slot="sidebar-footer"] button:has(svg)').last();
+    await avatarButton.click();
     await page.waitForTimeout(300);
 
     // 管理者管理メニューが表示されていることを確認
-    const adminManagementLink = page.locator('text=管理者管理');
+    const adminManagementLink = page.locator('[data-slot="dropdown-menu-item"]').filter({ hasText: '管理者管理' });
     await expect(adminManagementLink).toBeVisible();
 
     // 管理者管理ページにアクセス
@@ -38,12 +40,14 @@ test.describe('管理者管理 - アクセス権限', () => {
   test('コミュニティ管理者は管理者管理メニューにアクセスできない', async ({ page }) => {
     await loginAsCommunityAdmin(page);
 
-    // サイドバーの設定メニューを開く
-    await page.locator('button').filter({ hasText: '設定' }).click();
+    // サイドバーフッターのアバターボタンをクリックしてドロップダウンメニューを開く
+    // MoreVerticalアイコンを含むボタンを探す
+    const avatarButton = page.locator('[data-slot="sidebar-footer"] button:has(svg)').last();
+    await avatarButton.click();
     await page.waitForTimeout(300);
 
     // 管理者管理メニューが表示されていないことを確認
-    const adminManagementLink = page.locator('text=管理者管理');
+    const adminManagementLink = page.locator('[data-slot="dropdown-menu-item"]').filter({ hasText: '管理者管理' });
     await expect(adminManagementLink).not.toBeVisible();
   });
 

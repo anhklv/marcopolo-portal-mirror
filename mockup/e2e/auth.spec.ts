@@ -58,8 +58,14 @@ test.describe('認証フロー', () => {
     await page.locator('button[type="submit"]').click();
     await page.waitForURL('**/admin/customers', { timeout: 10000 });
 
-    // ログアウトボタンをクリック（サイドバーに直接配置されている）
-    await page.locator('button').filter({ hasText: 'ログアウト' }).click();
+    // サイドバーフッターのアバターボタンをクリックしてドロップダウンメニューを開く
+    // MoreVerticalアイコンを含むボタンを探す
+    const avatarButton = page.locator('[data-slot="sidebar-footer"] button:has(svg)').last();
+    await avatarButton.click();
+    await page.waitForTimeout(300);
+
+    // ログアウトボタンをクリック
+    await page.locator('[data-slot="dropdown-menu-item"]').filter({ hasText: 'ログアウト' }).click();
 
     // ログインページにリダイレクトされることを確認
     await page.waitForURL('**/admin/login', { timeout: 5000 });
