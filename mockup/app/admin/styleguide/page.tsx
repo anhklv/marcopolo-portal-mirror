@@ -91,10 +91,10 @@ export default function StyleGuidePage() {
           {/* 本文 */}
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground font-mono">
-              text-base（本文テキスト / ベースサイズ）
+              text-sm（本文テキスト / ベースサイズ）
             </p>
-            <p className="text-base">
-              本文テキスト — 16px。管理画面のすべてのテキストはこのサイズを基準にします。テーブルのデータ、フォームの入力値、一般的な説明文などに使用します。
+            <p className="text-sm">
+              本文テキスト — 14px。管理画面のすべてのテキストはこのサイズを基準にします。テーブルのデータ、フォームの入力値、一般的な説明文などに使用します。
             </p>
           </div>
 
@@ -185,14 +185,14 @@ export default function StyleGuidePage() {
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">本文テキスト</TableCell>
-                <TableCell className="font-mono text-xs">text-base</TableCell>
-                <TableCell>16px</TableCell>
+                <TableCell className="font-mono text-xs">text-sm</TableCell>
+                <TableCell>14px</TableCell>
                 <TableCell className="text-muted-foreground">テーブル、フォーム入力値、一般テキスト</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">ラベル</TableCell>
-                <TableCell className="font-mono text-xs">text-base font-medium</TableCell>
-                <TableCell>16px</TableCell>
+                <TableCell className="font-mono text-xs">text-sm font-medium</TableCell>
+                <TableCell>14px</TableCell>
                 <TableCell className="text-muted-foreground">フォームラベル、項目名</TableCell>
               </TableRow>
               <TableRow>
