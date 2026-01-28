@@ -32,7 +32,6 @@ export type Customer = {
   aiResignedAt?: string; // AI部会 脱退日
   aiAffiliation?: string; // AI部会 所属
   note?: string; // 備考 - 任意
-  status: "active" | "inactive";
   registeredAt: string;
 };
 

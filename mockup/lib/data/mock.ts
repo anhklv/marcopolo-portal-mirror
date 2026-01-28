@@ -83,7 +83,6 @@ export const customers: Customer[] = [
     auditJoinedAt: "2023-12-01",
     naikanJoinedAt: "2023-12-15",
     note: "紹介者: 鈴木",
-    status: "active",
     registeredAt: "2024-01-10",
   },
   {
@@ -103,7 +102,6 @@ export const customers: Customer[] = [
     contractType: "corporate",
     naikanJoinedAt: "2024-01-20",
     naikanAffiliation: "内部監査部門",
-    status: "active",
     registeredAt: "2024-02-15",
   },
   {
@@ -118,7 +116,6 @@ export const customers: Customer[] = [
     city: "渋谷区神宮前1-1-1",
     originIndustry: "IT・テクノロジー",
     communities: [],
-    status: "active",
     registeredAt: "2024-03-05",
   },
   {
@@ -138,7 +135,7 @@ export const customers: Customer[] = [
     contractType: "corporate",
     auditMemberType: "regular",
     auditJoinedAt: "2023-10-01",
-    status: "inactive",
+    auditResignedAt: "2024-06-30",
     registeredAt: "2023-11-20",
   },
   {
@@ -152,7 +149,6 @@ export const customers: Customer[] = [
     city: "名古屋市中区錦1-1-1",
     originIndustry: "コンサルティング",
     communities: [],
-    status: "active",
     registeredAt: "2024-04-01",
   },
   {
@@ -175,7 +171,6 @@ export const customers: Customer[] = [
     naikanJoinedAt: "2024-04-15",
     naikanAffiliation: "管理部門長",
     note: "新規入会（両方の会員）",
-    status: "active",
     registeredAt: "2024-05-12",
   },
   {
@@ -195,7 +190,6 @@ export const customers: Customer[] = [
     contractType: "individual",
     naikanJoinedAt: "2024-05-20",
     naikanAffiliation: "経理部門",
-    status: "active",
     registeredAt: "2024-06-03",
   },
   {
@@ -216,7 +210,6 @@ export const customers: Customer[] = [
     auditMemberType: "online",
     auditJoinedAt: "2024-06-15",
     note: "紹介者: 山田",
-    status: "active",
     registeredAt: "2024-07-18",
   },
   {
@@ -236,7 +229,6 @@ export const customers: Customer[] = [
     contractType: "individual",
     naikanJoinedAt: "2024-08-01",
     naikanAffiliation: "法務部門",
-    status: "active",
     registeredAt: "2024-08-22",
   },
   {
@@ -256,7 +248,6 @@ export const customers: Customer[] = [
     contractType: "corporate",
     aiJoinedAt: "2024-09-01",
     aiAffiliation: "情報システム部門",
-    status: "active",
     registeredAt: "2024-09-15",
   },
   {
@@ -271,7 +262,6 @@ export const customers: Customer[] = [
     originIndustry: "コンサルティング",
     communities: [],
     note: "イベント参加希望",
-    status: "active",
     registeredAt: "2024-10-05",
   },
   {
@@ -294,7 +284,6 @@ export const customers: Customer[] = [
     naikanJoinedAt: "2024-10-10",
     naikanAffiliation: "CFO",
     note: "両方の会員",
-    status: "active",
     registeredAt: "2024-11-01",
   },
 ];

@@ -68,9 +68,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   const allAttendees = eventRsvps.map((rsvp) => {
     const customer = customers.find((c) => c.id === rsvp.customerId);
     if (!customer) return null;
-    const { status: _, ...customerWithoutStatus } = customer;
     return {
-      ...customerWithoutStatus,
+      ...customer,
       rsvpStatus: rsvp.status || "未回答",
       attendanceType: rsvp.attendanceType,
       afterPartyStatus: rsvp.afterPartyStatus,

@@ -140,7 +140,6 @@ export default function CustomerEditPage({
   const [originIndustry, setOriginIndustry] = useState<string>(customer.originIndustry || "");
   const [membershipQualification, setMembershipQualification] = useState<string>(customer.membershipQualification || "");
   const [note, setNote] = useState(customer.note || "");
-  const [isInactive, setIsInactive] = useState(customer.status === "inactive");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const originIndustries = ORIGIN_INDUSTRIES;
@@ -803,21 +802,6 @@ export default function CustomerEditPage({
               />
             </div>
 
-            <div className="grid gap-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="inactive"
-                  checked={isInactive}
-                  onCheckedChange={(checked) => setIsInactive(checked === true)}
-                />
-                <Label htmlFor="inactive" className="cursor-pointer">
-                  非アクティブ
-                </Label>
-              </div>
-              <p className="text-sm text-muted-foreground ml-6">
-                非アクティブにすると、この顧客は検索結果から除外されます。
-              </p>
-            </div>
           </CardContent>
         </Card>
 

@@ -42,8 +42,7 @@ export default function CustomersPage() {
   const [organizations, setOrganizations] = useState<OrganizationFilter[]>([]);
   const [auditMemberTypes, setAuditMemberTypes] = useState<AuditMemberTypeFilter[]>([]);
   const [premiumOnly, setPremiumOnly] = useState(false);
-  const [statuses, setStatuses] = useState<string[]>(["active"]);
-  const [statusSearch, setStatusSearch] = useState("");
+  const [includeFormerMembers, setIncludeFormerMembers] = useState(false);
 
   const handleMemberCategoryChange = (category: MemberCategoryFilter, checked: boolean) => {
     setMemberCategories((prev) => {
@@ -88,16 +87,6 @@ export default function CustomersPage() {
         return hasType ? prev : [...prev, type];
       }
       return hasType ? prev.filter((t) => t !== type) : prev;
-    });
-  };
-
-  const handleStatusChange = (status: string, checked: boolean) => {
-    setStatuses((prev) => {
-      const hasStatus = prev.includes(status);
-      if (checked) {
-        return hasStatus ? prev : [...prev, status];
-      }
-      return hasStatus ? prev.filter((s) => s !== status) : prev;
     });
   };
 
@@ -156,7 +145,6 @@ export default function CustomersPage() {
       "メールアドレス",
       "電話番号",
       "会員区分",
-      "ステータス",
       "登録日",
       "備考",
     ];
@@ -173,7 +161,6 @@ export default function CustomersPage() {
           customer.email,
           customer.phone || "",
           getCommunityDisplayName(customer.communities),
-          customer.status === "active" ? "アクティブ" : "非アクティブ",
           customer.registeredAt,
           customer.note || "",
         ];
@@ -290,27 +277,28 @@ export default function CustomersPage() {
         matchesPremium = customer.auditMemberPremium === true;
       }
 
-      // ステータスフィルタ
-      const matchesStatus =
-        statuses.length === 0 || statuses.includes(customer.status);
+      // 元会員フィルタ（全コミュニティ脱退済みの顧客をデフォルト非表示）
+      let matchesFormerMember = true;
+      if (!includeFormerMembers && customer.communities.length > 0) {
+        const allResigned = customer.communities.every((community) => {
+          if (community === "ベンチャー監査役の会") return !!customer.auditResignedAt;
+          if (community === "ないかんMeetup") return !!customer.naikanResignedAt;
+          if (community === "AI部会") return !!customer.aiResignedAt;
+          return false;
+        });
+        if (allResigned) matchesFormerMember = false;
+      }
 
-      return matchesKeyword && matchesMemberCategory && matchesOrganizations && matchesAuditMemberType && matchesPremium && matchesStatus;
+      return matchesKeyword && matchesMemberCategory && matchesOrganizations && matchesAuditMemberType && matchesPremium && matchesFormerMember;
     });
 
-    // ソート: ID（昇順）、ステータス（activeが先）
+    // ソート: ID（昇順）
     return filtered.sort((a, b) => {
-      // まずIDでソート（数値として比較）
       const idA = parseInt(a.id.replace("C", "")) || 0;
       const idB = parseInt(b.id.replace("C", "")) || 0;
-      if (idA !== idB) {
-        return idA - idB;
-      }
-      // IDが同じ場合はステータスでソート（activeが先）
-      if (a.status === "active" && b.status === "inactive") return -1;
-      if (a.status === "inactive" && b.status === "active") return 1;
-      return 0;
+      return idA - idB;
     });
-  }, [currentAdmin, searchKeyword, memberCategories, organizations, auditMemberTypes, premiumOnly, statuses]);
+  }, [currentAdmin, searchKeyword, memberCategories, organizations, auditMemberTypes, premiumOnly, includeFormerMembers]);
 
   return (
     <div className="space-y-6">
@@ -509,76 +497,16 @@ export default function CustomersPage() {
           </PopoverContent>
         </Popover>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-[200px] justify-between h-10"
-            >
-              <span className="text-sm">
-                {statuses.length === 0
-                  ? "ステータス"
-                  : statuses.length === 1
-                  ? statuses[0] === "active"
-                    ? "アクティブ"
-                    : "非アクティブ"
-                  : `${statuses.length}件選択`}
-              </span>
-              <ChevronDown className="h-4 w-4 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[280px] p-0 bg-white" align="start">
-            <div className="p-3 border-b">
-              <div className="relative">
-                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="ステータスを検索"
-                  value={statusSearch}
-                  onChange={(e) => setStatusSearch(e.target.value)}
-                  className="pl-8 h-9"
-                />
-              </div>
-            </div>
-            <div className="p-2 max-h-[300px] overflow-y-auto">
-              {[
-                { value: "active", label: "アクティブ" },
-                { value: "inactive", label: "非アクティブ" },
-              ]
-                .filter((status) =>
-                  status.label
-                    .toLowerCase()
-                    .includes(statusSearch.toLowerCase())
-                )
-                .map((status) => (
-                  <div
-                    key={status.value}
-                    className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
-                    onClick={() =>
-                      handleStatusChange(
-                        status.value,
-                        !statuses.includes(status.value)
-                      )
-                    }
-                  >
-                    <Checkbox
-                      checked={statuses.includes(status.value)}
-                      onCheckedChange={(checked) =>
-                        handleStatusChange(status.value, checked === true)
-                      }
-                    />
-                    <Badge
-                      variant={
-                        status.value === "active" ? "default" : "secondary"
-                      }
-                      className="cursor-pointer"
-                    >
-                      {status.label}
-                    </Badge>
-                  </div>
-                ))}
-            </div>
-          </PopoverContent>
-        </Popover>
+        <div className="flex items-center space-x-2 h-10">
+          <Checkbox
+            id="include-former-members"
+            checked={includeFormerMembers}
+            onCheckedChange={(checked) => setIncludeFormerMembers(checked === true)}
+          />
+          <Label htmlFor="include-former-members" className="cursor-pointer text-sm">
+            元会員を含む
+          </Label>
+        </div>
       </div>
 
       <div className="flex justify-end">
@@ -594,7 +522,6 @@ export default function CustomersPage() {
               <TableHead>氏名</TableHead>
               <TableHead>会社名</TableHead>
               <TableHead>会員区分</TableHead>
-              <TableHead>ステータス</TableHead>
               <TableHead>登録日</TableHead>
               <TableHead className="text-right">操作</TableHead>
             </TableRow>
@@ -602,7 +529,7 @@ export default function CustomersPage() {
           <TableBody>
             {filteredCustomers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   検索条件に一致する顧客が見つかりませんでした。
                 </TableCell>
               </TableRow>
@@ -725,15 +652,6 @@ export default function CustomersPage() {
                         return badges.length > 0 ? badges : null;
                       })()}
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        customer.status === "active" ? "default" : "secondary"
-                      }
-                    >
-                      {customer.status === "active" ? "アクティブ" : "非アクティブ"}
-                    </Badge>
                   </TableCell>
                   <TableCell>{formatDate(customer.registeredAt)}</TableCell>
                   <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>

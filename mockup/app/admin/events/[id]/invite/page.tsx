@@ -210,10 +210,9 @@ export default function EventInvitePage({
     }
   };
 
-  // アクティブな顧客のみをフィルタリングし、検索条件で絞り込む
+  // 顧客をフィルタリングし、検索条件で絞り込む
   const filteredCustomers = useMemo(() => {
     const filtered = customers
-      .filter((customer) => customer.status === "active") // アクティブな顧客のみ
       .map((customer) => ({
         ...customer,
         isInvited: invitedCustomerIds.has(customer.id),

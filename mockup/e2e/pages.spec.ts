@@ -182,33 +182,13 @@ test('顧客一覧のフィルタ機能が動作する', async ({ page }) => {
   await page.keyboard.press('Escape');
   await page.waitForTimeout(500);
 
-  // ステータスフィルタ（デフォルトで「アクティブ」が選択されている）
-  // ステータスボタンをクリック（「アクティブ」と表示されている）
-  const statusButton = page.locator('button').filter({ hasText: /^(ステータス|アクティブ|非アクティブ)/ }).first();
-  await statusButton.click();
-  await page.waitForTimeout(300);
-  
-  // 非アクティブの項目をクリック（div全体がクリック可能）
-  const inactiveItem = page.locator('div').filter({ hasText: '非アクティブ' }).first();
-  await inactiveItem.click();
+  // 元会員を含むチェックボックス
+  const formerMembersCheckbox = page.locator('#include-former-members');
+  await formerMembersCheckbox.click();
   await page.waitForTimeout(500);
-  
-  // ステータスフィルタが適用されていることを確認（アクティブと非アクティブの両方が選択されている）
-  const statusFilteredRows = page.locator('tbody tr');
-  const statusFilteredCount = await statusFilteredRows.count();
-  expect(statusFilteredCount).toBeGreaterThan(0);
-  
-  // アクティブの項目をクリックして外し、非アクティブのみにする
-  const activeItem = page.locator('div').filter({ hasText: 'アクティブ' }).first();
-  await activeItem.click();
-  await page.waitForTimeout(500);
-  
-  // 非アクティブのみのフィルタが適用されていることを確認
-  const inactiveOnlyRows = page.locator('tbody tr');
-  const inactiveOnlyCount = await inactiveOnlyRows.count();
-  expect(inactiveOnlyCount).toBeGreaterThan(0);
-  
-  // Popoverを閉じる
-  await page.keyboard.press('Escape');
-  await page.waitForTimeout(300);
+
+  // 元会員を含むフィルタが適用されていることを確認
+  const formerMemberRows = page.locator('tbody tr');
+  const formerMemberCount = await formerMemberRows.count();
+  expect(formerMemberCount).toBeGreaterThan(0);
 });

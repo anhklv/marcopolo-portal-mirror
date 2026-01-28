@@ -11,7 +11,7 @@ export interface CustomerFilters {
   organizations?: string[]; // コミュニティ（ベンチャー監査役の会、ないかんMeetup、非会員）でフィルタ
   auditMemberTypes?: ("regular" | "online")[]; // ベンチャー監査役の会の会員種別
   premiumOnly?: boolean; // プレミアム会員のみ
-  statuses?: ("active" | "inactive")[]; // ステータスでフィルタ
+  includeFormerMembers?: boolean; // 元会員を含む（デフォルトは含まない）
 }
 
 /**
@@ -75,11 +75,20 @@ class MockCustomerRepository implements IRepository<Customer> {
       results = results.filter((c) => c.auditMemberPremium === true);
     }
 
-    // ステータスでフィルタ
-    if (filters?.statuses && filters.statuses.length > 0) {
-      results = results.filter((c) =>
-        filters.statuses!.includes(c.status)
-      );
+    // 元会員フィルタ（デフォルトでは全コミュニティ脱退済みの顧客を除外）
+    if (!filters?.includeFormerMembers) {
+      results = results.filter((c) => {
+        // 非会員（入会歴なし）は表示
+        if (c.communities.length === 0) return true;
+        // 所属コミュニティがあり、全て脱退済みかチェック
+        const allResigned = c.communities.every((community) => {
+          if (community === "ベンチャー監査役の会") return !!c.auditResignedAt;
+          if (community === "ないかんMeetup") return !!c.naikanResignedAt;
+          if (community === "AI部会") return !!c.aiResignedAt;
+          return false;
+        });
+        return !allResigned;
+      });
     }
 
     return results;
@@ -106,7 +115,6 @@ class MockCustomerRepository implements IRepository<Customer> {
       email: data.email || "",
       memberCategory: data.memberCategory, // 会員の場合のみ設定、非会員の場合はundefined
       communities: data.communities || [],
-      status: data.status || "active",
       registeredAt: data.registeredAt || new Date().toISOString(),
       ...data,
     } as Customer;
@@ -135,8 +143,8 @@ class MockCustomerRepository implements IRepository<Customer> {
       throw new Error(`Customer with id ${id} not found`);
     }
 
-    // 論理削除（ステータスをinactiveに）
-    customers[index].status = "inactive";
+    // 物理削除
+    customers.splice(index, 1);
   }
 }
 
