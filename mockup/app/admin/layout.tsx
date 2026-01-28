@@ -51,15 +51,17 @@ export default function AdminLayout({
 
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <main className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain bg-white">
-        <div className="flex h-14 items-center border-b px-4">
-          <SidebarTrigger />
-        </div>
-        <div className="p-8">
-          {children}
-        </div>
-      </main>
+      <div className="flex w-full">
+        <AppSidebar />
+        <main className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain bg-white h-svh">
+          <div className="flex h-14 items-center border-b px-4">
+            <SidebarTrigger />
+          </div>
+          <div className="p-8">
+            {children}
+          </div>
+        </main>
+      </div>
     </SidebarProvider>
   );
 }
