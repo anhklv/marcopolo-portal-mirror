@@ -68,6 +68,10 @@ export function Sidebar() {
       label: "画面一覧",
       href: "/admin/sitemap",
     },
+    {
+      label: "スタイルガイド",
+      href: "/admin/styleguide",
+    },
   ];
 
   const isDevMenuActive = devMenuItems.some((item) => pathname === item.href);
@@ -90,10 +94,10 @@ export function Sidebar() {
               key={route.href}
               href={route.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
+                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-foreground",
                 route.active
-                  ? "bg-gray-100 text-primary"
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? "bg-gray-100"
+                  : "hover:bg-gray-100"
               )}
             >
               <route.icon className="h-4 w-4" />
@@ -106,10 +110,10 @@ export function Sidebar() {
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary w-full text-left text-sm font-medium",
+                  "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left text-sm font-medium text-foreground",
                   isDevMenuActive
-                    ? "bg-gray-100 text-primary"
-                    : "text-gray-600 hover:bg-gray-50"
+                    ? "bg-gray-100"
+                    : "hover:bg-gray-100"
                 )}
               >
                 <FileText className="h-4 w-4" />
@@ -145,7 +149,7 @@ export function Sidebar() {
                         <div className="flex items-center justify-between w-full">
                           <div className="flex flex-col">
                             <span className="font-medium">{admin.lastName} {admin.firstName}</span>
-                            <span className="text-xs text-gray-500">{admin.email}</span>
+                            <span className="text-xs text-muted-foreground">{admin.email}</span>
                           </div>
                           {isCurrentAdmin && <Check className="h-4 w-4 shrink-0" />}
                         </div>
@@ -179,7 +183,7 @@ export function Sidebar() {
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-3 w-full rounded-lg px-2 py-2 hover:bg-gray-100 transition-all text-left focus:outline-none">
                 <Avatar className="h-9 w-9">
-                  <AvatarFallback className="bg-gray-200 text-gray-700 text-sm font-medium">
+                  <AvatarFallback className="bg-gray-200 text-foreground text-sm font-medium">
                     {adminInitial}
                   </AvatarFallback>
                 </Avatar>
@@ -189,15 +193,15 @@ export function Sidebar() {
                       <p className="text-sm font-medium truncate">
                         {currentAdmin.lastName} {currentAdmin.firstName}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="text-xs text-muted-foreground truncate">
                         {currentAdmin.email}
                       </p>
                     </>
                   ) : (
-                    <p className="text-sm text-gray-500">未ログイン</p>
+                    <p className="text-sm text-muted-foreground">未ログイン</p>
                   )}
                 </div>
-                <ChevronsUpDown className="h-4 w-4 text-gray-400 shrink-0" />
+                <ChevronsUpDown className="h-4 w-4 text-muted-foreground shrink-0" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent

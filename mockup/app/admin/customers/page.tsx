@@ -304,8 +304,8 @@ export default function CustomersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">顧客管理</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight">顧客管理</h1>
+          <p className="text-sm text-muted-foreground">
             会員・非会員を含むすべての顧客情報を管理します。
           </p>
         </div>
