@@ -361,7 +361,7 @@ export default function EventsPage() {
                 }}
               >
                 <TableCell>
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline">
                     {event.eventType}
                   </Badge>
                 </TableCell>

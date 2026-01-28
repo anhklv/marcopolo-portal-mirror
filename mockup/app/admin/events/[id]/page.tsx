@@ -169,7 +169,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           </Button>
           <div>
             <div className="flex items-center gap-3">
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline">
                 {(event as any).eventType || "ベンチャー監査役の会"}
               </Badge>
               <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
@@ -378,7 +378,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                                                 : attendee.rsvpStatus}
                                                         </Badge>
                                                         {attendee.rsvpStatus === "参加" && attendee.attendanceType === "通常参加" && attendee.afterPartyStatus && (
-                                                            <Badge variant="outline" className="text-xs">
+                                                            <Badge variant="outline">
                                                                 懇親会: {attendee.afterPartyStatus}
                                                             </Badge>
                                                         )}

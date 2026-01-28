@@ -732,7 +732,7 @@ export default function EventInvitePage({
                             // 非会員の判定（communitiesが空配列）
                             if (customer.communities.length === 0) {
                               badges.push(
-                                <Badge key="non-member" variant="secondary" className="text-xs px-2 py-0.5">
+                                <Badge key="non-member" variant="secondary">
                                   非会員
                                 </Badge>
                               );
@@ -742,26 +742,26 @@ export default function EventInvitePage({
                               
                               if (hasNaikan && !hasAudit) {
                                 badges.push(
-                                  <Badge key="naikan-member" variant="default" className="text-xs px-2 py-0.5">
+                                  <Badge key="naikan-member" variant="default">
                                     ないかんMeetup(会員)
                                   </Badge>
                                 );
                               } else if (hasAudit && !hasNaikan) {
                                 const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                                 badges.push(
-                                  <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
+                                  <Badge key="audit-member" variant="default">
                                     ベンチャー監査役の会({auditType})
                                   </Badge>
                                 );
                               } else if (hasAudit && hasNaikan) {
                                 const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                                 badges.push(
-                                  <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
+                                  <Badge key="audit-member" variant="default">
                                     ベンチャー監査役の会({auditType})
                                   </Badge>
                                 );
                                 badges.push(
-                                  <Badge key="naikan-member" variant="default" className="text-xs px-2 py-0.5">
+                                  <Badge key="naikan-member" variant="default">
                                     ないかんMeetup(会員)
                                   </Badge>
                                 );
@@ -769,7 +769,7 @@ export default function EventInvitePage({
                               
                               if (customer.auditMemberPremium) {
                                 badges.push(
-                                  <Badge key="premium" variant="default" className="text-xs px-1.5 py-0.5 bg-slate-600 hover:bg-slate-700 text-white">
+                                  <Badge key="premium" variant="premium">
                                     プレミアム
                                   </Badge>
                                 );
@@ -777,14 +777,14 @@ export default function EventInvitePage({
                             } else if (customer.memberCategory === "sponsor") {
                               if (customer.communities.includes("ないかんMeetup")) {
                                 badges.push(
-                                  <Badge key="sponsor-naikan" variant="default" className="text-xs px-2 py-0.5">
+                                  <Badge key="sponsor-naikan" variant="default">
                                     ないかんMeetup(スポンサー)
                                   </Badge>
                                 );
                               }
                               if (customer.communities.includes("ベンチャー監査役の会")) {
                                 badges.push(
-                                  <Badge key="sponsor-audit" variant="default" className="text-xs px-2 py-0.5">
+                                  <Badge key="sponsor-audit" variant="default">
                                     ベンチャー監査役の会(スポンサー)
                                   </Badge>
                                 );
@@ -792,14 +792,14 @@ export default function EventInvitePage({
                             } else if (customer.memberCategory === "observer") {
                               if (customer.communities.includes("ないかんMeetup")) {
                                 badges.push(
-                                  <Badge key="observer-naikan" variant="default" className="text-xs px-2 py-0.5">
+                                  <Badge key="observer-naikan" variant="default">
                                     ないかんMeetup(オブザーバー)
                                   </Badge>
                                 );
                               }
                               if (customer.communities.includes("ベンチャー監査役の会")) {
                                 badges.push(
-                                  <Badge key="observer-audit" variant="default" className="text-xs px-2 py-0.5">
+                                  <Badge key="observer-audit" variant="default">
                                     ベンチャー監査役の会(オブザーバー)
                                   </Badge>
                                 );

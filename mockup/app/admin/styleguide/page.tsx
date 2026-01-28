@@ -345,10 +345,10 @@ export default function StyleGuidePage() {
 
         <div className="rounded-lg border bg-white p-6 space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="default" className="text-xs px-2 py-0.5">Default</Badge>
-            <Badge variant="secondary" className="text-xs px-2 py-0.5">Secondary</Badge>
-            <Badge variant="outline" className="text-xs px-2 py-0.5">Outline</Badge>
-            <Badge variant="destructive" className="text-xs px-2 py-0.5">Destructive</Badge>
+            <Badge variant="default">Default</Badge>
+            <Badge variant="secondary">Secondary</Badge>
+            <Badge variant="outline">Outline</Badge>
+            <Badge variant="destructive">Destructive</Badge>
           </div>
           <p className="text-xs text-muted-foreground">
             バッジは常に <span className="font-mono">text-xs px-2 py-0.5</span> を使用します。
@@ -512,7 +512,7 @@ export default function StyleGuidePage() {
                   <TableCell>山田 太郎</TableCell>
                   <TableCell>株式会社サンプル</TableCell>
                   <TableCell>
-                    <Badge variant="default" className="text-xs px-2 py-0.5">会員</Badge>
+                    <Badge variant="default">会員</Badge>
                   </TableCell>
                   <TableCell>2024/01/15</TableCell>
                   <TableCell className="text-right">
@@ -524,7 +524,7 @@ export default function StyleGuidePage() {
                   <TableCell>鈴木 花子</TableCell>
                   <TableCell>テスト株式会社</TableCell>
                   <TableCell>
-                    <Badge variant="default" className="text-xs px-2 py-0.5">スポンサー</Badge>
+                    <Badge variant="default">スポンサー</Badge>
                   </TableCell>
                   <TableCell>2024/02/20</TableCell>
                   <TableCell className="text-right">
@@ -536,7 +536,7 @@ export default function StyleGuidePage() {
                   <TableCell>佐藤 一郎</TableCell>
                   <TableCell>—</TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className="text-xs px-2 py-0.5">非会員</Badge>
+                    <Badge variant="secondary">非会員</Badge>
                   </TableCell>
                   <TableCell>2024/03/10</TableCell>
                   <TableCell className="text-right">

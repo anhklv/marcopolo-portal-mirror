@@ -127,21 +127,21 @@ export default function CustomerDetailPage({
                   // 非会員の判定（communitiesが空配列）
                   if (customer.communities.length === 0) {
                     badges.push(
-                      <Badge key="non-member" variant="secondary" className="text-base px-3 py-1">
+                      <Badge key="non-member" variant="secondary">
                         非会員
                       </Badge>
                     );
                   } else {
                     if (customer.communities.includes("ベンチャー監査役の会")) {
                       badges.push(
-                        <Badge key="audit" variant="default" className="text-base px-3 py-1">
+                        <Badge key="audit" variant="default">
                           ベンチャー監査役の会
                         </Badge>
                       );
                     }
                     if (customer.communities.includes("ないかんMeetup")) {
                       badges.push(
-                        <Badge key="naikan" variant="default" className="text-base px-3 py-1">
+                        <Badge key="naikan" variant="default">
                           ないかんMeetup
                         </Badge>
                       );
@@ -150,7 +150,7 @@ export default function CustomerDetailPage({
                     // プレミアム会員バッジ
                     if (customer.auditMemberPremium) {
                       badges.push(
-                        <Badge key="premium" variant="default" className="text-xs px-2 py-0.5 bg-slate-600 hover:bg-slate-700 text-white">
+                        <Badge key="premium" variant="premium">
                           プレミアム
                         </Badge>
                       );
@@ -181,15 +181,15 @@ export default function CustomerDetailPage({
               <div className="flex items-center justify-between">
                 <Label className="font-semibold text-base">ベンチャー監査役の会</Label>
                 {customer.memberCategory === "member" && customer.auditMemberType && (
-                  <Badge variant="outline" className="text-sm">
+                  <Badge variant="outline">
                     {customer.auditMemberType === "regular" ? "正会員" : "オンライン会員"}
                   </Badge>
                 )}
                 {customer.memberCategory === "sponsor" && (
-                  <Badge variant="outline" className="text-sm">スポンサー</Badge>
+                  <Badge variant="outline">スポンサー</Badge>
                 )}
                 {customer.memberCategory === "observer" && (
-                  <Badge variant="outline" className="text-sm">オブザーバー</Badge>
+                  <Badge variant="outline">オブザーバー</Badge>
                 )}
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -227,13 +227,13 @@ export default function CustomerDetailPage({
               <div className="flex items-center justify-between">
                 <Label className="font-semibold text-base">ないかんMeetup</Label>
                 {customer.memberCategory === "member" && (
-                  <Badge variant="outline" className="text-sm">会員</Badge>
+                  <Badge variant="outline">会員</Badge>
                 )}
                 {customer.memberCategory === "sponsor" && (
-                  <Badge variant="outline" className="text-sm">スポンサー</Badge>
+                  <Badge variant="outline">スポンサー</Badge>
                 )}
                 {customer.memberCategory === "observer" && (
-                  <Badge variant="outline" className="text-sm">オブザーバー</Badge>
+                  <Badge variant="outline">オブザーバー</Badge>
                 )}
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -265,13 +265,13 @@ export default function CustomerDetailPage({
               <div className="flex items-center justify-between">
                 <Label className="font-semibold text-base">AI部会</Label>
                 {customer.memberCategory === "member" && (
-                  <Badge variant="outline" className="text-sm">会員</Badge>
+                  <Badge variant="outline">会員</Badge>
                 )}
                 {customer.memberCategory === "sponsor" && (
-                  <Badge variant="outline" className="text-sm">スポンサー</Badge>
+                  <Badge variant="outline">スポンサー</Badge>
                 )}
                 {customer.memberCategory === "observer" && (
-                  <Badge variant="outline" className="text-sm">オブザーバー</Badge>
+                  <Badge variant="outline">オブザーバー</Badge>
                 )}
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -408,7 +408,7 @@ export default function CustomerDetailPage({
                   {upcomingEvents.map((event) => (
                     <TableRow key={event.id}>
                       <TableCell>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline">
                           {event.eventType}
                         </Badge>
                       </TableCell>
@@ -467,7 +467,7 @@ export default function CustomerDetailPage({
                   {pastEvents.map((event) => (
                     <TableRow key={event.id}>
                       <TableCell>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline">
                           {event.eventType}
                         </Badge>
                       </TableCell>
