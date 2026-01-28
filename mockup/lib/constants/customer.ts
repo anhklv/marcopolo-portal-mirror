@@ -112,3 +112,6 @@ export const NAIKAN_AFFILIATIONS = [
   "その他",
 ] as const;
 
+// AI部会 所属（ないかんMeetupと同じ項目を使用）
+export const AI_AFFILIATIONS = NAIKAN_AFFILIATIONS;
+

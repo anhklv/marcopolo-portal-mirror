@@ -8,4 +8,5 @@ export const ADMIN_ROLE_LABELS: Record<AdminRole, string> = {
 export const COMMUNITY_SCOPE_LABELS: Record<CommunityScope, string> = {
   "ベンチャー監査役の会": "ベンチャー監査役の会",
   "ないかんMeetup": "ないかんMeetup",
+  "AI部会": "AI部会",
 };

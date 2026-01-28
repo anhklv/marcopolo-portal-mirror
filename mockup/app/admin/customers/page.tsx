@@ -31,7 +31,7 @@ import React from "react";
 import { useAuth } from "@/lib/contexts/auth.context";
 
 type MemberCategoryFilter = "member" | "sponsor" | "observer";
-type OrganizationFilter = "ベンチャー監査役の会" | "ないかんMeetup" | "非会員";
+type OrganizationFilter = "ベンチャー監査役の会" | "ないかんMeetup" | "AI部会" | "非会員";
 type AuditMemberTypeFilter = "regular" | "online";
 
 export default function CustomersPage() {
@@ -239,6 +239,9 @@ export default function CustomersPage() {
           if (org === "ないかんMeetup") {
             return customer.communities.includes("ないかんMeetup");
           }
+          if (org === "AI部会") {
+            return customer.communities.includes("AI部会");
+          }
           return false;
         });
         
@@ -390,6 +393,21 @@ export default function CustomersPage() {
                       <Label htmlFor="org-naikan" className="cursor-pointer text-sm">ないかんMeetup</Label>
                     </div>
                   )}
+                  {/* 特権管理者またはAI部会の権限がある場合のみ表示 */}
+                  {(currentAdmin?.role === "super" || 
+                    (currentAdmin?.role === "community_admin" && 
+                     currentAdmin.communityScopes?.includes("AI部会"))) && (
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="org-ai"
+                        checked={organizations.includes("AI部会")}
+                        onCheckedChange={(checked) =>
+                          handleOrganizationChange("AI部会", checked === true)
+                        }
+                      />
+                      <Label htmlFor="org-ai" className="cursor-pointer text-sm">AI部会</Label>
+                    </div>
+                  )}
                   {/* 非会員は特権管理者のみ表示 */}
                   {currentAdmin?.role === "super" && (
                     <div className="flex items-center space-x-2">
@@ -407,7 +425,7 @@ export default function CustomersPage() {
               </div>
 
               {/* 会員区分選択（コミュニティを選択した場合のみ表示） */}
-              {(organizations.includes("ベンチャー監査役の会") || organizations.includes("ないかんMeetup")) && (
+              {(organizations.includes("ベンチャー監査役の会") || organizations.includes("ないかんMeetup") || organizations.includes("AI部会")) && (
                 <div className="space-y-2 border-t pt-4">
                   <Label className="text-sm font-semibold">会員区分</Label>
                   <div className="space-y-2">
@@ -622,30 +640,30 @@ export default function CustomersPage() {
                         } else if (customer.memberCategory === "member") {
                           const hasAudit = customer.communities.includes("ベンチャー監査役の会");
                           const hasNaikan = customer.communities.includes("ないかんMeetup");
+                          const hasAi = customer.communities.includes("AI部会");
                           
-                          if (hasNaikan && !hasAudit) {
-                            badges.push(
-                              <Badge key="naikan-member" variant="default" className="text-xs px-2 py-0.5">
-                                ないかんMeetup(会員)
-                              </Badge>
-                            );
-                          } else if (hasAudit && !hasNaikan) {
+                          // ベンチャー監査役の会のバッジ
+                          if (hasAudit) {
                             const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                             badges.push(
                               <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
                                 ベンチャー監査役の会({auditType})
                               </Badge>
                             );
-                          } else if (hasAudit && hasNaikan) {
-                            const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
-                            badges.push(
-                              <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
-                                ベンチャー監査役の会({auditType})
-                              </Badge>
-                            );
+                          }
+                          // ないかんMeetupのバッジ
+                          if (hasNaikan) {
                             badges.push(
                               <Badge key="naikan-member" variant="default" className="text-xs px-2 py-0.5">
                                 ないかんMeetup(会員)
+                              </Badge>
+                            );
+                          }
+                          // AI部会のバッジ
+                          if (hasAi) {
+                            badges.push(
+                              <Badge key="ai-member" variant="default" className="text-xs px-2 py-0.5">
+                                AI部会(会員)
                               </Badge>
                             );
                           }
@@ -659,13 +677,6 @@ export default function CustomersPage() {
                             );
                           }
                         } else if (customer.memberCategory === "sponsor") {
-                          if (customer.communities.includes("ないかんMeetup")) {
-                            badges.push(
-                              <Badge key="sponsor-naikan" variant="default" className="text-xs px-2 py-0.5">
-                                ないかんMeetup(スポンサー)
-                              </Badge>
-                            );
-                          }
                           if (customer.communities.includes("ベンチャー監査役の会")) {
                             badges.push(
                               <Badge key="sponsor-audit" variant="default" className="text-xs px-2 py-0.5">
@@ -673,7 +684,28 @@ export default function CustomersPage() {
                               </Badge>
                             );
                           }
+                          if (customer.communities.includes("ないかんMeetup")) {
+                            badges.push(
+                              <Badge key="sponsor-naikan" variant="default" className="text-xs px-2 py-0.5">
+                                ないかんMeetup(スポンサー)
+                              </Badge>
+                            );
+                          }
+                          if (customer.communities.includes("AI部会")) {
+                            badges.push(
+                              <Badge key="sponsor-ai" variant="default" className="text-xs px-2 py-0.5">
+                                AI部会(スポンサー)
+                              </Badge>
+                            );
+                          }
                         } else if (customer.memberCategory === "observer") {
+                          if (customer.communities.includes("ベンチャー監査役の会")) {
+                            badges.push(
+                              <Badge key="observer-audit" variant="default" className="text-xs px-2 py-0.5">
+                                ベンチャー監査役の会(オブザーバー)
+                              </Badge>
+                            );
+                          }
                           if (customer.communities.includes("ないかんMeetup")) {
                             badges.push(
                               <Badge key="observer-naikan" variant="default" className="text-xs px-2 py-0.5">
@@ -681,10 +713,10 @@ export default function CustomersPage() {
                               </Badge>
                             );
                           }
-                          if (customer.communities.includes("ベンチャー監査役の会")) {
+                          if (customer.communities.includes("AI部会")) {
                             badges.push(
-                              <Badge key="observer-audit" variant="default" className="text-xs px-2 py-0.5">
-                                ベンチャー監査役の会(オブザーバー)
+                              <Badge key="observer-ai" variant="default" className="text-xs px-2 py-0.5">
+                                AI部会(オブザーバー)
                               </Badge>
                             );
                           }

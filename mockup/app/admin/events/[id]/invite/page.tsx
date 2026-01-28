@@ -56,7 +56,7 @@ export default function EventInvitePage({
   const [emailBody, setEmailBody] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [memberCategories, setMemberCategories] = useState<("member" | "sponsor" | "observer")[]>([]);
-  const [organizations, setOrganizations] = useState<("ベンチャー監査役の会" | "ないかんMeetup" | "非会員")[]>([]);
+  const [organizations, setOrganizations] = useState<("ベンチャー監査役の会" | "ないかんMeetup" | "AI部会" | "非会員")[]>([]);
   const [auditMemberTypes, setAuditMemberTypes] = useState<("regular" | "online")[]>([]);
   const [premiumOnly, setPremiumOnly] = useState(false);
   const [inviteStatuses, setInviteStatuses] = useState<string[]>([]);
@@ -136,7 +136,7 @@ export default function EventInvitePage({
     }
   };
 
-  const handleOrganizationChange = (org: "ベンチャー監査役の会" | "ないかんMeetup" | "非会員", checked: boolean) => {
+  const handleOrganizationChange = (org: "ベンチャー監査役の会" | "ないかんMeetup" | "AI部会" | "非会員", checked: boolean) => {
     if (checked) {
       setOrganizations([...organizations, org]);
     } else {
@@ -227,7 +227,7 @@ export default function EventInvitePage({
           }
           // 管理者の権限範囲内のコミュニティに所属している顧客のみを表示
           const hasAccess = customer.communities.some((community) =>
-            currentAdmin.communityScopes!.includes(community as "ベンチャー監査役の会" | "ないかんMeetup")
+            currentAdmin.communityScopes!.includes(community as "ベンチャー監査役の会" | "ないかんMeetup" | "AI部会")
           );
           if (!hasAccess) {
             return false;
@@ -251,6 +251,9 @@ export default function EventInvitePage({
             }
             if (org === "ないかんMeetup") {
               return customer.communities.includes("ないかんMeetup");
+            }
+            if (org === "AI部会") {
+              return customer.communities.includes("AI部会");
             }
             return false;
           });
@@ -476,6 +479,23 @@ export default function EventInvitePage({
                             />
                             <Label htmlFor="org-naikan-invite" className="cursor-pointer text-sm">
                               ないかんMeetup
+                            </Label>
+                          </div>
+                        )}
+                        {/* 特権管理者またはAI部会の権限がある場合のみ表示 */}
+                        {(currentAdmin?.role === "super" || 
+                          (currentAdmin?.role === "community_admin" && 
+                           currentAdmin.communityScopes?.includes("AI部会"))) && (
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="org-ai-invite"
+                              checked={organizations.includes("AI部会")}
+                              onCheckedChange={(checked) =>
+                                handleOrganizationChange("AI部会", checked === true)
+                              }
+                            />
+                            <Label htmlFor="org-ai-invite" className="cursor-pointer text-sm">
+                              AI部会
                             </Label>
                           </div>
                         )}

@@ -202,6 +202,12 @@ export default function EventsPage() {
                    currentAdmin.communityScopes?.includes("ないかんMeetup"))
                   ? [{ value: "ないかんMeetup", label: "ないかんMeetup" }]
                   : []),
+                // 特権管理者またはAI部会の権限がある場合のみ表示
+                ...(currentAdmin?.role === "super" || 
+                  (currentAdmin?.role === "community_admin" && 
+                   currentAdmin.communityScopes?.includes("AI部会"))
+                  ? [{ value: "AI部会", label: "AI部会" }]
+                  : []),
                 // その他は特権管理者のみ表示
                 ...(currentAdmin?.role === "super"
                   ? [{ value: "その他", label: "その他" }]

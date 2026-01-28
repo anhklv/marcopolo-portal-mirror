@@ -216,6 +216,18 @@ export default function NewAdminPage() {
                       {COMMUNITY_SCOPE_LABELS["ないかんMeetup"]}
                     </Label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="scope-ai"
+                      checked={communityScopes.includes("AI部会")}
+                      onCheckedChange={(checked) =>
+                        handleCommunityScopeChange("AI部会", checked === true)
+                      }
+                    />
+                    <Label htmlFor="scope-ai" className="cursor-pointer">
+                      {COMMUNITY_SCOPE_LABELS["AI部会"]}
+                    </Label>
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   複数のコミュニティを選択できます。

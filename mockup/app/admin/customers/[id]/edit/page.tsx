@@ -39,6 +39,7 @@ import {
   LISTING_OPTIONS,
   AUDIT_MEMBER_TYPES,
   NAIKAN_AFFILIATIONS,
+  AI_AFFILIATIONS,
 } from "@/lib/constants/customer";
 import { useAuth } from "@/lib/contexts/auth.context";
 import { DatePickerWithInput } from "@/components/ui/date-picker-with-input";
@@ -85,6 +86,9 @@ export default function CustomerEditPage({
   const [naikanCommunityChecked, setNaikanCommunityChecked] = useState(
     customer.communities.includes("ないかんMeetup")
   );
+  const [aiCommunityChecked, setAiCommunityChecked] = useState(
+    customer.communities.includes("AI部会")
+  );
 
   // 会員区分
   const [memberCategory, setMemberCategory] = useState<"member" | "sponsor" | "observer" | undefined>(
@@ -106,6 +110,11 @@ export default function CustomerEditPage({
   const [naikanJoinedAt, setNaikanJoinedAt] = useState<Date | undefined>(parseDateString(customer.naikanJoinedAt));
   const [naikanResignedAt, setNaikanResignedAt] = useState<Date | undefined>(parseDateString(customer.naikanResignedAt));
   const [naikanAffiliation, setNaikanAffiliation] = useState<string>(customer.naikanAffiliation || "");
+
+  // AI部会 詳細
+  const [aiJoinedAt, setAiJoinedAt] = useState<Date | undefined>(parseDateString((customer as any).aiJoinedAt));
+  const [aiResignedAt, setAiResignedAt] = useState<Date | undefined>(parseDateString((customer as any).aiResignedAt));
+  const [aiAffiliation, setAiAffiliation] = useState<string>((customer as any).aiAffiliation || "");
 
   // 契約主体
   const [contractType, setContractType] = useState<"corporate" | "individual">(
@@ -140,6 +149,7 @@ export default function CustomerEditPage({
   const prefectures = PREFECTURES;
   const auditMemberTypes = AUDIT_MEMBER_TYPES;
   const naikanAffiliations = NAIKAN_AFFILIATIONS;
+  const aiAffiliations = AI_AFFILIATIONS;
 
   const handleAddSubEmail = () => {
     if (subEmails.length < 3) {
@@ -161,7 +171,7 @@ export default function CustomerEditPage({
     e.preventDefault();
 
     // 何も選択しない場合は非会員として扱う（memberCategoryはundefinedにする）
-    const isNonMember = !auditCommunityChecked && !naikanCommunityChecked;
+    const isNonMember = !auditCommunityChecked && !naikanCommunityChecked && !aiCommunityChecked;
 
     if (!isNonMember) {
       // 会員区分が未選択の場合
@@ -181,6 +191,7 @@ export default function CustomerEditPage({
     const selectedCommunities: CommunityScope[] = [];
     if (auditCommunityChecked) selectedCommunities.push("ベンチャー監査役の会");
     if (naikanCommunityChecked) selectedCommunities.push("ないかんMeetup");
+    if (aiCommunityChecked) selectedCommunities.push("AI部会");
 
     const customerData = {
       communities: selectedCommunities,
@@ -258,6 +269,14 @@ export default function CustomerEditPage({
                           />
                           <Label htmlFor="naikan-community" className="cursor-pointer">ないかんMeetup</Label>
                         </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="ai-community"
+                            checked={aiCommunityChecked}
+                            onCheckedChange={(c) => setAiCommunityChecked(c === true)}
+                          />
+                          <Label htmlFor="ai-community" className="cursor-pointer">AI部会</Label>
+                        </div>
                       </>
                     ) : (
                       <>
@@ -287,6 +306,16 @@ export default function CustomerEditPage({
                             <Label htmlFor="naikan-community" className="cursor-pointer">ないかんMeetup</Label>
                           </div>
                         )}
+                        {currentAdmin?.communityScopes?.includes("AI部会") && (
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="ai-community"
+                              checked={aiCommunityChecked}
+                              onCheckedChange={(c) => setAiCommunityChecked(c === true)}
+                            />
+                            <Label htmlFor="ai-community" className="cursor-pointer">AI部会</Label>
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
@@ -305,7 +334,7 @@ export default function CustomerEditPage({
             </div>
 
             {/* 会員区分・詳細 (コミュニティが選択されている場合のみ) */}
-            {(auditCommunityChecked || naikanCommunityChecked) && (
+            {(auditCommunityChecked || naikanCommunityChecked || aiCommunityChecked) && (
               <>
                 {/* 契約主体 */}
                 <div className="grid gap-2">
@@ -484,6 +513,49 @@ export default function CustomerEditPage({
                           id="naikanResignedAt"
                           date={naikanResignedAt}
                           setDate={setNaikanResignedAt}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* AI部会 詳細 */}
+                {aiCommunityChecked && (
+                  <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
+                    <Label className="font-semibold text-base">AI部会</Label>
+                    
+                    {/* 所属 */}
+                    <div className="grid gap-2">
+                      <Label className="text-sm font-medium">所属</Label>
+                      <Select value={aiAffiliation} onValueChange={setAiAffiliation}>
+                        <SelectTrigger className="w-full bg-white">
+                          <SelectValue placeholder="選択してください" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          {aiAffiliations.map((affiliation) => (
+                            <SelectItem key={affiliation} value={affiliation} className="bg-white hover:bg-gray-100">
+                              {affiliation}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-3">
+                        <Label htmlFor="aiJoinedAt" className="px-1 text-sm">入会日</Label>
+                        <DatePickerWithInput
+                          id="aiJoinedAt"
+                          date={aiJoinedAt}
+                          setDate={setAiJoinedAt}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-3">
+                        <Label htmlFor="aiResignedAt" className="px-1 text-sm">脱退日</Label>
+                        <DatePickerWithInput
+                          id="aiResignedAt"
+                          date={aiResignedAt}
+                          setDate={setAiResignedAt}
                         />
                       </div>
                     </div>

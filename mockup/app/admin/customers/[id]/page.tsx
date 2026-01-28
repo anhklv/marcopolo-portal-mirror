@@ -267,6 +267,44 @@ export default function CustomerDetailPage({
               </div>
             </div>
           )}
+
+          {/* AI部会 詳細 */}
+          {customer.communities.includes("AI部会") && (
+            <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
+              <div className="flex items-center justify-between">
+                <Label className="font-semibold text-base">AI部会</Label>
+                {customer.memberCategory === "member" && (
+                  <Badge variant="outline" className="text-sm">会員</Badge>
+                )}
+                {customer.memberCategory === "sponsor" && (
+                  <Badge variant="outline" className="text-sm">スポンサー</Badge>
+                )}
+                {customer.memberCategory === "observer" && (
+                  <Badge variant="outline" className="text-sm">オブザーバー</Badge>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {(customer as any).aiAffiliation ? (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">所属</p>
+                    <p className="text-base">{(customer as any).aiAffiliation}</p>
+                  </div>
+                ) : null}
+                {(customer as any).aiJoinedAt ? (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">入会日</p>
+                    <p className="text-base">{formatDate((customer as any).aiJoinedAt)}</p>
+                  </div>
+                ) : null}
+                {(customer as any).aiResignedAt ? (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">脱退日</p>
+                    <p className="text-base">{formatDate((customer as any).aiResignedAt)}</p>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

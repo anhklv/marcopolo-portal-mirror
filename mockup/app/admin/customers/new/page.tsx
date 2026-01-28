@@ -28,6 +28,7 @@ import {
   LISTING_OPTIONS,
   AUDIT_MEMBER_TYPES,
   NAIKAN_AFFILIATIONS,
+  AI_AFFILIATIONS,
 } from "@/lib/constants/customer";
 import { useAuth } from "@/lib/contexts/auth.context";
 import type { CommunityScope } from "@/lib/types";
@@ -56,8 +57,18 @@ export default function NewCustomerPage() {
     return false;
   };
 
+  const getInitialAiCommunity = () => {
+    if (currentAdmin?.role === "super") return false;
+    if (currentAdmin?.role === "community_admin" && 
+        currentAdmin.communityScopes?.includes("AI部会")) {
+      return true;
+    }
+    return false;
+  };
+
   const [auditCommunityChecked, setAuditCommunityChecked] = useState(getInitialAuditCommunity());
   const [naikanCommunityChecked, setNaikanCommunityChecked] = useState(getInitialNaikanCommunity());
+  const [aiCommunityChecked, setAiCommunityChecked] = useState(getInitialAiCommunity());
 
   // 会員区分
   const [memberCategory, setMemberCategory] = useState<"member" | "sponsor" | "observer" | undefined>("member");
@@ -72,6 +83,11 @@ export default function NewCustomerPage() {
   const [naikanJoinedAt, setNaikanJoinedAt] = useState<Date | undefined>(undefined);
   const [naikanResignedAt, setNaikanResignedAt] = useState<Date | undefined>(undefined);
   const [naikanAffiliation, setNaikanAffiliation] = useState<string>("");
+
+  // AI部会 詳細
+  const [aiJoinedAt, setAiJoinedAt] = useState<Date | undefined>(undefined);
+  const [aiResignedAt, setAiResignedAt] = useState<Date | undefined>(undefined);
+  const [aiAffiliation, setAiAffiliation] = useState<string>("");
 
   // 日付をYYYY-MM-DD形式の文字列に変換
   const formatDateToString = (date: Date | undefined): string => {
@@ -120,6 +136,7 @@ export default function NewCustomerPage() {
   const prefectures = PREFECTURES;
   const auditMemberTypes = AUDIT_MEMBER_TYPES;
   const naikanAffiliations = NAIKAN_AFFILIATIONS;
+  const aiAffiliations = AI_AFFILIATIONS;
 
   const handleAddSubEmail = () => {
     if (subEmails.length < 3) {
@@ -141,7 +158,7 @@ export default function NewCustomerPage() {
     e.preventDefault();
 
     // 何も選択しない場合は非会員として扱う（memberCategoryはundefinedにする）
-    const isNonMember = !auditCommunityChecked && !naikanCommunityChecked;
+    const isNonMember = !auditCommunityChecked && !naikanCommunityChecked && !aiCommunityChecked;
 
     if (!isNonMember) {
       // 会員区分が未選択の場合（通常は初期値が入るが念のため）
@@ -161,6 +178,7 @@ export default function NewCustomerPage() {
     const selectedCommunities: CommunityScope[] = [];
     if (auditCommunityChecked) selectedCommunities.push("ベンチャー監査役の会");
     if (naikanCommunityChecked) selectedCommunities.push("ないかんMeetup");
+    if (aiCommunityChecked) selectedCommunities.push("AI部会");
 
     const customerData = {
       communities: selectedCommunities,
@@ -226,6 +244,14 @@ export default function NewCustomerPage() {
                           />
                           <Label htmlFor="naikan-community" className="cursor-pointer">ないかんMeetup</Label>
                         </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="ai-community" 
+                            checked={aiCommunityChecked} 
+                            onCheckedChange={(c) => setAiCommunityChecked(c === true)} 
+                          />
+                          <Label htmlFor="ai-community" className="cursor-pointer">AI部会</Label>
+                        </div>
                       </>
                     ) : (
                       <>
@@ -247,6 +273,16 @@ export default function NewCustomerPage() {
                               onCheckedChange={(c) => setNaikanCommunityChecked(c === true)} 
                             />
                             <Label htmlFor="naikan-community" className="cursor-pointer">ないかんMeetup</Label>
+                          </div>
+                        )}
+                        {currentAdmin?.communityScopes?.includes("AI部会") && (
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id="ai-community" 
+                              checked={aiCommunityChecked} 
+                              onCheckedChange={(c) => setAiCommunityChecked(c === true)} 
+                            />
+                            <Label htmlFor="ai-community" className="cursor-pointer">AI部会</Label>
                           </div>
                         )}
                       </>
@@ -439,6 +475,49 @@ export default function NewCustomerPage() {
                           id="naikanResignedAt"
                           date={naikanResignedAt}
                           setDate={setNaikanResignedAt}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* AI部会 詳細 */}
+                {aiCommunityChecked && (
+                  <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
+                    <Label className="font-semibold text-base">AI部会</Label>
+                    
+                    {/* 所属 */}
+                    <div className="grid gap-2">
+                      <Label className="text-sm font-medium">所属</Label>
+                      <Select value={aiAffiliation} onValueChange={setAiAffiliation}>
+                        <SelectTrigger className="w-full bg-white">
+                          <SelectValue placeholder="選択してください" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          {aiAffiliations.map((affiliation) => (
+                            <SelectItem key={affiliation} value={affiliation} className="bg-white hover:bg-gray-100">
+                              {affiliation}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-3">
+                        <Label htmlFor="aiJoinedAt" className="px-1 text-sm">入会日</Label>
+                        <DatePickerWithInput
+                          id="aiJoinedAt"
+                          date={aiJoinedAt}
+                          setDate={setAiJoinedAt}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-3">
+                        <Label htmlFor="aiResignedAt" className="px-1 text-sm">脱退日</Label>
+                        <DatePickerWithInput
+                          id="aiResignedAt"
+                          date={aiResignedAt}
+                          setDate={setAiResignedAt}
                         />
                       </div>
                     </div>

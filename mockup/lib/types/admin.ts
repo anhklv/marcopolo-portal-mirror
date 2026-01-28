@@ -1,5 +1,5 @@
 export type AdminRole = "super" | "community_admin";
-export type CommunityScope = "ベンチャー監査役の会" | "ないかんMeetup";
+export type CommunityScope = "ベンチャー監査役の会" | "ないかんMeetup" | "AI部会";
 
 export type Admin = {
   id: string;

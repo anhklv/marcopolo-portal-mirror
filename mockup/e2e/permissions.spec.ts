@@ -71,6 +71,30 @@ test.describe('権限フィルタリング - 顧客一覧', () => {
     }
   });
 
+  test('AI部会管理者は該当顧客のみ閲覧できる', async ({ page }) => {
+    await loginAs(page, 'ai@example.com', 'password123');
+
+    await page.goto('/admin/customers');
+    await page.waitForLoadState('networkidle');
+
+    // 表示される顧客が限定されていることを確認
+    const rows = page.locator('tbody tr');
+    const count = await rows.count();
+    expect(count).toBeGreaterThan(0);
+
+    // AI部会のバッジが表示されていることを確認
+    const aiBadges = page.locator('text=AI部会');
+    const badgeCount = await aiBadges.count();
+    expect(badgeCount).toBeGreaterThan(0);
+
+    // 全ての行をチェックして「AI部会」または複数のコミュニティを持つ顧客のみが表示されていることを確認
+    for (let i = 0; i < count; i++) {
+      const row = rows.nth(i);
+      const hasAi = await row.locator('text=AI部会').count() > 0;
+      expect(hasAi).toBe(true);
+    }
+  });
+
   test('複数スコープ管理者は該当顧客全てを閲覧できる', async ({ page }) => {
     await loginAs(page, 'both@example.com', 'password123');
 
@@ -151,6 +175,30 @@ test.describe('権限フィルタリング - イベント一覧', () => {
       const row = rows.nth(i);
       const hasNaikan = await row.locator('text=ないかんMeetup').count() > 0;
       expect(hasNaikan).toBe(true);
+    }
+  });
+
+  test('AI部会管理者は該当イベントのみ閲覧できる', async ({ page }) => {
+    await loginAs(page, 'ai@example.com', 'password123');
+
+    await page.goto('/admin/events');
+    await page.waitForLoadState('networkidle');
+
+    // 表示されるイベントが限定されていることを確認
+    const rows = page.locator('tbody tr');
+    const count = await rows.count();
+    expect(count).toBeGreaterThan(0);
+
+    // AI部会のバッジが表示されていることを確認
+    const aiBadges = page.locator('text=AI部会');
+    const badgeCount = await aiBadges.count();
+    expect(badgeCount).toBeGreaterThan(0);
+
+    // 全ての行をチェックしてAI部会のイベントのみが表示されていることを確認
+    for (let i = 0; i < count; i++) {
+      const row = rows.nth(i);
+      const hasAi = await row.locator('text=AI部会').count() > 0;
+      expect(hasAi).toBe(true);
     }
   });
 });
@@ -293,6 +341,42 @@ test.describe('権限チェック - イベント案内ページ', () => {
     const auditCount = await auditCheckbox.count();
     expect(auditCount).toBe(0);
 
+    // AI部会のチェックボックスが表示されないことを確認
+    const aiCheckbox = page.locator('#org-ai-invite');
+    const aiCount = await aiCheckbox.count();
+    expect(aiCount).toBe(0);
+
+    // 非会員のチェックボックスが表示されないことを確認
+    const nonMemberCheckbox = page.locator('#org-non-member-invite');
+    const nonMemberCount = await nonMemberCheckbox.count();
+    expect(nonMemberCount).toBe(0);
+  });
+
+  test('AI部会管理者は該当コミュニティのフィルタのみ表示できる', async ({ page }) => {
+    await loginAs(page, 'ai@example.com', 'password123');
+
+    await page.goto('/admin/events/E008/invite');
+    await page.waitForLoadState('networkidle');
+
+    // コミュニティフィルタのPopoverを開く
+    const filterButton = page.locator('button').filter({ hasText: /^(コミュニティ|AI部会)$/ }).first();
+    await filterButton.click();
+    await page.waitForTimeout(300);
+
+    // AI部会のチェックボックスが表示されることを確認
+    const aiCheckbox = page.locator('#org-ai-invite');
+    await expect(aiCheckbox).toBeVisible();
+
+    // ベンチャー監査役の会のチェックボックスが表示されないことを確認
+    const auditCheckbox = page.locator('#org-audit-invite');
+    const auditCount = await auditCheckbox.count();
+    expect(auditCount).toBe(0);
+
+    // ないかんMeetupのチェックボックスが表示されないことを確認
+    const naikanCheckbox = page.locator('#org-naikan-invite');
+    const naikanCount = await naikanCheckbox.count();
+    expect(naikanCount).toBe(0);
+
     // 非会員のチェックボックスが表示されないことを確認
     const nonMemberCheckbox = page.locator('#org-non-member-invite');
     const nonMemberCount = await nonMemberCheckbox.count();
@@ -317,6 +401,11 @@ test.describe('権限チェック - イベント案内ページ', () => {
     // ないかんMeetupのチェックボックスが表示されることを確認
     const naikanCheckbox = page.locator('#org-naikan-invite');
     await expect(naikanCheckbox).toBeVisible();
+
+    // AI部会のチェックボックスが表示されないことを確認（both@example.comはベンチャー監査役の会とないかんMeetupのみのスコープ）
+    const aiCheckbox = page.locator('#org-ai-invite');
+    const aiCount = await aiCheckbox.count();
+    expect(aiCount).toBe(0);
 
     // 非会員のチェックボックスが表示されないことを確認
     const nonMemberCheckbox = page.locator('#org-non-member-invite');
