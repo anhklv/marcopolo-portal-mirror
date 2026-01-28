@@ -226,11 +226,6 @@ test.describe('管理者管理 - 編集', () => {
     const isDisabled = await superRadio.isDisabled();
     expect(isDisabled).toBe(true);
   });
-
-  test.skip('パスワードリセットセクションが表示される', async ({ page }) => {
-    // パスワード管理セクションは削除されたため、このテストをスキップ
-    // パスワード変更は設定メニューから行う
-  });
 });
 
 test.describe('管理者管理 - 削除', () => {
