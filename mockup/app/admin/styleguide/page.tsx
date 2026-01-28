@@ -53,168 +53,148 @@ export default function StyleGuidePage() {
 
         <div className="rounded-lg border bg-white p-6 space-y-6">
           {/* ページタイトル */}
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground font-mono">
-              text-2xl font-bold tracking-tight（ページタイトル / h1）
-            </p>
-            <p className="text-2xl font-bold tracking-tight">
-              ページタイトル — 24px
-            </p>
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground font-mono">
+                text-2xl font-bold tracking-tight（ページタイトル / h1）
+              </p>
+              <p className="text-2xl font-bold tracking-tight">
+                ページタイトル — 24px
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">用途: 各ページの最上部</p>
           </div>
 
           <Separator />
 
           {/* セクション見出し h2 */}
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground font-mono">
-              text-lg font-semibold（セクション見出し / h2）
-            </p>
-            <p className="text-lg font-semibold">
-              セクション見出し — 18px
-            </p>
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground font-mono">
+                text-lg font-semibold（セクション見出し / h2）
+              </p>
+              <p className="text-lg font-semibold">
+                セクション見出し — 18px
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">用途: ページ内の大分類</p>
           </div>
 
           <Separator />
 
           {/* サブセクション見出し h3 */}
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground font-mono">
-              text-base font-semibold（サブセクション見出し / h3）
-            </p>
-            <p className="text-base font-semibold">
-              サブセクション見出し — 16px
-            </p>
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground font-mono">
+                text-base font-semibold（サブセクション見出し / h3）
+              </p>
+              <p className="text-base font-semibold">
+                サブセクション見出し — 16px
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">用途: カード内のグループ見出し</p>
+          </div>
+
+          <Separator />
+
+          {/* CardTitle */}
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground font-mono">
+                CardTitle コンポーネント
+              </p>
+              <CardTitle>カードタイトル</CardTitle>
+            </div>
+            <p className="text-xs text-muted-foreground">用途: カードのタイトル</p>
           </div>
 
           <Separator />
 
           {/* 本文 */}
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground font-mono">
-              text-sm（本文テキスト / ベースサイズ）
-            </p>
-            <p className="text-sm">
-              本文テキスト — 14px。管理画面のすべてのテキストはこのサイズを基準にします。テーブルのデータ、フォームの入力値、一般的な説明文などに使用します。
-            </p>
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground font-mono">
+                text-sm（本文テキスト / ベースサイズ）
+              </p>
+              <p className="text-sm">
+                本文テキスト — 14px。管理画面のすべてのテキストはこのサイズを基準にします。
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">用途: テーブル、フォーム入力値、一般テキスト</p>
           </div>
 
           <Separator />
 
           {/* ラベル */}
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground font-mono">
-              text-sm font-medium（ラベル）
-            </p>
-            <p className="text-sm font-medium">
-              ラベルテキスト — 14px medium
-            </p>
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground font-mono">
+                text-sm font-medium（ラベル）
+              </p>
+              <p className="text-sm font-medium">
+                ラベルテキスト — 14px medium
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">用途: フォームラベル、項目名</p>
           </div>
 
           <Separator />
 
           {/* 説明・補足 */}
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground font-mono">
-              text-sm text-muted-foreground（説明・補足テキスト）
-            </p>
-            <p className="text-sm text-muted-foreground">
-              説明・補足テキスト — 14px muted。カードの説明文やフォームのヘルプテキストに使用します。
-            </p>
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground font-mono">
+                text-sm text-muted-foreground（説明・補足テキスト）
+              </p>
+              <p className="text-sm text-muted-foreground">
+                説明・補足テキスト — 14px muted
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">用途: カード説明、ヘルプテキスト</p>
           </div>
 
           <Separator />
 
           {/* 小さい補足 */}
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground font-mono">
-              text-xs text-muted-foreground（小さい補足）
-            </p>
-            <p className="text-xs text-muted-foreground">
-              小さい補足テキスト — 12px muted。バリデーションメッセージ、日付情報、件数表示などに使用します。
-            </p>
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground font-mono">
+                text-xs text-muted-foreground（小さい補足）
+              </p>
+              <p className="text-xs text-muted-foreground">
+                小さい補足テキスト — 12px muted
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">用途: バリデーション、日付、件数</p>
           </div>
 
           <Separator />
 
           {/* 強調データ */}
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground font-mono">
-              text-sm font-semibold（強調データ）
-            </p>
-            <p className="text-sm">
-              件数: <span className="font-semibold text-foreground">42</span>件
-            </p>
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground font-mono">
+                text-sm font-semibold（強調データ）
+              </p>
+              <p className="text-sm">
+                件数: <span className="font-semibold text-foreground">42</span>件
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">用途: 数値や重要データの強調表示</p>
           </div>
-        </div>
 
-        {/* ルール表 */}
-        <div className="rounded-lg border bg-white shadow-sm">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>要素</TableHead>
-                <TableHead>Tailwind クラス</TableHead>
-                <TableHead>サイズ</TableHead>
-                <TableHead>用途</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell className="font-medium">ページタイトル (h1)</TableCell>
-                <TableCell className="font-mono text-xs">text-2xl font-bold tracking-tight</TableCell>
-                <TableCell>24px</TableCell>
-                <TableCell className="text-muted-foreground">各ページの最上部</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">セクション見出し (h2)</TableCell>
-                <TableCell className="font-mono text-xs">text-lg font-semibold</TableCell>
-                <TableCell>18px</TableCell>
-                <TableCell className="text-muted-foreground">ページ内の大分類</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">サブセクション (h3)</TableCell>
-                <TableCell className="font-mono text-xs">text-base font-semibold</TableCell>
-                <TableCell>16px</TableCell>
-                <TableCell className="text-muted-foreground">カード内のグループ見出し</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">CardTitle</TableCell>
-                <TableCell className="font-mono text-xs">CardTitle コンポーネント</TableCell>
-                <TableCell>デフォルト</TableCell>
-                <TableCell className="text-muted-foreground">カードのタイトル</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">本文テキスト</TableCell>
-                <TableCell className="font-mono text-xs">text-sm</TableCell>
-                <TableCell>14px</TableCell>
-                <TableCell className="text-muted-foreground">テーブル、フォーム入力値、一般テキスト</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">ラベル</TableCell>
-                <TableCell className="font-mono text-xs">text-sm font-medium</TableCell>
-                <TableCell>14px</TableCell>
-                <TableCell className="text-muted-foreground">フォームラベル、項目名</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">説明テキスト</TableCell>
-                <TableCell className="font-mono text-xs">text-sm text-muted-foreground</TableCell>
-                <TableCell>14px</TableCell>
-                <TableCell className="text-muted-foreground">カード説明、ヘルプテキスト</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">小さい補足</TableCell>
-                <TableCell className="font-mono text-xs">text-xs text-muted-foreground</TableCell>
-                <TableCell>12px</TableCell>
-                <TableCell className="text-muted-foreground">バリデーション、日付、件数</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">バッジ</TableCell>
-                <TableCell className="font-mono text-xs">Badge + text-xs px-2 py-0.5</TableCell>
-                <TableCell>12px</TableCell>
-                <TableCell className="text-muted-foreground">ステータス、カテゴリ表示</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+          <Separator />
+
+          {/* バッジ */}
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground font-mono">
+                Badge + text-xs px-2 py-0.5
+              </p>
+              <Badge variant="default" className="text-xs px-2 py-0.5">バッジ</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground">用途: ステータス、カテゴリ表示（12px）</p>
+          </div>
         </div>
       </section>
 
