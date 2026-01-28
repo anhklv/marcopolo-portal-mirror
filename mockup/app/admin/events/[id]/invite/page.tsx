@@ -297,6 +297,18 @@ export default function EventInvitePage({
           matchesPremium = customer.auditMemberPremium === true;
         }
 
+        // 元会員フィルタ（全コミュニティ脱退済みの顧客を除外）
+        let matchesFormerMember = true;
+        if (customer.communities.length > 0) {
+          const allResigned = customer.communities.every((community) => {
+            if (community === "ベンチャー監査役の会") return !!customer.auditResignedAt;
+            if (community === "ないかんMeetup") return !!customer.naikanResignedAt;
+            if (community === "AI部会") return !!customer.aiResignedAt;
+            return false;
+          });
+          if (allResigned) matchesFormerMember = false;
+        }
+
         // 案内状況フィルタ（チェックがない場合はすべて表示）
         const matchesInviteStatus =
           inviteStatuses.length === 0 ||
@@ -306,7 +318,7 @@ export default function EventInvitePage({
             return true;
           });
 
-        return matchesKeyword && matchesOrganizations && matchesMemberCategory && matchesAuditMemberType && matchesPremium && matchesInviteStatus;
+        return matchesKeyword && matchesOrganizations && matchesMemberCategory && matchesAuditMemberType && matchesPremium && matchesFormerMember && matchesInviteStatus;
       });
 
     return filtered;

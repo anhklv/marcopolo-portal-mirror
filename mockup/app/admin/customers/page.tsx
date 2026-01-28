@@ -534,7 +534,7 @@ export default function CustomersPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredCustomers.map((customer, index) => (
+              filteredCustomers.map((customer) => (
                 <TableRow
                   key={customer.id}
                   className="cursor-pointer hover:bg-gray-50"
@@ -549,7 +549,7 @@ export default function CustomersPage() {
                     }
                   }}
                 >
-                  <TableCell className="font-medium">{index + 1}</TableCell>
+                  <TableCell className="font-medium">{customer.id}</TableCell>
                   <TableCell>{customer.name}</TableCell>
                   <TableCell>{customer.company}</TableCell>
                   <TableCell>
