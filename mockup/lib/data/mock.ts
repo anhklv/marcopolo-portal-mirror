@@ -417,7 +417,7 @@ export const events: Event[] = [
     hasAfterParty: false,
   },
   {
-    id: "E010",
+    id: "E011",
     title: "第12回 監査役交流会",
     date: "2026-11-14T22:00:00+09:00",
     location: "東京都港区六本木 1-1-1 会議室A",

@@ -10,10 +10,10 @@ import {
   Settings,
   ChevronDown,
   FileText,
-  ChevronRight,
   Check,
+  ChevronsUpDown,
+  ShieldCheck,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +22,9 @@ import {
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/contexts/auth.context";
 import { toast } from "sonner";
 import { admins } from "@/lib/data/mock";
@@ -70,6 +72,10 @@ export function Sidebar() {
 
   const isDevMenuActive = devMenuItems.some((item) => pathname === item.href);
 
+  const adminInitial = currentAdmin
+    ? (currentAdmin.lastName.charAt(0))
+    : "?";
+
   return (
     <div className="flex h-screen w-64 flex-col border-r bg-white flex-shrink-0 overflow-hidden">
       <div className="flex h-14 items-center border-b px-6 bg-white flex-shrink-0">
@@ -94,10 +100,8 @@ export function Sidebar() {
               {route.label}
             </Link>
           ))}
-        </nav>
-      </div>
-      <div className="mt-auto bg-white flex-shrink-0">
-        <div className="px-4 py-2">
+
+          {/* 開発メニュー（イベント管理の下） */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -115,12 +119,12 @@ export function Sidebar() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56 bg-white">
               <DropdownMenuSub>
-                <DropdownMenuSubTrigger 
+                <DropdownMenuSubTrigger
                   className="bg-white hover:bg-gray-100 cursor-pointer admin-switch-trigger"
                 >
                   <span>管理者切り替え</span>
                 </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent 
+                <DropdownMenuSubContent
                   className="bg-white w-64 admin-switch-content"
                   sideOffset={8}
                 >
@@ -165,42 +169,58 @@ export function Sidebar() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-        <div className="p-4 border-t">
-          {currentAdmin && (
-            <div className="px-3 py-2 mb-2 text-sm text-gray-600">
-              <span className="font-medium">{currentAdmin.lastName} {currentAdmin.firstName}</span>
-              <span className="ml-1">でログイン中</span>
-            </div>
-          )}
+        </nav>
+      </div>
+
+      {/* ユーザープロフィール（左下） */}
+      <div className="mt-auto border-t bg-white flex-shrink-0">
+        <div className="p-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary w-full text-left text-sm font-medium",
-                  pathname.startsWith("/admin/settings")
-                    ? "bg-gray-100 text-primary"
-                    : "text-gray-600 hover:bg-gray-50"
-                )}
-              >
-                <Settings className="h-4 w-4" />
-                <span className="flex-1">設定</span>
-                <ChevronDown className="h-4 w-4" />
+              <button className="flex items-center gap-3 w-full rounded-lg px-2 py-2 hover:bg-gray-100 transition-all text-left focus:outline-none">
+                <Avatar className="h-9 w-9">
+                  <AvatarFallback className="bg-gray-200 text-gray-700 text-sm font-medium">
+                    {adminInitial}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  {currentAdmin ? (
+                    <>
+                      <p className="text-sm font-medium truncate">
+                        {currentAdmin.lastName} {currentAdmin.firstName}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {currentAdmin.email}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-gray-500">未ログイン</p>
+                  )}
+                </div>
+                <ChevronsUpDown className="h-4 w-4 text-gray-400 shrink-0" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56 bg-white">
+            <DropdownMenuContent
+              side="top"
+              align="start"
+              className="w-56 bg-white"
+            >
               {currentAdmin?.role === "super" && (
-                <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
-                  <Link
-                    href="/admin/admins"
-                    className={cn(
-                      "cursor-pointer w-full",
-                      pathname.startsWith("/admin/admins") && "bg-gray-100"
-                    )}
-                  >
-                    管理者管理
-                  </Link>
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
+                    <Link
+                      href="/admin/admins"
+                      className={cn(
+                        "cursor-pointer w-full",
+                        pathname.startsWith("/admin/admins") && "bg-gray-100"
+                      )}
+                    >
+                      <ShieldCheck className="h-4 w-4 mr-2" />
+                      管理者管理
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
               )}
               <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
                 <Link
@@ -210,19 +230,20 @@ export function Sidebar() {
                     pathname === "/admin/settings/password" && "bg-gray-100"
                   )}
                 >
-                  パスワード変更
+                  <Settings className="h-4 w-4 mr-2" />
+                  設定
                 </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="bg-white hover:bg-red-50 text-red-500 hover:text-red-600 cursor-pointer"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                ログアウト
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4" />
-            ログアウト
-          </Button>
         </div>
       </div>
     </div>
