@@ -1,0 +1,200 @@
+{
+  "main": {
+    "id": "e6fd1fe98b6b8979",
+    "type": "split",
+    "children": [
+      {
+        "id": "ffe24f81a052d6ab",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3ffe563e52eb30d8",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "新規タブ"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "029c9a396a7a8277",
+    "type": "split",
+    "children": [
+      {
+        "id": "57afac8f62d6fd71",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "adffda68874bfc83",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "ファイルエクスプローラ"
+            }
+          },
+          {
+            "id": "8f5d143847bf3773",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "検索"
+            }
+          },
+          {
+            "id": "147094431d001ae6",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "ブックマーク"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "a5fcc7eba9240849",
+    "type": "split",
+    "children": [
+      {
+        "id": "af4e1859e2aff150",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c6e39687ce5af187",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "バックリンク"
+            }
+          },
+          {
+            "id": "10197c93fa584d8b",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "アウトゴーイングリンク"
+            }
+          },
+          {
+            "id": "ed4ba1a56d9ef74c",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "タグ"
+            }
+          },
+          {
+            "id": "bce6f3d97822abef",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "すべてのプロパティ"
+            }
+          },
+          {
+            "id": "45bcf400cc9dd123",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "アウトライン"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:クイックスイッチャーを開く": false,
+      "graph:グラフビューを開く": false,
+      "canvas:新規キャンバスを作成": false,
+      "daily-notes:今日のデイリーノートを開く": false,
+      "templates:テンプレートを挿入": false,
+      "command-palette:コマンドパレットを開く": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "3ffe563e52eb30d8",
+  "lastOpenFiles": [
+    "報告20260128.md",
+    "報告/報告20260128.md",
+    "報告/報告20251225.md",
+    "報告/報告20251216.md",
+    "報告",
+    "業務フロー/現状の業務フロー.md",
+    "業務フロー/理想の業務フロー.md",
+    "業務フロー",
+    "nextjs設計案/没案/03-gemini壁打ち案.md",
+    "nextjs設計案/没案/02-Next.jsベストプラクティス設計案.md",
+    "nextjs設計案/没案/01-Rails-Laravel経験者向け設計案.md",
+    "nextjs設計案/没案",
+    "サーバー構成_20260128.md",
+    "工数見積もり_20260128.md",
+    "開発手順_20260128.md",
+    "nextjs設計案/04-Next.jsベストプラクティス設計案_20260128.md",
+    "報告20251225.md",
+    "報告20251216.md"
+  ]
+}
