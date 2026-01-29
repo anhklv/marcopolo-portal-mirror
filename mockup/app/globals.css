@@ -135,6 +135,16 @@
   select:disabled {
     cursor: not-allowed;
   }
+
+  /* 検索入力のクリアボタン（×）のスタイル調整 */
+  input[type="search"]::-webkit-search-cancel-button {
+    filter: grayscale(100%);
+    opacity: 0.6;
+    cursor: pointer;
+  }
+  input[type="search"]::-webkit-search-cancel-button:hover {
+    opacity: 1;
+  }
 }
 
 .markdown-content {

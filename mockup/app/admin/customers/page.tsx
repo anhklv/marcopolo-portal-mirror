@@ -325,7 +325,7 @@ export default function CustomersPage() {
           <Input
             type="search"
             placeholder="名前、会社名、メールアドレスで検索..."
-            className="pl-9 h-10"
+            className="pl-9 h-9 text-sm"
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
           />
@@ -334,7 +334,7 @@ export default function CustomersPage() {
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="w-[280px] justify-between h-10"
+              className="w-[280px] justify-between h-9"
             >
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
@@ -497,7 +497,7 @@ export default function CustomersPage() {
           </PopoverContent>
         </Popover>
 
-        <div className="flex items-center space-x-2 h-10">
+        <div className="flex items-center space-x-2 h-9">
           <Checkbox
             id="include-former-members"
             checked={includeFormerMembers}
@@ -538,15 +538,8 @@ export default function CustomersPage() {
                 <TableRow
                   key={customer.id}
                   className="cursor-pointer hover:bg-gray-50"
-                  tabIndex={0}
                   onClick={() => {
                     router.push(`/admin/customers/${customer.id}`);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      router.push(`/admin/customers/${customer.id}`);
-                    }
                   }}
                 >
                   <TableCell className="font-medium">{customer.id}</TableCell>

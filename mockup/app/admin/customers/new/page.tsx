@@ -357,7 +357,7 @@ export default function NewCustomerPage() {
                     {/* 会員の場合のみ会員種別とプレミアム表示 */}
                     {memberCategory === "member" && (
                       <div className="grid gap-2">
-                        <Label className="text-sm font-medium">会員種別 <span className="text-destructive">*</span></Label>
+                        <Label className="text-base font-medium">会員種別 <span className="text-destructive">*</span></Label>
                         <div className="flex items-center gap-4">
                           <Select value={auditMemberType} onValueChange={setAuditMemberType}>
                             <SelectTrigger className="w-[300px] bg-white">
@@ -385,7 +385,7 @@ export default function NewCustomerPage() {
 
                     {/* 入会資格 */}
                     <div className="grid gap-2">
-                      <Label className="text-sm font-medium">入会資格</Label>
+                      <Label className="text-base font-medium">入会資格</Label>
                       <Select value={membershipQualification} onValueChange={setMembershipQualification}>
                         <SelectTrigger className="w-full bg-white">
                           <SelectValue placeholder="選択してください" />
@@ -402,7 +402,7 @@ export default function NewCustomerPage() {
 
                     {/* 出身業種 */}
                     <div className="grid gap-2">
-                      <Label className="text-sm font-medium">出身業種</Label>
+                      <Label className="text-base font-medium">出身業種</Label>
                       <Select value={originIndustry} onValueChange={setOriginIndustry}>
                         <SelectTrigger className="w-full bg-white">
                           <SelectValue placeholder="選択してください" />
@@ -419,7 +419,7 @@ export default function NewCustomerPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex flex-col gap-3">
-                        <Label htmlFor="auditJoinedAt" className="px-1 text-sm">入会日</Label>
+                        <Label htmlFor="auditJoinedAt" className="px-1 text-base font-medium">入会日</Label>
                         <DatePickerWithInput
                           id="auditJoinedAt"
                           date={auditJoinedAt}
@@ -427,7 +427,7 @@ export default function NewCustomerPage() {
                         />
                       </div>
                       <div className="flex flex-col gap-3">
-                        <Label htmlFor="auditResignedAt" className="px-1 text-sm">脱退日</Label>
+                        <Label htmlFor="auditResignedAt" className="px-1 text-base font-medium">脱退日</Label>
                         <DatePickerWithInput
                           id="auditResignedAt"
                           date={auditResignedAt}
@@ -445,7 +445,7 @@ export default function NewCustomerPage() {
                     
                     {/* 所属 */}
                     <div className="grid gap-2">
-                      <Label className="text-sm font-medium">所属</Label>
+                      <Label className="text-base font-medium">所属</Label>
                       <Select value={naikanAffiliation} onValueChange={setNaikanAffiliation}>
                         <SelectTrigger className="w-full bg-white">
                           <SelectValue placeholder="選択してください" />
@@ -462,7 +462,7 @@ export default function NewCustomerPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex flex-col gap-3">
-                        <Label htmlFor="naikanJoinedAt" className="px-1 text-sm">入会日</Label>
+                        <Label htmlFor="naikanJoinedAt" className="px-1 text-base font-medium">入会日</Label>
                         <DatePickerWithInput
                           id="naikanJoinedAt"
                           date={naikanJoinedAt}
@@ -470,7 +470,7 @@ export default function NewCustomerPage() {
                         />
                       </div>
                       <div className="flex flex-col gap-3">
-                        <Label htmlFor="naikanResignedAt" className="px-1 text-sm">脱退日</Label>
+                        <Label htmlFor="naikanResignedAt" className="px-1 text-base font-medium">脱退日</Label>
                         <DatePickerWithInput
                           id="naikanResignedAt"
                           date={naikanResignedAt}
@@ -488,7 +488,7 @@ export default function NewCustomerPage() {
                     
                     {/* 所属 */}
                     <div className="grid gap-2">
-                      <Label className="text-sm font-medium">所属</Label>
+                      <Label className="text-base font-medium">所属</Label>
                       <Select value={aiAffiliation} onValueChange={setAiAffiliation}>
                         <SelectTrigger className="w-full bg-white">
                           <SelectValue placeholder="選択してください" />
@@ -505,7 +505,7 @@ export default function NewCustomerPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex flex-col gap-3">
-                        <Label htmlFor="aiJoinedAt" className="px-1 text-sm">入会日</Label>
+                        <Label htmlFor="aiJoinedAt" className="px-1 text-base font-medium">入会日</Label>
                         <DatePickerWithInput
                           id="aiJoinedAt"
                           date={aiJoinedAt}
@@ -513,7 +513,7 @@ export default function NewCustomerPage() {
                         />
                       </div>
                       <div className="flex flex-col gap-3">
-                        <Label htmlFor="aiResignedAt" className="px-1 text-sm">脱退日</Label>
+                        <Label htmlFor="aiResignedAt" className="px-1 text-base font-medium">脱退日</Label>
                         <DatePickerWithInput
                           id="aiResignedAt"
                           date={aiResignedAt}

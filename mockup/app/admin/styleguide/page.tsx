@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Search, Pencil, Trash2, Download } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Download, ChevronDown } from "lucide-react";
 import { DatePickerWithInput } from "@/components/ui/date-picker-with-input";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -448,6 +448,64 @@ export default function StyleGuidePage() {
       </section>
 
       {/* ============================== */}
+      {/* 検索・フィルタエリア */}
+      {/* ============================== */}
+      <section className="space-y-6">
+        <div>
+          <h2 className="text-lg font-semibold">検索・フィルタエリア（一覧画面用）</h2>
+          <Separator className="mt-2" />
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>検索・絞り込みツールバー</CardTitle>
+            <CardDescription>
+              一覧画面の検索エリアは、メインの入力フォームとは区別してコンパクトなサイズ（h-9 / 36px）を使用します。
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* ツールバー例 */}
+            <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-lg border">
+              {/* 検索バー */}
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="名前、会社名で検索..."
+                  className="pl-9 h-9 text-sm"
+                />
+              </div>
+              
+              {/* フィルタボタン */}
+              <Button variant="outline" className="h-9 text-sm">
+                <span className="mr-2">ステータス</span>
+                <ChevronDown className="h-4 w-4 opacity-50" />
+              </Button>
+              
+              {/* チェックボックス */}
+              <div className="flex items-center space-x-2 h-9">
+                <Checkbox id="sg-filter-check" />
+                <Label htmlFor="sg-filter-check" className="cursor-pointer text-sm">
+                  元会員を含む
+                </Label>
+              </div>
+            </div>
+
+            {/* ルール説明 */}
+            <div className="space-y-2">
+              <p className="text-sm font-medium">適用ルール</p>
+              <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
+                <li>高さ: <span className="font-mono text-xs">h-9 (36px)</span> <span className="text-xs bg-muted px-1 rounded">※フォームは h-10</span></li>
+                <li>フォントサイズ: <span className="font-mono text-xs">text-sm (14px)</span> <span className="text-xs bg-muted px-1 rounded">※フォームは text-base</span></li>
+                <li>構成要素: 検索窓、プルダウン、フィルタ用チェックボックス</li>
+                <li>目的: 情報密度の高い一覧画面において、ツールバーの専有面積を抑え、データ表示領域を確保するため</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* ============================== */}
       {/* テーブル */}
       {/* ============================== */}
       <section className="space-y-6">
@@ -478,10 +536,16 @@ export default function StyleGuidePage() {
               <Input
                 type="search"
                 placeholder="検索..."
-                className="pl-9 h-10"
+                className="pl-9 h-9 text-sm"
                 readOnly
               />
             </div>
+            
+            {/* フィルタ例 */}
+            <Button variant="outline" className="h-9 text-sm">
+              絞り込み
+              <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+            </Button>
           </div>
 
           {/* 件数表示 */}
@@ -652,9 +716,14 @@ export default function StyleGuidePage() {
                 <TableCell className="text-muted-foreground">複数ボタンの間隔</TableCell>
               </TableRow>
               <TableRow>
-                <TableCell className="font-medium">検索バー高さ</TableCell>
+                <TableCell className="font-medium">フォーム入力高さ</TableCell>
                 <TableCell className="font-mono text-xs">h-10</TableCell>
-                <TableCell className="text-muted-foreground">検索バーとフィルタボタンの高さ</TableCell>
+                <TableCell className="text-muted-foreground">登録・編集フォームの入力欄</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">検索・フィルタ高さ</TableCell>
+                <TableCell className="font-mono text-xs">h-9</TableCell>
+                <TableCell className="text-muted-foreground">一覧画面の検索バーとフィルタ（text-sm併用）</TableCell>
               </TableRow>
             </TableBody>
           </Table>
