@@ -465,7 +465,7 @@ export default function StyleGuidePage() {
                 ページの説明テキストはこのスタイルで記述します。
               </p>
             </div>
-            <Button variant="outline">
+            <Button>
               <Plus className="h-4 w-4" />
               新規登録
             </Button>
