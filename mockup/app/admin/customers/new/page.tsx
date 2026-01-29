@@ -18,7 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, X } from "lucide-react";
 import {
@@ -213,13 +214,14 @@ export default function NewCustomerPage() {
         
         {/* 会員情報セクション */}
         <Card>
-          <CardHeader>
-            <CardTitle>会員情報</CardTitle>
-          </CardHeader>
           <CardContent className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold">会員情報</h2>
+              <Separator className="mt-2" />
+            </div>
             {/* コミュニティ選択 */}
             <div className="grid gap-2">
-              <Label className="text-base font-medium">コミュニティ</Label>
+              <Label>コミュニティ</Label>
               {currentAdmin?.role === "super" || 
                (currentAdmin?.role === "community_admin" && 
                 currentAdmin.communityScopes && 
@@ -288,7 +290,7 @@ export default function NewCustomerPage() {
                       </>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">何も選択しない場合は非会員として登録されます</p>
+                  <p className="text-xs text-muted-foreground">何も選択しない場合は非会員として登録されます</p>
                 </>
               ) : (
                 <div className="text-sm text-foreground">
@@ -307,7 +309,7 @@ export default function NewCustomerPage() {
               <>
                 {/* 契約主体 */}
                 <div className="grid gap-2">
-                  <Label className="text-base font-medium">契約主体 <span className="text-destructive">*</span></Label>
+                  <Label>契約主体 <span className="text-destructive">*</span></Label>
                   <RadioGroup 
                     value={contractType} 
                     onValueChange={(v) => setContractType(v as any)}
@@ -327,7 +329,7 @@ export default function NewCustomerPage() {
 
                 {/* 会員区分 */}
                 <div className="grid gap-2">
-                  <Label className="text-base font-medium">会員区分 <span className="text-destructive">*</span></Label>
+                  <Label>会員区分 <span className="text-destructive">*</span></Label>
                   <RadioGroup 
                     value={memberCategory || ""} 
                     onValueChange={(v) => setMemberCategory(v as any)}
@@ -351,13 +353,16 @@ export default function NewCustomerPage() {
 
                 {/* ベンチャー監査役の会 詳細 */}
                 {auditCommunityChecked && (
-                  <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
-                    <Label className="font-semibold text-base">ベンチャー監査役の会</Label>
+                  <div className="rounded-lg border p-4 space-y-6 bg-slate-50">
+                    <div className="space-y-3">
+                      <Label>ベンチャー監査役の会</Label>
+                      <div className="border-b border-border"></div>
+                    </div>
                     
                     {/* 会員の場合のみ会員種別とプレミアム表示 */}
                     {memberCategory === "member" && (
                       <div className="grid gap-2">
-                        <Label className="text-base font-medium">会員種別 <span className="text-destructive">*</span></Label>
+                        <Label>会員種別 <span className="text-destructive">*</span></Label>
                         <div className="flex items-center gap-4">
                           <Select value={auditMemberType} onValueChange={setAuditMemberType}>
                             <SelectTrigger className="w-[300px] bg-white">
@@ -385,7 +390,7 @@ export default function NewCustomerPage() {
 
                     {/* 入会資格 */}
                     <div className="grid gap-2">
-                      <Label className="text-base font-medium">入会資格</Label>
+                      <Label>入会資格</Label>
                       <Select value={membershipQualification} onValueChange={setMembershipQualification}>
                         <SelectTrigger className="w-full bg-white">
                           <SelectValue placeholder="選択してください" />
@@ -402,7 +407,7 @@ export default function NewCustomerPage() {
 
                     {/* 出身業種 */}
                     <div className="grid gap-2">
-                      <Label className="text-base font-medium">出身業種</Label>
+                      <Label>出身業種</Label>
                       <Select value={originIndustry} onValueChange={setOriginIndustry}>
                         <SelectTrigger className="w-full bg-white">
                           <SelectValue placeholder="選択してください" />
@@ -418,16 +423,16 @@ export default function NewCustomerPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-3">
-                        <Label htmlFor="auditJoinedAt" className="px-1 text-base font-medium">入会日</Label>
+                      <div className="grid gap-2">
+                        <Label htmlFor="auditJoinedAt" className="px-1">入会日</Label>
                         <DatePickerWithInput
                           id="auditJoinedAt"
                           date={auditJoinedAt}
                           setDate={setAuditJoinedAt}
                         />
                       </div>
-                      <div className="flex flex-col gap-3">
-                        <Label htmlFor="auditResignedAt" className="px-1 text-base font-medium">脱退日</Label>
+                      <div className="grid gap-2">
+                        <Label htmlFor="auditResignedAt" className="px-1">脱退日</Label>
                         <DatePickerWithInput
                           id="auditResignedAt"
                           date={auditResignedAt}
@@ -440,12 +445,15 @@ export default function NewCustomerPage() {
 
                 {/* ないかんMeetup 詳細 */}
                 {naikanCommunityChecked && (
-                  <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
-                    <Label className="font-semibold text-base">ないかんMeetup</Label>
+                  <div className="rounded-lg border p-4 space-y-6 bg-slate-50">
+                    <div className="space-y-3">
+                      <Label>ないかんMeetup</Label>
+                      <div className="border-b border-border"></div>
+                    </div>
                     
                     {/* 所属 */}
                     <div className="grid gap-2">
-                      <Label className="text-base font-medium">所属</Label>
+                      <Label>所属</Label>
                       <Select value={naikanAffiliation} onValueChange={setNaikanAffiliation}>
                         <SelectTrigger className="w-full bg-white">
                           <SelectValue placeholder="選択してください" />
@@ -461,16 +469,16 @@ export default function NewCustomerPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-3">
-                        <Label htmlFor="naikanJoinedAt" className="px-1 text-base font-medium">入会日</Label>
+                      <div className="grid gap-2">
+                        <Label htmlFor="naikanJoinedAt" className="px-1">入会日</Label>
                         <DatePickerWithInput
                           id="naikanJoinedAt"
                           date={naikanJoinedAt}
                           setDate={setNaikanJoinedAt}
                         />
                       </div>
-                      <div className="flex flex-col gap-3">
-                        <Label htmlFor="naikanResignedAt" className="px-1 text-base font-medium">脱退日</Label>
+                      <div className="grid gap-2">
+                        <Label htmlFor="naikanResignedAt" className="px-1">脱退日</Label>
                         <DatePickerWithInput
                           id="naikanResignedAt"
                           date={naikanResignedAt}
@@ -483,12 +491,15 @@ export default function NewCustomerPage() {
 
                 {/* AI部会 詳細 */}
                 {aiCommunityChecked && (
-                  <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
-                    <Label className="font-semibold text-base">AI部会</Label>
+                  <div className="rounded-lg border p-4 space-y-6 bg-slate-50">
+                    <div className="space-y-3">
+                      <Label>AI部会</Label>
+                      <div className="border-b border-border"></div>
+                    </div>
                     
                     {/* 所属 */}
                     <div className="grid gap-2">
-                      <Label className="text-base font-medium">所属</Label>
+                      <Label>所属</Label>
                       <Select value={aiAffiliation} onValueChange={setAiAffiliation}>
                         <SelectTrigger className="w-full bg-white">
                           <SelectValue placeholder="選択してください" />
@@ -504,16 +515,16 @@ export default function NewCustomerPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-3">
-                        <Label htmlFor="aiJoinedAt" className="px-1 text-base font-medium">入会日</Label>
+                      <div className="grid gap-2">
+                        <Label htmlFor="aiJoinedAt" className="px-1">入会日</Label>
                         <DatePickerWithInput
                           id="aiJoinedAt"
                           date={aiJoinedAt}
                           setDate={setAiJoinedAt}
                         />
                       </div>
-                      <div className="flex flex-col gap-3">
-                        <Label htmlFor="aiResignedAt" className="px-1 text-base font-medium">脱退日</Label>
+                      <div className="grid gap-2">
+                        <Label htmlFor="aiResignedAt" className="px-1">脱退日</Label>
                         <DatePickerWithInput
                           id="aiResignedAt"
                           date={aiResignedAt}
@@ -525,15 +536,12 @@ export default function NewCustomerPage() {
                 )}
               </>
             )}
-          </CardContent>
-        </Card>
 
-        {/* プロフィールセクション */}
-        <Card>
-          <CardHeader>
-            <CardTitle>プロフィール</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+            {/* プロフィールセクション */}
+            <div>
+              <h2 className="text-lg font-semibold">プロフィール</h2>
+              <Separator className="mt-2" />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="lastName">姓 <span className="text-destructive">*</span></Label>

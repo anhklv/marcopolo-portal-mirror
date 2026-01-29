@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -134,10 +135,11 @@ export default function CustomerDetailPage({
 
       {/* 会員情報 */}
       <Card>
-        <CardHeader>
-          <CardTitle>会員情報</CardTitle>
-        </CardHeader>
         <CardContent className="space-y-6">
+          <div>
+            <h2 className="text-lg font-semibold">会員情報</h2>
+            <Separator className="mt-2" />
+          </div>
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">コミュニティ</p>
@@ -315,15 +317,12 @@ export default function CustomerDetailPage({
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
 
-      {/* 顧客プロフィール */}
-      <Card>
-        <CardHeader>
-          <CardTitle>プロフィール</CardTitle>
-        </CardHeader>
-        <CardContent>
+          {/* プロフィール */}
+          <div>
+            <h2 className="text-lg font-semibold">プロフィール</h2>
+            <Separator className="mt-2" />
+          </div>
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">氏名</p>
@@ -403,133 +402,132 @@ export default function CustomerDetailPage({
         </CardContent>
       </Card>
 
-      {/* 開催予定のイベント */}
-      {upcomingEvents.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              開催予定のイベント
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>イベント種別</TableHead>
-                    <TableHead>イベント名</TableHead>
-                    <TableHead>開催日時</TableHead>
-                    <TableHead>回答状況</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {upcomingEvents.map((event) => (
-                    <TableRow key={event.id}>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {event.eventType}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        <Link
-                          href={`/admin/events/${event.id}`}
-                          className="hover:underline"
-                        >
-                          {event.title}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{formatEventDate(event.date)}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            event.rsvpStatus === "参加"
-                              ? "default"
-                              : event.rsvpStatus === "不参加"
-                              ? "secondary"
-                              : "outline"
-                          }
-                        >
-                          {event.rsvpStatus}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* イベント参加履歴 */}
+      <Card>
+        <CardContent className="space-y-6">
+          {upcomingEvents.length > 0 || pastEvents.length > 0 ? (
+            <>
+              {upcomingEvents.length > 0 && (
+                <>
+                  <div>
+                    <h2 className="text-lg font-semibold flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      開催予定のイベント
+                    </h2>
+                    <Separator className="mt-2" />
+                  </div>
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>イベント種別</TableHead>
+                          <TableHead>イベント名</TableHead>
+                          <TableHead>開催日時</TableHead>
+                          <TableHead>回答状況</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {upcomingEvents.map((event) => (
+                          <TableRow key={event.id}>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {event.eventType}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              <Link
+                                href={`/admin/events/${event.id}`}
+                                className="hover:underline"
+                              >
+                                {event.title}
+                              </Link>
+                            </TableCell>
+                            <TableCell>{formatEventDate(event.date)}</TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  event.rsvpStatus === "参加"
+                                    ? "default"
+                                    : event.rsvpStatus === "不参加"
+                                    ? "secondary"
+                                    : "outline"
+                                }
+                              >
+                                {event.rsvpStatus}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
+              )}
 
-      {/* 過去のイベント */}
-      {pastEvents.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              過去のイベント
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>イベント種別</TableHead>
-                    <TableHead>イベント名</TableHead>
-                    <TableHead>開催日時</TableHead>
-                    <TableHead>参加状況</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pastEvents.map((event) => (
-                    <TableRow key={event.id}>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {event.eventType}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        <Link
-                          href={`/admin/events/${event.id}`}
-                          className="hover:underline"
-                        >
-                          {event.title}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{formatEventDate(event.date)}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            event.rsvpStatus === "参加"
-                              ? "default"
-                              : event.rsvpStatus === "不参加"
-                              ? "secondary"
-                              : "outline"
-                          }
-                        >
-                          {event.rsvpStatus}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {eventList.length === 0 && (
-        <Card>
-          <CardContent className="py-8">
-            <p className="text-center text-muted-foreground">
+              {pastEvents.length > 0 && (
+                <>
+                  <div>
+                    <h2 className="text-lg font-semibold flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      過去のイベント
+                    </h2>
+                    <Separator className="mt-2" />
+                  </div>
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>イベント種別</TableHead>
+                          <TableHead>イベント名</TableHead>
+                          <TableHead>開催日時</TableHead>
+                          <TableHead>参加状況</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {pastEvents.map((event) => (
+                          <TableRow key={event.id}>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {event.eventType}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              <Link
+                                href={`/admin/events/${event.id}`}
+                                className="hover:underline"
+                              >
+                                {event.title}
+                              </Link>
+                            </TableCell>
+                            <TableCell>{formatEventDate(event.date)}</TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  event.rsvpStatus === "参加"
+                                    ? "default"
+                                    : event.rsvpStatus === "不参加"
+                                    ? "secondary"
+                                    : "outline"
+                                }
+                              >
+                                {event.rsvpStatus}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">
               参加予定・参加済みのイベントはありません。
             </p>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
 
       <div className="flex justify-end pt-4 border-t">
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

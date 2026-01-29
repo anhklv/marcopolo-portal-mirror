@@ -119,9 +119,9 @@ export default function StyleGuidePage() {
           <div className="space-y-2">
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground font-mono">
-                Label className="text-base font-medium"
+                Label（標準）
               </p>
-              <Label className="text-base font-medium">フォーム内小見出し</Label>
+              <Label>フォーム内小見出し</Label>
             </div>
             <p className="text-xs text-muted-foreground">用途: フォーム内のグルーピング見出し</p>
           </div>
@@ -147,10 +147,13 @@ export default function StyleGuidePage() {
           <div className="space-y-2">
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground font-mono">
-                text-base font-medium（ラベル）
+                Label（標準）
               </p>
-              <p className="text-base font-medium">
-                ラベルテキスト — 16px medium
+              <p className="text-sm font-medium">
+                ラベルテキスト — 14px medium
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                ※Labelコンポーネントを使用（className指定不要）
               </p>
             </div>
             <p className="text-xs text-muted-foreground">用途: フォームラベル、項目名</p>
@@ -364,11 +367,11 @@ export default function StyleGuidePage() {
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>基本情報</CardTitle>
-            <CardDescription>フォームのレイアウト例です。</CardDescription>
-          </CardHeader>
           <CardContent className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold">基本情報</h2>
+              <Separator className="mt-2" />
+            </div>
             {/* テキスト入力 */}
             <div className="grid gap-2">
               <Label htmlFor="sg-name">
@@ -431,19 +434,42 @@ export default function StyleGuidePage() {
               <Button variant="outline">キャンセル</Button>
               <Button>保存</Button>
             </div>
+
+            {/* 複数セクションの例 */}
+            <div>
+              <h2 className="text-lg font-semibold">追加情報</h2>
+              <Separator className="mt-2" />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="sg-additional">追加フィールド</Label>
+              <Input id="sg-additional" placeholder="追加情報を入力" />
+            </div>
           </CardContent>
         </Card>
 
         {/* フォームルール */}
         <div className="rounded-lg border bg-white p-6 space-y-2">
           <p className="text-sm font-medium">フォームのルール</p>
-          <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
-            <li>ラベル: <span className="font-mono text-xs">Label</span> コンポーネント（text-base font-medium）</li>
-            <li>必須マーク: <span className="font-mono text-xs">&lt;span className=&quot;text-destructive&quot;&gt;*&lt;/span&gt;</span></li>
-            <li>ヘルプテキスト: <span className="font-mono text-xs">text-xs text-muted-foreground</span></li>
-            <li>入力フィールド間の余白: <span className="font-mono text-xs">space-y-6</span></li>
-            <li>ラベルとフィールドの間: <span className="font-mono text-xs">grid gap-2</span></li>
-          </ul>
+          <div className="text-sm text-muted-foreground space-y-4">
+            <div className="grid gap-2">
+              <p className="font-medium text-foreground">コンポーネント使用（クラス指定不要）</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>ラベル: <span className="font-mono text-xs">&lt;Label&gt;</span></li>
+              </ul>
+            </div>
+            
+            <div className="grid gap-2">
+              <p className="font-medium text-foreground">クラス指定が必要な要素</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>必須マーク: <span className="font-mono text-xs">&lt;span className=&quot;text-destructive&quot;&gt;*&lt;/span&gt;</span></li>
+                <li>ヘルプテキスト: <span className="font-mono text-xs">&lt;p className=&quot;text-xs text-muted-foreground&quot;&gt;</span></li>
+                <li>入力フィールド間の余白: 親要素に <span className="font-mono text-xs">space-y-6</span></li>
+                <li>ラベルとフィールドの間: 親要素に <span className="font-mono text-xs">grid gap-2</span></li>
+                <li>セクション見出し: <span className="font-mono text-xs">&lt;h2 className=&quot;text-lg font-semibold&quot;&gt;</span> + <span className="font-mono text-xs">&lt;Separator className=&quot;mt-2&quot; /&gt;</span></li>
+                <li>複数セクション: 1つのCard内に複数のセクション見出しを配置可能</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </section>
 
