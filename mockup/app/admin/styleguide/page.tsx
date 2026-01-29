@@ -390,13 +390,13 @@ export default function StyleGuidePage() {
               <Label>オプション</Label>
               <div className="flex items-center space-x-2">
                 <Checkbox id="sg-check1" />
-                <Label htmlFor="sg-check1" className="cursor-pointer text-sm">
+                <Label htmlFor="sg-check1" className="cursor-pointer">
                   メール通知を受け取る
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox id="sg-check2" />
-                <Label htmlFor="sg-check2" className="cursor-pointer text-sm">
+                <Label htmlFor="sg-check2" className="cursor-pointer">
                   プレミアム会員として登録
                 </Label>
               </div>

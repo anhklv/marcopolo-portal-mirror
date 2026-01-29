@@ -310,7 +310,7 @@ export default function CustomersPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" asChild>
+          <Button asChild>
             <Link href="/admin/customers/new">
               <Plus className="h-4 w-4" />
               新規登録
