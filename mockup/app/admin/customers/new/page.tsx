@@ -307,7 +307,7 @@ export default function NewCustomerPage() {
               <>
                 {/* 契約主体 */}
                 <div className="grid gap-2">
-                  <Label className="text-base font-medium">契約主体 <span className="text-red-500">*</span></Label>
+                  <Label className="text-base font-medium">契約主体 <span className="text-destructive">*</span></Label>
                   <RadioGroup 
                     value={contractType} 
                     onValueChange={(v) => setContractType(v as any)}
@@ -327,7 +327,7 @@ export default function NewCustomerPage() {
 
                 {/* 会員区分 */}
                 <div className="grid gap-2">
-                  <Label className="text-base font-medium">会員区分 <span className="text-red-500">*</span></Label>
+                  <Label className="text-base font-medium">会員区分 <span className="text-destructive">*</span></Label>
                   <RadioGroup 
                     value={memberCategory || ""} 
                     onValueChange={(v) => setMemberCategory(v as any)}
@@ -357,7 +357,7 @@ export default function NewCustomerPage() {
                     {/* 会員の場合のみ会員種別とプレミアム表示 */}
                     {memberCategory === "member" && (
                       <div className="grid gap-2">
-                        <Label className="text-sm font-medium">会員種別 <span className="text-red-500">*</span></Label>
+                        <Label className="text-sm font-medium">会員種別 <span className="text-destructive">*</span></Label>
                         <div className="flex items-center gap-4">
                           <Select value={auditMemberType} onValueChange={setAuditMemberType}>
                             <SelectTrigger className="w-[300px] bg-white">
@@ -536,7 +536,7 @@ export default function NewCustomerPage() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="lastName">姓 <span className="text-red-500">*</span></Label>
+                <Label htmlFor="lastName">姓 <span className="text-destructive">*</span></Label>
                 <Input 
                   id="lastName" 
                   placeholder="例: 山田" 
@@ -546,7 +546,7 @@ export default function NewCustomerPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="firstName">名 <span className="text-red-500">*</span></Label>
+                <Label htmlFor="firstName">名 <span className="text-destructive">*</span></Label>
                 <Input 
                   id="firstName" 
                   placeholder="例: 太郎" 
@@ -579,7 +579,7 @@ export default function NewCustomerPage() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="email">メールアドレス <span className="text-red-500">*</span></Label>
+              <Label htmlFor="email">メールアドレス <span className="text-destructive">*</span></Label>
               <div className="flex gap-2">
                 <Input 
                   id="email" 

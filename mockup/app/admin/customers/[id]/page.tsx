@@ -137,10 +137,10 @@ export default function CustomerDetailPage({
         <CardHeader>
           <CardTitle>会員情報</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground mb-2">コミュニティ</p>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-muted-foreground">コミュニティ</p>
               <div className="flex gap-2 flex-wrap items-center">
                 {(() => {
                   const badges: React.ReactElement[] = [];
@@ -183,14 +183,12 @@ export default function CustomerDetailPage({
               </div>
             </div>
             {customer.memberCategory === "member" && customer.contractType && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">契約主体</p>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">契約主体</p>
                 <p className="text-base">{CONTRACT_TYPE_LABELS[customer.contractType]}</p>
               </div>
             )}
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">登録日</p>
               <p className="text-base">{formatDate(customer.registeredAt)}</p>
             </div>
@@ -213,27 +211,27 @@ export default function CustomerDetailPage({
                   <Badge variant="outline">オブザーバー</Badge>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-6">
                 {customer.membershipQualification ? (
-                  <div>
+                  <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">入会資格</p>
                     <p className="text-base">{customer.membershipQualification}</p>
                   </div>
                 ) : null}
                 {customer.originIndustry ? (
-                  <div>
+                  <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">出身業種</p>
                     <p className="text-base">{customer.originIndustry}</p>
                   </div>
                 ) : null}
                 {customer.auditJoinedAt ? (
-                  <div>
+                  <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">入会日</p>
                     <p className="text-base">{formatDate(customer.auditJoinedAt)}</p>
                   </div>
                 ) : null}
                 {customer.auditResignedAt ? (
-                  <div>
+                  <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">脱退日</p>
                     <p className="text-base">{formatDate(customer.auditResignedAt)}</p>
                   </div>
@@ -257,21 +255,21 @@ export default function CustomerDetailPage({
                   <Badge variant="outline">オブザーバー</Badge>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-6">
                 {customer.naikanAffiliation ? (
-                  <div>
+                  <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">所属</p>
                     <p className="text-base">{customer.naikanAffiliation}</p>
                   </div>
                 ) : null}
                 {customer.naikanJoinedAt ? (
-                  <div>
+                  <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">入会日</p>
                     <p className="text-base">{formatDate(customer.naikanJoinedAt)}</p>
                   </div>
                 ) : null}
                 {customer.naikanResignedAt ? (
-                  <div>
+                  <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">脱退日</p>
                     <p className="text-base">{formatDate(customer.naikanResignedAt)}</p>
                   </div>
@@ -295,21 +293,21 @@ export default function CustomerDetailPage({
                   <Badge variant="outline">オブザーバー</Badge>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-6">
                 {(customer as any).aiAffiliation ? (
-                  <div>
+                  <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">所属</p>
                     <p className="text-base">{(customer as any).aiAffiliation}</p>
                   </div>
                 ) : null}
                 {(customer as any).aiJoinedAt ? (
-                  <div>
+                  <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">入会日</p>
                     <p className="text-base">{formatDate((customer as any).aiJoinedAt)}</p>
                   </div>
                 ) : null}
                 {(customer as any).aiResignedAt ? (
-                  <div>
+                  <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">脱退日</p>
                     <p className="text-base">{formatDate((customer as any).aiResignedAt)}</p>
                   </div>
@@ -326,25 +324,25 @@ export default function CustomerDetailPage({
           <CardTitle>プロフィール</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">氏名</p>
               <p className="text-base">{customer.name}</p>
             </div>
             {customer.nameKana ? (
-              <div>
+              <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">セイメイ</p>
                 <p className="text-base">{customer.nameKana}</p>
               </div>
             ) : (
               <div></div>
             )}
-            <div>
+            <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">メールアドレス</p>
               <p className="text-base">{customer.email}</p>
             </div>
             {customer.phone ? (
-              <div>
+              <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">電話番号</p>
                 <p className="text-base">{customer.phone}</p>
               </div>
@@ -352,7 +350,7 @@ export default function CustomerDetailPage({
               <div></div>
             )}
             {customer.subEmails && customer.subEmails.length > 0 ? (
-              <div>
+              <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">サブメールアドレス</p>
                 <div className="space-y-1">
                   {customer.subEmails.map((subEmail, index) => (
@@ -362,19 +360,19 @@ export default function CustomerDetailPage({
               </div>
             ) : null}
             {customer.company ? (
-              <div>
+              <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">会社名</p>
                 <p className="text-base">{customer.company}</p>
               </div>
             ) : null}
             {customer.listingCategory ? (
-              <div>
+              <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">上場区分</p>
                 <p className="text-base">{customer.listingCategory}</p>
               </div>
             ) : null}
             {(customer.postalCode || customer.prefecture || customer.city) ? (
-              <div>
+              <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">住所</p>
                 <div className="text-base">
                   {customer.postalCode && (
@@ -390,13 +388,13 @@ export default function CustomerDetailPage({
               </div>
             ) : null}
             {customer.gender ? (
-              <div>
+              <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">性別</p>
                 <p className="text-base">{GENDER_LABELS[customer.gender]}</p>
               </div>
             ) : null}
             {customer.note ? (
-              <div>
+              <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">備考</p>
                 <p className="text-base">{customer.note}</p>
               </div>
@@ -538,8 +536,8 @@ export default function CustomerDetailPage({
           <DialogTrigger asChild>
             <Button
               type="button"
-              variant="outline"
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+              variant="destructive"
+              className="cursor-pointer"
             >
               <Trash2 className="h-4 w-4" />
               削除

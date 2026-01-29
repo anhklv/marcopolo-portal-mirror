@@ -30,8 +30,13 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Search, Pencil, Trash2, Download } from "lucide-react";
+import { DatePickerWithInput } from "@/components/ui/date-picker-with-input";
+import { toast } from "sonner";
+import { useState } from "react";
 
 export default function StyleGuidePage() {
+  const [date, setDate] = useState<Date>();
+
   return (
     <div className="space-y-12">
       {/* ページタイトル */}
@@ -110,14 +115,27 @@ export default function StyleGuidePage() {
 
           <Separator />
 
+          {/* フォーム内小見出し */}
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground font-mono">
+                Label className="text-base font-medium"
+              </p>
+              <Label className="text-base font-medium">フォーム内小見出し</Label>
+            </div>
+            <p className="text-xs text-muted-foreground">用途: フォーム内のグルーピング見出し</p>
+          </div>
+
+          <Separator />
+
           {/* 本文 */}
           <div className="space-y-2">
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground font-mono">
-                text-sm（本文テキスト / ベースサイズ）
+                text-base（本文テキスト / ベースサイズ）
               </p>
-              <p className="text-sm">
-                本文テキスト — 14px。管理画面のすべてのテキストはこのサイズを基準にします。
+              <p className="text-base">
+                本文テキスト — 16px。管理画面のすべてのテキストはこのサイズを基準にします。
               </p>
             </div>
             <p className="text-xs text-muted-foreground">用途: テーブル、フォーム入力値、一般テキスト</p>
@@ -129,10 +147,10 @@ export default function StyleGuidePage() {
           <div className="space-y-2">
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground font-mono">
-                text-sm font-medium（ラベル）
+                text-base font-medium（ラベル）
               </p>
-              <p className="text-sm font-medium">
-                ラベルテキスト — 14px medium
+              <p className="text-base font-medium">
+                ラベルテキスト — 16px medium
               </p>
             </div>
             <p className="text-xs text-muted-foreground">用途: フォームラベル、項目名</p>
@@ -174,9 +192,9 @@ export default function StyleGuidePage() {
           <div className="space-y-2">
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground font-mono">
-                text-sm font-semibold（強調データ）
+                text-base font-semibold（強調データ）
               </p>
-              <p className="text-sm">
+              <p className="text-base">
                 件数: <span className="font-semibold text-foreground">42</span>件
               </p>
             </div>
@@ -305,7 +323,7 @@ export default function StyleGuidePage() {
             <p className="text-sm font-medium">使い分けルール</p>
             <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
               <li>主要アクション: <span className="font-mono text-xs">default</span></li>
-              <li>一覧ページの新規登録: <span className="font-mono text-xs">outline</span> + アイコン</li>
+              <li>一覧ページの新規登録: <span className="font-mono text-xs">default</span> + アイコン</li>
               <li>テーブル行内の操作: <span className="font-mono text-xs">outline</span> + <span className="font-mono text-xs">size=&quot;sm&quot;</span></li>
               <li>削除・危険操作: <span className="font-mono text-xs">destructive</span></li>
               <li>ダウンロード: <span className="font-mono text-xs">outline</span> + Download アイコン</li>
@@ -420,7 +438,7 @@ export default function StyleGuidePage() {
         <div className="rounded-lg border bg-white p-6 space-y-2">
           <p className="text-sm font-medium">フォームのルール</p>
           <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
-            <li>ラベル: <span className="font-mono text-xs">Label</span> コンポーネント（text-sm font-medium）</li>
+            <li>ラベル: <span className="font-mono text-xs">Label</span> コンポーネント（text-base font-medium）</li>
             <li>必須マーク: <span className="font-mono text-xs">&lt;span className=&quot;text-destructive&quot;&gt;*&lt;/span&gt;</span></li>
             <li>ヘルプテキスト: <span className="font-mono text-xs">text-xs text-muted-foreground</span></li>
             <li>入力フィールド間の余白: <span className="font-mono text-xs">space-y-6</span></li>
@@ -474,7 +492,7 @@ export default function StyleGuidePage() {
           </div>
 
           {/* テーブル */}
-          <div className="rounded-lg border bg-white shadow-sm">
+          <div className="rounded-lg border bg-white">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -532,7 +550,7 @@ export default function StyleGuidePage() {
         <div className="rounded-lg border bg-white p-6 space-y-2">
           <p className="text-sm font-medium">テーブルのルール</p>
           <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
-            <li>テーブル外枠: <span className="font-mono text-xs">rounded-lg border bg-white shadow-sm</span></li>
+            <li>テーブル外枠: <span className="font-mono text-xs">rounded-lg border bg-white</span></li>
             <li>クリック可能な行: <span className="font-mono text-xs">cursor-pointer hover:bg-gray-50</span></li>
             <li>ID列: <span className="font-mono text-xs">font-medium</span></li>
             <li>操作列: <span className="font-mono text-xs">text-right</span> + Button outline sm</li>
@@ -555,23 +573,23 @@ export default function StyleGuidePage() {
             <CardTitle>プロフィール</CardTitle>
             <CardDescription>詳細ページのカードレイアウト例です。</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">氏名</p>
-                <p className="text-sm">山田 太郎</p>
+                <p className="text-base">山田 太郎</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">会社名</p>
-                <p className="text-sm">株式会社サンプル</p>
+                <p className="text-base">株式会社サンプル</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">メールアドレス</p>
-                <p className="text-sm">taro@example.com</p>
+                <p className="text-base">taro@example.com</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">登録日</p>
-                <p className="text-sm">2024/01/15</p>
+                <p className="text-base">2024/01/15</p>
               </div>
             </div>
           </CardContent>
@@ -581,10 +599,10 @@ export default function StyleGuidePage() {
         <div className="rounded-lg border bg-white p-6 space-y-2">
           <p className="text-sm font-medium">詳細ページのルール</p>
           <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
-            <li>項目ラベル: <span className="font-mono text-xs">text-sm font-medium text-muted-foreground</span></li>
-            <li>項目値: <span className="font-mono text-xs">text-sm</span></li>
-            <li>ラベルと値の間: <span className="font-mono text-xs">space-y-1</span></li>
-            <li>グリッド: <span className="font-mono text-xs">grid grid-cols-2 gap-6</span></li>
+            <li>項目名: <span className="font-mono text-xs">text-sm font-medium text-muted-foreground</span></li>
+            <li>項目値: <span className="font-mono text-xs">text-base</span></li>
+            <li>項目名と値の間: <span className="font-mono text-xs">space-y-1 (4px)</span></li>
+            <li>グリッド: <span className="font-mono text-xs">grid grid-cols-2 gap-6 (24px)</span></li>
           </ul>
         </div>
       </section>
@@ -598,7 +616,7 @@ export default function StyleGuidePage() {
           <Separator className="mt-2" />
         </div>
 
-        <div className="rounded-lg border bg-white shadow-sm">
+        <div className="rounded-lg border bg-white">
           <Table>
             <TableHeader>
               <TableRow>
@@ -640,6 +658,47 @@ export default function StyleGuidePage() {
               </TableRow>
             </TableBody>
           </Table>
+        </div>
+      </section>
+
+      {/* ============================== */}
+      {/* UI コンポーネント（その他） */}
+      {/* ============================== */}
+      <section className="space-y-6">
+        <div>
+          <h2 className="text-lg font-semibold">UI コンポーネント（その他）</h2>
+          <Separator className="mt-2" />
+        </div>
+
+        {/* DatePicker */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">日付選択</h3>
+          <div className="rounded-lg border bg-white p-6">
+            <div className="w-[240px]">
+              <DatePickerWithInput date={date} setDate={setDate} />
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              <span className="font-mono">DatePickerWithInput</span> コンポーネントを使用
+            </p>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Toast */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">トースト通知</h3>
+          <div className="rounded-lg border bg-white p-6 flex gap-4">
+            <Button onClick={() => toast.success("保存しました")}>
+              Success
+            </Button>
+            <Button variant="destructive" onClick={() => toast.error("エラーが発生しました")}>
+              Error
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            <span className="font-mono">sonner</span> の <span className="font-mono">toast</span> 関数を使用
+          </p>
         </div>
       </section>
     </div>

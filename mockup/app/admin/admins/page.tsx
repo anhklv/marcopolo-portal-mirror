@@ -98,7 +98,7 @@ export default function AdminsPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border bg-white shadow-sm">
+      <div className="rounded-lg border bg-white">
         <Table>
           <TableHeader>
             <TableRow>
