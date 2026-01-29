@@ -514,7 +514,7 @@ export default function CustomersPage() {
           <span className="font-semibold text-foreground">{filteredCustomers.length}</span>件
         </div>
       </div>
-      <div className="rounded-lg border bg-white shadow-sm">
+      <div className="rounded-lg border bg-white">
         <Table>
           <TableHeader>
             <TableRow>

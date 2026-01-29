@@ -29,7 +29,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ArrowLeft, Trash2, Plus, X } from "lucide-react";
+import { ArrowLeft, Plus, X } from "lucide-react";
 import { customers } from "@/lib/data/mock";
 import type { CommunityScope } from "@/lib/types";
 import {
@@ -140,7 +140,6 @@ export default function CustomerEditPage({
   const [originIndustry, setOriginIndustry] = useState<string>(customer.originIndustry || "");
   const [membershipQualification, setMembershipQualification] = useState<string>(customer.membershipQualification || "");
   const [note, setNote] = useState(customer.note || "");
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const originIndustries = ORIGIN_INDUSTRIES;
   const membershipQualifications = MEMBERSHIP_QUALIFICATIONS;
@@ -203,12 +202,6 @@ export default function CustomerEditPage({
 
     toast.success("顧客情報を更新しました");
     router.push(`/admin/customers/${id}`);
-  };
-
-  const handleDelete = () => {
-    toast.success("顧客を削除しました");
-    setIsDeleteDialogOpen(false);
-    router.push("/admin/customers");
   };
 
   return (
@@ -805,45 +798,9 @@ export default function CustomerEditPage({
           </CardContent>
         </Card>
 
-        <div className="flex justify-between items-center pt-4 border-t">
-          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
-              >
-                <Trash2 className="h-4 w-4" />
-                削除
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-white">
-              <DialogHeader>
-                <DialogTitle>顧客を削除</DialogTitle>
-                <DialogDescription>
-                  この顧客を削除してもよろしいですか？この操作は取り消せません。
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDeleteDialogOpen(false)}
-                  className="cursor-pointer"
-                >
-                  キャンセル
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleDelete}
-                  className="cursor-pointer text-destructive hover:text-destructive"
-                >
-                  削除
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          <Button type="submit" variant="outline" className="cursor-pointer">
-            更新する
+        <div className="flex justify-end">
+          <Button type="submit" variant="default" className="cursor-pointer">
+            更新
           </Button>
         </div>
       </form>

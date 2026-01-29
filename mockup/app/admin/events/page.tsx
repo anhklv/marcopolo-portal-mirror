@@ -325,7 +325,7 @@ export default function EventsPage() {
           <span className="font-semibold text-foreground">{filteredEvents.length}</span>件
         </div>
       </div>
-      <div className="rounded-md border bg-white shadow-sm">
+      <div className="rounded-md border bg-white">
         <Table>
           <TableHeader>
             <TableRow>

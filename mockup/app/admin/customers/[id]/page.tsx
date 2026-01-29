@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -18,12 +19,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Edit, Calendar } from "lucide-react";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { ArrowLeft, Edit, Calendar, Trash2 } from "lucide-react";
 import { customers, events, rsvps } from "@/lib/data/mock";
 import { CONTRACT_TYPE_LABELS, GENDER_LABELS } from "@/lib/constants/common";
-import { use } from "react";
+import { use, useState } from "react";
 import React from "react";
 import { formatEventDate, formatDate } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function CustomerDetailPage({
   params,
@@ -31,6 +42,8 @@ export default function CustomerDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const router = useRouter();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const customer = customers.find((c) => c.id === id);
 
   if (!customer) {
@@ -87,6 +100,12 @@ export default function CustomerDetailPage({
   const pastEvents = sortedEvents.filter((e) => new Date(e.date) < now);
   const upcomingEvents = sortedEvents.filter((e) => new Date(e.date) >= now);
 
+  const handleDelete = () => {
+    toast.success("顧客を削除しました");
+    setIsDeleteDialogOpen(false);
+    router.push("/admin/customers");
+  };
+
   return (
     <div className="max-w-4xl space-y-6">
       <div className="flex items-center justify-between">
@@ -103,12 +122,14 @@ export default function CustomerDetailPage({
             </p>
           </div>
         </div>
-        <Button variant="outline" asChild>
-          <Link href={`/admin/customers/${id}/edit`}>
-            <Edit className="h-4 w-4" />
-            編集
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link href={`/admin/customers/${id}/edit`}>
+              <Edit className="h-4 w-4" />
+              編集
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* 会員情報 */}
@@ -511,6 +532,45 @@ export default function CustomerDetailPage({
           </CardContent>
         </Card>
       )}
+
+      <div className="flex justify-end pt-4 border-t">
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+            >
+              <Trash2 className="h-4 w-4" />
+              削除
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle>顧客を削除</DialogTitle>
+              <DialogDescription>
+                この顧客を削除してもよろしいですか？この操作は取り消せません。
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteDialogOpen(false)}
+                className="cursor-pointer"
+              >
+                キャンセル
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleDelete}
+                className="cursor-pointer text-destructive hover:text-destructive"
+              >
+                削除
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

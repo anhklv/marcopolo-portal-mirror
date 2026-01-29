@@ -766,8 +766,8 @@ export default function NewCustomerPage() {
           </CardContent>
         </Card>
 
-        <div className="flex justify-end gap-4">
-          <Button type="submit" variant="default" className="cursor-pointer">登録する</Button>
+        <div className="flex justify-end">
+          <Button type="submit" variant="default" className="cursor-pointer">登録</Button>
         </div>
       </form>
     </div>
