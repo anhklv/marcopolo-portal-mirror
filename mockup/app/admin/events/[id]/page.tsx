@@ -22,15 +22,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { PageHeader } from "@/components/ui/page-header";
+import { DataItem } from "@/components/ui/data-item";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { Stack } from "@/components/ui/stack";
+import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { toast } from "sonner";
-import { ArrowLeft, Mail, Edit, MoreVertical, Pause, Play, FileText, Search, ChevronDown, Send } from "lucide-react";
+import { Mail, Edit, MoreVertical, Pause, Play, FileText, Search, ChevronDown, Send } from "lucide-react";
 import { events, customers, rsvps, getEventStatus, getSurveyByEventId, getSurveyResponses, getFixedSurveyResponses } from "@/lib/data/mock";
 import { RSVP_STATUSES } from "@/lib/constants/event";
 import { cn, formatEventDate, formatDateTime } from "@/lib/utils";
@@ -40,6 +43,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+// イベント種別のバッジvariantを取得
+const getEventTypeVariant = (eventType: string) => {
+  switch (eventType) {
+    case "ベンチャー監査役の会": return "audit";
+    case "ないかんMeetup": return "naikan";
+    case "AI部会": return "ai";
+    default: return "outline";
+  }
+};
 
 export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -162,19 +175,13 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin/events">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <div className="flex items-center gap-3">
-              <Badge variant="outline">
-                {(event as any).eventType || "ベンチャー監査役の会"}
-              </Badge>
-              <h1 className="text-2xl font-bold tracking-tight">{event.title}</h1>
-            </div>
-          </div>
+          <PageHeader
+            backHref="/admin/events"
+            title={event.title}
+          />
+          <Badge variant={getEventTypeVariant((event as any).eventType || "ベンチャー監査役の会") as "audit" | "naikan" | "ai" | "outline"}>
+            {(event as any).eventType || "ベンチャー監査役の会"}
+          </Badge>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -271,7 +278,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                     <Input
                                         type="search"
                                         placeholder="氏名、会社名で検索..."
-                                        className="pl-9 h-10"
+                                        className="pl-9 h-9 text-sm"
                                         value={searchKeyword}
                                         onChange={(e) => setSearchKeyword(e.target.value)}
                                     />
@@ -280,7 +287,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant="outline"
-                                            className="w-[200px] justify-between h-10"
+                                            className="w-[200px] justify-between h-9"
                                         >
                                             <span className="text-sm">
                                                 {selectedStatuses.length === 0
@@ -300,11 +307,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                                     placeholder="ステータスを検索"
                                                     value={statusSearch}
                                                     onChange={(e) => setStatusSearch(e.target.value)}
-                                                    className="pl-8 h-9"
+                                                    className="pl-8 h-9 text-sm"
                                                 />
                                             </div>
                                         </div>
-                                        <div className="p-2 max-h-[300px] overflow-y-auto">
+                                        <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto">
                                             {RSVP_STATUSES
                                                 .filter((status) =>
                                                     status.label
@@ -312,24 +319,15 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                                         .includes(statusSearch.toLowerCase())
                                                 )
                                                 .map((status) => (
-                                                    <div
+                                                    <CheckboxItem
                                                         key={status.value}
-                                                        className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
-                                                        onClick={() =>
-                                                            handleStatusChange(
-                                                                status.value,
-                                                                !selectedStatuses.includes(status.value)
-                                                            )
+                                                        id={`rsvp-status-${status.value}`}
+                                                        label={status.label}
+                                                        checked={selectedStatuses.includes(status.value)}
+                                                        onCheckedChange={(checked) =>
+                                                            handleStatusChange(status.value, checked)
                                                         }
-                                                    >
-                                                        <Checkbox
-                                                            checked={selectedStatuses.includes(status.value)}
-                                                            onCheckedChange={(checked) =>
-                                                                handleStatusChange(status.value, checked === true)
-                                                            }
-                                                        />
-                                                        <span className="text-sm cursor-pointer">{status.label}</span>
-                                                    </div>
+                                                    />
                                                 ))}
                                         </div>
                                     </PopoverContent>
@@ -405,53 +403,42 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
                 <TabsContent value="detail" className="space-y-4">
                     <Card>
-                        <CardContent className="pt-6 space-y-6">
-                            <div className="grid gap-4">
-                                <div>
-                                    <Label className="text-sm font-medium text-muted-foreground">イベント種別</Label>
-                                    <div className="mt-1 text-base">{(event as any).eventType || "ベンチャー監査役の会"}</div>
-                                </div>
-                                
-                                <div>
-                                    <Label className="text-sm font-medium text-muted-foreground">開催日時</Label>
-                                    <div className="mt-1 text-base">{formatEventDate(event.date)}</div>
-                                </div>
-                                
-                                {event.location && (
-                                    <div>
-                                        <Label className="text-sm font-medium text-muted-foreground">場所</Label>
-                                        <div className="mt-1 text-base whitespace-pre-wrap">{event.location}</div>
-                                    </div>
-                                )}
-                                
-                                {event.description && (
-                                    <div>
-                                        <Label className="text-sm font-medium text-muted-foreground">イベント概要</Label>
-                                        <div className="mt-1 text-base whitespace-pre-wrap">{event.description}</div>
-                                    </div>
-                                )}
-                                
-                                {event.responseDeadline && (
-                                    <div>
-                                        <Label className="text-sm font-medium text-muted-foreground">回答期限</Label>
-                                        <div className="mt-1 text-base">{formatEventDate(event.responseDeadline)}</div>
-                                    </div>
-                                )}
-                                
-                                <div>
-                                    <Label className="text-sm font-medium text-muted-foreground">オンライン参加</Label>
-                                    <div className="mt-1 text-base">
+                        <CardContent>
+                            <Stack gap="lg">
+                                <SectionHeading>イベント情報</SectionHeading>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <DataItem label="イベント種別">
+                                        <Badge variant={getEventTypeVariant((event as any).eventType || "ベンチャー監査役の会") as "audit" | "naikan" | "ai" | "outline"}>
+                                            {(event as any).eventType || "ベンチャー監査役の会"}
+                                        </Badge>
+                                    </DataItem>
+                                    <DataItem label="開催日時">
+                                        {formatEventDate(event.date)}
+                                    </DataItem>
+                                    {event.location && (
+                                        <DataItem label="場所">
+                                            <span className="whitespace-pre-wrap">{event.location}</span>
+                                        </DataItem>
+                                    )}
+                                    {event.responseDeadline && (
+                                        <DataItem label="回答期限">
+                                            {formatEventDate(event.responseDeadline)}
+                                        </DataItem>
+                                    )}
+                                    <DataItem label="オンライン参加">
                                         {event.allowsOnline ? "可能" : "不可"}
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <Label className="text-sm font-medium text-muted-foreground">懇親会</Label>
-                                    <div className="mt-1 text-base">
+                                    </DataItem>
+                                    <DataItem label="懇親会">
                                         {event.hasAfterParty ? "あり" : "なし"}
-                                    </div>
+                                    </DataItem>
                                 </div>
-                            </div>
+                                {event.description && (
+                                    <>
+                                        <SectionHeading>イベント概要</SectionHeading>
+                                        <div className="text-base whitespace-pre-wrap">{event.description}</div>
+                                    </>
+                                )}
+                            </Stack>
                         </CardContent>
                     </Card>
                 </TabsContent>
