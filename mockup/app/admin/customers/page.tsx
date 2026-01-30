@@ -24,7 +24,9 @@ import { Badge } from "@/components/ui/badge";
 import { customers, getCommunityDisplayName } from "@/lib/data/mock";
 import type { CommunityScope } from "@/lib/types";
 import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/common";
-import { Plus, Search, Users, ChevronDown, Download } from "lucide-react";
+import { Search, Users, ChevronDown, Download, Plus } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
 import React from "react";
@@ -303,20 +305,16 @@ export default function CustomersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">顧客管理</h1>
-          <p className="text-sm text-muted-foreground">
-            会員・非会員を含むすべての顧客情報を管理します。
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button asChild>
-            <Link href="/admin/customers/new">
-              <Plus className="h-4 w-4" />
-              新規登録
-            </Link>
-          </Button>
-        </div>
+        <PageHeader
+          title="顧客管理"
+          description="会員・非会員を含むすべての顧客情報を管理します。"
+        />
+        <Button asChild>
+          <Link href="/admin/customers/new">
+            <Plus className="h-4 w-4" />
+            新規登録
+          </Link>
+        </Button>
       </div>
 
       <div className="flex items-center gap-3 flex-wrap">

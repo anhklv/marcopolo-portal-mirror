@@ -5,13 +5,12 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { PageHeader } from "@/components/ui/page-header";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { DataItem } from "@/components/ui/data-item";
+import { Stack } from "@/components/ui/stack";
 import {
   Table,
   TableBody,
@@ -29,7 +28,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Edit, Calendar, Trash2 } from "lucide-react";
+import { Edit, Calendar, Trash2 } from "lucide-react";
 import { customers, events, rsvps } from "@/lib/data/mock";
 import { CONTRACT_TYPE_LABELS, GENDER_LABELS } from "@/lib/constants/common";
 import { use, useState } from "react";
@@ -50,19 +49,11 @@ export default function CustomerDetailPage({
   if (!customer) {
     return (
       <div className="max-w-4xl space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin/customers">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">顧客が見つかりません</h1>
-            <p className="text-sm text-muted-foreground">
-              指定された顧客IDの情報が見つかりませんでした。
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          backHref="/admin/customers"
+          title="顧客が見つかりません"
+          description="指定された顧客IDの情報が見つかりませんでした。"
+        />
       </div>
     );
   }
@@ -110,36 +101,24 @@ export default function CustomerDetailPage({
   return (
     <div className="max-w-4xl space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin/customers">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">顧客詳細</h1>
-            <p className="text-sm text-muted-foreground">
-              {customer.name}さんの詳細情報
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link href={`/admin/customers/${id}/edit`}>
-              <Edit className="h-4 w-4" />
-              編集
-            </Link>
-          </Button>
-        </div>
+        <PageHeader
+          backHref="/admin/customers"
+          title="顧客詳細"
+          description={`${customer.name}さんの詳細情報`}
+        />
+        <Button variant="outline" asChild>
+          <Link href={`/admin/customers/${id}/edit`}>
+            <Edit className="h-4 w-4" />
+            編集
+          </Link>
+        </Button>
       </div>
 
       {/* 会員情報 */}
       <Card>
-        <CardContent className="space-y-6">
-          <div>
-            <h2 className="text-lg font-semibold">会員情報</h2>
-            <Separator className="mt-2" />
-          </div>
+        <CardContent>
+          <Stack gap="lg">
+            <SectionHeading>会員情報</SectionHeading>
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">コミュニティ</p>
@@ -190,57 +169,42 @@ export default function CustomerDetailPage({
                 <p className="text-base">{CONTRACT_TYPE_LABELS[customer.contractType]}</p>
               </div>
             )}
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">登録日</p>
-              <p className="text-base">{formatDate(customer.registeredAt)}</p>
+            <DataItem label="登録日">{formatDate(customer.registeredAt)}</DataItem>
             </div>
-          </div>
 
-          {/* ベンチャー監査役の会 詳細 */}
-          {customer.communities.includes("ベンチャー監査役の会") && (
-            <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
-              <div className="flex items-center justify-between">
-                <Label className="font-semibold text-base">ベンチャー監査役の会</Label>
-                {customer.memberCategory === "member" && customer.auditMemberType && (
-                  <Badge variant="outline">
-                    {customer.auditMemberType === "regular" ? "正会員" : "オンライン会員"}
-                  </Badge>
-                )}
-                {customer.memberCategory === "sponsor" && (
-                  <Badge variant="outline">スポンサー</Badge>
-                )}
-                {customer.memberCategory === "observer" && (
-                  <Badge variant="outline">オブザーバー</Badge>
-                )}
+            {/* ベンチャー監査役の会 詳細 */}
+            {customer.communities.includes("ベンチャー監査役の会") && (
+              <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
+                <div className="flex items-center justify-between">
+                  <Label className="font-semibold text-base">ベンチャー監査役の会</Label>
+                  {customer.memberCategory === "member" && customer.auditMemberType && (
+                    <Badge variant="outline">
+                      {customer.auditMemberType === "regular" ? "正会員" : "オンライン会員"}
+                    </Badge>
+                  )}
+                  {customer.memberCategory === "sponsor" && (
+                    <Badge variant="outline">スポンサー</Badge>
+                  )}
+                  {customer.memberCategory === "observer" && (
+                    <Badge variant="outline">オブザーバー</Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-6">
+                  {customer.membershipQualification && (
+                    <DataItem label="入会資格">{customer.membershipQualification}</DataItem>
+                  )}
+                  {customer.originIndustry && (
+                    <DataItem label="出身業種">{customer.originIndustry}</DataItem>
+                  )}
+                  {customer.auditJoinedAt && (
+                    <DataItem label="入会日">{formatDate(customer.auditJoinedAt)}</DataItem>
+                  )}
+                  {customer.auditResignedAt && (
+                    <DataItem label="脱退日">{formatDate(customer.auditResignedAt)}</DataItem>
+                  )}
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-6">
-                {customer.membershipQualification ? (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">入会資格</p>
-                    <p className="text-base">{customer.membershipQualification}</p>
-                  </div>
-                ) : null}
-                {customer.originIndustry ? (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">出身業種</p>
-                    <p className="text-base">{customer.originIndustry}</p>
-                  </div>
-                ) : null}
-                {customer.auditJoinedAt ? (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">入会日</p>
-                    <p className="text-base">{formatDate(customer.auditJoinedAt)}</p>
-                  </div>
-                ) : null}
-                {customer.auditResignedAt ? (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">脱退日</p>
-                    <p className="text-base">{formatDate(customer.auditResignedAt)}</p>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          )}
+            )}
 
           {/* ないかんMeetup 詳細 */}
           {customer.communities.includes("ないかんMeetup") && (
@@ -258,147 +222,97 @@ export default function CustomerDetailPage({
                 )}
               </div>
               <div className="grid grid-cols-2 gap-6">
-                {customer.naikanAffiliation ? (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">所属</p>
-                    <p className="text-base">{customer.naikanAffiliation}</p>
-                  </div>
-                ) : null}
-                {customer.naikanJoinedAt ? (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">入会日</p>
-                    <p className="text-base">{formatDate(customer.naikanJoinedAt)}</p>
-                  </div>
-                ) : null}
-                {customer.naikanResignedAt ? (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">脱退日</p>
-                    <p className="text-base">{formatDate(customer.naikanResignedAt)}</p>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          )}
-
-          {/* AI部会 詳細 */}
-          {customer.communities.includes("AI部会") && (
-            <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
-              <div className="flex items-center justify-between">
-                <Label className="font-semibold text-base">AI部会</Label>
-                {customer.memberCategory === "member" && (
-                  <Badge variant="outline">会員</Badge>
-                )}
-                {customer.memberCategory === "sponsor" && (
-                  <Badge variant="outline">スポンサー</Badge>
-                )}
-                {customer.memberCategory === "observer" && (
-                  <Badge variant="outline">オブザーバー</Badge>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-6">
-                {(customer as any).aiAffiliation ? (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">所属</p>
-                    <p className="text-base">{(customer as any).aiAffiliation}</p>
-                  </div>
-                ) : null}
-                {(customer as any).aiJoinedAt ? (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">入会日</p>
-                    <p className="text-base">{formatDate((customer as any).aiJoinedAt)}</p>
-                  </div>
-                ) : null}
-                {(customer as any).aiResignedAt ? (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">脱退日</p>
-                    <p className="text-base">{formatDate((customer as any).aiResignedAt)}</p>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          )}
-
-          {/* プロフィール */}
-          <div>
-            <h2 className="text-lg font-semibold">プロフィール</h2>
-            <Separator className="mt-2" />
-          </div>
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">氏名</p>
-              <p className="text-base">{customer.name}</p>
-            </div>
-            {customer.nameKana ? (
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">セイメイ</p>
-                <p className="text-base">{customer.nameKana}</p>
-              </div>
-            ) : (
-              <div></div>
-            )}
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">メールアドレス</p>
-              <p className="text-base">{customer.email}</p>
-            </div>
-            {customer.phone ? (
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">電話番号</p>
-                <p className="text-base">{customer.phone}</p>
-              </div>
-            ) : (
-              <div></div>
-            )}
-            {customer.subEmails && customer.subEmails.length > 0 ? (
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">サブメールアドレス</p>
-                <div className="space-y-1">
-                  {customer.subEmails.map((subEmail, index) => (
-                    <p key={index} className="text-base">{subEmail}</p>
-                  ))}
+                  {customer.naikanAffiliation && (
+                    <DataItem label="所属">{customer.naikanAffiliation}</DataItem>
+                  )}
+                  {customer.naikanJoinedAt && (
+                    <DataItem label="入会日">{formatDate(customer.naikanJoinedAt)}</DataItem>
+                  )}
+                  {customer.naikanResignedAt && (
+                    <DataItem label="脱退日">{formatDate(customer.naikanResignedAt)}</DataItem>
+                  )}
                 </div>
               </div>
-            ) : null}
-            {customer.company ? (
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">会社名</p>
-                <p className="text-base">{customer.company}</p>
-              </div>
-            ) : null}
-            {customer.listingCategory ? (
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">上場区分</p>
-                <p className="text-base">{customer.listingCategory}</p>
-              </div>
-            ) : null}
-            {(customer.postalCode || customer.prefecture || customer.city) ? (
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">住所</p>
-                <div className="text-base">
-                  {customer.postalCode && (
-                    <div>〒{customer.postalCode}</div>
+            )}
+
+            {/* AI部会 詳細 */}
+            {customer.communities.includes("AI部会") && (
+              <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
+                <div className="flex items-center justify-between">
+                  <Label className="font-semibold text-base">AI部会</Label>
+                  {customer.memberCategory === "member" && (
+                    <Badge variant="outline">会員</Badge>
                   )}
+                  {customer.memberCategory === "sponsor" && (
+                    <Badge variant="outline">スポンサー</Badge>
+                  )}
+                  {customer.memberCategory === "observer" && (
+                    <Badge variant="outline">オブザーバー</Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-6">
+                  {(customer as any).aiAffiliation && (
+                    <DataItem label="所属">{(customer as any).aiAffiliation}</DataItem>
+                  )}
+                  {(customer as any).aiJoinedAt && (
+                    <DataItem label="入会日">{formatDate((customer as any).aiJoinedAt)}</DataItem>
+                  )}
+                  {(customer as any).aiResignedAt && (
+                    <DataItem label="脱退日">{formatDate((customer as any).aiResignedAt)}</DataItem>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* プロフィール */}
+            <SectionHeading>プロフィール</SectionHeading>
+            <div className="grid grid-cols-2 gap-6">
+              <DataItem label="氏名">{customer.name}</DataItem>
+              {customer.nameKana ? (
+                <DataItem label="セイメイ">{customer.nameKana}</DataItem>
+              ) : (
+                <div></div>
+              )}
+              <DataItem label="メールアドレス">{customer.email}</DataItem>
+              {customer.phone ? (
+                <DataItem label="電話番号">{customer.phone}</DataItem>
+              ) : (
+                <div></div>
+              )}
+              {customer.subEmails && customer.subEmails.length > 0 && (
+                <DataItem label="サブメールアドレス">
+                  <div className="space-y-1">
+                    {customer.subEmails.map((subEmail, index) => (
+                      <p key={index}>{subEmail}</p>
+                    ))}
+                  </div>
+                </DataItem>
+              )}
+              {customer.company && (
+                <DataItem label="会社名">{customer.company}</DataItem>
+              )}
+              {customer.listingCategory && (
+                <DataItem label="上場区分">{customer.listingCategory}</DataItem>
+              )}
+              {(customer.postalCode || customer.prefecture || customer.city) && (
+                <DataItem label="住所">
+                  {customer.postalCode && <div>〒{customer.postalCode}</div>}
                   {customer.prefecture && (
                     <div>
                       {customer.prefecture}
                       {customer.city && customer.city}
                     </div>
                   )}
-                </div>
-              </div>
-            ) : null}
-            {customer.gender ? (
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">性別</p>
-                <p className="text-base">{GENDER_LABELS[customer.gender]}</p>
-              </div>
-            ) : null}
-            {customer.note ? (
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">備考</p>
-                <p className="text-base">{customer.note}</p>
-              </div>
-            ) : null}
-          </div>
+                </DataItem>
+              )}
+              {customer.gender && (
+                <DataItem label="性別">{GENDER_LABELS[customer.gender]}</DataItem>
+              )}
+              {customer.note && (
+                <DataItem label="備考">{customer.note}</DataItem>
+              )}
+            </div>
+          </Stack>
         </CardContent>
       </Card>
 

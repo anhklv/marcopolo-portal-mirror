@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,8 +19,12 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { FormField } from "@/components/ui/form-field";
+import { Stack } from "@/components/ui/stack";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { PageHeader } from "@/components/ui/page-header";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import {
   PREFECTURES,
   ORIGIN_INDUSTRIES,
@@ -196,29 +199,19 @@ export default function NewCustomerPage() {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/admin/customers">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">顧客登録</h1>
-          <p className="text-sm text-muted-foreground">
-            新しい顧客情報をシステムに登録します。
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        backHref="/admin/customers"
+        title="顧客登録"
+        description="新しい顧客情報をシステムに登録します。"
+      />
 
       <form onSubmit={handleSubmit} className="space-y-8">
         
         {/* 会員情報セクション */}
         <Card>
-          <CardContent className="space-y-6">
-            <div>
-              <h2 className="text-lg font-semibold">会員情報</h2>
-              <Separator className="mt-2" />
-            </div>
+          <CardContent>
+            <Stack gap="lg">
+              <SectionHeading>会員情報</SectionHeading>
             {/* コミュニティ選択 */}
             <div className="grid gap-2">
               <Label>コミュニティ</Label>
@@ -537,240 +530,218 @@ export default function NewCustomerPage() {
               </>
             )}
 
-            {/* プロフィールセクション */}
-            <div>
-              <h2 className="text-lg font-semibold">プロフィール</h2>
-              <Separator className="mt-2" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="lastName">姓 <span className="text-destructive">*</span></Label>
-                <Input 
-                  id="lastName" 
-                  placeholder="例: 山田" 
-                  required 
-                  value={lastName} 
-                  onChange={e => setLastName(e.target.value)} 
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="firstName">名 <span className="text-destructive">*</span></Label>
-                <Input 
-                  id="firstName" 
-                  placeholder="例: 太郎" 
-                  required 
-                  value={firstName} 
-                  onChange={e => setFirstName(e.target.value)} 
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="lastNameKana">セイ</Label>
-                <Input 
-                  id="lastNameKana" 
-                  placeholder="例: ヤマダ" 
-                  value={lastNameKana} 
-                  onChange={e => setLastNameKana(e.target.value)} 
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="firstNameKana">メイ</Label>
-                <Input 
-                  id="firstNameKana" 
-                  placeholder="例: タロウ" 
-                  value={firstNameKana} 
-                  onChange={e => setFirstNameKana(e.target.value)} 
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="email">メールアドレス <span className="text-destructive">*</span></Label>
-              <div className="flex gap-2">
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="name@example.com" 
-                  required 
-                  className="flex-1" 
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                />
-                {subEmails.length < 3 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={handleAddSubEmail}
-                    className="shrink-0"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-              {subEmails.map((subEmail, index) => (
-                <div key={index} className="flex gap-2">
+              {/* プロフィールセクション */}
+              <SectionHeading>プロフィール</SectionHeading>
+              <div className="grid grid-cols-2 gap-6">
+                <FormField label="姓" required id="lastName">
                   <Input
-                    type="email"
-                    placeholder={`サブメールアドレス ${index + 1}`}
-                    value={subEmail}
-                    onChange={(e) => handleSubEmailChange(index, e.target.value)}
-                    className="flex-1"
+                    placeholder="例: 山田"
+                    required
+                    value={lastName}
+                    onChange={e => setLastName(e.target.value)}
                   />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleRemoveSubEmail(index)}
-                    className="shrink-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                </FormField>
+                <FormField label="名" required id="firstName">
+                  <Input
+                    placeholder="例: 太郎"
+                    required
+                    value={firstName}
+                    onChange={e => setFirstName(e.target.value)}
+                  />
+                </FormField>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <FormField label="セイ">
+                  <Input
+                    placeholder="例: ヤマダ"
+                    value={lastNameKana}
+                    onChange={e => setLastNameKana(e.target.value)}
+                  />
+                </FormField>
+                <FormField label="メイ">
+                  <Input
+                    placeholder="例: タロウ"
+                    value={firstNameKana}
+                    onChange={e => setFirstNameKana(e.target.value)}
+                  />
+                </FormField>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="email">メールアドレス <span className="text-destructive">*</span></Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="name@example.com"
+                    required
+                    className="flex-1"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                  />
+                  {subEmails.length < 3 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={handleAddSubEmail}
+                      className="shrink-0"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
-              ))}
-            </div>
+                {subEmails.map((subEmail, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      type="email"
+                      placeholder={`サブメールアドレス ${index + 1}`}
+                      value={subEmail}
+                      onChange={(e) => handleSubEmailChange(index, e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleRemoveSubEmail(index)}
+                      className="shrink-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="company">会社名</Label>
-              <Input 
-                id="company" 
-                placeholder="例: 株式会社マルコポーロ" 
-                value={company}
-                onChange={e => setCompany(e.target.value)}
-              />
-            </div>
+              <FormField label="会社名">
+                <Input
+                  placeholder="例: 株式会社マルコポーロ"
+                  value={company}
+                  onChange={e => setCompany(e.target.value)}
+                />
+              </FormField>
 
-            <div className="grid gap-2">
-              <Label>上場区分</Label>
-              <Select 
-                value={listingCategory} 
-                onValueChange={(value) => {
-                  if (value === "選択してください") {
-                    setListingCategory("");
-                  } else {
-                    setListingCategory(value);
-                  }
-                }}
-              >
-                <SelectTrigger className="w-full bg-white">
-                  <SelectValue placeholder="選択してください" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="選択してください" className="bg-white hover:bg-gray-100">
-                    選択してください
-                  </SelectItem>
-                  <SelectItem value="未上場" className="bg-white hover:bg-gray-100">
-                    未上場
-                  </SelectItem>
-                  {listingOptions.map((option) => (
-                    <SelectGroup key={option.exchange}>
-                      <SelectLabel className="bg-gray-100">{option.exchange}</SelectLabel>
-                      {option.markets.map((market) => (
-                        <SelectItem
-                          key={`${option.exchange}-${market}`}
-                          value={`${option.exchange}-${market}`}
-                          className="bg-white hover:bg-gray-100"
-                        >
-                          {market}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="phone">電話番号</Label>
-              <Input 
-                id="phone" 
-                type="tel" 
-                placeholder="例: 0312345678" 
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="postalCode">郵便番号</Label>
-              <Input 
-                id="postalCode" 
-                type="text" 
-                placeholder="例: 1234567" 
-                value={postalCode}
-                onChange={e => setPostalCode(e.target.value)}
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label>都道府県</Label>
-              <Select 
-                value={prefecture} 
-                onValueChange={(value) => {
-                  if (value === "選択してください") {
-                    setPrefecture("");
-                  } else {
-                    setPrefecture(value);
-                  }
-                }}
-              >
-                <SelectTrigger className="w-full bg-white">
-                  <SelectValue placeholder="選択してください" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="選択してください" className="bg-white hover:bg-gray-100">
-                    選択してください
-                  </SelectItem>
-                  {prefectures.map((pref) => (
-                    <SelectItem key={pref} value={pref} className="bg-white hover:bg-gray-100">
-                      {pref}
+              <FormField label="上場区分">
+                <Select
+                  value={listingCategory}
+                  onValueChange={(value) => {
+                    if (value === "選択してください") {
+                      setListingCategory("");
+                    } else {
+                      setListingCategory(value);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full bg-white">
+                    <SelectValue placeholder="選択してください" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="選択してください" className="bg-white hover:bg-gray-100">
+                      選択してください
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                    <SelectItem value="未上場" className="bg-white hover:bg-gray-100">
+                      未上場
+                    </SelectItem>
+                    {listingOptions.map((option) => (
+                      <SelectGroup key={option.exchange}>
+                        <SelectLabel className="bg-gray-100">{option.exchange}</SelectLabel>
+                        {option.markets.map((market) => (
+                          <SelectItem
+                            key={`${option.exchange}-${market}`}
+                            value={`${option.exchange}-${market}`}
+                            className="bg-white hover:bg-gray-100"
+                          >
+                            {market}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
 
-            <div className="grid gap-2">
-              <Label htmlFor="city">市区町村以下</Label>
-              <Input 
-                id="city" 
-                type="text" 
-                placeholder="例: 千代田区丸の内1-1-1" 
-                value={city}
-                onChange={e => setCity(e.target.value)}
-              />
-            </div>
+              <FormField label="電話番号">
+                <Input
+                  type="tel"
+                  placeholder="例: 0312345678"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                />
+              </FormField>
 
-            <div className="grid gap-2">
-              <Label>性別</Label>
-              <RadioGroup
-                value={gender}
-                onValueChange={(value) => setGender(value as "male" | "female")}
-              >
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="male" id="male" />
-                    <Label htmlFor="male" className="cursor-pointer">男性</Label>
+              <FormField label="郵便番号">
+                <Input
+                  type="text"
+                  placeholder="例: 1234567"
+                  value={postalCode}
+                  onChange={e => setPostalCode(e.target.value)}
+                />
+              </FormField>
+
+              <FormField label="都道府県">
+                <Select
+                  value={prefecture}
+                  onValueChange={(value) => {
+                    if (value === "選択してください") {
+                      setPrefecture("");
+                    } else {
+                      setPrefecture(value);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full bg-white">
+                    <SelectValue placeholder="選択してください" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="選択してください" className="bg-white hover:bg-gray-100">
+                      選択してください
+                    </SelectItem>
+                    {prefectures.map((pref) => (
+                      <SelectItem key={pref} value={pref} className="bg-white hover:bg-gray-100">
+                        {pref}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+
+              <FormField label="市区町村以下">
+                <Input
+                  type="text"
+                  placeholder="例: 千代田区丸の内1-1-1"
+                  value={city}
+                  onChange={e => setCity(e.target.value)}
+                />
+              </FormField>
+
+              <div className="grid gap-2">
+                <Label>性別</Label>
+                <RadioGroup
+                  value={gender}
+                  onValueChange={(value) => setGender(value as "male" | "female")}
+                >
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="male" id="male" />
+                      <Label htmlFor="male" className="cursor-pointer">男性</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="female" id="female" />
+                      <Label htmlFor="female" className="cursor-pointer">女性</Label>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="female" id="female" />
-                    <Label htmlFor="female" className="cursor-pointer">女性</Label>
-                  </div>
-                </div>
-              </RadioGroup>
-            </div>
+                </RadioGroup>
+              </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="note">備考</Label>
-              <Textarea 
-                id="note" 
-                placeholder="紹介者や特記事項など" 
-                value={note}
-                onChange={e => setNote(e.target.value)}
-              />
-            </div>
+              <FormField label="備考">
+                <Textarea
+                  placeholder="紹介者や特記事項など"
+                  value={note}
+                  onChange={e => setNote(e.target.value)}
+                />
+              </FormField>
+            </Stack>
           </CardContent>
         </Card>
 

@@ -20,6 +20,12 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { PageHeader } from "@/components/ui/page-header";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { Stack } from "@/components/ui/stack";
+import { FormField } from "@/components/ui/form-field";
+import { CheckboxItem } from "@/components/ui/checkbox-item";
+import { RadioItem } from "@/components/ui/radio-item";
 import {
   Dialog,
   DialogTrigger,
@@ -58,19 +64,11 @@ export default function CustomerEditPage({
   if (!customer) {
     return (
       <div className="max-w-4xl space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin/customers">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">顧客が見つかりません</h1>
-            <p className="text-sm text-muted-foreground">
-              指定された顧客IDの情報が見つかりませんでした。
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          backHref="/admin/customers"
+          title="顧客が見つかりません"
+          description="指定された顧客IDの情報が見つかりませんでした。"
+        />
       </div>
     );
   }
@@ -207,29 +205,19 @@ export default function CustomerEditPage({
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/admin/customers/${id}`}>
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">顧客編集</h1>
-          <p className="text-sm text-muted-foreground">
-            顧客情報を編集・更新します。
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        backHref={`/admin/customers/${id}`}
+        title="顧客編集"
+        description="顧客情報を編集・更新します。"
+      />
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        
+
         {/* 会員情報セクション */}
         <Card>
-          <CardContent className="space-y-6">
-            <div>
-              <h2 className="text-lg font-semibold">会員情報</h2>
-              <Separator className="mt-2" />
-            </div>
+          <CardContent>
+            <Stack gap="lg">
+              <SectionHeading>会員情報</SectionHeading>
             {/* コミュニティ選択 */}
             <div className="grid gap-2">
               <Label>コミュニティ</Label>
@@ -333,19 +321,13 @@ export default function CustomerEditPage({
                 {/* 契約主体 */}
                 <div className="grid gap-2">
                   <Label>契約主体 <span className="text-destructive">*</span></Label>
-                  <RadioGroup 
-                    value={contractType} 
+                  <RadioGroup
+                    value={contractType}
                     onValueChange={(v) => setContractType(v as any)}
                   >
                     <div className="flex items-center gap-6">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="corporate" id="corporate" />
-                        <Label htmlFor="corporate" className="cursor-pointer">法人</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="individual" id="individual" />
-                        <Label htmlFor="individual" className="cursor-pointer">個人</Label>
-                      </div>
+                      <RadioItem value="corporate" label="法人" />
+                      <RadioItem value="individual" label="個人" />
                     </div>
                   </RadioGroup>
                 </div>
@@ -353,8 +335,8 @@ export default function CustomerEditPage({
                 {/* 会員区分 */}
                 <div className="grid gap-2">
                   <Label>会員区分 <span className="text-destructive">*</span></Label>
-                  <RadioGroup 
-                    value={memberCategory || ""} 
+                  <RadioGroup
+                    value={memberCategory || ""}
                     onValueChange={(v) => {
                       const newCategory = v as "member" | "sponsor" | "observer";
                       setMemberCategory(newCategory);
@@ -365,18 +347,9 @@ export default function CustomerEditPage({
                     }}
                   >
                     <div className="flex items-center gap-6">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="member" id="member" />
-                        <Label htmlFor="member" className="cursor-pointer">会員</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="sponsor" id="sponsor" />
-                        <Label htmlFor="sponsor" className="cursor-pointer">スポンサー</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="observer" id="observer" />
-                        <Label htmlFor="observer" className="cursor-pointer">オブザーバー</Label>
-                      </div>
+                      <RadioItem value="member" label="会員" />
+                      <RadioItem value="sponsor" label="スポンサー" />
+                      <RadioItem value="observer" label="オブザーバー" />
                     </div>
                   </RadioGroup>
                 </div>
@@ -403,14 +376,12 @@ export default function CustomerEditPage({
                               ))}
                             </SelectContent>
                           </Select>
-                          <div className="flex items-center space-x-2">
-                            <Checkbox 
-                              id="audit-premium" 
-                              checked={auditMemberPremium} 
-                              onCheckedChange={(c) => setAuditMemberPremium(c === true)} 
-                            />
-                            <Label htmlFor="audit-premium" className="cursor-pointer">プレミアム会員</Label>
-                          </div>
+                          <CheckboxItem
+                            id="audit-premium"
+                            label="プレミアム会員"
+                            checked={auditMemberPremium}
+                            onCheckedChange={setAuditMemberPremium}
+                          />
                         </div>
                       </div>
                     )}
@@ -565,10 +536,7 @@ export default function CustomerEditPage({
             )}
 
             {/* プロフィールセクション */}
-            <div>
-              <h2 className="text-lg font-semibold">プロフィール</h2>
-              <Separator className="mt-2" />
-            </div>
+            <SectionHeading>プロフィール</SectionHeading>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
@@ -778,28 +746,23 @@ export default function CustomerEditPage({
                 onValueChange={(value) => setGender(value as "male" | "female")}
               >
                 <div className="flex items-center gap-6">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="male" id="male" />
-                    <Label htmlFor="male" className="cursor-pointer">男性</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="female" id="female" />
-                    <Label htmlFor="female" className="cursor-pointer">女性</Label>
-                  </div>
+                  <RadioItem value="male" label="男性" />
+                  <RadioItem value="female" label="女性" />
                 </div>
               </RadioGroup>
             </div>
 
             <div className="grid gap-2">
               <Label htmlFor="note">備考</Label>
-              <Textarea 
-                id="note" 
-                placeholder="紹介者や特記事項など" 
+              <Textarea
+                id="note"
+                placeholder="紹介者や特記事項など"
                 value={note}
                 onChange={e => setNote(e.target.value)}
               />
             </div>
 
+            </Stack>
           </CardContent>
         </Card>
 
