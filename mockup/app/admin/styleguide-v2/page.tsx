@@ -22,6 +22,7 @@ import { CheckboxItem } from "@/components/ui/checkbox-item"
 import { RadioItem } from "@/components/ui/radio-item"
 import { RadioGroup } from "@/components/ui/radio-group"
 import { toast } from "sonner"
+import { Palette, LayoutGrid, FormInput, Package, FileCode, Type, Sparkles, Box } from "lucide-react"
 
 // コードブロック表示コンポーネント
 function CodeBlock({ children }: { children: string }) {
@@ -68,6 +69,16 @@ export default function StyleguideV2Page() {
         <p className="text-sm text-muted-foreground">
           コピペで使えるコンポーネント集
         </p>
+        <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <Sparkles className="h-3 w-3 text-amber-500" />
+            独自コンポーネント
+          </span>
+          <span className="flex items-center gap-1">
+            <Box className="h-3 w-3 text-slate-500" />
+            shadcn/ui
+          </span>
+        </div>
       </div>
 
       {/* ============================== */}
@@ -75,7 +86,10 @@ export default function StyleguideV2Page() {
       {/* ============================== */}
       <section className="space-y-6">
         <div>
-          <h2 className="text-lg font-semibold">色</h2>
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Palette className="h-5 w-5" />
+            色
+          </h2>
           <Separator className="mt-2" />
         </div>
 
@@ -124,17 +138,73 @@ export default function StyleguideV2Page() {
       </section>
 
       {/* ============================== */}
+      {/* タイポグラフィ */}
+      {/* ============================== */}
+      <section className="space-y-6">
+        <div>
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Type className="h-5 w-5" />
+            タイポグラフィ
+          </h2>
+          <Separator className="mt-2" />
+        </div>
+
+        <div className="rounded-lg border bg-white p-6 space-y-4">
+          <div className="space-y-1">
+            <p className="text-2xl font-bold tracking-tight">ページタイトル</p>
+            <p className="text-xs text-muted-foreground font-mono">text-2xl font-bold tracking-tight</p>
+          </div>
+          <Separator />
+          <div className="space-y-1">
+            <p className="text-lg font-semibold">セクション見出し</p>
+            <p className="text-xs text-muted-foreground font-mono">text-lg font-semibold</p>
+          </div>
+          <Separator />
+          <div className="space-y-1">
+            <p className="text-base font-semibold">サブ見出し</p>
+            <p className="text-xs text-muted-foreground font-mono">text-base font-semibold</p>
+          </div>
+          <Separator />
+          <div className="space-y-1">
+            <p className="text-sm font-medium">ラベル</p>
+            <p className="text-xs text-muted-foreground font-mono">text-sm font-medium（Labelコンポーネント）</p>
+          </div>
+          <Separator />
+          <div className="space-y-1">
+            <p className="text-base">本文テキスト</p>
+            <p className="text-xs text-muted-foreground font-mono">text-base</p>
+          </div>
+          <Separator />
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">説明・補足テキスト</p>
+            <p className="text-xs text-muted-foreground font-mono">text-sm text-muted-foreground</p>
+          </div>
+          <Separator />
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">小さい補足（日付、件数等）</p>
+            <p className="text-xs text-muted-foreground font-mono">text-xs text-muted-foreground</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================== */}
       {/* レイアウト */}
       {/* ============================== */}
       <section className="space-y-6">
         <div>
-          <h2 className="text-lg font-semibold">レイアウト</h2>
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <LayoutGrid className="h-5 w-5" />
+            レイアウト
+          </h2>
           <Separator className="mt-2" />
         </div>
 
         {/* Stack */}
         <div className="space-y-4">
-          <h3 className="text-base font-semibold">Stack</h3>
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            Stack
+          </h3>
           <p className="text-sm text-muted-foreground">
             縦積みレイアウト。gap で間隔を指定。
           </p>
@@ -195,7 +265,10 @@ export default function StyleguideV2Page() {
 
         {/* SectionHeading */}
         <div className="space-y-4">
-          <h3 className="text-base font-semibold">SectionHeading</h3>
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            SectionHeading
+          </h3>
           <p className="text-sm text-muted-foreground">
             セクション見出し。h2 + Separator。
           </p>
@@ -209,7 +282,10 @@ export default function StyleguideV2Page() {
 
         {/* PageHeader */}
         <div className="space-y-4">
-          <h3 className="text-base font-semibold">PageHeader</h3>
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            PageHeader
+          </h3>
           <p className="text-sm text-muted-foreground">
             ページヘッダー。戻るボタン + タイトル + 説明。
           </p>
@@ -233,7 +309,10 @@ export default function StyleguideV2Page() {
 
         {/* DataItem */}
         <div className="space-y-4">
-          <h3 className="text-base font-semibold">DataItem</h3>
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            DataItem
+          </h3>
           <p className="text-sm text-muted-foreground">
             詳細表示用。ラベル + 値の組み合わせ。
           </p>
@@ -257,13 +336,19 @@ export default function StyleguideV2Page() {
       {/* ============================== */}
       <section className="space-y-6">
         <div>
-          <h2 className="text-lg font-semibold">フォーム</h2>
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <FormInput className="h-5 w-5" />
+            フォーム
+          </h2>
           <Separator className="mt-2" />
         </div>
 
         {/* FormField */}
         <div className="space-y-4">
-          <h3 className="text-base font-semibold">FormField</h3>
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            FormField
+          </h3>
           <p className="text-sm text-muted-foreground">
             Label + Input + 補足テキストをまとめるコンポーネント。
           </p>
@@ -371,7 +456,10 @@ export default function StyleguideV2Page() {
 
         {/* CheckboxItem */}
         <div className="space-y-4">
-          <h3 className="text-base font-semibold">CheckboxItem</h3>
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            CheckboxItem
+          </h3>
           <p className="text-sm text-muted-foreground">
             Checkbox + Labelをまとめたコンポーネント。
           </p>
@@ -409,7 +497,10 @@ export default function StyleguideV2Page() {
 
         {/* RadioItem */}
         <div className="space-y-4">
-          <h3 className="text-base font-semibold">RadioItem</h3>
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            RadioItem
+          </h3>
           <p className="text-sm text-muted-foreground">
             RadioGroupItem + Labelをまとめたコンポーネント。RadioGroup内で使用。
           </p>
@@ -432,6 +523,33 @@ export default function StyleguideV2Page() {
             </RadioGroup>
           </Example>
         </div>
+
+        <Separator />
+
+        {/* Input */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Box className="h-4 w-4 text-slate-500" />
+            Input
+          </h3>
+
+          <Example code={`// フォーム用（デフォルト: h-10 / text-base）
+<Input placeholder="例: 山田" />
+
+// 検索・フィルター用（h-9 / text-sm）
+<Input className="h-9 text-sm" placeholder="検索..." />`}>
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">フォーム用（h-10 / text-base）</p>
+                <Input placeholder="例: 山田" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">検索・フィルター用（h-9 / text-sm）</p>
+                <Input className="h-9 text-sm" placeholder="検索..." />
+              </div>
+            </div>
+          </Example>
+        </div>
       </section>
 
       {/* ============================== */}
@@ -439,13 +557,19 @@ export default function StyleguideV2Page() {
       {/* ============================== */}
       <section className="space-y-6">
         <div>
-          <h2 className="text-lg font-semibold">部品</h2>
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            部品
+          </h2>
           <Separator className="mt-2" />
         </div>
 
         {/* Button */}
         <div className="space-y-4">
-          <h3 className="text-base font-semibold">Button</h3>
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Box className="h-4 w-4 text-slate-500" />
+            Button
+          </h3>
 
           <Example
             code={`<Button variant="default">登録</Button>
@@ -466,7 +590,10 @@ export default function StyleguideV2Page() {
 
         {/* Badge */}
         <div className="space-y-4">
-          <h3 className="text-base font-semibold">Badge</h3>
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Box className="h-4 w-4 text-slate-500" />
+            Badge
+          </h3>
 
           <Example
             code={`<Badge variant="default">会員</Badge>
@@ -485,33 +612,12 @@ export default function StyleguideV2Page() {
 
         <Separator />
 
-        {/* Input */}
-        <div className="space-y-4">
-          <h3 className="text-base font-semibold">Input</h3>
-
-          <Example code={`// フォーム用（デフォルト: h-10 / text-base）
-<Input placeholder="例: 山田" />
-
-// 検索・フィルター用（h-9 / text-sm）
-<Input className="h-9 text-sm" placeholder="検索..." />`}>
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs text-muted-foreground mb-2">フォーム用（h-10 / text-base）</p>
-                <Input placeholder="例: 山田" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground mb-2">検索・フィルター用（h-9 / text-sm）</p>
-                <Input className="h-9 text-sm" placeholder="検索..." />
-              </div>
-            </div>
-          </Example>
-        </div>
-
-        <Separator />
-
         {/* Toast */}
         <div className="space-y-4">
-          <h3 className="text-base font-semibold">Toast</h3>
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Box className="h-4 w-4 text-slate-500" />
+            Toast
+          </h3>
 
           <Example
             code={`import { toast } from "sonner"
@@ -536,7 +642,10 @@ toast.error("エラーが発生しました")`}
       {/* ============================== */}
       <section className="space-y-6">
         <div>
-          <h2 className="text-lg font-semibold">Import</h2>
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <FileCode className="h-5 w-5" />
+            Import
+          </h2>
           <Separator className="mt-2" />
         </div>
 
