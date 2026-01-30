@@ -572,6 +572,35 @@ export default function StyleguideV2Page() {
             Button
           </h3>
 
+          <div className="text-sm rounded-lg border bg-white p-4">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2">variant</th>
+                  <th className="text-left py-2">用途</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b">
+                  <td className="py-2"><code>default</code></td>
+                  <td className="py-2 text-muted-foreground">主要アクション（新規登録、作成など）</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-2"><code>outline</code></td>
+                  <td className="py-2 text-muted-foreground">副次アクション（キャンセル、CSVダウンロードなど）</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-2"><code>ghost</code></td>
+                  <td className="py-2 text-muted-foreground">軽いアクション（戻る、閉じるなど）</td>
+                </tr>
+                <tr>
+                  <td className="py-2"><code>destructive</code></td>
+                  <td className="py-2 text-muted-foreground">危険なアクション（削除など）</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
           <Example
             code={`<Button variant="default">登録</Button>
 <Button variant="outline">キャンセル</Button>
