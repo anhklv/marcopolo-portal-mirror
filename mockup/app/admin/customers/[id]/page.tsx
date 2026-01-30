@@ -28,7 +28,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Edit, Calendar, Trash2 } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 import { customers, events, rsvps } from "@/lib/data/mock";
 import { CONTRACT_TYPE_LABELS, GENDER_LABELS } from "@/lib/constants/common";
 import { use, useState } from "react";
@@ -120,12 +120,11 @@ export default function CustomerDetailPage({
           <Stack gap="lg">
             <SectionHeading>会員情報</SectionHeading>
           <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">コミュニティ</p>
+            <DataItem label="コミュニティ">
               <div className="flex gap-2 flex-wrap items-center">
                 {(() => {
                   const badges: React.ReactElement[] = [];
-                  
+
                   // 非会員の判定（communitiesが空配列）
                   if (customer.communities.length === 0) {
                     badges.push(
@@ -148,7 +147,7 @@ export default function CustomerDetailPage({
                         </Badge>
                       );
                     }
-                    
+
                     // プレミアム会員バッジ
                     if (customer.auditMemberPremium) {
                       badges.push(
@@ -158,16 +157,13 @@ export default function CustomerDetailPage({
                       );
                     }
                   }
-                  
+
                   return badges.length > 0 ? badges : null;
                 })()}
               </div>
-            </div>
+            </DataItem>
             {customer.memberCategory === "member" && customer.contractType && (
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">契約主体</p>
-                <p className="text-base">{CONTRACT_TYPE_LABELS[customer.contractType]}</p>
-              </div>
+              <DataItem label="契約主体">{CONTRACT_TYPE_LABELS[customer.contractType]}</DataItem>
             )}
             <DataItem label="登録日">{formatDate(customer.registeredAt)}</DataItem>
             </div>
@@ -323,13 +319,7 @@ export default function CustomerDetailPage({
             <>
               {upcomingEvents.length > 0 && (
                 <>
-                  <div>
-                    <h2 className="text-lg font-semibold flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      開催予定のイベント
-                    </h2>
-                    <Separator className="mt-2" />
-                  </div>
+                  <SectionHeading>開催予定のイベント</SectionHeading>
                   <div className="rounded-md border">
                     <Table>
                       <TableHeader>
@@ -380,13 +370,7 @@ export default function CustomerDetailPage({
 
               {pastEvents.length > 0 && (
                 <>
-                  <div>
-                    <h2 className="text-lg font-semibold flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      過去のイベント
-                    </h2>
-                    <Separator className="mt-2" />
-                  </div>
+                  <SectionHeading>過去のイベント</SectionHeading>
                   <div className="rounded-md border">
                     <Table>
                       <TableHeader>

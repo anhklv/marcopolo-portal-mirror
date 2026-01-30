@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 
 interface RadioItemProps {
@@ -25,9 +24,9 @@ function RadioItem({
   return (
     <div className={cn("flex items-center space-x-2", className)}>
       <RadioGroupItem value={value} id={itemId} disabled={disabled} />
-      <Label htmlFor={itemId} className="cursor-pointer">
+      <label htmlFor={itemId} className="cursor-pointer text-base">
         {label}
-      </Label>
+      </label>
     </div>
   )
 }

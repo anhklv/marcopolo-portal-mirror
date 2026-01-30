@@ -6,8 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -229,74 +228,62 @@ export default function CustomerEditPage({
                   <div className="flex items-center gap-6">
                     {currentAdmin?.role === "super" ? (
                       <>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
+                        <CheckboxItem
+                          id="audit-community"
+                          label="ベンチャー監査役の会"
+                          checked={auditCommunityChecked}
+                          onCheckedChange={(c) => {
+                            setAuditCommunityChecked(c);
+                            if (!c) {
+                              setAuditMemberType("");
+                              setAuditMemberPremium(false);
+                            }
+                          }}
+                        />
+                        <CheckboxItem
+                          id="naikan-community"
+                          label="ないかんMeetup"
+                          checked={naikanCommunityChecked}
+                          onCheckedChange={(c) => setNaikanCommunityChecked(c)}
+                        />
+                        <CheckboxItem
+                          id="ai-community"
+                          label="AI部会"
+                          checked={aiCommunityChecked}
+                          onCheckedChange={(c) => setAiCommunityChecked(c)}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        {currentAdmin?.communityScopes?.includes("ベンチャー監査役の会") && (
+                          <CheckboxItem
                             id="audit-community"
+                            label="ベンチャー監査役の会"
                             checked={auditCommunityChecked}
                             onCheckedChange={(c) => {
-                              setAuditCommunityChecked(c === true);
+                              setAuditCommunityChecked(c);
                               if (!c) {
                                 setAuditMemberType("");
                                 setAuditMemberPremium(false);
                               }
                             }}
                           />
-                          <Label htmlFor="audit-community" className="cursor-pointer">ベンチャー監査役の会</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="naikan-community"
-                            checked={naikanCommunityChecked}
-                            onCheckedChange={(c) => setNaikanCommunityChecked(c === true)}
-                          />
-                          <Label htmlFor="naikan-community" className="cursor-pointer">ないかんMeetup</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="ai-community"
-                            checked={aiCommunityChecked}
-                            onCheckedChange={(c) => setAiCommunityChecked(c === true)}
-                          />
-                          <Label htmlFor="ai-community" className="cursor-pointer">AI部会</Label>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        {currentAdmin?.communityScopes?.includes("ベンチャー監査役の会") && (
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="audit-community"
-                              checked={auditCommunityChecked}
-                              onCheckedChange={(c) => {
-                                setAuditCommunityChecked(c === true);
-                                if (!c) {
-                                  setAuditMemberType("");
-                                  setAuditMemberPremium(false);
-                                }
-                              }}
-                            />
-                            <Label htmlFor="audit-community" className="cursor-pointer">ベンチャー監査役の会</Label>
-                          </div>
                         )}
                         {currentAdmin?.communityScopes?.includes("ないかんMeetup") && (
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="naikan-community"
-                              checked={naikanCommunityChecked}
-                              onCheckedChange={(c) => setNaikanCommunityChecked(c === true)}
-                            />
-                            <Label htmlFor="naikan-community" className="cursor-pointer">ないかんMeetup</Label>
-                          </div>
+                          <CheckboxItem
+                            id="naikan-community"
+                            label="ないかんMeetup"
+                            checked={naikanCommunityChecked}
+                            onCheckedChange={(c) => setNaikanCommunityChecked(c)}
+                          />
                         )}
                         {currentAdmin?.communityScopes?.includes("AI部会") && (
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="ai-community"
-                              checked={aiCommunityChecked}
-                              onCheckedChange={(c) => setAiCommunityChecked(c === true)}
-                            />
-                            <Label htmlFor="ai-community" className="cursor-pointer">AI部会</Label>
-                          </div>
+                          <CheckboxItem
+                            id="ai-community"
+                            label="AI部会"
+                            checked={aiCommunityChecked}
+                            onCheckedChange={(c) => setAiCommunityChecked(c)}
+                          />
                         )}
                       </>
                     )}

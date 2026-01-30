@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
   Popover,
@@ -350,62 +349,54 @@ export default function CustomersPage() {
                 <Label className="text-sm font-semibold">コミュニティ</Label>
                 <div className="space-y-2">
                   {/* 特権管理者またはベンチャー監査役の会の権限がある場合のみ表示 */}
-                  {(currentAdmin?.role === "super" || 
-                    (currentAdmin?.role === "community_admin" && 
+                  {(currentAdmin?.role === "super" ||
+                    (currentAdmin?.role === "community_admin" &&
                      currentAdmin.communityScopes?.includes("ベンチャー監査役の会"))) && (
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="org-audit"
-                        checked={organizations.includes("ベンチャー監査役の会")}
-                        onCheckedChange={(checked) =>
-                          handleOrganizationChange("ベンチャー監査役の会", checked === true)
-                        }
-                      />
-                      <Label htmlFor="org-audit" className="cursor-pointer text-sm">ベンチャー監査役の会</Label>
-                    </div>
+                    <CheckboxItem
+                      id="org-audit"
+                      label="ベンチャー監査役の会"
+                      checked={organizations.includes("ベンチャー監査役の会")}
+                      onCheckedChange={(checked) =>
+                        handleOrganizationChange("ベンチャー監査役の会", checked)
+                      }
+                    />
                   )}
                   {/* 特権管理者またはないかんMeetupの権限がある場合のみ表示 */}
-                  {(currentAdmin?.role === "super" || 
-                    (currentAdmin?.role === "community_admin" && 
+                  {(currentAdmin?.role === "super" ||
+                    (currentAdmin?.role === "community_admin" &&
                      currentAdmin.communityScopes?.includes("ないかんMeetup"))) && (
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="org-naikan"
-                        checked={organizations.includes("ないかんMeetup")}
-                        onCheckedChange={(checked) =>
-                          handleOrganizationChange("ないかんMeetup", checked === true)
-                        }
-                      />
-                      <Label htmlFor="org-naikan" className="cursor-pointer text-sm">ないかんMeetup</Label>
-                    </div>
+                    <CheckboxItem
+                      id="org-naikan"
+                      label="ないかんMeetup"
+                      checked={organizations.includes("ないかんMeetup")}
+                      onCheckedChange={(checked) =>
+                        handleOrganizationChange("ないかんMeetup", checked)
+                      }
+                    />
                   )}
                   {/* 特権管理者またはAI部会の権限がある場合のみ表示 */}
-                  {(currentAdmin?.role === "super" || 
-                    (currentAdmin?.role === "community_admin" && 
+                  {(currentAdmin?.role === "super" ||
+                    (currentAdmin?.role === "community_admin" &&
                      currentAdmin.communityScopes?.includes("AI部会"))) && (
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="org-ai"
-                        checked={organizations.includes("AI部会")}
-                        onCheckedChange={(checked) =>
-                          handleOrganizationChange("AI部会", checked === true)
-                        }
-                      />
-                      <Label htmlFor="org-ai" className="cursor-pointer text-sm">AI部会</Label>
-                    </div>
+                    <CheckboxItem
+                      id="org-ai"
+                      label="AI部会"
+                      checked={organizations.includes("AI部会")}
+                      onCheckedChange={(checked) =>
+                        handleOrganizationChange("AI部会", checked)
+                      }
+                    />
                   )}
                   {/* 非会員は特権管理者のみ表示 */}
                   {currentAdmin?.role === "super" && (
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="org-non-member"
-                        checked={organizations.includes("非会員")}
-                        onCheckedChange={(checked) =>
-                          handleOrganizationChange("非会員", checked === true)
-                        }
-                      />
-                      <Label htmlFor="org-non-member" className="cursor-pointer text-sm">非会員</Label>
-                    </div>
+                    <CheckboxItem
+                      id="org-non-member"
+                      label="非会員"
+                      checked={organizations.includes("非会員")}
+                      onCheckedChange={(checked) =>
+                        handleOrganizationChange("非会員", checked)
+                      }
+                    />
                   )}
                 </div>
               </div>
@@ -415,36 +406,30 @@ export default function CustomersPage() {
                 <div className="space-y-2 border-t pt-4">
                   <Label className="text-sm font-semibold">会員区分</Label>
                   <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="member-member"
-                        checked={memberCategories.includes("member")}
-                        onCheckedChange={(checked) =>
-                          handleMemberCategoryChange("member", checked === true)
-                        }
-                      />
-                      <Label htmlFor="member-member" className="cursor-pointer text-sm">会員</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="member-sponsor"
-                        checked={memberCategories.includes("sponsor")}
-                        onCheckedChange={(checked) =>
-                          handleMemberCategoryChange("sponsor", checked === true)
-                        }
-                      />
-                      <Label htmlFor="member-sponsor" className="cursor-pointer text-sm">スポンサー</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="member-observer"
-                        checked={memberCategories.includes("observer")}
-                        onCheckedChange={(checked) =>
-                          handleMemberCategoryChange("observer", checked === true)
-                        }
-                      />
-                      <Label htmlFor="member-observer" className="cursor-pointer text-sm">オブザーバー</Label>
-                    </div>
+                    <CheckboxItem
+                      id="member-member"
+                      label="会員"
+                      checked={memberCategories.includes("member")}
+                      onCheckedChange={(checked) =>
+                        handleMemberCategoryChange("member", checked)
+                      }
+                    />
+                    <CheckboxItem
+                      id="member-sponsor"
+                      label="スポンサー"
+                      checked={memberCategories.includes("sponsor")}
+                      onCheckedChange={(checked) =>
+                        handleMemberCategoryChange("sponsor", checked)
+                      }
+                    />
+                    <CheckboxItem
+                      id="member-observer"
+                      label="オブザーバー"
+                      checked={memberCategories.includes("observer")}
+                      onCheckedChange={(checked) =>
+                        handleMemberCategoryChange("observer", checked)
+                      }
+                    />
                   </div>
                 </div>
               )}
@@ -454,26 +439,22 @@ export default function CustomersPage() {
                 <div className="space-y-2 border-t pt-4">
                   <Label className="text-sm font-semibold">ベンチャー監査役の会 会員種別</Label>
                   <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="audit-regular"
-                        checked={auditMemberTypes.includes("regular")}
-                        onCheckedChange={(checked) =>
-                          handleAuditMemberTypeChange("regular", checked === true)
-                        }
-                      />
-                      <Label htmlFor="audit-regular" className="cursor-pointer text-sm">正会員</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="audit-online"
-                        checked={auditMemberTypes.includes("online")}
-                        onCheckedChange={(checked) =>
-                          handleAuditMemberTypeChange("online", checked === true)
-                        }
-                      />
-                      <Label htmlFor="audit-online" className="cursor-pointer text-sm">オンライン会員</Label>
-                    </div>
+                    <CheckboxItem
+                      id="audit-regular"
+                      label="正会員"
+                      checked={auditMemberTypes.includes("regular")}
+                      onCheckedChange={(checked) =>
+                        handleAuditMemberTypeChange("regular", checked)
+                      }
+                    />
+                    <CheckboxItem
+                      id="audit-online"
+                      label="オンライン会員"
+                      checked={auditMemberTypes.includes("online")}
+                      onCheckedChange={(checked) =>
+                        handleAuditMemberTypeChange("online", checked)
+                      }
+                    />
                   </div>
                 </div>
               )}
@@ -481,29 +462,25 @@ export default function CustomersPage() {
               {/* プレミアム会員（ベンチャー監査役の会を選択している場合のみ表示） */}
               {organizations.includes("ベンチャー監査役の会") && (
                 <div className="space-y-2 border-t pt-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="premium"
-                      checked={premiumOnly}
-                      onCheckedChange={(checked) => setPremiumOnly(checked === true)}
-                    />
-                    <Label htmlFor="premium" className="cursor-pointer text-sm">プレミアム会員のみ</Label>
-                  </div>
+                  <CheckboxItem
+                    id="premium"
+                    label="プレミアム会員のみ"
+                    checked={premiumOnly}
+                    onCheckedChange={(checked) => setPremiumOnly(checked)}
+                  />
                 </div>
               )}
             </div>
           </PopoverContent>
         </Popover>
 
-        <div className="flex items-center space-x-2 h-9">
-          <Checkbox
+        <div className="flex items-center h-9">
+          <CheckboxItem
             id="include-former-members"
+            label="元会員を含む"
             checked={includeFormerMembers}
-            onCheckedChange={(checked) => setIncludeFormerMembers(checked === true)}
+            onCheckedChange={(checked) => setIncludeFormerMembers(checked)}
           />
-          <Label htmlFor="include-former-members" className="cursor-pointer text-sm">
-            元会員を含む
-          </Label>
         </div>
       </div>
 

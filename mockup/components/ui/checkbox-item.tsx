@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 
 interface CheckboxItemProps {
@@ -30,9 +29,9 @@ function CheckboxItem({
         onCheckedChange={(c) => onCheckedChange?.(c === true)}
         disabled={disabled}
       />
-      <Label htmlFor={id} className="cursor-pointer">
+      <label htmlFor={id} className="cursor-pointer text-base">
         {label}
-      </Label>
+      </label>
     </div>
   )
 }
