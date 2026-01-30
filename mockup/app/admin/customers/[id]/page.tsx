@@ -29,6 +29,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Edit, Trash2 } from "lucide-react";
+import { ActionButton } from "@/components/ui/action-button";
 import { customers, events, rsvps } from "@/lib/data/mock";
 import { CONTRACT_TYPE_LABELS, GENDER_LABELS } from "@/lib/constants/common";
 import { use, useState } from "react";
@@ -135,15 +136,22 @@ export default function CustomerDetailPage({
                   } else {
                     if (customer.communities.includes("ベンチャー監査役の会")) {
                       badges.push(
-                        <Badge key="audit" variant="default">
+                        <Badge key="audit" variant="audit">
                           ベンチャー監査役の会
                         </Badge>
                       );
                     }
                     if (customer.communities.includes("ないかんMeetup")) {
                       badges.push(
-                        <Badge key="naikan" variant="default">
+                        <Badge key="naikan" variant="naikan">
                           ないかんMeetup
+                        </Badge>
+                      );
+                    }
+                    if (customer.communities.includes("AI部会")) {
+                      badges.push(
+                        <Badge key="ai" variant="ai">
+                          AI部会
                         </Badge>
                       );
                     }
@@ -430,14 +438,10 @@ export default function CustomerDetailPage({
       <div className="flex justify-end pt-4 border-t">
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <DialogTrigger asChild>
-            <Button
-              type="button"
-              variant="destructive"
-              className="cursor-pointer"
-            >
+            <ActionButton type="button" variant="destructive">
               <Trash2 className="h-4 w-4" />
               削除
-            </Button>
+            </ActionButton>
           </DialogTrigger>
           <DialogContent className="bg-white">
             <DialogHeader>

@@ -536,12 +536,12 @@ export default function CustomersPage() {
                           const hasAudit = customer.communities.includes("ベンチャー監査役の会");
                           const hasNaikan = customer.communities.includes("ないかんMeetup");
                           const hasAi = customer.communities.includes("AI部会");
-                          
+
                           // ベンチャー監査役の会のバッジ
                           if (hasAudit) {
                             const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                             badges.push(
-                              <Badge key="audit-member" variant="default">
+                              <Badge key="audit-member" variant="audit">
                                 ベンチャー監査役の会({auditType})
                               </Badge>
                             );
@@ -549,7 +549,7 @@ export default function CustomersPage() {
                           // ないかんMeetupのバッジ
                           if (hasNaikan) {
                             badges.push(
-                              <Badge key="naikan-member" variant="default">
+                              <Badge key="naikan-member" variant="naikan">
                                 ないかんMeetup(会員)
                               </Badge>
                             );
@@ -557,12 +557,12 @@ export default function CustomersPage() {
                           // AI部会のバッジ
                           if (hasAi) {
                             badges.push(
-                              <Badge key="ai-member" variant="default">
+                              <Badge key="ai-member" variant="ai">
                                 AI部会(会員)
                               </Badge>
                             );
                           }
-                          
+
                           // プレミアム会員バッジ
                           if (customer.auditMemberPremium) {
                             badges.push(
@@ -574,21 +574,21 @@ export default function CustomersPage() {
                         } else if (customer.memberCategory === "sponsor") {
                           if (customer.communities.includes("ベンチャー監査役の会")) {
                             badges.push(
-                              <Badge key="sponsor-audit" variant="default">
+                              <Badge key="sponsor-audit" variant="audit">
                                 ベンチャー監査役の会(スポンサー)
                               </Badge>
                             );
                           }
                           if (customer.communities.includes("ないかんMeetup")) {
                             badges.push(
-                              <Badge key="sponsor-naikan" variant="default">
+                              <Badge key="sponsor-naikan" variant="naikan">
                                 ないかんMeetup(スポンサー)
                               </Badge>
                             );
                           }
                           if (customer.communities.includes("AI部会")) {
                             badges.push(
-                              <Badge key="sponsor-ai" variant="default">
+                              <Badge key="sponsor-ai" variant="ai">
                                 AI部会(スポンサー)
                               </Badge>
                             );
@@ -596,21 +596,21 @@ export default function CustomersPage() {
                         } else if (customer.memberCategory === "observer") {
                           if (customer.communities.includes("ベンチャー監査役の会")) {
                             badges.push(
-                              <Badge key="observer-audit" variant="default">
+                              <Badge key="observer-audit" variant="audit">
                                 ベンチャー監査役の会(オブザーバー)
                               </Badge>
                             );
                           }
                           if (customer.communities.includes("ないかんMeetup")) {
                             badges.push(
-                              <Badge key="observer-naikan" variant="default">
+                              <Badge key="observer-naikan" variant="naikan">
                                 ないかんMeetup(オブザーバー)
                               </Badge>
                             );
                           }
                           if (customer.communities.includes("AI部会")) {
                             badges.push(
-                              <Badge key="observer-ai" variant="default">
+                              <Badge key="observer-ai" variant="ai">
                                 AI部会(オブザーバー)
                               </Badge>
                             );

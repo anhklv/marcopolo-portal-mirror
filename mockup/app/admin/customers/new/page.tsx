@@ -25,6 +25,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { PageHeader } from "@/components/ui/page-header";
 import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
+import { ActionButton } from "@/components/ui/action-button";
 import {
   PREFECTURES,
   ORIGIN_INDUSTRIES,
@@ -704,14 +705,15 @@ export default function NewCustomerPage() {
                   placeholder="紹介者や特記事項など"
                   value={note}
                   onChange={e => setNote(e.target.value)}
+                  className="min-h-32"
                 />
               </FormField>
             </Stack>
           </CardContent>
         </Card>
 
-        <div className="flex justify-end">
-          <Button type="submit" variant="default" className="cursor-pointer">登録</Button>
+        <div className="flex justify-center">
+          <ActionButton type="submit">登録</ActionButton>
         </div>
       </form>
     </div>

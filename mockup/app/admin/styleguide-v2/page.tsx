@@ -21,6 +21,7 @@ import { DataItem } from "@/components/ui/data-item"
 import { CheckboxItem } from "@/components/ui/checkbox-item"
 import { RadioItem } from "@/components/ui/radio-item"
 import { RadioGroup } from "@/components/ui/radio-group"
+import { ActionButton } from "@/components/ui/action-button"
 import { toast } from "sonner"
 import { Palette, LayoutGrid, FormInput, Package, FileCode, Type, Sparkles, Box } from "lucide-react"
 
@@ -588,6 +589,31 @@ export default function StyleguideV2Page() {
 
         <Separator />
 
+        {/* ActionButton */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            ActionButton
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            フォームの決定ボタン用。min-w-32 / h-11 で押しやすいサイズ。
+          </p>
+
+          <Example
+            code={`<ActionButton variant="default">登録</ActionButton>
+<ActionButton variant="default">更新</ActionButton>
+<ActionButton variant="destructive">削除</ActionButton>`}
+          >
+            <div className="flex gap-4 justify-center">
+              <ActionButton variant="default">登録</ActionButton>
+              <ActionButton variant="default">更新</ActionButton>
+              <ActionButton variant="destructive">削除</ActionButton>
+            </div>
+          </Example>
+        </div>
+
+        <Separator />
+
         {/* Badge */}
         <div className="space-y-4">
           <h3 className="text-base font-semibold flex items-center gap-2">
@@ -606,6 +632,21 @@ export default function StyleguideV2Page() {
               <Badge variant="secondary">スポンサー</Badge>
               <Badge variant="outline">オブザーバー</Badge>
               <Badge variant="destructive">退会</Badge>
+            </div>
+          </Example>
+
+          <h4 className="text-sm font-medium pt-4">コミュニティバッジ</h4>
+          <Example
+            code={`<Badge variant="audit">ベンチャー監査役の会</Badge>
+<Badge variant="naikan">ないかんMeetup</Badge>
+<Badge variant="ai">AI部会</Badge>
+<Badge variant="premium">プレミアム</Badge>`}
+          >
+            <div className="flex gap-2 flex-wrap">
+              <Badge variant="audit">ベンチャー監査役の会</Badge>
+              <Badge variant="naikan">ないかんMeetup</Badge>
+              <Badge variant="ai">AI部会</Badge>
+              <Badge variant="premium">プレミアム</Badge>
             </div>
           </Example>
         </div>
@@ -657,6 +698,7 @@ import { FormField } from "@/components/ui/form-field"
 import { DataItem } from "@/components/ui/data-item"
 import { CheckboxItem } from "@/components/ui/checkbox-item"
 import { RadioItem } from "@/components/ui/radio-item"
+import { ActionButton } from "@/components/ui/action-button"
 
 // shadcn/ui
 import { Button } from "@/components/ui/button"

@@ -19,7 +19,13 @@ const badgeVariants = cva(
         ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         link: "text-primary underline-offset-4 [a&]:hover:underline",
         premium:
-          "border-transparent bg-slate-600 text-white [a&]:hover:bg-slate-700",
+          "border-[#061E29] bg-white text-[#061E29] [a&]:hover:bg-[#061E29]/5",
+        audit:
+          "border-transparent bg-[#061E29] text-white [a&]:hover:bg-[#061E29]/90",
+        naikan:
+          "border-transparent bg-[#1D546D] text-white [a&]:hover:bg-[#1D546D]/90",
+        ai:
+          "border-transparent bg-[#5F9598] text-white [a&]:hover:bg-[#5F9598]/90",
       },
     },
     defaultVariants: {

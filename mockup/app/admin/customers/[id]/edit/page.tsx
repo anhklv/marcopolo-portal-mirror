@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, X } from "lucide-react";
+import { ActionButton } from "@/components/ui/action-button";
 import { customers } from "@/lib/data/mock";
 import type { CommunityScope } from "@/lib/types";
 import {
@@ -753,10 +754,8 @@ export default function CustomerEditPage({
           </CardContent>
         </Card>
 
-        <div className="flex justify-end">
-          <Button type="submit" variant="default" className="cursor-pointer">
-            更新
-          </Button>
+        <div className="flex justify-center">
+          <ActionButton type="submit">更新</ActionButton>
         </div>
       </form>
     </div>
