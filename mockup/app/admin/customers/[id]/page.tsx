@@ -29,7 +29,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Edit, Trash2 } from "lucide-react";
-import { ActionButton } from "@/components/ui/action-button";
 import { customers, events, rsvps } from "@/lib/data/mock";
 import { CONTRACT_TYPE_LABELS, GENDER_LABELS } from "@/lib/constants/common";
 import { use, useState } from "react";
@@ -438,10 +437,14 @@ export default function CustomerDetailPage({
       <div className="flex justify-end pt-4 border-t">
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <DialogTrigger asChild>
-            <ActionButton type="button" variant="destructive">
+            <Button
+              type="button"
+              variant="outline"
+              className="border-destructive text-destructive bg-white hover:bg-white hover:text-destructive"
+            >
               <Trash2 className="h-4 w-4" />
               削除
-            </ActionButton>
+            </Button>
           </DialogTrigger>
           <DialogContent className="bg-white">
             <DialogHeader>
@@ -459,9 +462,9 @@ export default function CustomerDetailPage({
                 キャンセル
               </Button>
               <Button
-                variant="outline"
+                variant="destructive"
                 onClick={handleDelete}
-                className="cursor-pointer text-destructive hover:text-destructive"
+                className="cursor-pointer"
               >
                 削除
               </Button>

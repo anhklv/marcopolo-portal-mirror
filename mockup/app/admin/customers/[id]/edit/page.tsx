@@ -526,48 +526,40 @@ export default function CustomerEditPage({
             {/* プロフィールセクション */}
             <SectionHeading>プロフィール</SectionHeading>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="lastName">姓 <span className="text-destructive">*</span></Label>
-                <Input 
-                  id="lastName" 
-                  placeholder="例: 山田" 
-                  required 
-                  value={lastName} 
-                  onChange={e => setLastName(e.target.value)} 
+            <div className="grid grid-cols-2 gap-6">
+              <FormField label="姓" required>
+                <Input
+                  placeholder="例: 山田"
+                  required
+                  value={lastName}
+                  onChange={e => setLastName(e.target.value)}
                 />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="firstName">名 <span className="text-destructive">*</span></Label>
-                <Input 
-                  id="firstName" 
-                  placeholder="例: 太郎" 
-                  required 
-                  value={firstName} 
-                  onChange={e => setFirstName(e.target.value)} 
+              </FormField>
+              <FormField label="名" required>
+                <Input
+                  placeholder="例: 太郎"
+                  required
+                  value={firstName}
+                  onChange={e => setFirstName(e.target.value)}
                 />
-              </div>
+              </FormField>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="lastNameKana">セイ</Label>
-                <Input 
-                  id="lastNameKana" 
-                  placeholder="例: ヤマダ" 
-                  value={lastNameKana} 
-                  onChange={e => setLastNameKana(e.target.value)} 
+            <div className="grid grid-cols-2 gap-6">
+              <FormField label="セイ">
+                <Input
+                  placeholder="例: ヤマダ"
+                  value={lastNameKana}
+                  onChange={e => setLastNameKana(e.target.value)}
                 />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="firstNameKana">メイ</Label>
-                <Input 
-                  id="firstNameKana" 
-                  placeholder="例: タロウ" 
-                  value={firstNameKana} 
-                  onChange={e => setFirstNameKana(e.target.value)} 
+              </FormField>
+              <FormField label="メイ">
+                <Input
+                  placeholder="例: タロウ"
+                  value={firstNameKana}
+                  onChange={e => setFirstNameKana(e.target.value)}
                 />
-              </div>
+              </FormField>
             </div>
 
             <div className="grid gap-2">
@@ -616,20 +608,17 @@ export default function CustomerEditPage({
               ))}
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="company">会社名</Label>
-              <Input 
-                id="company" 
-                placeholder="例: 株式会社マルコポーロ" 
+            <FormField label="会社名">
+              <Input
+                placeholder="例: 株式会社マルコポーロ"
                 value={company}
                 onChange={e => setCompany(e.target.value)}
               />
-            </div>
+            </FormField>
 
-            <div className="grid gap-2">
-              <Label>上場区分</Label>
-              <Select 
-                value={listingCategory} 
+            <FormField label="上場区分">
+              <Select
+                value={listingCategory}
                 onValueChange={(value) => {
                   if (value === "選択してください") {
                     setListingCategory("");
@@ -664,34 +653,29 @@ export default function CustomerEditPage({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </FormField>
 
-            <div className="grid gap-2">
-              <Label htmlFor="phone">電話番号</Label>
-              <Input 
-                id="phone" 
-                type="tel" 
-                placeholder="例: 0312345678" 
+            <FormField label="電話番号">
+              <Input
+                type="tel"
+                placeholder="例: 0312345678"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
               />
-            </div>
+            </FormField>
 
-            <div className="grid gap-2">
-              <Label htmlFor="postalCode">郵便番号</Label>
-              <Input 
-                id="postalCode" 
-                type="text" 
-                placeholder="例: 1234567" 
+            <FormField label="郵便番号">
+              <Input
+                type="text"
+                placeholder="例: 1234567"
                 value={postalCode}
                 onChange={e => setPostalCode(e.target.value)}
               />
-            </div>
+            </FormField>
 
-            <div className="grid gap-2">
-              <Label>都道府県</Label>
-              <Select 
-                value={prefecture} 
+            <FormField label="都道府県">
+              <Select
+                value={prefecture}
                 onValueChange={(value) => {
                   if (value === "選択してください") {
                     setPrefecture("");
@@ -714,18 +698,16 @@ export default function CustomerEditPage({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </FormField>
 
-            <div className="grid gap-2">
-              <Label htmlFor="city">市区町村以下</Label>
-              <Input 
-                id="city" 
-                type="text" 
-                placeholder="例: 千代田区丸の内1-1-1" 
+            <FormField label="市区町村以下">
+              <Input
+                type="text"
+                placeholder="例: 千代田区丸の内1-1-1"
                 value={city}
                 onChange={e => setCity(e.target.value)}
               />
-            </div>
+            </FormField>
 
             <div className="grid gap-2">
               <Label>性別</Label>
@@ -740,15 +722,14 @@ export default function CustomerEditPage({
               </RadioGroup>
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="note">備考</Label>
+            <FormField label="備考">
               <Textarea
-                id="note"
                 placeholder="紹介者や特記事項など"
                 value={note}
                 onChange={e => setNote(e.target.value)}
+                className="min-h-32"
               />
-            </div>
+            </FormField>
 
             </Stack>
           </CardContent>
