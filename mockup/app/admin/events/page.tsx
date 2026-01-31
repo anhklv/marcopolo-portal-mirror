@@ -368,7 +368,7 @@ export default function EventsPage() {
                     {event.eventType}
                   </Badge>
                 </TableCell>
-                <TableCell className="font-medium">{event.title}</TableCell>
+                <TableCell>{event.title}</TableCell>
                 <TableCell>{formatEventDate(event.date)}</TableCell>
                 <TableCell>
                   <Badge

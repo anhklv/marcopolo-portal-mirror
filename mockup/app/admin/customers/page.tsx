@@ -517,7 +517,7 @@ export default function CustomersPage() {
                     router.push(`/admin/customers/${customer.id}`);
                   }}
                 >
-                  <TableCell className="font-medium">{customer.id}</TableCell>
+                  <TableCell>{customer.id}</TableCell>
                   <TableCell>{customer.name}</TableCell>
                   <TableCell>{customer.company}</TableCell>
                   <TableCell>
