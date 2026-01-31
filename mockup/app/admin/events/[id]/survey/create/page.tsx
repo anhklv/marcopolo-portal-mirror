@@ -4,17 +4,13 @@ import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Save, Eye } from "lucide-react";
+import { Plus, Trash2, Save, Eye } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { ActionButton } from "@/components/ui/action-button";
 import { events, surveys, getSurveyByEventId } from "@/lib/data/mock";
 import type { SurveyQuestion } from "@/lib/types";
 
@@ -110,30 +106,23 @@ export default function SurveyCreatePage({
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/admin/events/${id}`}>
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold tracking-tight">アンケート管理</h1>
+      <PageHeader
+        backHref={`/admin/events/${id}`}
+        title="アンケート管理"
+        description="アンケートの設問を編集します。固定の質問があるため、設問を設定しなくてもアンケート案内は可能です。"
+      />
+
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <SectionHeading>アンケート設問</SectionHeading>
           <p className="text-sm text-muted-foreground">
-            アンケートの設問を編集します。固定の質問があるため、設問を設定しなくてもアンケート案内は可能です。
+            設問を追加してアンケートを作成します。各設問には評価と理由を入力してもらいます。
           </p>
         </div>
-      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>アンケート設問</CardTitle>
-          <CardDescription>
-            設問を追加してアンケートを作成します。各設問には評価と理由を入力してもらいます。
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <div className="space-y-4">
           {questions.map((question, index) => (
-            <div key={question.id} className="flex items-start gap-4 p-4 border rounded-lg">
+            <div key={question.id} className="flex items-start gap-4 p-4 border rounded-lg bg-white">
               <div className="flex-1 space-y-2">
                 <Label htmlFor={`question-${question.id}`}>
                   設問 {index + 1}
@@ -164,24 +153,24 @@ export default function SurveyCreatePage({
             <Plus className="h-4 w-4 mr-2" />
             設問を追加
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <div className="flex justify-end gap-4">
-        <Button variant="outline" asChild>
+      <div className="flex justify-center gap-4 flex-wrap">
+        <ActionButton variant="outline" asChild>
           <Link href={`/admin/events/${id}`}>キャンセル</Link>
-        </Button>
-        <Button variant="outline" onClick={handlePreview}>
+        </ActionButton>
+        <ActionButton variant="outline" onClick={handlePreview}>
           <Eye className="h-4 w-4 mr-2" />
           プレビュー
-        </Button>
-        <Button variant="outline" onClick={() => router.push(`/admin/events/${id}/survey`)}>
+        </ActionButton>
+        <ActionButton variant="outline" onClick={() => router.push(`/admin/events/${id}/survey`)}>
           スキップしてアンケートを送る
-        </Button>
-        <Button variant="outline" onClick={handleSave}>
+        </ActionButton>
+        <ActionButton onClick={handleSave}>
           <Save className="h-4 w-4 mr-2" />
           保存
-        </Button>
+        </ActionButton>
       </div>
     </div>
   );
