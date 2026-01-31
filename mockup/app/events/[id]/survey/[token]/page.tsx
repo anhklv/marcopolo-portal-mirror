@@ -446,7 +446,7 @@ export default function SurveyAnswerPage({
 
               <div className="flex justify-center pt-4">
                 <ActionButton onClick={handleSubmit}>
-                  回答する
+                  送信
                 </ActionButton>
               </div>
             </Stack>

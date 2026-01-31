@@ -472,7 +472,7 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
               onClick={handleSubmit}
               disabled={isDeadlinePassed}
             >
-              {isDeadlinePassed ? "回答期限を過ぎています" : "回答を送信する"}
+              {isDeadlinePassed ? "回答期限を過ぎています" : "送信"}
             </ActionButton>
           </div>
           </Stack>

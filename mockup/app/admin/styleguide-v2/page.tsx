@@ -23,7 +23,16 @@ import { RadioItem } from "@/components/ui/radio-item"
 import { RadioGroup } from "@/components/ui/radio-group"
 import { ActionButton } from "@/components/ui/action-button"
 import { toast } from "sonner"
-import { Palette, LayoutGrid, FormInput, Package, FileCode, Type, Sparkles, Box } from "lucide-react"
+import { Palette, LayoutGrid, FormInput, Package, FileCode, Type, Sparkles, Box, Trash2 } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 // コードブロック表示コンポーネント
 function CodeBlock({ children }: { children: string }) {
@@ -612,6 +621,46 @@ export default function StyleguideV2Page() {
               <Button variant="outline">キャンセル</Button>
               <Button variant="ghost">戻る</Button>
               <Button variant="destructive">削除</Button>
+            </div>
+          </Example>
+
+          <h4 className="text-sm font-medium pt-4">Dialogを使った削除ボタン</h4>
+          <p className="text-xs text-muted-foreground">
+            DialogTriggerの削除ボタンは<code>variant="outline"</code>に<code>className="border-destructive text-destructive bg-white hover:bg-white hover:text-destructive"</code>を追加します。
+            <br />
+            モーダル内の実際の削除ボタンは<code>variant="destructive"</code>を使用します。
+          </p>
+          <Example
+            code={`<Dialog>
+  <DialogTrigger asChild>
+    <Button
+      variant="outline"
+      className="border-destructive text-destructive bg-white hover:bg-white hover:text-destructive"
+    >
+      <Trash2 className="h-4 w-4" />
+      削除
+    </Button>
+  </DialogTrigger>
+  <DialogContent className="bg-white">
+    <DialogHeader>
+      <DialogTitle>削除確認</DialogTitle>
+      <DialogDescription>
+        この操作は取り消せません。
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter>
+      <Button variant="outline" onClick={() => setIsOpen(false)}>
+        キャンセル
+      </Button>
+      <Button variant="destructive" onClick={handleDelete}>
+        削除
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>`}
+          >
+            <div className="text-xs text-muted-foreground">
+              ※実際の動作例はコードを参照してください
             </div>
           </Example>
         </div>

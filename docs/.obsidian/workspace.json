@@ -11,10 +11,14 @@
             "id": "3ffe563e52eb30d8",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "todo/スタイルガイドv2適用状況.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "新規タブ"
+              "title": "スタイルガイドv2適用状況"
             }
           }
         ]
@@ -178,6 +182,9 @@
   },
   "active": "3ffe563e52eb30d8",
   "lastOpenFiles": [
+    "画面設計書.md",
+    "todo/スタイルガイドv2適用状況.md",
+    "サーバー構成_20260128.md",
     "報告20260128.md",
     "報告/報告20260128.md",
     "報告/報告20251225.md",
@@ -190,7 +197,6 @@
     "nextjs設計案/没案/02-Next.jsベストプラクティス設計案.md",
     "nextjs設計案/没案/01-Rails-Laravel経験者向け設計案.md",
     "nextjs設計案/没案",
-    "サーバー構成_20260128.md",
     "工数見積もり_20260128.md",
     "開発手順_20260128.md",
     "nextjs設計案/04-Next.jsベストプラクティス設計案_20260128.md",

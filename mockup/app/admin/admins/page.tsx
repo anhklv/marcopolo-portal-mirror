@@ -14,8 +14,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/ui/page-header";
 import { admins } from "@/lib/data/mock";
-import type { Admin } from "@/lib/types";
 import { ADMIN_ROLE_LABELS } from "@/lib/constants/admin";
 import { Plus, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -65,13 +65,11 @@ export default function AdminsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">管理者管理</h1>
-          <p className="text-sm text-muted-foreground">
-            システムを利用する管理者アカウントを管理します。
-          </p>
-        </div>
-        <Button variant="outline" asChild>
+        <PageHeader
+          title="管理者管理"
+          description="システムを利用する管理者アカウントを管理します。"
+        />
+        <Button variant="default" asChild>
           <Link href="/admin/admins/new">
             <Plus className="h-4 w-4" />
             新規登録
@@ -85,7 +83,7 @@ export default function AdminsPage() {
           <Input
             type="search"
             placeholder="名前、メールアドレスで検索..."
-            className="pl-9 h-10"
+            className="pl-9 h-9 text-sm"
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
           />
@@ -98,7 +96,7 @@ export default function AdminsPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border bg-white">
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -121,7 +119,7 @@ export default function AdminsPage() {
               filteredAdmins.map((admin, index) => (
                 <TableRow
                   key={admin.id}
-                  className="hover:bg-gray-50"
+                  className="hover:bg-muted"
                 >
                   <TableCell className="font-medium">{index + 1}</TableCell>
                   <TableCell>{`${admin.lastName} ${admin.firstName}`}</TableCell>
