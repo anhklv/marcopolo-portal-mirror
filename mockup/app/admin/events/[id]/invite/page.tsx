@@ -449,7 +449,7 @@ export default function EventInvitePage({
                     <ChevronDown className="h-4 w-4 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[320px] p-0 bg-white" align="start">
+                <PopoverContent className="w-[320px] p-0 bg-card" align="start">
                   <div className="p-4 space-y-4 max-h-[500px] overflow-y-auto">
                     {/* コミュニティ選択（複数選択可能） */}
                     <div className="space-y-2">
@@ -597,7 +597,7 @@ export default function EventInvitePage({
                     <ChevronDown className="h-4 w-4 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[280px] p-0 bg-white" align="start">
+                <PopoverContent className="w-[280px] p-0 bg-card" align="start">
                   <div className="p-3 border-b">
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -658,7 +658,7 @@ export default function EventInvitePage({
             </Button>
           </div>
 
-          <div className="rounded-lg border bg-white">
+          <div className="rounded-lg border bg-card">
             <Table>
               <TableHeader>
               <TableRow>

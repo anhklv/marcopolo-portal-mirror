@@ -205,15 +205,15 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-white">
-            <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
+          <DropdownMenuContent align="end" className="bg-card">
+            <DropdownMenuItem asChild className="bg-card hover:bg-accent">
               <Link href={`/admin/events/${id}/edit`} className="flex items-center gap-2">
                 <Edit className="h-4 w-4" />
                 編集
               </Link>
             </DropdownMenuItem>
             {eventStatus === "open" && (
-              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
+              <DropdownMenuItem asChild className="bg-card hover:bg-accent">
                 <Link href={`/admin/events/${id}/invite`} className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
                   案内
@@ -221,7 +221,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               </DropdownMenuItem>
             )}
             {eventStatus === "open" && noResponseAttendees.length > 0 && (
-              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
+              <DropdownMenuItem asChild className="bg-card hover:bg-accent">
                 <Link href={`/admin/events/${id}/remind`} className="flex items-center gap-2">
                   <Send className="h-4 w-4" />
                   未回答者に再送 ({noResponseAttendees.length}名)
@@ -229,7 +229,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               </DropdownMenuItem>
             )}
             {((event as any).eventType || "ベンチャー監査役の会") === "ベンチャー監査役の会" && (
-              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
+              <DropdownMenuItem asChild className="bg-card hover:bg-accent">
                 <Link href={`/admin/events/${id}/survey/create`} className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   アンケート管理
@@ -237,7 +237,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               </DropdownMenuItem>
             )}
             <DropdownMenuItem
-              className="bg-white hover:bg-gray-100"
+              className="bg-card hover:bg-accent"
               onClick={() =>
                 setIsPaused((prev) => {
                   const next = !prev;
@@ -315,7 +315,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                             <ChevronDown className="h-4 w-4 opacity-50" />
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[280px] p-0 bg-white" align="start">
+                                    <PopoverContent className="w-[280px] p-0 bg-card" align="start">
                                         <div className="p-3 border-b">
                                             <div className="relative">
                                                 <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -469,7 +469,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                     削除
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="bg-white">
+                            <DialogContent className="bg-card">
                                 <DialogHeader>
                                     <DialogTitle>イベントを削除</DialogTitle>
                                     <DialogDescription>

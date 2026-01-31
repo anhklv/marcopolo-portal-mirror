@@ -122,7 +122,7 @@ export default function SurveyCreatePage({
 
         <div className="space-y-4">
           {questions.map((question, index) => (
-            <div key={question.id} className="flex items-start gap-4 p-4 border rounded-lg bg-white">
+            <div key={question.id} className="flex items-start gap-4 p-4 border rounded-lg bg-card">
               <div className="flex-1 space-y-2">
                 <Label htmlFor={`question-${question.id}`}>
                   設問 {index + 1}

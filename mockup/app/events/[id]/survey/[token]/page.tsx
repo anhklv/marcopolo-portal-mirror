@@ -2,15 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import { notFound } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { RadioGroup } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -18,6 +10,10 @@ import { CheckCircle2 } from "lucide-react";
 import { events, customers, getSurveyByToken, surveyResponses, hasResponded } from "@/lib/data/mock";
 import { RATINGS, FUTURE_PARTICIPATION_OPTIONS, MEMBERSHIP_OPTIONS } from "@/lib/constants/survey";
 import { formatEventDate } from "@/lib/utils";
+import { Stack } from "@/components/ui/stack";
+import { FormField } from "@/components/ui/form-field";
+import { RadioItem } from "@/components/ui/radio-item";
+import { ActionButton } from "@/components/ui/action-button";
 import type { SurveyQuestion } from "@/lib/types";
 
 type Rating = "よかった" | "まぁよかった" | "あまりよくなかった" | "よくなかった";
@@ -263,8 +259,8 @@ export default function SurveyAnswerPage({
 
   if (!surveyData || !customer) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="text-center py-12">
+      <div className="flex min-h-screen items-center justify-center bg-muted p-4">
+        <div className="w-full max-w-md rounded-lg border bg-card p-8 shadow-sm text-center">
           <p className="text-muted-foreground">アンケートが見つかりませんでした。</p>
         </div>
       </div>
@@ -273,213 +269,189 @@ export default function SurveyAnswerPage({
 
   if (submitted) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center space-y-4">
-              <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto" />
-              <h2 className="text-2xl font-bold">回答ありがとうございました</h2>
-              <p className="text-muted-foreground">
-                アンケートへのご回答を受け付けました。
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="flex min-h-screen items-center justify-center bg-muted p-4">
+        <div className="w-full max-w-md rounded-lg border bg-card p-8 shadow-sm text-center">
+          <Stack gap="md">
+            <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto" />
+            <h1 className="text-2xl font-bold tracking-tight">回答ありがとうございました</h1>
+            <p className="text-sm text-muted-foreground">
+              アンケートへのご回答を受け付けました。
+            </p>
+          </Stack>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>{event.title}</CardTitle>
-          <CardDescription>
-            開催日時: {formatEventDate(event.date)}
-          </CardDescription>
-        </CardHeader>
-      </Card>
+    <div className="min-h-screen bg-muted py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        <Stack gap="lg">
+          {/* イベント情報 */}
+          <div className="rounded-lg border bg-card p-6 shadow-sm">
+            <h1 className="text-2xl font-bold tracking-tight">{event.title}</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              開催日時: {formatEventDate(event.date)}
+            </p>
+          </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>アンケート</CardTitle>
-          <CardDescription>
-            ご回答をお願いいたします。
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-8">
-          {surveyData.survey.questions
-            .sort((a: any, b: any) => a.order - b.order)
-            .map((question: any, index: number) => (
-              <div key={question.id} className="space-y-4">
-                <div>
-                  <Label className="text-base font-medium">
-                    {question.title} <span className="text-red-500">*</span>
-                  </Label>
-                </div>
+          {/* アンケートフォーム */}
+          <div className="rounded-lg border bg-card p-6 shadow-sm">
+            <Stack gap="xl">
+              <div>
+                <h2 className="text-lg font-semibold">アンケート</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  ご回答をお願いいたします。
+                </p>
+              </div>
+
+              {surveyData.survey.questions
+                .sort((a: any, b: any) => a.order - b.order)
+                .map((question: any) => (
+                  <Stack key={question.id} gap="md">
+                    <Label className="text-base font-medium">
+                      {question.title} <span className="text-destructive">*</span>
+                    </Label>
+
+                    <RadioGroup
+                      value={answers[question.id]?.rating || ""}
+                      onValueChange={(value) => updateAnswer(question.id, "rating", value)}
+                    >
+                      <div className="flex flex-wrap gap-4">
+                        {RATINGS.map((rating) => (
+                          <RadioItem
+                            key={rating}
+                            value={rating}
+                            label={rating}
+                          />
+                        ))}
+                      </div>
+                    </RadioGroup>
+
+                    <FormField label="上記を選んだ理由を、具体的に教えて下さい。">
+                      <Textarea
+                        id={`reason-${question.id}`}
+                        value={answers[question.id]?.reason || ""}
+                        onChange={(e) => updateAnswer(question.id, "reason", e.target.value)}
+                        rows={4}
+                      />
+                    </FormField>
+                  </Stack>
+                ))}
+
+              {/* 固定設問: 懇親会 */}
+              {event?.hasAfterParty && (
+                <Stack gap="md">
+                  <Label className="text-base font-medium">懇親会</Label>
+
+                  <RadioGroup
+                    value={fixedAnswers.afterParty?.rating || ""}
+                    onValueChange={(value) => updateFixedAnswer("afterParty", "rating", value)}
+                  >
+                    <div className="flex flex-wrap gap-4">
+                      {RATINGS.map((rating) => (
+                        <RadioItem
+                          key={rating}
+                          value={rating}
+                          label={rating}
+                        />
+                      ))}
+                    </div>
+                  </RadioGroup>
+
+                  <FormField label="上記を選んだ理由を、具体的に教えて下さい。">
+                    <Textarea
+                      id="after-party-reason"
+                      value={fixedAnswers.afterParty?.reason || ""}
+                      onChange={(e) => updateFixedAnswer("afterParty", "reason", e.target.value)}
+                      rows={4}
+                    />
+                  </FormField>
+                </Stack>
+              )}
+
+              {/* 固定設問: 今後の参加について（全員必須） */}
+              <Stack gap="md">
+                <Label className="text-base font-medium">
+                  今後の参加について <span className="text-destructive">*</span>
+                </Label>
 
                 <RadioGroup
-                  value={answers[question.id]?.rating || ""}
-                  onValueChange={(value) => updateAnswer(question.id, "rating", value)}
+                  value={fixedAnswers.futureParticipation?.rating || ""}
+                  onValueChange={(value) => updateFixedAnswer("futureParticipation", "rating", value)}
                 >
                   <div className="flex flex-wrap gap-4">
-                    {RATINGS.map((rating) => (
-                      <div key={rating} className="flex items-center space-x-2">
-                        <RadioGroupItem value={rating} id={`${question.id}-${rating}`} />
-                        <Label htmlFor={`${question.id}-${rating}`}>
-                          {rating}
-                        </Label>
-                      </div>
+                    {FUTURE_PARTICIPATION_OPTIONS.map((option) => (
+                      <RadioItem
+                        key={option}
+                        value={option}
+                        label={option}
+                      />
                     ))}
                   </div>
                 </RadioGroup>
 
-                <div className="space-y-2">
-                  <Label htmlFor={`reason-${question.id}`}>
-                    上記を選んだ理由を、具体的に教えて下さい。
-                  </Label>
+                <FormField label="上記を選んだ理由を、具体的に教えて下さい。">
                   <Textarea
-                    id={`reason-${question.id}`}
-                    value={answers[question.id]?.reason || ""}
-                    onChange={(e) => updateAnswer(question.id, "reason", e.target.value)}
+                    id="future-participation-reason"
+                    value={fixedAnswers.futureParticipation?.reason || ""}
+                    onChange={(e) => updateFixedAnswer("futureParticipation", "reason", e.target.value)}
                     rows={4}
                   />
-                </div>
-              </div>
-            ))}
+                </FormField>
+              </Stack>
 
-          {/* 固定設問: 懇親会 */}
-          {event?.hasAfterParty && (
-            <div className="space-y-4 pt-4">
-              <div>
-                <Label className="text-base font-medium">懇親会</Label>
-              </div>
+              {/* 固定設問: ベンチャー監査役の会への入会について（ベンチャー監査役の会のイベントで、ベンチャー監査役の会に未所属の場合のみ） */}
+              {event?.eventType === "ベンチャー監査役の会" && !customer.communities.includes("ベンチャー監査役の会") && (
+                <Stack gap="md">
+                  <Label className="text-base font-medium">ベンチャー監査役の会への入会について</Label>
 
-              <RadioGroup
-                value={fixedAnswers.afterParty?.rating || ""}
-                onValueChange={(value) => updateFixedAnswer("afterParty", "rating", value)}
-              >
-                <div className="flex flex-wrap gap-4">
-                  {RATINGS.map((rating) => (
-                    <div key={rating} className="flex items-center space-x-2">
-                      <RadioGroupItem value={rating} id={`after-party-${rating}`} />
-                      <Label htmlFor={`after-party-${rating}`}>
-                        {rating}
-                      </Label>
+                  <RadioGroup
+                    value={fixedAnswers.membership?.rating || ""}
+                    onValueChange={(value) => updateFixedAnswer("membership", "rating", value)}
+                  >
+                    <div className="flex flex-wrap gap-4">
+                      {MEMBERSHIP_OPTIONS.map((option) => (
+                        <RadioItem
+                          key={option}
+                          value={option}
+                          label={option}
+                        />
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </RadioGroup>
+                  </RadioGroup>
 
-              <div className="space-y-2">
-                <Label htmlFor="after-party-reason">
-                  上記を選んだ理由を、具体的に教えて下さい。
-                </Label>
-                <Textarea
-                  id="after-party-reason"
-                  value={fixedAnswers.afterParty?.reason || ""}
-                  onChange={(e) => updateFixedAnswer("afterParty", "reason", e.target.value)}
-                  rows={4}
-                />
-              </div>
-            </div>
-          )}
+                  <FormField label="上記を選んだ理由を、具体的に教えて下さい。">
+                    <Textarea
+                      id="membership-reason"
+                      value={fixedAnswers.membership?.reason || ""}
+                      onChange={(e) => updateFixedAnswer("membership", "reason", e.target.value)}
+                      rows={4}
+                    />
+                  </FormField>
+                </Stack>
+              )}
 
-          {/* 固定設問: 今後の参加について（全員必須） */}
-          {(
-            <div className="space-y-4 pt-4">
-              <div>
-                <Label className="text-base font-medium">今後の参加について <span className="text-red-500">*</span></Label>
-              </div>
-
-              <RadioGroup
-                value={fixedAnswers.futureParticipation?.rating || ""}
-                onValueChange={(value) => updateFixedAnswer("futureParticipation", "rating", value)}
-              >
-                <div className="flex flex-wrap gap-4">
-                  {FUTURE_PARTICIPATION_OPTIONS.map((option) => (
-                    <div key={option} className="flex items-center space-x-2">
-                      <RadioGroupItem value={option} id={`future-participation-${option}`} />
-                      <Label htmlFor={`future-participation-${option}`}>
-                        {option}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </RadioGroup>
-
-              <div className="space-y-2">
-                <Label htmlFor="future-participation-reason">
-                  上記を選んだ理由を、具体的に教えて下さい。
-                </Label>
-                <Textarea
-                  id="future-participation-reason"
-                  value={fixedAnswers.futureParticipation?.reason || ""}
-                  onChange={(e) => updateFixedAnswer("futureParticipation", "reason", e.target.value)}
-                  rows={4}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* 固定設問: ベンチャー監査役の会への入会について（ベンチャー監査役の会のイベントで、ベンチャー監査役の会に未所属の場合のみ） */}
-          {event?.eventType === "ベンチャー監査役の会" && !customer.communities.includes("ベンチャー監査役の会") && (
-            <div className="space-y-4 pt-4">
-              <div>
-                <Label className="text-base font-medium">ベンチャー監査役の会への入会について</Label>
+              {/* 固定設問: ご意見・ご提案・感想等 */}
+              <div className="border-t pt-6">
+                <FormField label="さいごに、ご意見・ご提案・感想等があればお聞かせください。">
+                  <Textarea
+                    id="comments"
+                    value={fixedAnswers.comments || ""}
+                    onChange={(e) => updateComments(e.target.value)}
+                    rows={6}
+                  />
+                </FormField>
               </div>
 
-              <RadioGroup
-                value={fixedAnswers.membership?.rating || ""}
-                onValueChange={(value) => updateFixedAnswer("membership", "rating", value)}
-              >
-                <div className="flex flex-wrap gap-4">
-                  {MEMBERSHIP_OPTIONS.map((option) => (
-                    <div key={option} className="flex items-center space-x-2">
-                      <RadioGroupItem value={option} id={`membership-${option}`} />
-                      <Label htmlFor={`membership-${option}`}>
-                        {option}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </RadioGroup>
-
-              <div className="space-y-2">
-                <Label htmlFor="membership-reason">
-                  上記を選んだ理由を、具体的に教えて下さい。
-                </Label>
-                <Textarea
-                  id="membership-reason"
-                  value={fixedAnswers.membership?.reason || ""}
-                  onChange={(e) => updateFixedAnswer("membership", "reason", e.target.value)}
-                  rows={4}
-                />
+              <div className="flex justify-center pt-4">
+                <ActionButton onClick={handleSubmit}>
+                  回答する
+                </ActionButton>
               </div>
-            </div>
-          )}
-
-          {/* 固定設問: ご意見・ご提案・感想等 */}
-          <div className="space-y-4 pt-4 border-t">
-            <div className="space-y-2">
-              <Label htmlFor="comments">
-                さいごに、ご意見・ご提案・感想等があればお聞かせください。
-              </Label>
-              <Textarea
-                id="comments"
-                value={fixedAnswers.comments || ""}
-                onChange={(e) => updateComments(e.target.value)}
-                rows={6}
-              />
-            </div>
+            </Stack>
           </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex justify-end">
-        <Button variant="outline" onClick={handleSubmit}>
-          回答する
-        </Button>
+        </Stack>
       </div>
     </div>
   );

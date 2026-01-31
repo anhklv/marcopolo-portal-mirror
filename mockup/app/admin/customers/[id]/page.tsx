@@ -446,7 +446,7 @@ export default function CustomerDetailPage({
               削除
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-white">
+          <DialogContent className="bg-card">
             <DialogHeader>
               <DialogTitle>顧客を削除</DialogTitle>
               <DialogDescription>

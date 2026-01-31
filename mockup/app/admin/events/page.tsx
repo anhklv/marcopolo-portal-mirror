@@ -185,7 +185,7 @@ export default function EventsPage() {
               <ChevronDown className="h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[280px] p-0 bg-white" align="start">
+          <PopoverContent className="w-[280px] p-0 bg-card" align="start">
             <div className="p-3 border-b">
               <div className="relative">
                 <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -275,7 +275,7 @@ export default function EventsPage() {
               <ChevronDown className="h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[280px] p-0 bg-white" align="start">
+          <PopoverContent className="w-[280px] p-0 bg-card" align="start">
             <div className="p-3 border-b">
               <div className="relative">
                 <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -328,7 +328,7 @@ export default function EventsPage() {
           <span className="font-semibold text-foreground">{filteredEvents.length}</span>件
         </div>
       </div>
-      <div className="rounded-lg border bg-white">
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -397,15 +397,15 @@ export default function EventsPage() {
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-white">
-                      <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
+                    <DropdownMenuContent align="end" className="bg-card">
+                      <DropdownMenuItem asChild className="bg-card hover:bg-accent">
                         <Link href={`/admin/events/${event.id}/edit`} className="flex items-center gap-2">
                           <Edit className="h-4 w-4" />
                           編集
                         </Link>
                       </DropdownMenuItem>
                       {event.status === "open" && (
-                        <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
+                        <DropdownMenuItem asChild className="bg-card hover:bg-accent">
                           <Link href={`/admin/events/${event.id}/invite`} className="flex items-center gap-2">
                             <Mail className="h-4 w-4" />
                             案内

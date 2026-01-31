@@ -236,7 +236,7 @@ export default function AdminEditPage({
                 削除
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-white">
+            <DialogContent className="bg-card">
               <DialogHeader>
                 <DialogTitle>管理者を削除</DialogTitle>
                 <DialogDescription>

@@ -203,7 +203,7 @@ export default function EventRemindPage({
             </div>
           </div>
 
-          <div className="rounded-lg border bg-white">
+          <div className="rounded-lg border bg-card">
             <Table>
               <TableHeader>
                 <TableRow>
