@@ -197,7 +197,7 @@ export default function AdminEditPage({
                     <RadioGroupItem value="super" id="super" disabled={admin.role === "super"} />
                     <Label
                       htmlFor="super"
-                      className={admin.role === "super" ? "cursor-not-allowed" : "cursor-pointer"}
+                      className={admin.role === "super" ? "cursor-not-allowed" : undefined}
                     >
                       {ADMIN_ROLE_LABELS.super}
                     </Label>
@@ -209,7 +209,7 @@ export default function AdminEditPage({
                   </p>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="community_admin" id="community_admin" />
-                    <Label htmlFor="community_admin" className="cursor-pointer">
+                    <Label htmlFor="community_admin">
                       {ADMIN_ROLE_LABELS.community_admin}
                     </Label>
                   </div>
@@ -234,7 +234,7 @@ export default function AdminEditPage({
                         handleCommunityScopeChange("ベンチャー監査役の会", checked === true)
                       }
                     />
-                    <Label htmlFor="scope-audit" className="cursor-pointer">
+                    <Label htmlFor="scope-audit">
                       {COMMUNITY_SCOPE_LABELS["ベンチャー監査役の会"]}
                     </Label>
                   </div>
@@ -246,7 +246,7 @@ export default function AdminEditPage({
                         handleCommunityScopeChange("ないかんMeetup", checked === true)
                       }
                     />
-                    <Label htmlFor="scope-naikan" className="cursor-pointer">
+                    <Label htmlFor="scope-naikan">
                       {COMMUNITY_SCOPE_LABELS["ないかんMeetup"]}
                     </Label>
                   </div>
@@ -258,7 +258,7 @@ export default function AdminEditPage({
                         handleCommunityScopeChange("AI部会", checked === true)
                       }
                     />
-                    <Label htmlFor="scope-ai" className="cursor-pointer">
+                    <Label htmlFor="scope-ai">
                       {COMMUNITY_SCOPE_LABELS["AI部会"]}
                     </Label>
                   </div>
@@ -277,7 +277,7 @@ export default function AdminEditPage({
               <Button
                 type="button"
                 variant="outline"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
               >
                 <Trash2 className="h-4 w-4" />
                 削除
@@ -296,21 +296,20 @@ export default function AdminEditPage({
                 <Button
                   variant="outline"
                   onClick={() => setIsDeleteDialogOpen(false)}
-                  className="cursor-pointer"
                 >
                   キャンセル
                 </Button>
                 <Button
                   variant="outline"
                   onClick={handleDelete}
-                  className="cursor-pointer text-destructive hover:text-destructive"
+                  className="text-destructive hover:text-destructive"
                 >
                   削除
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          <Button type="submit" variant="outline" className="cursor-pointer">
+          <Button type="submit" variant="outline">
             更新する
           </Button>
         </div>

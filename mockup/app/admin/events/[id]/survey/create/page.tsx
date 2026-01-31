@@ -149,7 +149,7 @@ export default function SurveyCreatePage({
                 variant="outline"
                 size="icon"
                 onClick={() => removeQuestion(question.id)}
-                className="mt-8 cursor-pointer"
+                className="mt-8"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -159,7 +159,7 @@ export default function SurveyCreatePage({
           <Button
             variant="outline"
             onClick={addQuestion}
-            className="w-full cursor-pointer"
+            className="w-full"
           >
             <Plus className="h-4 w-4 mr-2" />
             設問を追加
@@ -171,14 +171,14 @@ export default function SurveyCreatePage({
         <Button variant="outline" asChild>
           <Link href={`/admin/events/${id}`}>キャンセル</Link>
         </Button>
-        <Button variant="outline" onClick={handlePreview} className="cursor-pointer">
+        <Button variant="outline" onClick={handlePreview}>
           <Eye className="h-4 w-4 mr-2" />
           プレビュー
         </Button>
-        <Button variant="outline" onClick={() => router.push(`/admin/events/${id}/survey`)} className="cursor-pointer">
+        <Button variant="outline" onClick={() => router.push(`/admin/events/${id}/survey`)}>
           スキップしてアンケートを送る
         </Button>
-        <Button variant="outline" onClick={handleSave} className="cursor-pointer">
+        <Button variant="outline" onClick={handleSave}>
           <Save className="h-4 w-4 mr-2" />
           保存
         </Button>

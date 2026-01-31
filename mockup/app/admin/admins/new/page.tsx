@@ -166,7 +166,7 @@ export default function NewAdminPage() {
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="super" id="super" />
-                    <Label htmlFor="super" className="cursor-pointer">
+                    <Label htmlFor="super">
                       {ADMIN_ROLE_LABELS.super}
                     </Label>
                   </div>
@@ -175,7 +175,7 @@ export default function NewAdminPage() {
                   </p>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="community_admin" id="community_admin" />
-                    <Label htmlFor="community_admin" className="cursor-pointer">
+                    <Label htmlFor="community_admin">
                       {ADMIN_ROLE_LABELS.community_admin}
                     </Label>
                   </div>
@@ -200,7 +200,7 @@ export default function NewAdminPage() {
                         handleCommunityScopeChange("ベンチャー監査役の会", checked === true)
                       }
                     />
-                    <Label htmlFor="scope-audit" className="cursor-pointer">
+                    <Label htmlFor="scope-audit">
                       {COMMUNITY_SCOPE_LABELS["ベンチャー監査役の会"]}
                     </Label>
                   </div>
@@ -212,7 +212,7 @@ export default function NewAdminPage() {
                         handleCommunityScopeChange("ないかんMeetup", checked === true)
                       }
                     />
-                    <Label htmlFor="scope-naikan" className="cursor-pointer">
+                    <Label htmlFor="scope-naikan">
                       {COMMUNITY_SCOPE_LABELS["ないかんMeetup"]}
                     </Label>
                   </div>
@@ -224,7 +224,7 @@ export default function NewAdminPage() {
                         handleCommunityScopeChange("AI部会", checked === true)
                       }
                     />
-                    <Label htmlFor="scope-ai" className="cursor-pointer">
+                    <Label htmlFor="scope-ai">
                       {COMMUNITY_SCOPE_LABELS["AI部会"]}
                     </Label>
                   </div>
@@ -241,7 +241,7 @@ export default function NewAdminPage() {
           <Button variant="outline" asChild>
             <Link href="/admin/admins">キャンセル</Link>
           </Button>
-          <Button type="submit" variant="default" className="cursor-pointer">
+          <Button type="submit" variant="default">
             登録する
           </Button>
         </div>

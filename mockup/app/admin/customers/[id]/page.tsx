@@ -457,14 +457,12 @@ export default function CustomerDetailPage({
               <Button
                 variant="outline"
                 onClick={() => setIsDeleteDialogOpen(false)}
-                className="cursor-pointer"
               >
                 キャンセル
               </Button>
               <Button
                 variant="destructive"
                 onClick={handleDelete}
-                className="cursor-pointer"
               >
                 削除
               </Button>

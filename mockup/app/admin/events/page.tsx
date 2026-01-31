@@ -393,19 +393,19 @@ export default function EventsPage() {
                 <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="cursor-pointer">
+                      <Button variant="outline" size="sm">
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="bg-white">
-                      <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+                      <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
                         <Link href={`/admin/events/${event.id}/edit`} className="flex items-center gap-2">
                           <Edit className="h-4 w-4" />
                           編集
                         </Link>
                       </DropdownMenuItem>
                       {event.status === "open" && (
-                        <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+                        <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
                           <Link href={`/admin/events/${event.id}/invite`} className="flex items-center gap-2">
                             <Mail className="h-4 w-4" />
                             案内

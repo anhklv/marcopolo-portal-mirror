@@ -343,10 +343,10 @@ export default function NewEventPage() {
             </div>
 
             <div className="flex justify-end gap-4 pt-4">
-              <Button variant="outline" onClick={handleSkipInvite} className="cursor-pointer">
+              <Button variant="outline" onClick={handleSkipInvite}>
                 後で送信する
               </Button>
-              <Button variant="default" onClick={handleStartInvite} className="cursor-pointer">
+              <Button variant="default" onClick={handleStartInvite}>
                 <Mail className="h-4 w-4" />
                 案内メールを送信する
               </Button>

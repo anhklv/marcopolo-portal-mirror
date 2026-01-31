@@ -471,7 +471,7 @@ export default function EventInvitePage({
                                 handleOrganizationChange("ベンチャー監査役の会", checked === true)
                               }
                             />
-                            <Label htmlFor="org-audit-invite" className="cursor-pointer text-sm">
+                            <Label htmlFor="org-audit-invite" className="text-sm">
                               ベンチャー監査役の会
                             </Label>
                           </div>
@@ -488,7 +488,7 @@ export default function EventInvitePage({
                                 handleOrganizationChange("ないかんMeetup", checked === true)
                               }
                             />
-                            <Label htmlFor="org-naikan-invite" className="cursor-pointer text-sm">
+                            <Label htmlFor="org-naikan-invite" className="text-sm">
                               ないかんMeetup
                             </Label>
                           </div>
@@ -505,7 +505,7 @@ export default function EventInvitePage({
                                 handleOrganizationChange("AI部会", checked === true)
                               }
                             />
-                            <Label htmlFor="org-ai-invite" className="cursor-pointer text-sm">
+                            <Label htmlFor="org-ai-invite" className="text-sm">
                               AI部会
                             </Label>
                           </div>
@@ -520,7 +520,7 @@ export default function EventInvitePage({
                                 handleOrganizationChange("非会員", checked === true)
                               }
                             />
-                            <Label htmlFor="org-non-member-invite" className="cursor-pointer text-sm">非会員</Label>
+                            <Label htmlFor="org-non-member-invite" className="text-sm">非会員</Label>
                           </div>
                         )}
                       </div>
@@ -539,7 +539,7 @@ export default function EventInvitePage({
                                 handleMemberCategoryChange("member", checked === true)
                               }
                             />
-                            <Label htmlFor="member-member-invite" className="cursor-pointer text-sm">会員</Label>
+                            <Label htmlFor="member-member-invite" className="text-sm">会員</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <Checkbox
@@ -549,7 +549,7 @@ export default function EventInvitePage({
                                 handleMemberCategoryChange("sponsor", checked === true)
                               }
                             />
-                            <Label htmlFor="member-sponsor-invite" className="cursor-pointer text-sm">スポンサー</Label>
+                            <Label htmlFor="member-sponsor-invite" className="text-sm">スポンサー</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <Checkbox
@@ -559,7 +559,7 @@ export default function EventInvitePage({
                                 handleMemberCategoryChange("observer", checked === true)
                               }
                             />
-                            <Label htmlFor="member-observer-invite" className="cursor-pointer text-sm">オブザーバー</Label>
+                            <Label htmlFor="member-observer-invite" className="text-sm">オブザーバー</Label>
                           </div>
                         </div>
                       </div>
@@ -578,7 +578,7 @@ export default function EventInvitePage({
                                 handleAuditMemberTypeChange("regular", checked === true)
                               }
                             />
-                            <Label htmlFor="audit-regular-invite" className="cursor-pointer text-sm">正会員</Label>
+                            <Label htmlFor="audit-regular-invite" className="text-sm">正会員</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <Checkbox
@@ -588,7 +588,7 @@ export default function EventInvitePage({
                                 handleAuditMemberTypeChange("online", checked === true)
                               }
                             />
-                            <Label htmlFor="audit-online-invite" className="cursor-pointer text-sm">オンライン会員</Label>
+                            <Label htmlFor="audit-online-invite" className="text-sm">オンライン会員</Label>
                           </div>
                         </div>
                       </div>
@@ -603,7 +603,7 @@ export default function EventInvitePage({
                             checked={premiumOnly}
                             onCheckedChange={(checked) => setPremiumOnly(checked === true)}
                           />
-                          <Label htmlFor="premium-invite" className="cursor-pointer text-sm">プレミアム会員のみ</Label>
+                          <Label htmlFor="premium-invite" className="text-sm">プレミアム会員のみ</Label>
                         </div>
                       </div>
                     )}
@@ -689,7 +689,6 @@ export default function EventInvitePage({
                 variant="outline"
                 size="sm"
                 onClick={toggleAllCustomers}
-                className="cursor-pointer"
                 disabled={filteredCustomers.length === 0}
               >
                 {selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0 ? "すべて解除" : "すべて選択"}
@@ -829,7 +828,7 @@ export default function EventInvitePage({
               <Button variant="outline" asChild>
                 <Link href={`/admin/events/${id}`}>キャンセル</Link>
               </Button>
-              <Button variant="outline" onClick={handleSelectNext} className="cursor-pointer">
+              <Button variant="outline" onClick={handleSelectNext}>
                 次へ
               </Button>
             </div>
@@ -891,7 +890,7 @@ export default function EventInvitePage({
               <Button variant="outline" onClick={() => setStep("select")}>
                 戻る
               </Button>
-              <Button variant="outline" onClick={handleCustomizeNext} className="cursor-pointer">
+              <Button variant="outline" onClick={handleCustomizeNext}>
                 次へ
               </Button>
             </div>
@@ -971,11 +970,11 @@ export default function EventInvitePage({
               <Button variant="outline" onClick={() => setStep("customize")}>
                 戻る
               </Button>
-              <Button variant="outline" onClick={handleTestSend} className="cursor-pointer">
+              <Button variant="outline" onClick={handleTestSend}>
                 <Mail className="h-4 w-4" />
                 テスト送信
               </Button>
-              <Button variant="outline" onClick={handleSend} className="cursor-pointer">
+              <Button variant="outline" onClick={handleSend}>
                 <Send className="h-4 w-4" />
                 送信
               </Button>

@@ -197,7 +197,7 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
           </CardContent>
           
           <CardFooter>
-            <Button className="w-full cursor-pointer" size="lg" variant="outline" onClick={handleEmailSubmit}>
+            <Button className="w-full" size="lg" variant="outline" onClick={handleEmailSubmit}>
               確認する
             </Button>
           </CardFooter>
@@ -280,7 +280,7 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
           <div className="mt-4">
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="cursor-pointer">
+                <Button variant="outline" size="sm">
                   <Info className="h-4 w-4 mr-2" />
                   イベント詳細を見る
                 </Button>
@@ -465,7 +465,7 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
         
         <CardFooter>
           <Button 
-            className="w-full cursor-pointer" 
+            className="w-full" 
             size="lg"
             variant="outline"
             onClick={handleSubmit}

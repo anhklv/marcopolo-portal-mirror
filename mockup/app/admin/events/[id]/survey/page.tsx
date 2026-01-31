@@ -303,7 +303,6 @@ export default function EventSurveyPage({
                 variant="outline"
                 size="sm"
                 onClick={toggleAllCustomers}
-                className="cursor-pointer"
               >
                 {selectedCustomers.length === attendees.length ? "すべて解除" : "すべて選択"}
               </Button>
@@ -431,7 +430,7 @@ export default function EventSurveyPage({
               <Button variant="outline" asChild>
                 <Link href={`/admin/events/${id}`}>キャンセル</Link>
               </Button>
-              <Button variant="outline" onClick={handleSelectNext} className="cursor-pointer">
+              <Button variant="outline" onClick={handleSelectNext} >
                 次へ
               </Button>
             </div>
@@ -496,7 +495,7 @@ export default function EventSurveyPage({
               <Button variant="outline" onClick={() => setStep("select")}>
                 戻る
               </Button>
-              <Button variant="outline" onClick={handleCustomizeNext} className="cursor-pointer">
+              <Button variant="outline" onClick={handleCustomizeNext} >
                 次へ
               </Button>
             </div>
@@ -576,11 +575,11 @@ export default function EventSurveyPage({
               <Button variant="outline" onClick={() => setStep("customize")}>
                 戻る
               </Button>
-              <Button variant="outline" onClick={handleTestSend} className="cursor-pointer">
+              <Button variant="outline" onClick={handleTestSend} >
                 <Mail className="h-4 w-4" />
                 テスト送信
               </Button>
-              <Button variant="outline" onClick={handleSend} className="cursor-pointer">
+              <Button variant="outline" onClick={handleSend} >
                 <Send className="h-4 w-4" />
                 送信
               </Button>

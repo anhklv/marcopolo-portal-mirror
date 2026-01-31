@@ -326,7 +326,7 @@ export default function SurveyAnswerPage({
                     {RATINGS.map((rating) => (
                       <div key={rating} className="flex items-center space-x-2">
                         <RadioGroupItem value={rating} id={`${question.id}-${rating}`} />
-                        <Label htmlFor={`${question.id}-${rating}`} className="cursor-pointer">
+                        <Label htmlFor={`${question.id}-${rating}`}>
                           {rating}
                         </Label>
                       </div>
@@ -363,7 +363,7 @@ export default function SurveyAnswerPage({
                   {RATINGS.map((rating) => (
                     <div key={rating} className="flex items-center space-x-2">
                       <RadioGroupItem value={rating} id={`after-party-${rating}`} />
-                      <Label htmlFor={`after-party-${rating}`} className="cursor-pointer">
+                      <Label htmlFor={`after-party-${rating}`}>
                         {rating}
                       </Label>
                     </div>
@@ -400,7 +400,7 @@ export default function SurveyAnswerPage({
                   {FUTURE_PARTICIPATION_OPTIONS.map((option) => (
                     <div key={option} className="flex items-center space-x-2">
                       <RadioGroupItem value={option} id={`future-participation-${option}`} />
-                      <Label htmlFor={`future-participation-${option}`} className="cursor-pointer">
+                      <Label htmlFor={`future-participation-${option}`}>
                         {option}
                       </Label>
                     </div>
@@ -437,7 +437,7 @@ export default function SurveyAnswerPage({
                   {MEMBERSHIP_OPTIONS.map((option) => (
                     <div key={option} className="flex items-center space-x-2">
                       <RadioGroupItem value={option} id={`membership-${option}`} />
-                      <Label htmlFor={`membership-${option}`} className="cursor-pointer">
+                      <Label htmlFor={`membership-${option}`}>
                         {option}
                       </Label>
                     </div>
@@ -477,7 +477,7 @@ export default function SurveyAnswerPage({
       </Card>
 
       <div className="flex justify-end">
-        <Button variant="outline" onClick={handleSubmit} className="cursor-pointer">
+        <Button variant="outline" onClick={handleSubmit}>
           回答する
         </Button>
       </div>

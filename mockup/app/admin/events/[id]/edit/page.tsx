@@ -341,7 +341,7 @@ export default function EventEditPage({
               checked={allowsOnline}
               onCheckedChange={(checked) => setAllowsOnline(checked === true)}
             />
-            <Label htmlFor="allowsOnline" className="cursor-pointer">
+            <Label htmlFor="allowsOnline">
               オンライン参加を可能にする
             </Label>
           </div>
@@ -352,14 +352,14 @@ export default function EventEditPage({
               checked={hasAfterParty}
               onCheckedChange={(checked) => setHasAfterParty(checked === true)}
             />
-            <Label htmlFor="hasAfterParty" className="cursor-pointer">
+            <Label htmlFor="hasAfterParty">
               懇親会を開催する
             </Label>
           </div>
         </div>
 
         <div className="flex justify-end">
-          <Button type="submit" variant="outline" className="cursor-pointer">
+          <Button type="submit" variant="outline">
             更新する
           </Button>
         </div>
@@ -368,7 +368,7 @@ export default function EventEditPage({
       <div className="pt-4 box-border">
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <DialogTrigger asChild>
-            <Button type="button" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer">
+            <Button type="button" variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50">
               <Trash2 className="h-4 w-4 mr-2" />
               削除
             </Button>
@@ -384,14 +384,13 @@ export default function EventEditPage({
               <Button
                 variant="outline"
                 onClick={() => setIsDeleteDialogOpen(false)}
-                className="cursor-pointer"
               >
                 キャンセル
               </Button>
               <Button
                 variant="outline"
                 onClick={handleDelete}
-                className="cursor-pointer text-destructive hover:text-destructive"
+                className="text-destructive hover:text-destructive"
               >
                 削除
               </Button>

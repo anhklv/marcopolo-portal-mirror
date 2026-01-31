@@ -185,19 +185,19 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="cursor-pointer">
+            <Button variant="outline">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="bg-white">
-            <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+            <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
               <Link href={`/admin/events/${id}/edit`} className="flex items-center gap-2">
                 <Edit className="h-4 w-4" />
                 編集
               </Link>
             </DropdownMenuItem>
             {eventStatus === "open" && (
-              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
                 <Link href={`/admin/events/${id}/invite`} className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
                   案内
@@ -205,7 +205,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               </DropdownMenuItem>
             )}
             {eventStatus === "open" && noResponseAttendees.length > 0 && (
-              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
                 <Link href={`/admin/events/${id}/remind`} className="flex items-center gap-2">
                   <Send className="h-4 w-4" />
                   未回答者に再送 ({noResponseAttendees.length}名)
@@ -213,7 +213,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               </DropdownMenuItem>
             )}
             {((event as any).eventType || "ベンチャー監査役の会") === "ベンチャー監査役の会" && (
-              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100">
                 <Link href={`/admin/events/${id}/survey/create`} className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   アンケート管理
@@ -221,7 +221,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               </DropdownMenuItem>
             )}
             <DropdownMenuItem
-              className="bg-white hover:bg-gray-100 cursor-pointer"
+              className="bg-white hover:bg-gray-100"
               onClick={() =>
                 setIsPaused((prev) => {
                   const next = !prev;
@@ -258,10 +258,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               router.push(newUrl);
             }}>
                 <TabsList>
-                    <TabsTrigger value="attendees" className="cursor-pointer">参加状況</TabsTrigger>
-                    <TabsTrigger value="detail" className="cursor-pointer">詳細</TabsTrigger>
+                    <TabsTrigger value="attendees">参加状況</TabsTrigger>
+                    <TabsTrigger value="detail">詳細</TabsTrigger>
                     {((event as any).eventType || "ベンチャー監査役の会") === "ベンチャー監査役の会" && (
-                      <TabsTrigger value="survey" className="cursor-pointer">アンケート結果</TabsTrigger>
+                      <TabsTrigger value="survey">アンケート結果</TabsTrigger>
                     )}
                 </TabsList>
                 
