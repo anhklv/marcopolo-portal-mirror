@@ -2,12 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardContent,
@@ -16,7 +13,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
+import { FormField } from "@/components/ui/form-field";
+import { Stack } from "@/components/ui/stack";
+import { PageHeader } from "@/components/ui/page-header";
+import { CheckboxItem } from "@/components/ui/checkbox-item";
+import { ActionButton } from "@/components/ui/action-button";
 import { events } from "@/lib/data/mock";
 import type { EventType, CommunityScope } from "@/lib/types";
 import { EVENT_TYPES } from "@/lib/constants/event";
@@ -156,203 +158,159 @@ export default function NewEventPage() {
   if (step === "form") {
     return (
       <div className="max-w-4xl space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin/events">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">イベント作成</h1>
-            <p className="text-sm text-muted-foreground">
-              新しいイベントを作成します。
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          backHref="/admin/events"
+          title="イベント作成"
+          description="新しいイベントを作成します。"
+        />
 
-        <form onSubmit={handleFormSubmit} className="space-y-8 rounded-lg border p-8 shadow-sm">
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="eventType">イベント種別 <span className="text-red-500">*</span></Label>
-              {currentAdmin?.role === "super" || 
-               (currentAdmin?.role === "community_admin" && 
-                currentAdmin.communityScopes && 
-                currentAdmin.communityScopes.length > 1) ? (
-                <Select value={eventType} onValueChange={(value) => setEventType(value as EventType)}>
-                  <SelectTrigger className="w-full bg-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    {(currentAdmin?.role === "super" 
-                      ? EVENT_TYPES 
-                      : EVENT_TYPES.filter((type) => 
-                          currentAdmin?.communityScopes?.includes(type as CommunityScope)
-                        )
-                    ).map((type) => (
-                      <SelectItem key={type} value={type} className="bg-white hover:bg-gray-100">
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className="text-sm text-foreground">
-                  {currentAdmin?.communityScopes?.map((scope, index) => (
-                    <span key={scope}>
-                      {index > 0 && "、"}
-                      {scope}
-                    </span>
-                  ))}
+        <form onSubmit={handleFormSubmit} className="space-y-8">
+          <Card>
+            <CardContent>
+              <Stack gap="lg">
+                <FormField label="イベント種別" required>
+                  {currentAdmin?.role === "super" ||
+                   (currentAdmin?.role === "community_admin" &&
+                    currentAdmin.communityScopes &&
+                    currentAdmin.communityScopes.length > 1) ? (
+                    <Select value={eventType} onValueChange={(value) => setEventType(value as EventType)}>
+                      <SelectTrigger className="w-full bg-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {(currentAdmin?.role === "super"
+                          ? EVENT_TYPES
+                          : EVENT_TYPES.filter((type) =>
+                              currentAdmin?.communityScopes?.includes(type as CommunityScope)
+                            )
+                        ).map((type) => (
+                          <SelectItem key={type} value={type} className="bg-white hover:bg-gray-100">
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="text-sm text-foreground">
+                      {currentAdmin?.communityScopes?.map((scope, index) => (
+                        <span key={scope}>
+                          {index > 0 && "、"}
+                          {scope}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </FormField>
+
+                <FormField label="イベント名" required>
+                  <Input
+                    placeholder="例: 第10回 監査役交流会"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    required
+                  />
+                </FormField>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField label="開催日" required>
+                    <DatePickerWithInput
+                      date={eventDate}
+                      setDate={setEventDate}
+                    />
+                  </FormField>
+                  <FormField label="時刻" required>
+                    <Input
+                      type="time"
+                      step="60"
+                      value={eventTime}
+                      onChange={(e) => setEventTime(e.target.value)}
+                      className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                      required={!!eventDate}
+                    />
+                  </FormField>
                 </div>
-              )}
-            </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="title">イベント名 <span className="text-red-500">*</span></Label>
-              <Input
-                id="title"
-                placeholder="例: 第10回 監査役交流会"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-            </div>
+                <FormField label="イベント概要">
+                  <Textarea
+                    placeholder="イベントの概要を入力してください"
+                    rows={5}
+                    value={overview}
+                    onChange={(e) => setOverview(e.target.value)}
+                    className="min-h-[200px]"
+                  />
+                </FormField>
 
-            <div className="flex gap-4">
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="date-picker" className="px-1">
-                  開催日 <span className="text-red-500">*</span>
-                </Label>
-                <DatePickerWithInput
-                  id="date-picker"
-                  date={eventDate}
-                  setDate={setEventDate}
-                  className="w-32"
+                <FormField label="タイムテーブル">
+                  <Textarea
+                    placeholder="タイムテーブルを入力してください"
+                    rows={5}
+                    value={timetable}
+                    onChange={(e) => setTimetable(e.target.value)}
+                    className="min-h-[200px]"
+                  />
+                </FormField>
+
+                <FormField label="場所">
+                  <Textarea
+                    placeholder="例: 東京都港区六本木 1-1-1 会議室A"
+                    rows={3}
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    className="min-h-[100px]"
+                  />
+                </FormField>
+
+                <FormField label="備考">
+                  <Textarea
+                    placeholder="備考を入力してください"
+                    rows={5}
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    className="min-h-[100px]"
+                  />
+                </FormField>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField label="回答期限日">
+                    <DatePickerWithInput
+                      date={deadlineDate}
+                      setDate={setDeadlineDate}
+                    />
+                  </FormField>
+                  <FormField label="時刻">
+                    <Input
+                      type="time"
+                      step="60"
+                      value={deadlineTime}
+                      onChange={(e) => setDeadlineTime(e.target.value)}
+                      className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                      disabled={!deadlineDate}
+                    />
+                  </FormField>
+                </div>
+                <p className="text-xs text-muted-foreground px-1">
+                  回答期限を設定しない場合、イベント開催日まで回答を受け付けます。
+                </p>
+
+                <CheckboxItem
+                  id="allowsOnline"
+                  label="オンライン参加を可能にする"
+                  checked={allowsOnline}
+                  onCheckedChange={(checked) => setAllowsOnline(checked === true)}
                 />
-              </div>
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="time-picker" className="px-1">
-                  時刻 <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  type="time"
-                  id="time-picker"
-                  step="60"
-                  value={eventTime}
-                  onChange={(e) => setEventTime(e.target.value)}
-                  className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-32"
-                  required={!!eventDate}
+
+                <CheckboxItem
+                  id="hasAfterParty"
+                  label="懇親会を開催する"
+                  checked={hasAfterParty}
+                  onCheckedChange={(checked) => setHasAfterParty(checked === true)}
                 />
-              </div>
-            </div>
+              </Stack>
+            </CardContent>
+          </Card>
 
-            <div className="grid gap-2">
-              <Label htmlFor="overview">イベント概要</Label>
-              <Textarea
-                id="overview"
-                placeholder="イベントの概要を入力してください"
-                rows={5}
-                value={overview}
-                onChange={(e) => setOverview(e.target.value)}
-                style={{ height: '200px' }}
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="timetable">タイムテーブル</Label>
-              <Textarea
-                id="timetable"
-                placeholder="タイムテーブルを入力してください"
-                rows={5}
-                value={timetable}
-                onChange={(e) => setTimetable(e.target.value)}
-                style={{ height: '200px' }}
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="location">場所</Label>
-              <Textarea
-                id="location"
-                placeholder="例: 東京都港区六本木 1-1-1 会議室A"
-                rows={3}
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                style={{ height: '100px' }}
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="note">備考</Label>
-              <Textarea
-                id="note"
-                placeholder="備考を入力してください"
-                rows={5}
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                style={{ height: '100px' }}
-              />
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="deadline-date-picker" className="px-1">
-                  回答期限日
-                </Label>
-                <DatePickerWithInput
-                  id="deadline-date-picker"
-                  date={deadlineDate}
-                  setDate={setDeadlineDate}
-                  className="w-32"
-                />
-              </div>
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="deadline-time-picker" className="px-1">
-                  時刻
-                </Label>
-                <Input
-                  type="time"
-                  id="deadline-time-picker"
-                  step="60"
-                  value={deadlineTime}
-                  onChange={(e) => setDeadlineTime(e.target.value)}
-                  className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-32"
-                  disabled={!deadlineDate}
-                />
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground px-1">
-              回答期限を設定しない場合、イベント開催日まで回答を受け付けます。
-            </p>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="allowsOnline"
-                checked={allowsOnline}
-                onCheckedChange={(checked) => setAllowsOnline(checked === true)}
-              />
-              <Label htmlFor="allowsOnline" className="cursor-pointer">
-                オンライン参加を可能にする
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="hasAfterParty"
-                checked={hasAfterParty}
-                onCheckedChange={(checked) => setHasAfterParty(checked === true)}
-              />
-              <Label htmlFor="hasAfterParty" className="cursor-pointer">
-                懇親会を開催する
-              </Label>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-4">
-            <Button variant="outline" asChild>
-              <Link href="/admin/events">キャンセル</Link>
-            </Button>
-            <Button type="submit" variant="outline" className="cursor-pointer">作成する</Button>
+          <div className="flex justify-center">
+            <ActionButton type="submit">作成</ActionButton>
           </div>
         </form>
       </div>
@@ -363,19 +321,11 @@ export default function NewEventPage() {
   if (step === "success") {
     return (
       <div className="max-w-4xl space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin/events">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">イベントを作成しました</h1>
-            <p className="text-sm text-muted-foreground">
-              イベント情報を保存しました。次に案内メールを送信しますか？
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          backHref="/admin/events"
+          title="イベントを作成しました"
+          description="イベント情報を保存しました。次に案内メールを送信しますか？"
+        />
 
         <Card>
           <CardHeader>
@@ -396,7 +346,7 @@ export default function NewEventPage() {
               <Button variant="outline" onClick={handleSkipInvite} className="cursor-pointer">
                 後で送信する
               </Button>
-              <Button variant="outline" onClick={handleStartInvite} className="cursor-pointer">
+              <Button variant="default" onClick={handleStartInvite} className="cursor-pointer">
                 <Mail className="h-4 w-4" />
                 案内メールを送信する
               </Button>

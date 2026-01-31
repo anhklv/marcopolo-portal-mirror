@@ -388,22 +388,18 @@ export default function NewCustomerPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="auditJoinedAt" className="px-1">入会日</Label>
+                      <FormField label="入会日">
                         <DatePickerWithInput
-                          id="auditJoinedAt"
                           date={auditJoinedAt}
                           setDate={setAuditJoinedAt}
                         />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="auditResignedAt" className="px-1">脱退日</Label>
+                      </FormField>
+                      <FormField label="脱退日">
                         <DatePickerWithInput
-                          id="auditResignedAt"
                           date={auditResignedAt}
                           setDate={setAuditResignedAt}
                         />
-                      </div>
+                      </FormField>
                     </div>
                   </div>
                 )}
@@ -434,22 +430,18 @@ export default function NewCustomerPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="naikanJoinedAt" className="px-1">入会日</Label>
+                      <FormField label="入会日">
                         <DatePickerWithInput
-                          id="naikanJoinedAt"
                           date={naikanJoinedAt}
                           setDate={setNaikanJoinedAt}
                         />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="naikanResignedAt" className="px-1">脱退日</Label>
+                      </FormField>
+                      <FormField label="脱退日">
                         <DatePickerWithInput
-                          id="naikanResignedAt"
                           date={naikanResignedAt}
                           setDate={setNaikanResignedAt}
                         />
-                      </div>
+                      </FormField>
                     </div>
                   </div>
                 )}
@@ -480,22 +472,18 @@ export default function NewCustomerPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="aiJoinedAt" className="px-1">入会日</Label>
+                      <FormField label="入会日">
                         <DatePickerWithInput
-                          id="aiJoinedAt"
                           date={aiJoinedAt}
                           setDate={setAiJoinedAt}
                         />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="aiResignedAt" className="px-1">脱退日</Label>
+                      </FormField>
+                      <FormField label="脱退日">
                         <DatePickerWithInput
-                          id="aiResignedAt"
                           date={aiResignedAt}
                           setDate={setAiResignedAt}
                         />
-                      </div>
+                      </FormField>
                     </div>
                   </div>
                 )}
