@@ -69,7 +69,7 @@ export default function AdminsPage() {
           title="管理者管理"
           description="システムを利用する管理者アカウントを管理します。"
         />
-        <Button variant="default" asChild>
+        <Button asChild>
           <Link href="/admin/admins/new">
             <Plus className="h-4 w-4" />
             新規登録

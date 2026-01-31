@@ -343,7 +343,10 @@ export default function CustomerEditPage({
                 {/* ベンチャー監査役の会 詳細 */}
                 {auditCommunityChecked && (
                   <div className="rounded-lg border p-4 space-y-6 bg-slate-50">
-                    <Label>ベンチャー監査役の会</Label>
+                    <div className="space-y-3">
+                      <Label>ベンチャー監査役の会</Label>
+                      <div className="border-b border-border"></div>
+                    </div>
                     
                     {/* 会員の場合のみ会員種別とプレミアム表示 */}
                     {memberCategory === "member" && (

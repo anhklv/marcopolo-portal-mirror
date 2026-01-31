@@ -220,7 +220,7 @@ export default function AdminEditPage({
           )}
         </Stack>
 
-        <div className="flex justify-center pt-4">
+        <div className="flex justify-center">
           <ActionButton type="submit">更新</ActionButton>
         </div>
 

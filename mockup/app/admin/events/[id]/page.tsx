@@ -464,6 +464,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                 <Button
                                     type="button"
                                     variant="outline"
+                                    className="border-destructive text-destructive bg-white hover:bg-white hover:text-destructive"
                                 >
                                     <Trash2 className="h-4 w-4" />
                                     削除
