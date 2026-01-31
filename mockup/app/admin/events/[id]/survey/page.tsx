@@ -321,7 +321,7 @@ export default function EventSurveyPage({
                         <div className="flex gap-1 flex-wrap items-center">
                           {(() => {
                             const badges: React.ReactElement[] = [];
-                            
+
                             // 非会員の判定（communitiesが空配列）
                             if (attendee.communities.length === 0) {
                               badges.push(
@@ -332,34 +332,35 @@ export default function EventSurveyPage({
                             } else if (attendee.memberCategory === "member") {
                               const hasAudit = attendee.communities.includes("ベンチャー監査役の会");
                               const hasNaikan = attendee.communities.includes("ないかんMeetup");
-                              
-                              if (hasNaikan && !hasAudit) {
-                                badges.push(
-                                  <Badge key="naikan-member" variant="default">
-                                    ないかんMeetup(会員)
-                                  </Badge>
-                                );
-                              } else if (hasAudit && !hasNaikan) {
+                              const hasAi = attendee.communities.includes("AI部会");
+
+                              // ベンチャー監査役の会のバッジ
+                              if (hasAudit) {
                                 const auditType = attendee.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                                 badges.push(
-                                  <Badge key="audit-member" variant="default">
+                                  <Badge key="audit-member" variant="audit">
                                     ベンチャー監査役の会({auditType})
                                   </Badge>
                                 );
-                              } else if (hasAudit && hasNaikan) {
-                                const auditType = attendee.auditMemberType === "regular" ? "正会員" : "オンライン会員";
+                              }
+                              // ないかんMeetupのバッジ
+                              if (hasNaikan) {
                                 badges.push(
-                                  <Badge key="audit-member" variant="default">
-                                    ベンチャー監査役の会({auditType})
-                                  </Badge>
-                                );
-                                badges.push(
-                                  <Badge key="naikan-member" variant="default">
+                                  <Badge key="naikan-member" variant="naikan">
                                     ないかんMeetup(会員)
                                   </Badge>
                                 );
                               }
-                              
+                              // AI部会のバッジ
+                              if (hasAi) {
+                                badges.push(
+                                  <Badge key="ai-member" variant="ai">
+                                    AI部会(会員)
+                                  </Badge>
+                                );
+                              }
+
+                              // プレミアム会員バッジ
                               if (attendee.auditMemberPremium) {
                                 badges.push(
                                   <Badge key="premium" variant="premium">
@@ -368,37 +369,51 @@ export default function EventSurveyPage({
                                 );
                               }
                             } else if (attendee.memberCategory === "sponsor") {
-                              if (attendee.communities.includes("ないかんMeetup")) {
-                                badges.push(
-                                  <Badge key="sponsor-naikan" variant="default">
-                                    ないかんMeetup(スポンサー)
-                                  </Badge>
-                                );
-                              }
                               if (attendee.communities.includes("ベンチャー監査役の会")) {
                                 badges.push(
-                                  <Badge key="sponsor-audit" variant="default">
+                                  <Badge key="sponsor-audit" variant="audit">
                                     ベンチャー監査役の会(スポンサー)
                                   </Badge>
                                 );
                               }
-                            } else if (attendee.memberCategory === "observer") {
                               if (attendee.communities.includes("ないかんMeetup")) {
                                 badges.push(
-                                  <Badge key="observer-naikan" variant="default">
-                                    ないかんMeetup(オブザーバー)
+                                  <Badge key="sponsor-naikan" variant="naikan">
+                                    ないかんMeetup(スポンサー)
                                   </Badge>
                                 );
                               }
+                              if (attendee.communities.includes("AI部会")) {
+                                badges.push(
+                                  <Badge key="sponsor-ai" variant="ai">
+                                    AI部会(スポンサー)
+                                  </Badge>
+                                );
+                              }
+                            } else if (attendee.memberCategory === "observer") {
                               if (attendee.communities.includes("ベンチャー監査役の会")) {
                                 badges.push(
-                                  <Badge key="observer-audit" variant="default">
+                                  <Badge key="observer-audit" variant="audit">
                                     ベンチャー監査役の会(オブザーバー)
                                   </Badge>
                                 );
                               }
+                              if (attendee.communities.includes("ないかんMeetup")) {
+                                badges.push(
+                                  <Badge key="observer-naikan" variant="naikan">
+                                    ないかんMeetup(オブザーバー)
+                                  </Badge>
+                                );
+                              }
+                              if (attendee.communities.includes("AI部会")) {
+                                badges.push(
+                                  <Badge key="observer-ai" variant="ai">
+                                    AI部会(オブザーバー)
+                                  </Badge>
+                                );
+                              }
                             }
-                            
+
                             return badges.length > 0 ? badges : null;
                           })()}
                         </div>
