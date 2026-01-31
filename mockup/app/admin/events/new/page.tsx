@@ -211,7 +211,7 @@ export default function NewEventPage() {
                   />
                 </FormField>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-6">
                   <FormField label="開催日" required>
                     <DatePickerWithInput
                       date={eventDate}
@@ -270,7 +270,7 @@ export default function NewEventPage() {
                   />
                 </FormField>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-6">
                   <FormField label="回答期限日">
                     <DatePickerWithInput
                       date={deadlineDate}
