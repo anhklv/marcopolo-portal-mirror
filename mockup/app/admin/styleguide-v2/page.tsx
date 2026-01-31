@@ -626,17 +626,32 @@ export default function StyleguideV2Page() {
           </h3>
           <p className="text-sm text-muted-foreground">
             フォームの決定ボタン用。min-w-32 / h-11 で押しやすいサイズ。
+            <br />
+            主要アクション（登録、送信など）だけでなく、副次アクション（戻る、キャンセル、テスト送信など）にも使用可。
           </p>
 
           <Example
-            code={`<ActionButton variant="default">登録</ActionButton>
-<ActionButton variant="default">更新</ActionButton>
-<ActionButton variant="destructive">削除</ActionButton>`}
+            code={`// 主要アクション
+<ActionButton variant="default">登録</ActionButton>
+<ActionButton variant="default">送信</ActionButton>
+<ActionButton variant="destructive">削除</ActionButton>
+
+// 副次アクション
+<ActionButton variant="outline">戻る</ActionButton>
+<ActionButton variant="outline">キャンセル</ActionButton>
+<ActionButton variant="outline">テスト送信</ActionButton>`}
           >
-            <div className="flex gap-4 justify-center">
-              <ActionButton variant="default">登録</ActionButton>
-              <ActionButton variant="default">更新</ActionButton>
-              <ActionButton variant="destructive">削除</ActionButton>
+            <div className="space-y-4">
+              <div className="flex gap-4 justify-center">
+                <ActionButton variant="default">登録</ActionButton>
+                <ActionButton variant="default">送信</ActionButton>
+                <ActionButton variant="destructive">削除</ActionButton>
+              </div>
+              <div className="flex gap-4 justify-center">
+                <ActionButton variant="outline">戻る</ActionButton>
+                <ActionButton variant="outline">キャンセル</ActionButton>
+                <ActionButton variant="outline">テスト送信</ActionButton>
+              </div>
             </div>
           </Example>
         </div>
