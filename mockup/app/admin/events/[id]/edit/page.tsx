@@ -171,15 +171,13 @@ export default function EventEditPage({
       />
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        <Card>
-          <CardContent>
-            <Stack gap="lg">
-              <FormField label="イベント種別" required>
-                {currentAdmin?.role === "super" ||
-                 (currentAdmin?.role === "community_admin" &&
-                  currentAdmin.communityScopes &&
-                  currentAdmin.communityScopes.length > 1) ? (
-                  <Select value={eventType} onValueChange={(value) => setEventType(value as EventType)}>
+        <Stack gap="lg">
+          <FormField label="イベント種別" required>
+            {currentAdmin?.role === "super" ||
+             (currentAdmin?.role === "community_admin" &&
+              currentAdmin.communityScopes &&
+              currentAdmin.communityScopes.length > 1) ? (
+              <Select value={eventType} onValueChange={(value) => setEventType(value as EventType)}>
                     <SelectTrigger className="w-full bg-white">
                       <SelectValue />
                     </SelectTrigger>
@@ -311,9 +309,7 @@ export default function EventEditPage({
                 checked={hasAfterParty}
                 onCheckedChange={(checked) => setHasAfterParty(checked === true)}
               />
-            </Stack>
-          </CardContent>
-        </Card>
+        </Stack>
 
         <div className="flex justify-center">
           <ActionButton type="submit">更新</ActionButton>

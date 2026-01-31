@@ -214,12 +214,10 @@ export default function CustomerEditPage({
       <form onSubmit={handleSubmit} className="space-y-8">
 
         {/* 会員情報セクション */}
-        <Card>
-          <CardContent>
-            <Stack gap="lg">
-              <SectionHeading>会員情報</SectionHeading>
-            {/* コミュニティ選択 */}
-            <div className="grid gap-2">
+        <Stack gap="lg">
+          <SectionHeading>会員情報</SectionHeading>
+          {/* コミュニティ選択 */}
+          <div className="grid gap-2">
               <Label>コミュニティ</Label>
               {currentAdmin?.role === "super" || 
                (currentAdmin?.role === "community_admin" && 
@@ -719,9 +717,7 @@ export default function CustomerEditPage({
               />
             </FormField>
 
-            </Stack>
-          </CardContent>
-        </Card>
+        </Stack>
 
         <div className="flex justify-center">
           <ActionButton type="submit">更新</ActionButton>

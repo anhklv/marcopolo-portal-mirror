@@ -209,10 +209,8 @@ export default function NewCustomerPage() {
       <form onSubmit={handleSubmit} className="space-y-8">
         
         {/* 会員情報セクション */}
-        <Card>
-          <CardContent>
-            <Stack gap="lg">
-              <SectionHeading>会員情報</SectionHeading>
+        <Stack gap="lg">
+          <SectionHeading>会員情報</SectionHeading>
             {/* コミュニティ選択 */}
             <div className="grid gap-2">
               <Label>コミュニティ</Label>
@@ -696,9 +694,7 @@ export default function NewCustomerPage() {
                   className="min-h-32"
                 />
               </FormField>
-            </Stack>
-          </CardContent>
-        </Card>
+        </Stack>
 
         <div className="flex justify-center">
           <ActionButton type="submit">登録</ActionButton>
