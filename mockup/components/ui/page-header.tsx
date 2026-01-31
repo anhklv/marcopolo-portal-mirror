@@ -8,12 +8,14 @@ import { cn } from "@/lib/utils"
 
 interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   backHref?: string
+  backAction?: () => void
   title: string
   description?: string
 }
 
 function PageHeader({
   backHref,
+  backAction,
   title,
   description,
   className,
@@ -26,6 +28,11 @@ function PageHeader({
           <Link href={backHref}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
+        </Button>
+      )}
+      {backAction && !backHref && (
+        <Button variant="ghost" size="icon" onClick={backAction}>
+          <ArrowLeft className="h-4 w-4" />
         </Button>
       )}
       <div>

@@ -13,23 +13,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, Send, Mail, Check } from "lucide-react";
+import { Send, Mail, Check } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { FormField } from "@/components/ui/form-field";
+import { ActionButton } from "@/components/ui/action-button";
 import { customers, events, rsvps, getEventStatus, getSurveyByEventId, surveyTokens } from "@/lib/data/mock";
-import type { Customer } from "@/lib/types";
 import React from "react";
-import { cn, getSurveyRequestEmailTemplate, formatEventDate } from "@/lib/utils";
+import { cn, getSurveyRequestEmailTemplate } from "@/lib/utils";
+import { SectionHeading } from "@/components/ui/section-heading";
 
 type Step = "select" | "customize" | "confirm";
 
@@ -271,31 +266,23 @@ export default function EventSurveyPage({
   if (step === "select") {
     return (
       <div className="max-w-4xl space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href={`/admin/events/${id}`}>
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold tracking-tight">アンケートメール送信</h1>
-            <p className="text-sm text-muted-foreground">
-              アンケートメールを送信する参加者を選択してください。
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          backHref={`/admin/events/${id}`}
+          title="アンケートメール送信"
+          description="アンケートメールを送信する参加者を選択してください。"
+        />
         
         <StepIndicator />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>送信先を選択</CardTitle>
-            <CardDescription>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <SectionHeading>送信先を選択</SectionHeading>
+            <p className="text-sm text-muted-foreground">
               このイベントの参加者のみが表示されます。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
+            </p>
+          </div>
+
+          <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
               <div>
                 <span className="font-medium">{selectedCustomers.length}名</span> 選択中 / 全{attendees.length}名
               </div>
@@ -308,6 +295,7 @@ export default function EventSurveyPage({
               </Button>
             </div>
 
+          <div className="rounded-lg border bg-white">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -425,17 +413,17 @@ export default function EventSurveyPage({
                 ))}
               </TableBody>
             </Table>
+          </div>
 
-            <div className="flex justify-end gap-4 pt-4">
-              <Button variant="outline" asChild>
-                <Link href={`/admin/events/${id}`}>キャンセル</Link>
-              </Button>
-              <Button variant="outline" onClick={handleSelectNext} >
-                次へ
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          <div className="flex justify-center gap-4 pt-4">
+            <ActionButton variant="outline" asChild>
+              <Link href={`/admin/events/${id}`}>キャンセル</Link>
+            </ActionButton>
+            <ActionButton onClick={handleSelectNext}>
+              次へ
+            </ActionButton>
+          </div>
+        </div>
       </div>
     );
   }
@@ -444,63 +432,52 @@ export default function EventSurveyPage({
   if (step === "customize") {
     return (
       <div className="max-w-4xl space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setStep("select")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold tracking-tight">アンケートメール送信</h1>
-            <p className="text-sm text-muted-foreground">
-              アンケートメールのタイトルと本文を編集できます。
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          backAction={() => setStep("select")}
+          title="アンケートメール送信"
+          description="アンケートメールのタイトルと本文を編集できます。"
+        />
         
         <StepIndicator />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>メール文作成</CardTitle>
-            <CardDescription>
-              送信するメールのタイトルと本文を編集してください。本文内の {`{SURVEY_URL}`} はアンケート回答URLに自動的に置き換えられます。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="emailTitle">メールタイトル</Label>
-              <Input 
-                id="emailTitle" 
-                value={emailTitle}
-                onChange={(e) => setEmailTitle(e.target.value)}
-                placeholder="メールタイトルを入力"
-              />
-            </div>
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <SectionHeading>メール文作成</SectionHeading>
+            <p className="text-sm text-muted-foreground">
+              送信するメールのタイトルと本文を編集してください。
+            </p>
+          </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="emailBody">メール本文</Label>
-              <Textarea 
-                id="emailBody" 
-                value={emailBody}
-                onChange={(e) => setEmailBody(e.target.value)}
-                placeholder="メール本文を入力"
-                rows={20}
-                style={{ minHeight: '400px' }}
-              />
-              <p className="text-sm text-muted-foreground">
-                本文内に {`{SURVEY_URL}`} を記述すると、アンケート回答URLに自動的に置き換えられます。
-              </p>
-            </div>
+          <FormField label="メールタイトル">
+            <Input
+              value={emailTitle}
+              onChange={(e) => setEmailTitle(e.target.value)}
+              placeholder="メールタイトルを入力"
+            />
+          </FormField>
 
-            <div className="flex justify-end gap-4 pt-4">
-              <Button variant="outline" onClick={() => setStep("select")}>
-                戻る
-              </Button>
-              <Button variant="outline" onClick={handleCustomizeNext} >
-                次へ
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          <FormField
+            label="メール本文"
+            description={`本文内に {SURVEY_URL} を記述すると、アンケート回答URLに自動的に置き換えられます。`}
+          >
+            <Textarea
+              value={emailBody}
+              onChange={(e) => setEmailBody(e.target.value)}
+              placeholder="メール本文を入力"
+              rows={30}
+              className="min-h-[480px]"
+            />
+          </FormField>
+
+          <div className="flex justify-center gap-4 pt-4">
+            <ActionButton variant="outline" onClick={() => setStep("select")}>
+              戻る
+            </ActionButton>
+            <ActionButton onClick={handleCustomizeNext}>
+              次へ
+            </ActionButton>
+          </div>
+        </div>
       </div>
     );
   }
@@ -509,83 +486,63 @@ export default function EventSurveyPage({
   if (step === "confirm") {
     return (
       <div className="max-w-4xl space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setStep("customize")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold tracking-tight">アンケートメール送信</h1>
-            <p className="text-sm text-muted-foreground">
-              送信内容を確認して、テスト送信または送信を実行してください。
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          backAction={() => setStep("customize")}
+          title="アンケートメール送信"
+          description="送信内容を確認して、テスト送信または送信を実行してください。"
+        />
         
         <StepIndicator />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>確認</CardTitle>
-            <CardDescription>
-              送信内容を確認して、テスト送信または送信を実行してください。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>送信先</CardTitle>
-                <CardDescription>
-                  {selectedCustomers.length}名に送信します
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  {selectedCustomers.map((customerId) => {
-                    const customer = customers.find((c) => c.id === customerId);
-                    return customer ? (
-                      <div key={customerId}>
-                        {customer.name} ({customer.email})
-                      </div>
-                    ) : null;
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>メール内容</CardTitle>
-                <CardDescription>
-                  送信するメールのタイトルと本文です
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="font-medium mb-2">タイトル:</div>
-                  <div className="text-sm bg-muted p-3 rounded">{emailTitle}</div>
-                </div>
-                <div>
-                  <div className="font-medium mb-2">本文:</div>
-                  <div className="text-sm bg-muted p-3 rounded whitespace-pre-wrap">{previewBody}</div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="flex justify-end gap-4 pt-4">
-              <Button variant="outline" onClick={() => setStep("customize")}>
-                戻る
-              </Button>
-              <Button variant="outline" onClick={handleTestSend} >
-                <Mail className="h-4 w-4" />
-                テスト送信
-              </Button>
-              <Button variant="outline" onClick={handleSend} >
-                <Send className="h-4 w-4" />
-                送信
-              </Button>
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <SectionHeading>送信先</SectionHeading>
+            <p className="text-sm text-muted-foreground">
+              {selectedCustomers.length}名に送信します
+            </p>
+            <div className="space-y-2 text-sm">
+              {selectedCustomers.map((customerId) => {
+                const customer = customers.find((c) => c.id === customerId);
+                return customer ? (
+                  <div key={customerId}>
+                    {customer.name} ({customer.email})
+                  </div>
+                ) : null;
+              })}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          <div className="space-y-4">
+            <SectionHeading>メール内容</SectionHeading>
+            <p className="text-sm text-muted-foreground">
+              送信するメールのタイトルと本文です
+            </p>
+            <div className="space-y-4">
+              <div>
+                <div className="font-medium mb-2">タイトル:</div>
+                <div className="text-sm bg-muted p-3 rounded">{emailTitle}</div>
+              </div>
+              <div>
+                <div className="font-medium mb-2">本文:</div>
+                <div className="text-sm bg-muted p-3 rounded whitespace-pre-wrap">{previewBody}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-center gap-4 pt-4">
+            <ActionButton variant="outline" onClick={() => setStep("customize")}>
+              戻る
+            </ActionButton>
+            <ActionButton variant="outline" onClick={handleTestSend}>
+              <Mail className="h-4 w-4" />
+              テスト送信
+            </ActionButton>
+            <ActionButton onClick={handleSend}>
+              <Send className="h-4 w-4" />
+              送信
+            </ActionButton>
+          </div>
+        </div>
       </div>
     );
   }

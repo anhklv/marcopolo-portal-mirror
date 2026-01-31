@@ -19,10 +19,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { events, customers, getSurveyByEventId, getSurveyResponses, getFixedSurveyResponses } from "@/lib/data/mock";
-import type { FixedSurveyResponse } from "@/lib/types";
-import { formatEventDate, formatDateTime } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 
 export default function SurveyResultsPage({
   params,
@@ -49,19 +48,11 @@ export default function SurveyResultsPage({
   if (!survey) {
     return (
       <div className="max-w-4xl space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href={`/admin/events/${id}`}>
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">アンケート結果</h1>
-            <p className="text-sm text-muted-foreground">
-              このイベントにはアンケートが作成されていません。
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          backHref={`/admin/events/${id}`}
+          title="アンケート結果"
+          description="このイベントにはアンケートが作成されていません。"
+        />
       </div>
     );
   }
@@ -91,19 +82,11 @@ export default function SurveyResultsPage({
 
   return (
     <div className="max-w-6xl space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/admin/events/${id}`}>
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">アンケート結果</h1>
-          <p className="text-sm text-muted-foreground">
-            {event.title} のアンケート回答結果
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        backHref={`/admin/events/${id}`}
+        title="アンケート結果"
+        description={`${event.title} のアンケート回答結果`}
+      />
 
       <Card>
         <CardHeader>
