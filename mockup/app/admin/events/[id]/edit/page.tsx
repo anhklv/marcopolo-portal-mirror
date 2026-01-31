@@ -9,17 +9,7 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
 import { FormField } from "@/components/ui/form-field";
 import { Stack } from "@/components/ui/stack";
 import { PageHeader } from "@/components/ui/page-header";
@@ -117,7 +107,6 @@ export default function EventEditPage({
   const [note, setNote] = useState((event as any).note || "");
   const [allowsOnline, setAllowsOnline] = useState(event.allowsOnline ?? false);
   const [hasAfterParty, setHasAfterParty] = useState(event.hasAfterParty ?? false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -155,11 +144,6 @@ export default function EventEditPage({
     }
     toast.success("イベント情報を更新しました");
     router.push(`/admin/events/${id}`);
-  };
-
-  const handleDelete = () => {
-    toast.success("イベントを削除しました");
-    router.push("/admin/events");
   };
 
   return (
@@ -315,39 +299,6 @@ export default function EventEditPage({
           <ActionButton type="submit">更新</ActionButton>
         </div>
       </form>
-
-      <div className="pt-4">
-        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <DialogTrigger asChild>
-            <Button type="button" variant="destructive">
-              <Trash2 className="h-4 w-4 mr-2" />
-              削除
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-white">
-            <DialogHeader>
-              <DialogTitle>イベントを削除</DialogTitle>
-              <DialogDescription>
-                このイベントを削除してもよろしいですか？この操作は取り消せません。
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsDeleteDialogOpen(false)}
-              >
-                キャンセル
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-              >
-                削除
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
     </div>
   );
 }

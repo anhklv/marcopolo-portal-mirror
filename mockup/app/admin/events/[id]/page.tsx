@@ -33,7 +33,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { Stack } from "@/components/ui/stack";
 import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { toast } from "sonner";
-import { Mail, Edit, MoreVertical, Pause, Play, FileText, Search, ChevronDown, Send } from "lucide-react";
+import { Mail, Edit, MoreVertical, Pause, Play, FileText, Search, ChevronDown, Send, Trash2 } from "lucide-react";
 import { events, customers, rsvps, getEventStatus, getSurveyByEventId, getSurveyResponses, getFixedSurveyResponses } from "@/lib/data/mock";
 import { RSVP_STATUSES } from "@/lib/constants/event";
 import { cn, formatEventDate, formatDateTime } from "@/lib/utils";
@@ -43,6 +43,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 // イベント種別のバッジvariantを取得
 const getEventTypeVariant = (eventType: string) => {
@@ -67,6 +76,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
   const eventStatus = getEventStatus(eventData);
   const [isPaused, setIsPaused] = useState(eventData.isPaused ?? false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const event = eventData;
   const survey = getSurveyByEventId(id);
 
@@ -168,6 +178,12 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
     } else {
       setSelectedStatuses(selectedStatuses.filter((s) => s !== status));
     }
+  };
+
+  const handleDelete = () => {
+    toast.success("イベントを削除しました");
+    setIsDeleteDialogOpen(false);
+    router.push("/admin/events");
   };
 
 
@@ -441,6 +457,42 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                             </Stack>
                         </CardContent>
                     </Card>
+
+                    <div className="flex justify-end pt-4 border-t">
+                        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    削除
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="bg-white">
+                                <DialogHeader>
+                                    <DialogTitle>イベントを削除</DialogTitle>
+                                    <DialogDescription>
+                                        このイベントを削除してもよろしいですか？この操作は取り消せません。
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <DialogFooter>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setIsDeleteDialogOpen(false)}
+                                    >
+                                        キャンセル
+                                    </Button>
+                                    <Button
+                                        variant="destructive"
+                                        onClick={handleDelete}
+                                    >
+                                        削除
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
                 </TabsContent>
 
                 {((event as any).eventType || "ベンチャー監査役の会") === "ベンチャー監査役の会" && (
