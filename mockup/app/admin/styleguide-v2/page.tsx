@@ -720,13 +720,15 @@ export default function StyleguideV2Page() {
             code={`<Badge variant="default">default</Badge>
 <Badge variant="secondary">secondary</Badge>
 <Badge variant="outline">outline</Badge>
-<Badge variant="destructive">destructive</Badge>`}
+<Badge variant="destructive">destructive</Badge>
+<Badge variant="destructive-outline">destructive-outline</Badge>`}
           >
             <div className="flex gap-2">
               <Badge variant="default">default</Badge>
               <Badge variant="secondary">secondary</Badge>
               <Badge variant="outline">outline</Badge>
               <Badge variant="destructive">destructive</Badge>
+              <Badge variant="destructive-outline">destructive-outline</Badge>
             </div>
           </Example>
 

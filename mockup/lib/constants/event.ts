@@ -20,7 +20,7 @@ export const RSVP_STATUSES = [
 export const RSVP_STATUS_CONFIG = {
   attending: { label: "参加", variant: "default", description: "通常参加" },
   online: { label: "オンライン参加", variant: "online", description: "オンライン参加（専用バリアント）" },
-  absent: { label: "不参加", variant: "destructive", description: "不参加" },
+  absent: { label: "不参加", variant: "destructive-outline", description: "不参加" },
   pending: { label: "未回答", variant: "secondary", description: "未回答" },
 } as const;
 
@@ -38,7 +38,7 @@ export type EventDisplayStatus = "open" | "paused" | "waiting" | "closed";
 // イベントステータスの表示設定（Badge用）
 export const EVENT_STATUS_CONFIG: Record<EventDisplayStatus, { label: string, variant: string, description: string }> = {
   open: { label: "受付中", variant: "default", description: "受付中（期間内）" },
-  paused: { label: "一時停止中", variant: "destructive", description: "受付期間中だが手動停止中" },
+  paused: { label: "一時停止中", variant: "destructive-outline", description: "受付期間中だが手動停止中" },
   waiting: { label: "受付終了", variant: "outline", description: "受付終了（開催前）" },
   closed: { label: "終了", variant: "secondary", description: "イベント終了" },
 } as const;

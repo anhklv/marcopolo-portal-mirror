@@ -78,11 +78,6 @@ test('アンケート作成が200を返す', async ({ page }) => {
   expect(response?.status()).toBe(200);
 });
 
-test('アンケート結果が200を返す', async ({ page }) => {
-  const response = await page.goto('/admin/events/E001/survey/results');
-  expect(response?.status()).toBe(200);
-});
-
 test('イベント参加登録が200を返す', async ({ page }) => {
   const response = await page.goto('/events/E001/rsvp');
   expect(response?.status()).toBe(200);

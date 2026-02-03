@@ -120,7 +120,7 @@ export const USER_ROLE_CONFIG = {
   member: { label: "会員", variant: "default", description: "通常会員" },
   sponsor: { label: "スポンサー", variant: "outline", description: "スポンサー会員" },
   observer: { label: "オブザーバー", variant: "outline", description: "オブザーバー会員" },
-  retired: { label: "退会", variant: "destructive", description: "退会済み" },
+  retired: { label: "退会", variant: "destructive-outline", description: "退会済み" },
   premium: { label: "プレミアム", variant: "premium", description: "プレミアム会員（専用バリアント）" },
 } as const;
 

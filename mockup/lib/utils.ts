@@ -167,4 +167,3 @@ export function getEventDisplayStatus(event: Pick<Event, "date" | "responseDeadl
   // それ以外 -> 受付中
   return "open";
 }
-
