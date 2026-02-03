@@ -78,7 +78,7 @@ class MockRSVPRepository implements IRepository<RSVP> {
       eventId: data.eventId,
       customerId: data.customerId,
       token,
-      status: data.status || "未回答",
+      status: data.status || "pending",
       ...data,
     } as RSVP;
 

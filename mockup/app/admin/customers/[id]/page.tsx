@@ -31,8 +31,10 @@ import {
 import { Edit, Trash2 } from "lucide-react";
 import { customers, events, rsvps } from "@/lib/data/mock";
 import { CONTRACT_TYPE_LABELS, GENDER_LABELS } from "@/lib/constants/common";
+import { USER_ROLE_CONFIG } from "@/lib/constants/customer";
 import { use, useState } from "react";
 import React from "react";
+import { RSVP_STATUS_CONFIG } from "@/lib/constants/event";
 import { formatEventDate, formatDate } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -128,7 +130,7 @@ export default function CustomerDetailPage({
                   // 非会員の判定（communitiesが空配列）
                   if (customer.communities.length === 0) {
                     badges.push(
-                      <Badge key="non-member" variant="non-member">
+                      <Badge key="non-member" variant="outline">
                         非会員
                       </Badge>
                     );
@@ -158,8 +160,8 @@ export default function CustomerDetailPage({
                     // プレミアム会員バッジ
                     if (customer.auditMemberPremium) {
                       badges.push(
-                        <Badge key="premium" variant="premium">
-                          プレミアム
+                        <Badge key="premium" variant={USER_ROLE_CONFIG.premium.variant}>
+                          {USER_ROLE_CONFIG.premium.label}
                         </Badge>
                       );
                     }
@@ -181,15 +183,15 @@ export default function CustomerDetailPage({
                 <div className="flex items-center justify-between">
                   <Label className="font-semibold text-base">ベンチャー監査役の会</Label>
                   {customer.memberCategory === "member" && customer.auditMemberType && (
-                    <Badge variant="member">
+                    <Badge variant={USER_ROLE_CONFIG.member.variant}>
                       {customer.auditMemberType === "regular" ? "正会員" : "オンライン会員"}
                     </Badge>
                   )}
                   {customer.memberCategory === "sponsor" && (
-                    <Badge variant="sponsor">スポンサー</Badge>
+                    <Badge variant={USER_ROLE_CONFIG.sponsor.variant}>{USER_ROLE_CONFIG.sponsor.label}</Badge>
                   )}
                   {customer.memberCategory === "observer" && (
-                    <Badge variant="observer">オブザーバー</Badge>
+                    <Badge variant={USER_ROLE_CONFIG.observer.variant}>{USER_ROLE_CONFIG.observer.label}</Badge>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-6">
@@ -215,13 +217,13 @@ export default function CustomerDetailPage({
               <div className="flex items-center justify-between">
                 <Label className="font-semibold text-base">ないかんMeetup</Label>
                 {customer.memberCategory === "member" && (
-                  <Badge variant="member">会員</Badge>
+                  <Badge variant={USER_ROLE_CONFIG.member.variant}>{USER_ROLE_CONFIG.member.label}</Badge>
                 )}
                 {customer.memberCategory === "sponsor" && (
-                  <Badge variant="sponsor">スポンサー</Badge>
+                  <Badge variant={USER_ROLE_CONFIG.sponsor.variant}>{USER_ROLE_CONFIG.sponsor.label}</Badge>
                 )}
                 {customer.memberCategory === "observer" && (
-                  <Badge variant="observer">オブザーバー</Badge>
+                  <Badge variant={USER_ROLE_CONFIG.observer.variant}>{USER_ROLE_CONFIG.observer.label}</Badge>
                 )}
               </div>
               <div className="grid grid-cols-2 gap-6">
@@ -244,13 +246,13 @@ export default function CustomerDetailPage({
                 <div className="flex items-center justify-between">
                   <Label className="font-semibold text-base">AI部会</Label>
                   {customer.memberCategory === "member" && (
-                    <Badge variant="member">会員</Badge>
+                    <Badge variant={USER_ROLE_CONFIG.member.variant}>{USER_ROLE_CONFIG.member.label}</Badge>
                   )}
                   {customer.memberCategory === "sponsor" && (
-                    <Badge variant="sponsor">スポンサー</Badge>
+                    <Badge variant={USER_ROLE_CONFIG.sponsor.variant}>{USER_ROLE_CONFIG.sponsor.label}</Badge>
                   )}
                   {customer.memberCategory === "observer" && (
-                    <Badge variant="observer">オブザーバー</Badge>
+                    <Badge variant={USER_ROLE_CONFIG.observer.variant}>{USER_ROLE_CONFIG.observer.label}</Badge>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-6">
@@ -357,14 +359,14 @@ export default function CustomerDetailPage({
                             <TableCell>
                               <Badge
                                 variant={
-                                  event.rsvpStatus === "参加"
-                                    ? "default"
-                                    : event.rsvpStatus === "不参加"
-                                    ? "secondary"
+                                  event.rsvpStatus && RSVP_STATUS_CONFIG[event.rsvpStatus]
+                                    ? (RSVP_STATUS_CONFIG[event.rsvpStatus].variant as any)
                                     : "outline"
                                 }
                               >
-                                {event.rsvpStatus}
+                                {event.rsvpStatus && RSVP_STATUS_CONFIG[event.rsvpStatus]
+                                  ? RSVP_STATUS_CONFIG[event.rsvpStatus].label
+                                  : event.rsvpStatus}
                               </Badge>
                             </TableCell>
                           </TableRow>
@@ -408,14 +410,14 @@ export default function CustomerDetailPage({
                             <TableCell>
                               <Badge
                                 variant={
-                                  event.rsvpStatus === "参加"
-                                    ? "default"
-                                    : event.rsvpStatus === "不参加"
-                                    ? "secondary"
+                                  event.rsvpStatus && RSVP_STATUS_CONFIG[event.rsvpStatus]
+                                    ? (RSVP_STATUS_CONFIG[event.rsvpStatus].variant as any)
                                     : "outline"
                                 }
                               >
-                                {event.rsvpStatus}
+                                {event.rsvpStatus && RSVP_STATUS_CONFIG[event.rsvpStatus]
+                                  ? RSVP_STATUS_CONFIG[event.rsvpStatus].label
+                                  : event.rsvpStatus}
                               </Badge>
                             </TableCell>
                           </TableRow>

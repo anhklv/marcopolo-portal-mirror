@@ -65,17 +65,17 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
         
         // 既存の回答があれば読み込む
         const rsvp = rsvps.find((r) => r.eventId === id && r.customerId === customerData.id);
-        if (rsvp && rsvp.status !== "未回答") {
-          if (rsvp.status === "参加") {
+        if (rsvp && rsvp.status !== "pending") {
+          if (rsvp.status === "attending") {
             setStatus(rsvp.attendanceType === "オンライン参加" ? "online" : "attend");
             setAttendanceType(rsvp.attendanceType || "通常参加");
             if (rsvp.afterPartyStatus) {
               setAfterPartyStatus(rsvp.afterPartyStatus);
             }
-          } else if (rsvp.status === "オンライン参加") {
+          } else if (rsvp.status === "online") {
             setStatus("online");
             setAttendanceType("オンライン参加");
-          } else if (rsvp.status === "不参加") {
+          } else if (rsvp.status === "absent") {
             setStatus("decline");
           }
         }
@@ -101,17 +101,17 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
       setEmailVerified(true);
       
       // 既存の回答があれば読み込む
-      if (rsvp.status !== "未回答") {
-        if (rsvp.status === "参加") {
+      if (rsvp.status !== "pending") {
+        if (rsvp.status === "attending") {
           setStatus(rsvp.attendanceType === "オンライン参加" ? "online" : "attend");
           setAttendanceType(rsvp.attendanceType || "通常参加");
           if (rsvp.afterPartyStatus) {
             setAfterPartyStatus(rsvp.afterPartyStatus);
           }
-        } else if (rsvp.status === "オンライン参加") {
+        } else if (rsvp.status === "online") {
           setStatus("online");
           setAttendanceType("オンライン参加");
-        } else if (rsvp.status === "不参加") {
+        } else if (rsvp.status === "absent") {
           setStatus("decline");
         }
       }

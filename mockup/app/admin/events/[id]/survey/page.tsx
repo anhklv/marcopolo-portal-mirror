@@ -48,7 +48,7 @@ export default function EventSurveyPage({
   // このイベントの参加者のみを取得（通常参加とオンライン参加の両方）
   const attendees = useMemo(() => {
     if (!event) return [];
-    const eventRsvps = rsvps.filter((r) => r.eventId === id && (r.status === "参加" || r.status === "オンライン参加"));
+    const eventRsvps = rsvps.filter((r) => r.eventId === id && (r.status === "attending" || r.status === "online"));
     return eventRsvps.map((rsvp) => {
       const customer = customers.find((c) => c.id === rsvp.customerId);
       return customer ? { ...customer, rsvpStatus: rsvp.status, attendanceType: rsvp.attendanceType } : null;
@@ -417,7 +417,7 @@ export default function EventSurveyPage({
                             return badges.length > 0 ? badges : null;
                           })()}
                         </div>
-                        {attendee.rsvpStatus === "オンライン参加" && (
+                        {attendee.rsvpStatus === "online" && (
                           <Badge variant="online">
                             オンライン参加
                           </Badge>

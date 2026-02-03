@@ -22,6 +22,8 @@ import { CheckboxItem } from "@/components/ui/checkbox-item"
 import { RadioItem } from "@/components/ui/radio-item"
 import { RadioGroup } from "@/components/ui/radio-group"
 import { ActionButton } from "@/components/ui/action-button"
+import { RSVP_STATUS_CONFIG, EVENT_STATUS_CONFIG, type RsvpStatusConfigKey, type EventStatusConfigKey } from "@/lib/constants/event"
+import { USER_ROLE_CONFIG, type UserRoleConfigKey } from "@/lib/constants/customer"
 import { toast } from "sonner"
 import { Palette, LayoutGrid, FormInput, Package, FileCode, Type, Sparkles, Box, Trash2 } from "lucide-react"
 import {
@@ -743,122 +745,131 @@ export default function StyleguideV2Page() {
             </div>
           </Example>
 
-          <h4 className="text-sm font-medium pt-4">会員区分（ロール）</h4>
+          <h4 className="text-sm font-medium pt-4">ステータスバッジ定義</h4>
           <Example
-            code={`<Badge variant="member">会員</Badge>
-<Badge variant="sponsor">スポンサー</Badge>
-<Badge variant="observer">オブザーバー</Badge>
-<Badge variant="destructive">退会</Badge>
-<Badge variant="premium">プレミアム</Badge>`}
+            code={`// 定数定義のインポート
+import { USER_ROLE_CONFIG } from "@/lib/constants/customer"
+import { RSVP_STATUS_CONFIG, EVENT_STATUS_CONFIG } from "@/lib/constants/event"
+
+// --- 会員ステータスの使用例 ---
+<Badge variant={USER_ROLE_CONFIG.member.variant}>
+  {USER_ROLE_CONFIG.member.label}
+</Badge>
+
+// --- 参加者ステータスの使用例 ---
+<Badge variant={RSVP_STATUS_CONFIG.attending.variant}>
+  {RSVP_STATUS_CONFIG.attending.label}
+</Badge>
+
+// --- イベントステータスの使用例 ---
+<Badge variant={EVENT_STATUS_CONFIG.open.variant}>
+  {EVENT_STATUS_CONFIG.open.label}
+</Badge>`}
           >
-            <div className="flex gap-2 flex-wrap">
-              <Badge variant="member">会員</Badge>
-              <Badge variant="sponsor">スポンサー</Badge>
-              <Badge variant="observer">オブザーバー</Badge>
-              <Badge variant="destructive">退会</Badge>
-              <Badge variant="premium">プレミアム</Badge>
+            <div className="space-y-8">
+              {/* 会員ステータス */}
+              <div>
+                <h5 className="font-semibold mb-3">会員ステータス</h5>
+                <div className="text-sm rounded-lg border bg-white overflow-hidden">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b bg-slate-50">
+                        <th className="text-left py-2 px-4">ステータス</th>
+                        <th className="text-left py-2 px-4">表示テキスト</th>
+                        <th className="text-left py-2 px-4">Variant</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(USER_ROLE_CONFIG).map(([key, config]) => (
+                        <tr key={key} className="border-b last:border-0">
+                          <td className="py-2 px-4">{key}</td>
+                          <td className="py-2 px-4">{config.label}</td>
+                          <td className="py-2 px-4"><code>{config.variant}</code></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-4 flex gap-2 flex-wrap">
+                  {Object.entries(USER_ROLE_CONFIG).map(([key, config]) => (
+                    <Badge key={key} variant={config.variant as any}>
+                      {config.label}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* 参加者（RSVP）ステータス */}
+              <div>
+                <h5 className="font-semibold mb-3">参加者（RSVP）ステータス</h5>
+                <div className="text-sm rounded-lg border bg-white overflow-hidden">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b bg-slate-50">
+                        <th className="text-left py-2 px-4">ステータス</th>
+                        <th className="text-left py-2 px-4">表示テキスト</th>
+                        <th className="text-left py-2 px-4">Variant</th>
+                        <th className="text-left py-2 px-4">説明</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(RSVP_STATUS_CONFIG).map(([key, config]) => (
+                        <tr key={key} className="border-b last:border-0">
+                          <td className="py-2 px-4">{key}</td>
+                          <td className="py-2 px-4">{config.label}</td>
+                          <td className="py-2 px-4"><code>{config.variant}</code></td>
+                          <td className="py-2 px-4 text-muted-foreground">{config.description}</td>
+                        </tr>
+                      ))}
+                      <tr>
+                        <td className="py-2 px-4">懇親会</td>
+                        <td className="py-2 px-4">懇親会: {"{ステータス}"}</td>
+                        <td className="py-2 px-4"><code>outline</code></td>
+                        <td className="py-2 px-4 text-muted-foreground">懇親会の参加ステータス</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-4 flex gap-2 flex-wrap">
+                  {Object.entries(RSVP_STATUS_CONFIG).map(([key, config]) => (
+                    <Badge key={key} variant={config.variant as any}>{config.label}</Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* イベントステータス */}
+              <div>
+                <h5 className="font-semibold mb-3">イベントステータス</h5>
+                <div className="text-sm rounded-lg border bg-white overflow-hidden">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b bg-slate-50">
+                        <th className="text-left py-2 px-4">ステータス</th>
+                        <th className="text-left py-2 px-4">表示テキスト</th>
+                        <th className="text-left py-2 px-4">Variant</th>
+                        <th className="text-left py-2 px-4">説明</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(EVENT_STATUS_CONFIG).map(([key, config]) => (
+                        <tr key={key} className="border-b last:border-0">
+                          <td className="py-2 px-4">{key}</td>
+                          <td className="py-2 px-4">{config.label}</td>
+                          <td className="py-2 px-4"><code>{config.variant}</code></td>
+                          <td className="py-2 px-4 text-muted-foreground">{config.description}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-4 flex gap-2 flex-wrap">
+                  {Object.entries(EVENT_STATUS_CONFIG).map(([key, config]) => (
+                    <Badge key={key} variant={config.variant as any}>{config.label}</Badge>
+                  ))}
+                </div>
+              </div>
             </div>
           </Example>
-
-          <h4 className="text-sm font-medium pt-4">ステータスバッジパターン</h4>
-          <div className="text-sm rounded-lg border bg-white p-4 space-y-6">
-            <div>
-              <h5 className="font-semibold mb-3">参加者（RSVP）ステータス</h5>
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2">ステータス</th>
-                    <th className="text-left py-2">表示テキスト</th>
-                    <th className="text-left py-2">Variant</th>
-                    <th className="text-left py-2">説明</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b">
-                    <td className="py-2">参加</td>
-                    <td className="py-2">参加</td>
-                    <td className="py-2"><code>default</code></td>
-                    <td className="py-2 text-muted-foreground">通常参加</td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="py-2">オンライン参加</td>
-                    <td className="py-2">オンライン参加</td>
-                    <td className="py-2"><code>online</code></td>
-                    <td className="py-2 text-muted-foreground">オンライン参加（専用バリアント）</td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="py-2">不参加</td>
-                    <td className="py-2">不参加</td>
-                    <td className="py-2"><code>destructive</code></td>
-                    <td className="py-2 text-muted-foreground">不参加</td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="py-2">未回答</td>
-                    <td className="py-2">未回答</td>
-                    <td className="py-2"><code>secondary</code></td>
-                    <td className="py-2 text-muted-foreground">未回答</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2">懇親会</td>
-                    <td className="py-2">懇親会: {`{ステータス}`}</td>
-                    <td className="py-2"><code>outline</code></td>
-                    <td className="py-2 text-muted-foreground">懇親会の参加ステータス（参加者が通常参加の場合のみ表示）</td>
-                  </tr>
-                </tbody>
-              </table>
-              <div className="mt-4 flex gap-2">
-                <Badge variant="default">参加</Badge>
-                <Badge variant="online">オンライン参加</Badge>
-                <Badge variant="destructive">不参加</Badge>
-                <Badge variant="secondary">未回答</Badge>
-              </div>
-            </div>
-
-            <div>
-              <h5 className="font-semibold mb-3">イベントステータス</h5>
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2">ステータス</th>
-                    <th className="text-left py-2">表示テキスト</th>
-                    <th className="text-left py-2">Variant</th>
-                    <th className="text-left py-2">説明</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b">
-                    <td className="py-2">open</td>
-                    <td className="py-2">受付中</td>
-                    <td className="py-2"><code>default</code></td>
-                    <td className="py-2 text-muted-foreground">受付中</td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="py-2">open (isPaused=true)</td>
-                    <td className="py-2">受付中(一時停止)</td>
-                    <td className="py-2"><code>default</code></td>
-                    <td className="py-2 text-muted-foreground">受付中（一時停止中）</td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="py-2">waiting</td>
-                    <td className="py-2">受付終了</td>
-                    <td className="py-2"><code>outline</code></td>
-                    <td className="py-2 text-muted-foreground">受付終了（開催前）</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2">closed</td>
-                    <td className="py-2">終了</td>
-                    <td className="py-2"><code>secondary</code></td>
-                    <td className="py-2 text-muted-foreground">イベント終了</td>
-                  </tr>
-                </tbody>
-              </table>
-              <div className="mt-4 flex gap-2">
-                <Badge variant="default">受付中</Badge>
-                <Badge variant="outline">受付終了</Badge>
-                <Badge variant="secondary">終了</Badge>
-              </div>
-            </div>
-          </div>
         </div>
 
         <Separator />

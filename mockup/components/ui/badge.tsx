@@ -28,11 +28,6 @@ const badgeVariants = cva(
           "border-transparent bg-[#7AB2B2] text-white [a&]:hover:bg-[#7AB2B2]/90",
         online:
           "border-transparent bg-blue-100 text-blue-800 [a&]:hover:bg-blue-200",
-        member: "bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
-        sponsor:
-          "border-border bg-white text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
-        observer:
-          "border-border bg-white text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         "non-member":
           "border-border bg-white text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
       },

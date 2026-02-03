@@ -102,7 +102,7 @@ const rsvp = await rsvpRepository.findByToken("token-xxx");
 const newRsvp = await rsvpRepository.create({
   eventId: "E001",
   customerId: "C001",
-  status: "参加",
+  status: "attending",
   attendanceType: "通常参加",
 });
 
@@ -110,7 +110,7 @@ const newRsvp = await rsvpRepository.create({
 await rsvpRepository.update("", {
   eventId: "E001",
   customerId: "C001",
-  status: "参加",
+  status: "attending",
   respondedAt: new Date().toISOString(),
 });
 ```

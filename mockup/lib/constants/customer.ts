@@ -114,3 +114,14 @@ export const NAIKAN_AFFILIATIONS = [
 
 // AI部会 所属（ないかんMeetupと同じ項目を使用）
 export const AI_AFFILIATIONS = NAIKAN_AFFILIATIONS;
+
+// ユーザーロール（会員区分）の表示設定
+export const USER_ROLE_CONFIG = {
+  member: { label: "会員", variant: "default" },
+  sponsor: { label: "スポンサー", variant: "outline" },
+  observer: { label: "オブザーバー", variant: "outline" },
+  retired: { label: "退会", variant: "destructive" },
+  premium: { label: "プレミアム", variant: "premium" },
+} as const;
+
+export type UserRoleConfigKey = keyof typeof USER_ROLE_CONFIG;

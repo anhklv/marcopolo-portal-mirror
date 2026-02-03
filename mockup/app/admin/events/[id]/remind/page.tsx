@@ -56,7 +56,7 @@ export default function EventRemindPage({
   
   // 未回答者のみを取得
   const noResponseAttendees = useMemo(() => {
-    const noResponseRsvps = eventRsvps.filter((r) => r.status === "未回答");
+    const noResponseRsvps = eventRsvps.filter((r) => r.status === "pending");
     return noResponseRsvps.map((rsvp) => {
       const customer = customers.find((c) => c.id === rsvp.customerId);
       return customer ? { ...customer, rsvpStatus: rsvp.status } : null;

@@ -80,7 +80,7 @@ export default function EventsPage() {
       }).filter((a): a is NonNullable<typeof a> => a !== null);
 
       const actualAttendeesCount = allAttendees.filter(
-        (a) => a.status === "参加" || a.status === "オンライン参加"
+        (a) => a.status === "attending" || a.status === "online"
       ).length;
 
       return {

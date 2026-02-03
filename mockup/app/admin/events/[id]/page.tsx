@@ -35,7 +35,7 @@ import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { toast } from "sonner";
 import { Mail, Edit, MoreVertical, Pause, Play, FileText, Search, ChevronDown, Send, Trash2 } from "lucide-react";
 import { events, customers, rsvps, getEventStatus, getSurveyByEventId, getSurveyResponses, getFixedSurveyResponses } from "@/lib/data/mock";
-import { RSVP_STATUSES } from "@/lib/constants/event";
+import { RSVP_STATUS_CONFIG, RSVP_STATUSES } from "@/lib/constants/event";
 import { cn, formatEventDate, formatDateTime } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -114,10 +114,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
       const matchesStatus =
         selectedStatuses.length === 0 ||
         selectedStatuses.some((selectedStatus) => {
-          if (selectedStatus === "現地参加") {
-            return attendee.rsvpStatus === "参加" && attendee.attendanceType !== "オンライン参加";
-          } else if (selectedStatus === "オンライン参加") {
-            return attendee.rsvpStatus === "オンライン参加" || (attendee.rsvpStatus === "参加" && attendee.attendanceType === "オンライン参加");
+          if (selectedStatus === "onsite") { // 現地参加
+            return attendee.rsvpStatus === "attending" && attendee.attendanceType !== "オンライン参加";
+          } else if (selectedStatus === "online") { // オンライン参加
+            return attendee.rsvpStatus === "online" || (attendee.rsvpStatus === "attending" && attendee.attendanceType === "オンライン参加");
           } else {
             return attendee.rsvpStatus === selectedStatus;
           }
@@ -129,17 +129,17 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
   // 集計サマリを計算（フィルタ前の全データから）
   const onsiteCount = allAttendees.filter((a) => 
-    a.rsvpStatus === "参加" && (a.attendanceType === "通常参加" || !a.attendanceType || a.attendanceType === undefined)
+    a.rsvpStatus === "attending" && (a.attendanceType === "通常参加" || !a.attendanceType || a.attendanceType === undefined)
   ).length;
   const onlineCount = allAttendees.filter((a) => 
-    a.rsvpStatus === "オンライン参加" || (a.rsvpStatus === "参加" && a.attendanceType === "オンライン参加")
+    a.rsvpStatus === "online" || (a.rsvpStatus === "attending" && a.attendanceType === "オンライン参加")
   ).length;
-  const declineCount = allAttendees.filter((a) => a.rsvpStatus === "不参加").length;
+  const declineCount = allAttendees.filter((a) => a.rsvpStatus === "absent").length;
   const afterPartyCount = allAttendees.filter((a) => a.afterPartyStatus === "参加").length;
-  const noResponseCount = allAttendees.filter((a) => a.rsvpStatus === "未回答").length;
+  const noResponseCount = allAttendees.filter((a) => a.rsvpStatus === "pending").length;
 
   // 未回答者リスト
-  const noResponseAttendees = allAttendees.filter((a) => a.rsvpStatus === "未回答");
+  const noResponseAttendees = allAttendees.filter((a) => a.rsvpStatus === "pending");
 
   // アンケート結果のデータ（ベンチャー監査役の会の場合のみ）
   const surveyResults = useMemo(() => {
@@ -376,18 +376,16 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                                     <div className="flex flex-col gap-1">
                                                         <Badge 
                                                             variant={
-                                                                attendee.rsvpStatus === "オンライン参加" || (attendee.rsvpStatus === "参加" && attendee.attendanceType === "オンライン参加") ? "online" :
-                                                                attendee.rsvpStatus === "参加" ? "default" : 
-                                                                attendee.rsvpStatus === "不参加" ? "destructive" : "secondary"
+                                                                (attendee.rsvpStatus && RSVP_STATUS_CONFIG[attendee.rsvpStatus])
+                                                                    ? (RSVP_STATUS_CONFIG[attendee.rsvpStatus].variant as any)
+                                                                    : "outline"
                                                             }
                                                         >
-                                                            {attendee.rsvpStatus === "オンライン参加" 
-                                                                ? "オンライン参加"
-                                                                : attendee.rsvpStatus === "参加" && attendee.attendanceType === "オンライン参加"
-                                                                ? "オンライン参加"
+                                                            {attendee.rsvpStatus && RSVP_STATUS_CONFIG[attendee.rsvpStatus]
+                                                                ? RSVP_STATUS_CONFIG[attendee.rsvpStatus].label
                                                                 : attendee.rsvpStatus}
                                                         </Badge>
-                                                        {attendee.rsvpStatus === "参加" && attendee.attendanceType === "通常参加" && attendee.afterPartyStatus && (
+                                                        {attendee.rsvpStatus === "attending" && attendee.attendanceType === "通常参加" && attendee.afterPartyStatus && (
                                                             <Badge variant="outline">
                                                                 懇親会: {attendee.afterPartyStatus}
                                                             </Badge>
