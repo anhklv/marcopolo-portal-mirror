@@ -376,14 +376,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                                     <div className="flex flex-col gap-1">
                                                         <Badge 
                                                             variant={
-                                                                attendee.rsvpStatus === "参加" || attendee.rsvpStatus === "オンライン参加" ? "default" : 
+                                                                attendee.rsvpStatus === "オンライン参加" || (attendee.rsvpStatus === "参加" && attendee.attendanceType === "オンライン参加") ? "online" :
+                                                                attendee.rsvpStatus === "参加" ? "default" : 
                                                                 attendee.rsvpStatus === "不参加" ? "destructive" : "secondary"
                                                             }
-                                                            className={cn(
-                                                                attendee.rsvpStatus === "未回答" && "bg-gray-100 text-gray-600 hover:bg-gray-200",
-                                                                attendee.rsvpStatus === "不参加" && "text-foreground",
-                                                                (attendee.rsvpStatus === "オンライン参加" || attendee.attendanceType === "オンライン参加") && "bg-blue-100 text-blue-800 hover:bg-blue-200"
-                                                            )}
                                                         >
                                                             {attendee.rsvpStatus === "オンライン参加" 
                                                                 ? "オンライン参加"
@@ -829,8 +825,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                 eventStatus === "open"
                                     ? "default"
                                     : eventStatus === "closed"
-                                    ? "outline"
-                                    : "secondary"
+                                    ? "secondary"
+                                    : "outline"
                             }
                         >
                             {eventStatus === "open"

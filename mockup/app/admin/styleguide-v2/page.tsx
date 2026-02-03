@@ -715,16 +715,16 @@ export default function StyleguideV2Page() {
           </h3>
 
           <Example
-            code={`<Badge variant="default">会員</Badge>
-<Badge variant="secondary">スポンサー</Badge>
-<Badge variant="outline">オブザーバー</Badge>
-<Badge variant="destructive">退会</Badge>`}
+            code={`<Badge variant="default">default</Badge>
+<Badge variant="secondary">secondary</Badge>
+<Badge variant="outline">outline</Badge>
+<Badge variant="destructive">destructive</Badge>`}
           >
             <div className="flex gap-2">
-              <Badge variant="default">会員</Badge>
-              <Badge variant="secondary">スポンサー</Badge>
-              <Badge variant="outline">オブザーバー</Badge>
-              <Badge variant="destructive">退会</Badge>
+              <Badge variant="default">default</Badge>
+              <Badge variant="secondary">secondary</Badge>
+              <Badge variant="outline">outline</Badge>
+              <Badge variant="destructive">destructive</Badge>
             </div>
           </Example>
 
@@ -733,15 +733,132 @@ export default function StyleguideV2Page() {
             code={`<Badge variant="audit">ベンチャー監査役の会</Badge>
 <Badge variant="naikan">ないかんMeetup</Badge>
 <Badge variant="ai">AI部会</Badge>
-<Badge variant="premium">プレミアム</Badge>`}
+<Badge variant="non-member">非会員</Badge>`}
           >
             <div className="flex gap-2 flex-wrap">
               <Badge variant="audit">ベンチャー監査役の会</Badge>
               <Badge variant="naikan">ないかんMeetup</Badge>
               <Badge variant="ai">AI部会</Badge>
+              <Badge variant="non-member">非会員</Badge>
+            </div>
+          </Example>
+
+          <h4 className="text-sm font-medium pt-4">会員区分（ロール）</h4>
+          <Example
+            code={`<Badge variant="member">会員</Badge>
+<Badge variant="sponsor">スポンサー</Badge>
+<Badge variant="observer">オブザーバー</Badge>
+<Badge variant="destructive">退会</Badge>
+<Badge variant="premium">プレミアム</Badge>`}
+          >
+            <div className="flex gap-2 flex-wrap">
+              <Badge variant="member">会員</Badge>
+              <Badge variant="sponsor">スポンサー</Badge>
+              <Badge variant="observer">オブザーバー</Badge>
+              <Badge variant="destructive">退会</Badge>
               <Badge variant="premium">プレミアム</Badge>
             </div>
           </Example>
+
+          <h4 className="text-sm font-medium pt-4">ステータスバッジパターン</h4>
+          <div className="text-sm rounded-lg border bg-white p-4 space-y-6">
+            <div>
+              <h5 className="font-semibold mb-3">参加者（RSVP）ステータス</h5>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2">ステータス</th>
+                    <th className="text-left py-2">表示テキスト</th>
+                    <th className="text-left py-2">Variant</th>
+                    <th className="text-left py-2">説明</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b">
+                    <td className="py-2">参加</td>
+                    <td className="py-2">参加</td>
+                    <td className="py-2"><code>default</code></td>
+                    <td className="py-2 text-muted-foreground">通常参加</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2">オンライン参加</td>
+                    <td className="py-2">オンライン参加</td>
+                    <td className="py-2"><code>online</code></td>
+                    <td className="py-2 text-muted-foreground">オンライン参加（専用バリアント）</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2">不参加</td>
+                    <td className="py-2">不参加</td>
+                    <td className="py-2"><code>destructive</code></td>
+                    <td className="py-2 text-muted-foreground">不参加</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2">未回答</td>
+                    <td className="py-2">未回答</td>
+                    <td className="py-2"><code>secondary</code></td>
+                    <td className="py-2 text-muted-foreground">未回答</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2">懇親会</td>
+                    <td className="py-2">懇親会: {`{ステータス}`}</td>
+                    <td className="py-2"><code>outline</code></td>
+                    <td className="py-2 text-muted-foreground">懇親会の参加ステータス（参加者が通常参加の場合のみ表示）</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div className="mt-4 flex gap-2">
+                <Badge variant="default">参加</Badge>
+                <Badge variant="online">オンライン参加</Badge>
+                <Badge variant="destructive">不参加</Badge>
+                <Badge variant="secondary">未回答</Badge>
+              </div>
+            </div>
+
+            <div>
+              <h5 className="font-semibold mb-3">イベントステータス</h5>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2">ステータス</th>
+                    <th className="text-left py-2">表示テキスト</th>
+                    <th className="text-left py-2">Variant</th>
+                    <th className="text-left py-2">説明</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b">
+                    <td className="py-2">open</td>
+                    <td className="py-2">受付中</td>
+                    <td className="py-2"><code>default</code></td>
+                    <td className="py-2 text-muted-foreground">受付中</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2">open (isPaused=true)</td>
+                    <td className="py-2">受付中(一時停止)</td>
+                    <td className="py-2"><code>default</code></td>
+                    <td className="py-2 text-muted-foreground">受付中（一時停止中）</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2">waiting</td>
+                    <td className="py-2">受付終了</td>
+                    <td className="py-2"><code>outline</code></td>
+                    <td className="py-2 text-muted-foreground">受付終了（開催前）</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2">closed</td>
+                    <td className="py-2">終了</td>
+                    <td className="py-2"><code>secondary</code></td>
+                    <td className="py-2 text-muted-foreground">イベント終了</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div className="mt-4 flex gap-2">
+                <Badge variant="default">受付中</Badge>
+                <Badge variant="outline">受付終了</Badge>
+                <Badge variant="secondary">終了</Badge>
+              </div>
+            </div>
+          </div>
         </div>
 
         <Separator />

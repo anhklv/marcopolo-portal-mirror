@@ -325,7 +325,7 @@ export default function EventSurveyPage({
                             // 非会員の判定（communitiesが空配列）
                             if (attendee.communities.length === 0) {
                               badges.push(
-                                <Badge key="non-member" variant="secondary">
+                                <Badge key="non-member" variant="non-member">
                                   非会員
                                 </Badge>
                               );
@@ -418,7 +418,7 @@ export default function EventSurveyPage({
                           })()}
                         </div>
                         {attendee.rsvpStatus === "オンライン参加" && (
-                          <Badge variant="outline">
+                          <Badge variant="online">
                             オンライン参加
                           </Badge>
                         )}

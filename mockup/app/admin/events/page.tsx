@@ -376,8 +376,8 @@ export default function EventsPage() {
                       event.status === "open"
                         ? "default"
                         : event.status === "waiting"
-                        ? "secondary"
-                        : "outline"
+                        ? "outline"
+                        : "secondary"
                     }
                   >
                     {event.status === "open"

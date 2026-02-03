@@ -128,7 +128,7 @@ export default function CustomerDetailPage({
                   // 非会員の判定（communitiesが空配列）
                   if (customer.communities.length === 0) {
                     badges.push(
-                      <Badge key="non-member" variant="secondary">
+                      <Badge key="non-member" variant="non-member">
                         非会員
                       </Badge>
                     );
@@ -181,15 +181,15 @@ export default function CustomerDetailPage({
                 <div className="flex items-center justify-between">
                   <Label className="font-semibold text-base">ベンチャー監査役の会</Label>
                   {customer.memberCategory === "member" && customer.auditMemberType && (
-                    <Badge variant="outline">
+                    <Badge variant="member">
                       {customer.auditMemberType === "regular" ? "正会員" : "オンライン会員"}
                     </Badge>
                   )}
                   {customer.memberCategory === "sponsor" && (
-                    <Badge variant="outline">スポンサー</Badge>
+                    <Badge variant="sponsor">スポンサー</Badge>
                   )}
                   {customer.memberCategory === "observer" && (
-                    <Badge variant="outline">オブザーバー</Badge>
+                    <Badge variant="observer">オブザーバー</Badge>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-6">
@@ -215,13 +215,13 @@ export default function CustomerDetailPage({
               <div className="flex items-center justify-between">
                 <Label className="font-semibold text-base">ないかんMeetup</Label>
                 {customer.memberCategory === "member" && (
-                  <Badge variant="outline">会員</Badge>
+                  <Badge variant="member">会員</Badge>
                 )}
                 {customer.memberCategory === "sponsor" && (
-                  <Badge variant="outline">スポンサー</Badge>
+                  <Badge variant="sponsor">スポンサー</Badge>
                 )}
                 {customer.memberCategory === "observer" && (
-                  <Badge variant="outline">オブザーバー</Badge>
+                  <Badge variant="observer">オブザーバー</Badge>
                 )}
               </div>
               <div className="grid grid-cols-2 gap-6">
@@ -244,13 +244,13 @@ export default function CustomerDetailPage({
                 <div className="flex items-center justify-between">
                   <Label className="font-semibold text-base">AI部会</Label>
                   {customer.memberCategory === "member" && (
-                    <Badge variant="outline">会員</Badge>
+                    <Badge variant="member">会員</Badge>
                   )}
                   {customer.memberCategory === "sponsor" && (
-                    <Badge variant="outline">スポンサー</Badge>
+                    <Badge variant="sponsor">スポンサー</Badge>
                   )}
                   {customer.memberCategory === "observer" && (
-                    <Badge variant="outline">オブザーバー</Badge>
+                    <Badge variant="observer">オブザーバー</Badge>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-6">

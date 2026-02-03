@@ -695,7 +695,7 @@ export default function EventInvitePage({
                           // 非会員の判定（communitiesが空配列）
                           if (customer.communities.length === 0) {
                             badges.push(
-                              <Badge key="non-member" variant="secondary">
+                              <Badge key="non-member" variant="non-member">
                                 非会員
                               </Badge>
                             );
