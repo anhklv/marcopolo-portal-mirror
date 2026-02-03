@@ -28,7 +28,8 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
 import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { events, getEventStatus, rsvps, customers } from "@/lib/data/mock";
-import { formatEventDate } from "@/lib/utils";
+import { formatEventDate, getEventDisplayStatus } from "@/lib/utils";
+import { EVENT_STATUS_CONFIG, type EventDisplayStatus } from "@/lib/constants/event";
 import { Plus, MoreVertical, Edit, Mail, Search, ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/contexts/auth.context";
 import type { CommunityScope } from "@/lib/types";
@@ -86,6 +87,7 @@ export default function EventsPage() {
       return {
         ...event,
         status: getEventStatus(event),
+        displayStatus: getEventDisplayStatus(event) as EventDisplayStatus,
         isPaused: event.isPaused ?? false,
         actualAttendeesCount,
       };
@@ -372,21 +374,9 @@ export default function EventsPage() {
                 <TableCell>{formatEventDate(event.date)}</TableCell>
                 <TableCell>
                   <Badge
-                    variant={
-                      event.status === "open"
-                        ? "default"
-                        : event.status === "waiting"
-                        ? "outline"
-                        : "secondary"
-                    }
+                    variant={EVENT_STATUS_CONFIG[event.displayStatus as EventDisplayStatus].variant as any}
                   >
-                    {event.status === "open"
-                      ? event.isPaused
-                        ? "受付中(一時停止)"
-                        : "受付中"
-                      : event.status === "waiting"
-                      ? "受付終了"
-                      : "終了"}
+                    {EVENT_STATUS_CONFIG[event.displayStatus as EventDisplayStatus].label}
                   </Badge>
                 </TableCell>
                 <TableCell>{event.actualAttendeesCount}名</TableCell>

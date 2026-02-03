@@ -693,12 +693,12 @@ export default function StyleguideV2Page() {
 <ActionButton variant="outline">テスト送信</ActionButton>`}
           >
             <div className="space-y-4">
-              <div className="flex gap-4 justify-center">
+              <div className="flex gap-4 justify-start">
                 <ActionButton variant="default">登録</ActionButton>
                 <ActionButton variant="default">送信</ActionButton>
                 <ActionButton variant="destructive">削除</ActionButton>
               </div>
-              <div className="flex gap-4 justify-center">
+              <div className="flex gap-4 justify-start">
                 <ActionButton variant="outline">戻る</ActionButton>
                 <ActionButton variant="outline">キャンセル</ActionButton>
                 <ActionButton variant="outline">テスト送信</ActionButton>
@@ -770,42 +770,44 @@ import { RSVP_STATUS_CONFIG, EVENT_STATUS_CONFIG } from "@/lib/constants/event"
               {/* 会員ステータス */}
               <div>
                 <h5 className="font-semibold mb-3">会員ステータス</h5>
-                <div className="text-sm rounded-lg border bg-white overflow-hidden">
+                <div className="text-sm rounded-lg bg-white overflow-hidden">
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="border-b bg-slate-50">
+                        <th className="text-left py-2 px-4 w-[120px]">プレビュー</th>
                         <th className="text-left py-2 px-4">ステータス</th>
                         <th className="text-left py-2 px-4">表示テキスト</th>
                         <th className="text-left py-2 px-4">Variant</th>
+                        <th className="text-left py-2 px-4">説明</th>
                       </tr>
                     </thead>
                     <tbody>
                       {Object.entries(USER_ROLE_CONFIG).map(([key, config]) => (
                         <tr key={key} className="border-b last:border-0">
+                          <td className="py-2 px-4">
+                            <Badge variant={config.variant as any}>
+                              {config.label}
+                            </Badge>
+                          </td>
                           <td className="py-2 px-4">{key}</td>
                           <td className="py-2 px-4">{config.label}</td>
                           <td className="py-2 px-4"><code>{config.variant}</code></td>
+                          <td className="py-2 px-4 text-muted-foreground">{config.description}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                </div>
-                <div className="mt-4 flex gap-2 flex-wrap">
-                  {Object.entries(USER_ROLE_CONFIG).map(([key, config]) => (
-                    <Badge key={key} variant={config.variant as any}>
-                      {config.label}
-                    </Badge>
-                  ))}
                 </div>
               </div>
 
               {/* 参加者（RSVP）ステータス */}
               <div>
                 <h5 className="font-semibold mb-3">参加者（RSVP）ステータス</h5>
-                <div className="text-sm rounded-lg border bg-white overflow-hidden">
+                <div className="text-sm rounded-lg bg-white overflow-hidden">
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="border-b bg-slate-50">
+                        <th className="text-left py-2 px-4 w-[120px]">プレビュー</th>
                         <th className="text-left py-2 px-4">ステータス</th>
                         <th className="text-left py-2 px-4">表示テキスト</th>
                         <th className="text-left py-2 px-4">Variant</th>
@@ -815,6 +817,11 @@ import { RSVP_STATUS_CONFIG, EVENT_STATUS_CONFIG } from "@/lib/constants/event"
                     <tbody>
                       {Object.entries(RSVP_STATUS_CONFIG).map(([key, config]) => (
                         <tr key={key} className="border-b last:border-0">
+                          <td className="py-2 px-4">
+                            <Badge variant={config.variant as any}>
+                              {config.label}
+                            </Badge>
+                          </td>
                           <td className="py-2 px-4">{key}</td>
                           <td className="py-2 px-4">{config.label}</td>
                           <td className="py-2 px-4"><code>{config.variant}</code></td>
@@ -822,6 +829,11 @@ import { RSVP_STATUS_CONFIG, EVENT_STATUS_CONFIG } from "@/lib/constants/event"
                         </tr>
                       ))}
                       <tr>
+                        <td className="py-2 px-4">
+                          <Badge variant="outline">
+                            懇親会: {`{ステータス}`}
+                          </Badge>
+                        </td>
                         <td className="py-2 px-4">懇親会</td>
                         <td className="py-2 px-4">懇親会: {"{ステータス}"}</td>
                         <td className="py-2 px-4"><code>outline</code></td>
@@ -830,20 +842,16 @@ import { RSVP_STATUS_CONFIG, EVENT_STATUS_CONFIG } from "@/lib/constants/event"
                     </tbody>
                   </table>
                 </div>
-                <div className="mt-4 flex gap-2 flex-wrap">
-                  {Object.entries(RSVP_STATUS_CONFIG).map(([key, config]) => (
-                    <Badge key={key} variant={config.variant as any}>{config.label}</Badge>
-                  ))}
-                </div>
               </div>
 
               {/* イベントステータス */}
               <div>
                 <h5 className="font-semibold mb-3">イベントステータス</h5>
-                <div className="text-sm rounded-lg border bg-white overflow-hidden">
+                <div className="text-sm rounded-lg bg-white overflow-hidden">
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="border-b bg-slate-50">
+                        <th className="text-left py-2 px-4 w-[120px]">プレビュー</th>
                         <th className="text-left py-2 px-4">ステータス</th>
                         <th className="text-left py-2 px-4">表示テキスト</th>
                         <th className="text-left py-2 px-4">Variant</th>
@@ -853,6 +861,11 @@ import { RSVP_STATUS_CONFIG, EVENT_STATUS_CONFIG } from "@/lib/constants/event"
                     <tbody>
                       {Object.entries(EVENT_STATUS_CONFIG).map(([key, config]) => (
                         <tr key={key} className="border-b last:border-0">
+                          <td className="py-2 px-4">
+                            <Badge variant={config.variant as any}>
+                              {config.label}
+                            </Badge>
+                          </td>
                           <td className="py-2 px-4">{key}</td>
                           <td className="py-2 px-4">{config.label}</td>
                           <td className="py-2 px-4"><code>{config.variant}</code></td>
@@ -861,11 +874,6 @@ import { RSVP_STATUS_CONFIG, EVENT_STATUS_CONFIG } from "@/lib/constants/event"
                       ))}
                     </tbody>
                   </table>
-                </div>
-                <div className="mt-4 flex gap-2 flex-wrap">
-                  {Object.entries(EVENT_STATUS_CONFIG).map(([key, config]) => (
-                    <Badge key={key} variant={config.variant as any}>{config.label}</Badge>
-                  ))}
                 </div>
               </div>
             </div>

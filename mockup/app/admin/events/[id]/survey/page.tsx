@@ -25,6 +25,7 @@ import { customers, events, rsvps, getEventStatus, getSurveyByEventId, surveyTok
 import React from "react";
 import { cn, getSurveyRequestEmailTemplate } from "@/lib/utils";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { USER_ROLE_CONFIG } from "@/lib/constants/customer";
 
 type Step = "select" | "customize" | "confirm";
 
@@ -363,8 +364,8 @@ export default function EventSurveyPage({
                               // プレミアム会員バッジ
                               if (attendee.auditMemberPremium) {
                                 badges.push(
-                                  <Badge key="premium" variant="premium">
-                                    プレミアム
+                                  <Badge key="premium" variant={USER_ROLE_CONFIG.premium.variant as any}>
+                                    {USER_ROLE_CONFIG.premium.label}
                                   </Badge>
                                 );
                               }

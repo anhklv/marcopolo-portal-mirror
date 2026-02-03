@@ -117,11 +117,11 @@ export const AI_AFFILIATIONS = NAIKAN_AFFILIATIONS;
 
 // ユーザーロール（会員区分）の表示設定
 export const USER_ROLE_CONFIG = {
-  member: { label: "会員", variant: "default" },
-  sponsor: { label: "スポンサー", variant: "outline" },
-  observer: { label: "オブザーバー", variant: "outline" },
-  retired: { label: "退会", variant: "destructive" },
-  premium: { label: "プレミアム", variant: "premium" },
+  member: { label: "会員", variant: "default", description: "通常会員" },
+  sponsor: { label: "スポンサー", variant: "outline", description: "スポンサー会員" },
+  observer: { label: "オブザーバー", variant: "outline", description: "オブザーバー会員" },
+  retired: { label: "退会", variant: "destructive", description: "退会済み" },
+  premium: { label: "プレミアム", variant: "premium", description: "プレミアム会員（専用バリアント）" },
 } as const;
 
 export type UserRoleConfigKey = keyof typeof USER_ROLE_CONFIG;

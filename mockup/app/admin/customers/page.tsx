@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
 import React from "react";
 import { useAuth } from "@/lib/contexts/auth.context";
+import { USER_ROLE_CONFIG } from "@/lib/constants/customer";
 
 type MemberCategoryFilter = "member" | "sponsor" | "observer";
 type OrganizationFilter = "ベンチャー監査役の会" | "ないかんMeetup" | "AI部会" | "非会員";
@@ -566,8 +567,8 @@ export default function CustomersPage() {
                           // プレミアム会員バッジ
                           if (customer.auditMemberPremium) {
                             badges.push(
-                              <Badge key="premium" variant="premium">
-                                プレミアム
+                              <Badge key="premium" variant={USER_ROLE_CONFIG.premium.variant as any}>
+                                {USER_ROLE_CONFIG.premium.label}
                               </Badge>
                             );
                           }

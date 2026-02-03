@@ -42,6 +42,7 @@ import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/common";
 import React from "react";
 import { cn, getInviteEmailTemplate, formatEventDate } from "@/lib/utils";
 import { useAuth } from "@/lib/contexts/auth.context";
+import { USER_ROLE_CONFIG } from "@/lib/constants/customer";
 
 type Step = "select" | "customize" | "confirm";
 
@@ -733,8 +734,8 @@ export default function EventInvitePage({
                             // プレミアム会員バッジ
                             if (customer.auditMemberPremium) {
                               badges.push(
-                                <Badge key="premium" variant="premium">
-                                  プレミアム
+                                <Badge key="premium" variant={USER_ROLE_CONFIG.premium.variant as any}>
+                                  {USER_ROLE_CONFIG.premium.label}
                                 </Badge>
                               );
                             }

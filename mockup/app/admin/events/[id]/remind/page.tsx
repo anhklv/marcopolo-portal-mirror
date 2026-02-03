@@ -24,6 +24,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { customers, events, rsvps } from "@/lib/data/mock";
 import React from "react";
 import { cn, getRemindEmailTemplate } from "@/lib/utils";
+import { USER_ROLE_CONFIG } from "@/lib/constants/customer";
 
 type Step = "select" | "customize" | "confirm";
 
@@ -264,8 +265,8 @@ export default function EventRemindPage({
                             // プレミアム会員バッジ
                             if (attendee.auditMemberPremium) {
                               badges.push(
-                                <Badge key="premium" variant="premium">
-                                  プレミアム
+                                <Badge key="premium" variant={USER_ROLE_CONFIG.premium.variant as any}>
+                                  {USER_ROLE_CONFIG.premium.label}
                                 </Badge>
                               );
                             }
