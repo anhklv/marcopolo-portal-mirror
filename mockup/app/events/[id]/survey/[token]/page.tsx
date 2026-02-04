@@ -323,6 +323,7 @@ export default function SurveyAnswerPage({
                             key={rating}
                             value={rating}
                             label={rating}
+                            id={`question-${question.id}-${rating}`}
                           />
                         ))}
                       </div>
@@ -354,6 +355,7 @@ export default function SurveyAnswerPage({
                           key={rating}
                           value={rating}
                           label={rating}
+                          id={`after-party-${rating}`}
                         />
                       ))}
                     </div>
@@ -386,6 +388,7 @@ export default function SurveyAnswerPage({
                         key={option}
                         value={option}
                         label={option}
+                        id={`future-participation-${option}`}
                       />
                     ))}
                   </div>
@@ -416,6 +419,7 @@ export default function SurveyAnswerPage({
                           key={option}
                           value={option}
                           label={option}
+                          id={`membership-${option}`}
                         />
                       ))}
                     </div>
