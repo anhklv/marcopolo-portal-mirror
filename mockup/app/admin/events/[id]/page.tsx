@@ -505,21 +505,21 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                   {item.question.title}
                                 </div>
                                 <div className="grid grid-cols-4 gap-4 text-sm">
-                                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-green-600">{item.ratingCounts.よかった}</div>
-                                    <div className="text-xs text-green-800">よかった</div>
+                                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                    <div className="text-2xl font-bold text-gray-600">{item.ratingCounts.よかった}</div>
+                                    <div className="text-xs text-gray-800">よかった</div>
                                   </div>
-                                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-blue-600">{item.ratingCounts.まぁよかった}</div>
-                                    <div className="text-xs text-blue-800">まぁよかった</div>
+                                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                    <div className="text-2xl font-bold text-gray-600">{item.ratingCounts.まぁよかった}</div>
+                                    <div className="text-xs text-gray-800">まぁよかった</div>
                                   </div>
-                                  <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-yellow-600">{item.ratingCounts.あまりよくなかった}</div>
-                                    <div className="text-xs text-yellow-800">あまりよくなかった</div>
+                                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                    <div className="text-2xl font-bold text-gray-600">{item.ratingCounts.あまりよくなかった}</div>
+                                    <div className="text-xs text-gray-800">あまりよくなかった</div>
                                   </div>
-                                  <div className="text-center p-3 bg-red-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-red-600">{item.ratingCounts.よくなかった}</div>
-                                    <div className="text-xs text-red-800">よくなかった</div>
+                                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                    <div className="text-2xl font-bold text-gray-600">{item.ratingCounts.よくなかった}</div>
+                                    <div className="text-xs text-gray-800">よくなかった</div>
                                   </div>
                                 </div>
                               </div>
@@ -539,21 +539,21 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                   };
                                   return (
                                     <div className="grid grid-cols-4 gap-4 text-sm">
-                                      <div className="text-center p-3 bg-green-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-green-600">{ratingCounts.よかった}</div>
-                                        <div className="text-xs text-green-800">よかった</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.よかった}</div>
+                                        <div className="text-xs text-gray-800">よかった</div>
                                       </div>
-                                      <div className="text-center p-3 bg-blue-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-blue-600">{ratingCounts.まぁよかった}</div>
-                                        <div className="text-xs text-blue-800">まぁよかった</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.まぁよかった}</div>
+                                        <div className="text-xs text-gray-800">まぁよかった</div>
                                       </div>
-                                      <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-yellow-600">{ratingCounts.あまりよくなかった}</div>
-                                        <div className="text-xs text-yellow-800">あまりよくなかった</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.あまりよくなかった}</div>
+                                        <div className="text-xs text-gray-800">あまりよくなかった</div>
                                       </div>
-                                      <div className="text-center p-3 bg-red-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-red-600">{ratingCounts.よくなかった}</div>
-                                        <div className="text-xs text-red-800">よくなかった</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.よくなかった}</div>
+                                        <div className="text-xs text-gray-800">よくなかった</div>
                                       </div>
                                     </div>
                                   );
@@ -577,17 +577,17 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                   };
                                   return (
                                     <div className="grid grid-cols-3 gap-4 text-sm">
-                                      <div className="text-center p-3 bg-green-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-green-600">{ratingCounts.ぜひ参加したい}</div>
-                                        <div className="text-xs text-green-800">ぜひ参加したい</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.ぜひ参加したい}</div>
+                                        <div className="text-xs text-gray-800">ぜひ参加したい</div>
                                       </div>
-                                      <div className="text-center p-3 bg-blue-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-blue-600">{ratingCounts.参加を検討したい}</div>
-                                        <div className="text-xs text-blue-800">参加を検討したい</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.参加を検討したい}</div>
+                                        <div className="text-xs text-gray-800">参加を検討したい</div>
                                       </div>
-                                      <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-yellow-600">{ratingCounts.参加しない}</div>
-                                        <div className="text-xs text-yellow-800">参加しない</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.参加しない}</div>
+                                        <div className="text-xs text-gray-800">参加しない</div>
                                       </div>
                                     </div>
                                   );
@@ -611,17 +611,17 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                   };
                                   return (
                                     <div className="grid grid-cols-3 gap-4 text-sm">
-                                      <div className="text-center p-3 bg-green-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-green-600">{ratingCounts.入会をしたい}</div>
-                                        <div className="text-xs text-green-800">入会をしたい</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.入会をしたい}</div>
+                                        <div className="text-xs text-gray-800">入会をしたい</div>
                                       </div>
-                                      <div className="text-center p-3 bg-blue-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-blue-600">{ratingCounts.入会を検討したい}</div>
-                                        <div className="text-xs text-blue-800">入会を検討したい</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.入会を検討したい}</div>
+                                        <div className="text-xs text-gray-800">入会を検討したい</div>
                                       </div>
-                                      <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-yellow-600">{ratingCounts.関心がない}</div>
-                                        <div className="text-xs text-yellow-800">関心がない</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.関心がない}</div>
+                                        <div className="text-xs text-gray-800">関心がない</div>
                                       </div>
                                     </div>
                                   );
@@ -671,7 +671,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                   ) : (
                                     surveyResults.respondedCustomers.map((item) => (
                                       <TableRow key={item.customer!.id}>
-                                        <TableCell className="sticky left-0 z-10 bg-white font-medium">{item.customer!.name}</TableCell>
+                                        <TableCell className="sticky left-0 z-10 bg-white">{item.customer!.name}</TableCell>
                                         <TableCell>{item.customer!.company}</TableCell>
                                         {survey?.questions
                                           .sort((a: any, b: any) => a.order - b.order)
@@ -682,15 +682,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                                 {response ? (
                                                   <div className="space-y-1">
                                                     <Badge
-                                                      variant={
-                                                        response.rating === "よかった"
-                                                          ? "default"
-                                                          : response.rating === "まぁよかった"
-                                                          ? "secondary"
-                                                          : response.rating === "あまりよくなかった"
-                                                          ? "outline"
-                                                          : "destructive"
-                                                      }
+                                                      variant="secondary"
+                                                      className="font-medium"
                                                     >
                                                       {response.rating}
                                                     </Badge>
@@ -711,15 +704,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                             {item.fixedResponse?.afterParty ? (
                                               <div className="space-y-1">
                                                 <Badge
-                                                  variant={
-                                                    item.fixedResponse.afterParty.rating === "よかった"
-                                                      ? "default"
-                                                      : item.fixedResponse.afterParty.rating === "まぁよかった"
-                                                      ? "secondary"
-                                                      : item.fixedResponse.afterParty.rating === "あまりよくなかった"
-                                                      ? "outline"
-                                                      : "destructive"
-                                                  }
+                                                  variant="secondary"
+                                                  className="font-medium"
                                                 >
                                                   {item.fixedResponse.afterParty.rating}
                                                 </Badge>
@@ -739,7 +725,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                             <TableCell>
                                               {item.customer!.communities.length === 0 && item.fixedResponse?.futureParticipation ? (
                                                 <div className="space-y-1">
-                                                  <Badge variant="secondary">
+                                                  <Badge variant="secondary" className="font-medium">
                                                     {item.fixedResponse.futureParticipation.rating}
                                                   </Badge>
                                                   {item.fixedResponse.futureParticipation.reason && (
@@ -755,7 +741,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                             <TableCell>
                                               {item.customer!.communities.length === 0 && item.fixedResponse?.membership ? (
                                                 <div className="space-y-1">
-                                                  <Badge variant="secondary">
+                                                  <Badge variant="secondary" className="font-medium">
                                                     {item.fixedResponse.membership.rating}
                                                   </Badge>
                                                   {item.fixedResponse.membership.reason && (
