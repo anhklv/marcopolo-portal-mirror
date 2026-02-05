@@ -1,4 +1,4 @@
-export type Community = "ベンチャー監査役の会" | "ないかんMeetup";
+export type Community = "ベンチャー監査役の会" | "ないかんMeetup" | "AI部会";
 export type CommunityFilterValue = Community | "非会員"; // フィルター用（非会員を含む）
 export type MemberCategory = "member" | "sponsor" | "observer"; // 会員区分（会員の場合のみ）
 export type ContractType = "corporate" | "individual"; // 契約主体（法人・個人）
@@ -28,8 +28,10 @@ export type Customer = {
   naikanJoinedAt?: string; // ないかんMeetup 入会日
   naikanResignedAt?: string; // ないかんMeetup 脱退日
   naikanAffiliation?: string; // ないかんMeetup 所属
+  aiJoinedAt?: string; // AI部会 入会日
+  aiResignedAt?: string; // AI部会 脱退日
+  aiAffiliation?: string; // AI部会 所属
   note?: string; // 備考 - 任意
-  status: "active" | "inactive";
   registeredAt: string;
 };
 

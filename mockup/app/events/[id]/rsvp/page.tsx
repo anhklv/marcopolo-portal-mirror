@@ -3,14 +3,6 @@
 import { useState, useEffect, use } from "react";
 import { notFound, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +11,9 @@ import { toast } from "sonner";
 import { CheckCircle2, AlertCircle, Info } from "lucide-react";
 import { events, customers, getCustomerByToken, getRSVPByEmail, rsvps } from "@/lib/data/mock";
 import { formatEventDate } from "@/lib/utils";
+import { Stack } from "@/components/ui/stack";
+import { FormField } from "@/components/ui/form-field";
+import { ActionButton } from "@/components/ui/action-button";
 import {
   Dialog,
   DialogContent,
@@ -70,17 +65,17 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
         
         // 既存の回答があれば読み込む
         const rsvp = rsvps.find((r) => r.eventId === id && r.customerId === customerData.id);
-        if (rsvp && rsvp.status !== "未回答") {
-          if (rsvp.status === "参加") {
+        if (rsvp && rsvp.status !== "pending") {
+          if (rsvp.status === "attending") {
             setStatus(rsvp.attendanceType === "オンライン参加" ? "online" : "attend");
             setAttendanceType(rsvp.attendanceType || "通常参加");
             if (rsvp.afterPartyStatus) {
               setAfterPartyStatus(rsvp.afterPartyStatus);
             }
-          } else if (rsvp.status === "オンライン参加") {
+          } else if (rsvp.status === "online") {
             setStatus("online");
             setAttendanceType("オンライン参加");
-          } else if (rsvp.status === "不参加") {
+          } else if (rsvp.status === "absent") {
             setStatus("decline");
           }
         }
@@ -106,17 +101,17 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
       setEmailVerified(true);
       
       // 既存の回答があれば読み込む
-      if (rsvp.status !== "未回答") {
-        if (rsvp.status === "参加") {
+      if (rsvp.status !== "pending") {
+        if (rsvp.status === "attending") {
           setStatus(rsvp.attendanceType === "オンライン参加" ? "online" : "attend");
           setAttendanceType(rsvp.attendanceType || "通常参加");
           if (rsvp.afterPartyStatus) {
             setAfterPartyStatus(rsvp.afterPartyStatus);
           }
-        } else if (rsvp.status === "オンライン参加") {
+        } else if (rsvp.status === "online") {
           setStatus("online");
           setAttendanceType("オンライン参加");
-        } else if (rsvp.status === "不参加") {
+        } else if (rsvp.status === "absent") {
           setStatus("decline");
         }
       }
@@ -162,46 +157,47 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
   // トークンがない場合はメールアドレス入力画面
   if (!token && !emailVerified) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <Card className="w-full max-w-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl">{event.title}</CardTitle>
-            <CardDescription className="mt-2 space-y-1 text-base">
-              <p>開催日時: {formatEventDate(event.date)}</p>
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent className="space-y-4">
-            <div className="rounded-lg bg-muted p-4">
-              <p className="text-sm font-medium mb-2">メールアドレスを入力してください</p>
-              <p className="text-xs text-muted-foreground mb-4">
-                このイベントに案内されたメールアドレスを入力してください。
-              </p>
-              <div className="space-y-2">
-                <Label htmlFor="email">メールアドレス</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleEmailSubmit();
-                    }
-                  }}
-                />
+      <div className="min-h-screen bg-muted py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="rounded-lg border bg-card p-6 shadow-sm">
+            <Stack gap="lg">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight">{event.title}</h1>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  開催日時: {formatEventDate(event.date)}
+                </p>
               </div>
-            </div>
-          </CardContent>
-          
-          <CardFooter>
-            <Button className="w-full cursor-pointer" size="lg" variant="outline" onClick={handleEmailSubmit}>
-              確認する
-            </Button>
-          </CardFooter>
-        </Card>
+
+              <div className="rounded-lg bg-muted p-4">
+                <p className="text-sm font-medium mb-2">メールアドレスを入力してください</p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  このイベントに案内されたメールアドレスを入力してください。
+                </p>
+                <FormField label="メールアドレス">
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="name@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleEmailSubmit();
+                      }
+                    }}
+                  />
+                </FormField>
+              </div>
+
+              <div className="flex justify-center pt-4">
+                <ActionButton onClick={handleEmailSubmit}>
+                  確認する
+                </ActionButton>
+              </div>
+            </Stack>
+          </div>
+        </div>
       </div>
     );
   }
@@ -209,129 +205,138 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
   // トークンがあるが顧客情報が取得できない場合
   if (token && !customer && token !== "demo-token") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <Card className="w-full max-w-md text-center">
-          <CardHeader>
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-              <AlertCircle className="h-6 w-6 text-red-600" />
-            </div>
-            <CardTitle>アクセスエラー</CardTitle>
-            <CardDescription>
-              このページにアクセスするには有効な案内URLが必要です。
-            </CardDescription>
-          </CardHeader>
-        </Card>
+      <div className="min-h-screen bg-muted py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="rounded-lg border bg-card p-6 shadow-sm text-center">
+            <Stack gap="md">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                <AlertCircle className="h-6 w-6 text-red-600" />
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight">アクセスエラー</h1>
+              <p className="text-sm text-muted-foreground">
+                このページにアクセスするには有効な案内URLが必要です。
+              </p>
+            </Stack>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <Card className="w-full max-w-md text-center">
-          <CardHeader>
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-              <CheckCircle2 className="h-6 w-6 text-green-600" />
-            </div>
-            <CardTitle>回答を受け付けました</CardTitle>
-            <CardDescription>
-              ご回答ありがとうございます。
-              {status === "attend" && (
-                <>
-                  <br />
-                  当日お会いできるのを楽しみにしています。
-                </>
-              )}
-              {status === "online" && (
-                <>
-                  <br />
-                  オンラインでのご参加をお待ちしています。
-                </>
-              )}
-            </CardDescription>
-          </CardHeader>
-          <CardFooter className="justify-center flex-col gap-2">
-            <p className="text-sm text-muted-foreground">この画面を閉じてください</p>
-            {!isDeadlinePassed && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSubmitted(false);
-                }}
-              >
-                回答を変更する
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
+      <div className="min-h-screen bg-muted py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="rounded-lg border bg-card p-6 shadow-sm text-center">
+            <Stack gap="lg">
+              <Stack gap="md">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                  <CheckCircle2 className="h-6 w-6 text-green-600" />
+                </div>
+                <h1 className="text-2xl font-bold tracking-tight">回答を受け付けました</h1>
+                <p className="text-sm text-muted-foreground">
+                  ご回答ありがとうございます。
+                  {status === "attend" && (
+                    <>
+                      <br />
+                      当日お会いできるのを楽しみにしています。
+                    </>
+                  )}
+                  {status === "online" && (
+                    <>
+                      <br />
+                      オンラインでのご参加をお待ちしています。
+                    </>
+                  )}
+                </p>
+              </Stack>
+              <Stack gap="sm">
+                <p className="text-sm text-muted-foreground">この画面を閉じてください</p>
+                {!isDeadlinePassed && (
+                  <div className="flex justify-center">
+                    <ActionButton
+                      variant="outline"
+                      onClick={() => {
+                        setSubmitted(false);
+                      }}
+                    >
+                      回答を変更する
+                    </ActionButton>
+                  </div>
+                )}
+              </Stack>
+            </Stack>
+          </div>
+        </div>
       </div>
     );
   }
 
   // 回答フォーム表示
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <Card className="w-full max-w-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl">{event.title}</CardTitle>
-          <CardDescription className="mt-2 space-y-1 text-base">
-            <p>開催日時: {formatEventDate(event.date)}</p>
-          </CardDescription>
-          <div className="mt-4">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="cursor-pointer">
-                  <Info className="h-4 w-4 mr-2" />
-                  イベント詳細を見る
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="bg-white max-w-2xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>{event.title}</DialogTitle>
-                  <DialogDescription>
-                    イベントの詳細情報
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 mt-4">
-                  {(event as any).description && (
-                    <div>
-                      <h3 className="font-semibold mb-2">イベント概要</h3>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                        {(event as any).description}
-                      </p>
-                    </div>
-                  )}
-                  {(event as any).timetable && (
-                    <div>
-                      <h3 className="font-semibold mb-2">タイムテーブル</h3>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                        {(event as any).timetable}
-                      </p>
-                    </div>
-                  )}
-                  {event.location && (
-                    <div>
-                      <h3 className="font-semibold mb-2">場所</h3>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                        {event.location}
-                      </p>
-                    </div>
-                  )}
-                  {(event as any).note && (
-                    <div>
-                      <h3 className="font-semibold mb-2">備考</h3>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                        {(event as any).note}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </DialogContent>
-            </Dialog>
+    <div className="min-h-screen bg-muted py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="rounded-lg border bg-card p-6 shadow-sm">
+          <Stack gap="lg">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{event.title}</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              開催日時: {formatEventDate(event.date)}
+            </p>
+            <div className="mt-4">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Info className="h-4 w-4 mr-2" />
+                    イベント詳細を見る
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-card max-w-2xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>{event.title}</DialogTitle>
+                    <DialogDescription>
+                      イベントの詳細情報
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Stack gap="md" className="mt-4">
+                    {(event as any).description && (
+                      <div>
+                        <h3 className="font-semibold mb-2">イベント概要</h3>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          {(event as any).description}
+                        </p>
+                      </div>
+                    )}
+                    {(event as any).timetable && (
+                      <div>
+                        <h3 className="font-semibold mb-2">タイムテーブル</h3>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          {(event as any).timetable}
+                        </p>
+                      </div>
+                    )}
+                    {event.location && (
+                      <div>
+                        <h3 className="font-semibold mb-2">場所</h3>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          {event.location}
+                        </p>
+                      </div>
+                    )}
+                    {(event as any).note && (
+                      <div>
+                        <h3 className="font-semibold mb-2">備考</h3>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          {(event as any).note}
+                        </p>
+                      </div>
+                    )}
+                  </Stack>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
-        </CardHeader>
-        
-        <CardContent className="space-y-6">
+
           <div className="rounded-lg bg-muted p-4 text-sm">
             <p className="font-medium">{customer?.name} 様</p>
           </div>
@@ -348,9 +353,9 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
             </div>
           )}
 
-          <div className="space-y-4">
+          <Stack gap="md">
             <Label className="text-base">出欠を選択してください</Label>
-            <RadioGroup 
+            <RadioGroup
               value={status || undefined}
               onValueChange={(v) => {
                 setStatus(v as any);
@@ -362,7 +367,7 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
                   setAttendanceType(null);
                   setAfterPartyStatus(null);
                 }
-              }} 
+              }}
               className={`grid gap-4 ${event.allowsOnline ? "grid-cols-3" : "grid-cols-2"}`}
             >
               <div>
@@ -410,14 +415,14 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
                 </Label>
               </div>
             </RadioGroup>
-          </div>
+          </Stack>
 
           {event.hasAfterParty && status === "attend" && (
-            <div className="space-y-4">
+            <Stack gap="md">
               <Label className="text-base">懇親会も参加しますか？</Label>
-              <RadioGroup 
+              <RadioGroup
                 value={afterPartyStatus || undefined}
-                onValueChange={(v) => setAfterPartyStatus(v as "参加" | "不参加")} 
+                onValueChange={(v) => setAfterPartyStatus(v as "参加" | "不参加")}
                 className="grid grid-cols-2 gap-4"
               >
                 <div>
@@ -449,32 +454,30 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
                   </Label>
                 </div>
               </RadioGroup>
-            </div>
+            </Stack>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="comment">メッセージ・連絡事項 (任意)</Label>
-            <Textarea 
-              id="comment" 
-              placeholder="アレルギーや遅刻の連絡など..." 
+          <FormField label="メッセージ・連絡事項 (任意)">
+            <Textarea
+              id="comment"
+              placeholder="アレルギーや遅刻の連絡など..."
               value={comment}
               onChange={(e) => setComment(e.target.value)}
+              className="min-h-[150px]"
             />
+          </FormField>
+
+          <div className="flex justify-center pt-4">
+            <ActionButton
+              onClick={handleSubmit}
+              disabled={isDeadlinePassed}
+            >
+              {isDeadlinePassed ? "回答期限を過ぎています" : "送信"}
+            </ActionButton>
           </div>
-        </CardContent>
-        
-        <CardFooter>
-          <Button 
-            className="w-full cursor-pointer" 
-            size="lg"
-            variant="outline"
-            onClick={handleSubmit}
-            disabled={isDeadlinePassed}
-          >
-            {isDeadlinePassed ? "回答期限を過ぎています" : "回答を送信する"}
-          </Button>
-        </CardFooter>
-      </Card>
+          </Stack>
+        </div>
+      </div>
     </div>
   );
 }

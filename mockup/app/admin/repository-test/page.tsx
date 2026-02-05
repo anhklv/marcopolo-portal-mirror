@@ -23,7 +23,7 @@ export default function RepositoryTestPage() {
         setLoading(true);
         // Repository層を使用してデータを取得
         const [customersData, eventsData, rsvpsData] = await Promise.all([
-          customerRepository.findAll({ statuses: ["active"] }),
+          customerRepository.findAll(),
           eventRepository.findAll(),
           rsvpRepository.findAll({ eventId: "E001" }),
         ]);

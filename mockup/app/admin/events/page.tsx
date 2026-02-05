@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -26,11 +25,24 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/ui/page-header";
+import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { events, getEventStatus, rsvps, customers } from "@/lib/data/mock";
-import { formatEventDate } from "@/lib/utils";
+import { formatEventDate, getEventDisplayStatus } from "@/lib/utils";
+import { EVENT_STATUS_CONFIG, type EventDisplayStatus } from "@/lib/constants/event";
 import { Plus, MoreVertical, Edit, Mail, Search, ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/contexts/auth.context";
 import type { CommunityScope } from "@/lib/types";
+
+// イベント種別のバッジvariantを取得
+const getEventTypeVariant = (eventType: string) => {
+  switch (eventType) {
+    case "ベンチャー監査役の会": return "audit";
+    case "ないかんMeetup": return "naikan";
+    case "AI部会": return "ai";
+    default: return "outline";
+  }
+};
 
 export default function EventsPage() {
   const router = useRouter();
@@ -69,12 +81,13 @@ export default function EventsPage() {
       }).filter((a): a is NonNullable<typeof a> => a !== null);
 
       const actualAttendeesCount = allAttendees.filter(
-        (a) => a.status === "参加" || a.status === "オンライン参加"
+        (a) => a.status === "attending" || a.status === "online"
       ).length;
 
       return {
         ...event,
         status: getEventStatus(event),
+        displayStatus: getEventDisplayStatus(event) as EventDisplayStatus,
         isPaused: event.isPaused ?? false,
         actualAttendeesCount,
       };
@@ -135,13 +148,11 @@ export default function EventsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">イベント管理</h1>
-          <p className="text-muted-foreground">
-            イベントの作成、編集、案内管理を行います。
-          </p>
-        </div>
-        <Button variant="outline" asChild>
+        <PageHeader
+          title="イベント管理"
+          description="イベントの作成、編集、案内管理を行います。"
+        />
+        <Button asChild>
           <Link href="/admin/events/new">
             <Plus className="h-4 w-4" />
             イベント作成
@@ -154,8 +165,8 @@ export default function EventsPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="イベント名、場所、概要、備考で検索..."
-            className="pl-9 h-10"
+            placeholder="イベント名、場所、概要で検索..."
+            className="pl-9 h-9 text-sm"
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
           />
@@ -164,7 +175,7 @@ export default function EventsPage() {
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="w-[200px] justify-between h-10"
+              className="w-[200px] justify-between h-9"
             >
               <span className="text-sm">
                 {eventTypes.length === 0
@@ -176,7 +187,7 @@ export default function EventsPage() {
               <ChevronDown className="h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[280px] p-0 bg-white" align="start">
+          <PopoverContent className="w-[280px] p-0 bg-card" align="start">
             <div className="p-3 border-b">
               <div className="relative">
                 <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -184,54 +195,65 @@ export default function EventsPage() {
                   placeholder="イベント種別を検索"
                   value={eventTypeSearch}
                   onChange={(e) => setEventTypeSearch(e.target.value)}
-                  className="pl-8 h-9"
+                  className="pl-8 h-9 text-sm"
                 />
               </div>
             </div>
-            <div className="p-2 max-h-[300px] overflow-y-auto">
-              {[
-                // 特権管理者またはベンチャー監査役の会の権限がある場合のみ表示
-                ...(currentAdmin?.role === "super" || 
-                  (currentAdmin?.role === "community_admin" && 
-                   currentAdmin.communityScopes?.includes("ベンチャー監査役の会"))
-                  ? [{ value: "ベンチャー監査役の会", label: "ベンチャー監査役の会" }]
-                  : []),
-                // 特権管理者またはないかんMeetupの権限がある場合のみ表示
-                ...(currentAdmin?.role === "super" || 
-                  (currentAdmin?.role === "community_admin" && 
-                   currentAdmin.communityScopes?.includes("ないかんMeetup"))
-                  ? [{ value: "ないかんMeetup", label: "ないかんMeetup" }]
-                  : []),
-                // その他は特権管理者のみ表示
-                ...(currentAdmin?.role === "super"
-                  ? [{ value: "その他", label: "その他" }]
-                  : []),
-              ]
-                .filter((eventType) =>
-                  eventType.label
-                    .toLowerCase()
-                    .includes(eventTypeSearch.toLowerCase())
-                )
-                .map((eventType) => (
-                  <div
-                    key={eventType.value}
-                    className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
-                    onClick={() =>
-                      handleEventTypeChange(
-                        eventType.value,
-                        !eventTypes.includes(eventType.value)
-                      )
-                    }
-                  >
-                    <Checkbox
-                      checked={eventTypes.includes(eventType.value)}
-                      onCheckedChange={(checked) =>
-                        handleEventTypeChange(eventType.value, checked === true)
-                      }
-                    />
-                    <span className="text-sm cursor-pointer">{eventType.label}</span>
-                  </div>
-                ))}
+            <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto">
+              {/* 特権管理者またはベンチャー監査役の会の権限がある場合のみ表示 */}
+              {(currentAdmin?.role === "super" ||
+                (currentAdmin?.role === "community_admin" &&
+                 currentAdmin.communityScopes?.includes("ベンチャー監査役の会"))) &&
+                "ベンチャー監査役の会".toLowerCase().includes(eventTypeSearch.toLowerCase()) && (
+                <CheckboxItem
+                  id="event-type-audit"
+                  label="ベンチャー監査役の会"
+                  checked={eventTypes.includes("ベンチャー監査役の会")}
+                  onCheckedChange={(checked) =>
+                    handleEventTypeChange("ベンチャー監査役の会", checked)
+                  }
+                />
+              )}
+              {/* 特権管理者またはないかんMeetupの権限がある場合のみ表示 */}
+              {(currentAdmin?.role === "super" ||
+                (currentAdmin?.role === "community_admin" &&
+                 currentAdmin.communityScopes?.includes("ないかんMeetup"))) &&
+                "ないかんMeetup".toLowerCase().includes(eventTypeSearch.toLowerCase()) && (
+                <CheckboxItem
+                  id="event-type-naikan"
+                  label="ないかんMeetup"
+                  checked={eventTypes.includes("ないかんMeetup")}
+                  onCheckedChange={(checked) =>
+                    handleEventTypeChange("ないかんMeetup", checked)
+                  }
+                />
+              )}
+              {/* 特権管理者またはAI部会の権限がある場合のみ表示 */}
+              {(currentAdmin?.role === "super" ||
+                (currentAdmin?.role === "community_admin" &&
+                 currentAdmin.communityScopes?.includes("AI部会"))) &&
+                "AI部会".toLowerCase().includes(eventTypeSearch.toLowerCase()) && (
+                <CheckboxItem
+                  id="event-type-ai"
+                  label="AI部会"
+                  checked={eventTypes.includes("AI部会")}
+                  onCheckedChange={(checked) =>
+                    handleEventTypeChange("AI部会", checked)
+                  }
+                />
+              )}
+              {/* その他は特権管理者のみ表示 */}
+              {currentAdmin?.role === "super" &&
+                "その他".toLowerCase().includes(eventTypeSearch.toLowerCase()) && (
+                <CheckboxItem
+                  id="event-type-other"
+                  label="その他"
+                  checked={eventTypes.includes("その他")}
+                  onCheckedChange={(checked) =>
+                    handleEventTypeChange("その他", checked)
+                  }
+                />
+              )}
             </div>
           </PopoverContent>
         </Popover>
@@ -239,7 +261,7 @@ export default function EventsPage() {
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="w-[200px] justify-between h-10"
+              className="w-[200px] justify-between h-9"
             >
               <span className="text-sm">
                 {statuses.length === 0
@@ -255,7 +277,7 @@ export default function EventsPage() {
               <ChevronDown className="h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[280px] p-0 bg-white" align="start">
+          <PopoverContent className="w-[280px] p-0 bg-card" align="start">
             <div className="p-3 border-b">
               <div className="relative">
                 <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -263,52 +285,41 @@ export default function EventsPage() {
                   placeholder="ステータスを検索"
                   value={statusSearch}
                   onChange={(e) => setStatusSearch(e.target.value)}
-                  className="pl-8 h-9"
+                  className="pl-8 h-9 text-sm"
                 />
               </div>
             </div>
-            <div className="p-2 max-h-[300px] overflow-y-auto">
-              {[
-                { value: "open", label: "受付中" },
-                { value: "waiting", label: "受付終了" },
-                { value: "closed", label: "終了" },
-              ]
-                .filter((status) =>
-                  status.label
-                    .toLowerCase()
-                    .includes(statusSearch.toLowerCase())
-                )
-                .map((status) => (
-                  <div
-                    key={status.value}
-                    className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
-                    onClick={() =>
-                      handleStatusChange(
-                        status.value,
-                        !statuses.includes(status.value)
-                      )
-                    }
-                  >
-                    <Checkbox
-                      checked={statuses.includes(status.value)}
-                      onCheckedChange={(checked) =>
-                        handleStatusChange(status.value, checked === true)
-                      }
-                    />
-                    <Badge
-                      variant={
-                        status.value === "open"
-                          ? "default"
-                          : status.value === "waiting"
-                          ? "secondary"
-                          : "outline"
-                      }
-                      className="cursor-pointer"
-                    >
-                      {status.label}
-                    </Badge>
-                  </div>
-                ))}
+            <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto">
+              {"受付中".includes(statusSearch.toLowerCase()) && (
+                <CheckboxItem
+                  id="status-open"
+                  label="受付中"
+                  checked={statuses.includes("open")}
+                  onCheckedChange={(checked) =>
+                    handleStatusChange("open", checked)
+                  }
+                />
+              )}
+              {"受付終了".includes(statusSearch.toLowerCase()) && (
+                <CheckboxItem
+                  id="status-waiting"
+                  label="受付終了"
+                  checked={statuses.includes("waiting")}
+                  onCheckedChange={(checked) =>
+                    handleStatusChange("waiting", checked)
+                  }
+                />
+              )}
+              {"終了".includes(statusSearch.toLowerCase()) && (
+                <CheckboxItem
+                  id="status-closed"
+                  label="終了"
+                  checked={statuses.includes("closed")}
+                  onCheckedChange={(checked) =>
+                    handleStatusChange("closed", checked)
+                  }
+                />
+              )}
             </div>
           </PopoverContent>
         </Popover>
@@ -319,7 +330,7 @@ export default function EventsPage() {
           <span className="font-semibold text-foreground">{filteredEvents.length}</span>件
         </div>
       </div>
-      <div className="rounded-md border bg-white shadow-sm">
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -355,48 +366,36 @@ export default function EventsPage() {
                 }}
               >
                 <TableCell>
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant={getEventTypeVariant(event.eventType) as "audit" | "naikan" | "ai" | "outline"}>
                     {event.eventType}
                   </Badge>
                 </TableCell>
-                <TableCell className="font-medium">{event.title}</TableCell>
+                <TableCell>{event.title}</TableCell>
                 <TableCell>{formatEventDate(event.date)}</TableCell>
                 <TableCell>
                   <Badge
-                    variant={
-                      event.status === "open"
-                        ? "default"
-                        : event.status === "waiting"
-                        ? "secondary"
-                        : "outline"
-                    }
+                    variant={EVENT_STATUS_CONFIG[event.displayStatus as EventDisplayStatus].variant as any}
                   >
-                    {event.status === "open"
-                      ? event.isPaused
-                        ? "受付中(一時停止)"
-                        : "受付中"
-                      : event.status === "waiting"
-                      ? "受付終了"
-                      : "終了"}
+                    {EVENT_STATUS_CONFIG[event.displayStatus as EventDisplayStatus].label}
                   </Badge>
                 </TableCell>
                 <TableCell>{event.actualAttendeesCount}名</TableCell>
                 <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="cursor-pointer">
+                      <Button variant="outline" size="sm">
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-white">
-                      <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+                    <DropdownMenuContent align="end" className="bg-card">
+                      <DropdownMenuItem asChild className="bg-card hover:bg-accent">
                         <Link href={`/admin/events/${event.id}/edit`} className="flex items-center gap-2">
                           <Edit className="h-4 w-4" />
                           編集
                         </Link>
                       </DropdownMenuItem>
                       {event.status === "open" && (
-                        <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+                        <DropdownMenuItem asChild className="bg-card hover:bg-accent">
                           <Link href={`/admin/events/${event.id}/invite`} className="flex items-center gap-2">
                             <Mail className="h-4 w-4" />
                             案内

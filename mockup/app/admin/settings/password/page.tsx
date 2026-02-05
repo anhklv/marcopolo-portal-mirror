@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Stack } from "@/components/ui/stack";
+import { FormField } from "@/components/ui/form-field";
+import { PageHeader } from "@/components/ui/page-header";
+import { ActionButton } from "@/components/ui/action-button";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
 
 export default function PasswordSettingsPage() {
   const router = useRouter();
@@ -59,78 +59,58 @@ export default function PasswordSettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" asChild>
-          <Link href="/admin/customers">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">パスワード変更</h1>
-          <p className="text-muted-foreground">
-            ログインに使用するパスワードを変更します。
-          </p>
-        </div>
-      </div>
+    <Stack gap="lg">
+      <PageHeader
+        backHref="/admin/customers"
+        title="パスワード変更"
+        description="ログインに使用するパスワードを変更します。"
+      />
 
-      <div className="rounded-lg border bg-white shadow-sm p-6 max-w-2xl">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="currentPassword">現在のパスワード</Label>
+      <form onSubmit={handleSubmit} className="max-w-2xl">
+        <Stack gap="lg">
+          <FormField label="現在のパスワード" required>
             <Input
               id="currentPassword"
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              required
             />
-          </div>
+          </FormField>
 
-          <div className="space-y-2">
-            <Label htmlFor="newPassword">新しいパスワード</Label>
+          <FormField
+            label="新しいパスワード"
+            required
+            description="12文字以上で入力してください。"
+          >
             <Input
               id="newPassword"
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              required
             />
-            <p className="text-sm text-muted-foreground">
-              12文字以上で入力してください。
-            </p>
-          </div>
+          </FormField>
 
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">新しいパスワード（確認）</Label>
+          <FormField
+            label="新しいパスワード（確認）"
+            required
+            description="確認のため、新しいパスワードを再度入力してください。"
+          >
             <Input
               id="confirmPassword"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              required
             />
-            <p className="text-sm text-muted-foreground">
-              確認のため、新しいパスワードを再度入力してください。
-            </p>
-          </div>
+          </FormField>
 
-          <div className="flex justify-end gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              disabled={isSubmitting}
-            >
-              キャンセル
-            </Button>
-            <Button type="submit" variant="outline" disabled={isSubmitting}>
+          <div className="flex justify-center">
+            <ActionButton type="submit" disabled={isSubmitting}>
               {isSubmitting ? "変更中..." : "変更する"}
-            </Button>
+            </ActionButton>
           </div>
-        </form>
-      </div>
-    </div>
+        </Stack>
+      </form>
+    </Stack>
   );
 }
 

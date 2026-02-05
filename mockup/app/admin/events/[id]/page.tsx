@@ -22,17 +22,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { PageHeader } from "@/components/ui/page-header";
+import { DataItem } from "@/components/ui/data-item";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { Stack } from "@/components/ui/stack";
+import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { toast } from "sonner";
-import { ArrowLeft, Mail, Edit, MoreVertical, Pause, Play, FileText, Search, ChevronDown, Send } from "lucide-react";
+import { Mail, Edit, MoreVertical, Pause, Play, FileText, Search, ChevronDown, Send, Trash2 } from "lucide-react";
 import { events, customers, rsvps, getEventStatus, getSurveyByEventId, getSurveyResponses, getFixedSurveyResponses } from "@/lib/data/mock";
-import { RSVP_STATUSES } from "@/lib/constants/event";
+import { RSVP_STATUS_CONFIG, RSVP_STATUSES } from "@/lib/constants/event";
 import { cn, formatEventDate, formatDateTime } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -40,6 +43,25 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+// イベント種別のバッジvariantを取得
+const getEventTypeVariant = (eventType: string) => {
+  switch (eventType) {
+    case "ベンチャー監査役の会": return "audit";
+    case "ないかんMeetup": return "naikan";
+    case "AI部会": return "ai";
+    default: return "outline";
+  }
+};
 
 export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -54,6 +76,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
   const eventStatus = getEventStatus(eventData);
   const [isPaused, setIsPaused] = useState(eventData.isPaused ?? false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const event = eventData;
   const survey = getSurveyByEventId(id);
 
@@ -68,9 +91,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   const allAttendees = eventRsvps.map((rsvp) => {
     const customer = customers.find((c) => c.id === rsvp.customerId);
     if (!customer) return null;
-    const { status: _, ...customerWithoutStatus } = customer;
     return {
-      ...customerWithoutStatus,
+      ...customer,
       rsvpStatus: rsvp.status || "未回答",
       attendanceType: rsvp.attendanceType,
       afterPartyStatus: rsvp.afterPartyStatus,
@@ -92,10 +114,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
       const matchesStatus =
         selectedStatuses.length === 0 ||
         selectedStatuses.some((selectedStatus) => {
-          if (selectedStatus === "現地参加") {
-            return attendee.rsvpStatus === "参加" && attendee.attendanceType !== "オンライン参加";
-          } else if (selectedStatus === "オンライン参加") {
-            return attendee.rsvpStatus === "オンライン参加" || (attendee.rsvpStatus === "参加" && attendee.attendanceType === "オンライン参加");
+          if (selectedStatus === "onsite") { // 現地参加
+            return attendee.rsvpStatus === "attending" && attendee.attendanceType !== "オンライン参加";
+          } else if (selectedStatus === "online") { // オンライン参加
+            return attendee.rsvpStatus === "online" || (attendee.rsvpStatus === "attending" && attendee.attendanceType === "オンライン参加");
           } else {
             return attendee.rsvpStatus === selectedStatus;
           }
@@ -107,17 +129,17 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
   // 集計サマリを計算（フィルタ前の全データから）
   const onsiteCount = allAttendees.filter((a) => 
-    a.rsvpStatus === "参加" && (a.attendanceType === "通常参加" || !a.attendanceType || a.attendanceType === undefined)
+    a.rsvpStatus === "attending" && (a.attendanceType === "通常参加" || !a.attendanceType || a.attendanceType === undefined)
   ).length;
   const onlineCount = allAttendees.filter((a) => 
-    a.rsvpStatus === "オンライン参加" || (a.rsvpStatus === "参加" && a.attendanceType === "オンライン参加")
+    a.rsvpStatus === "online" || (a.rsvpStatus === "attending" && a.attendanceType === "オンライン参加")
   ).length;
-  const declineCount = allAttendees.filter((a) => a.rsvpStatus === "不参加").length;
+  const declineCount = allAttendees.filter((a) => a.rsvpStatus === "absent").length;
   const afterPartyCount = allAttendees.filter((a) => a.afterPartyStatus === "参加").length;
-  const noResponseCount = allAttendees.filter((a) => a.rsvpStatus === "未回答").length;
+  const noResponseCount = allAttendees.filter((a) => a.rsvpStatus === "pending").length;
 
   // 未回答者リスト
-  const noResponseAttendees = allAttendees.filter((a) => a.rsvpStatus === "未回答");
+  const noResponseAttendees = allAttendees.filter((a) => a.rsvpStatus === "pending");
 
   // アンケート結果のデータ（ベンチャー監査役の会の場合のみ）
   const surveyResults = useMemo(() => {
@@ -158,40 +180,40 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
     }
   };
 
+  const handleDelete = () => {
+    toast.success("イベントを削除しました");
+    setIsDeleteDialogOpen(false);
+    router.push("/admin/events");
+  };
+
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin/events">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <div className="flex items-center gap-3">
-              <Badge variant="outline" className="text-xs">
-                {(event as any).eventType || "ベンチャー監査役の会"}
-              </Badge>
-              <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
-            </div>
-          </div>
+          <PageHeader
+            backHref="/admin/events"
+            title={event.title}
+          />
+          <Badge variant={getEventTypeVariant((event as any).eventType || "ベンチャー監査役の会") as "audit" | "naikan" | "ai" | "outline"}>
+            {(event as any).eventType || "ベンチャー監査役の会"}
+          </Badge>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="cursor-pointer">
+            <Button variant="outline">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-white">
-            <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+          <DropdownMenuContent align="end" className="bg-card">
+            <DropdownMenuItem asChild className="bg-card hover:bg-accent">
               <Link href={`/admin/events/${id}/edit`} className="flex items-center gap-2">
                 <Edit className="h-4 w-4" />
                 編集
               </Link>
             </DropdownMenuItem>
             {eventStatus === "open" && (
-              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+              <DropdownMenuItem asChild className="bg-card hover:bg-accent">
                 <Link href={`/admin/events/${id}/invite`} className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
                   案内
@@ -199,7 +221,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               </DropdownMenuItem>
             )}
             {eventStatus === "open" && noResponseAttendees.length > 0 && (
-              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+              <DropdownMenuItem asChild className="bg-card hover:bg-accent">
                 <Link href={`/admin/events/${id}/remind`} className="flex items-center gap-2">
                   <Send className="h-4 w-4" />
                   未回答者に再送 ({noResponseAttendees.length}名)
@@ -207,7 +229,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               </DropdownMenuItem>
             )}
             {((event as any).eventType || "ベンチャー監査役の会") === "ベンチャー監査役の会" && (
-              <DropdownMenuItem asChild className="bg-white hover:bg-gray-100 cursor-pointer">
+              <DropdownMenuItem asChild className="bg-card hover:bg-accent">
                 <Link href={`/admin/events/${id}/survey/create`} className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   アンケート管理
@@ -215,7 +237,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               </DropdownMenuItem>
             )}
             <DropdownMenuItem
-              className="bg-white hover:bg-gray-100 cursor-pointer"
+              className="bg-card hover:bg-accent"
               onClick={() =>
                 setIsPaused((prev) => {
                   const next = !prev;
@@ -252,10 +274,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               router.push(newUrl);
             }}>
                 <TabsList>
-                    <TabsTrigger value="attendees" className="cursor-pointer">参加状況</TabsTrigger>
-                    <TabsTrigger value="detail" className="cursor-pointer">詳細</TabsTrigger>
+                    <TabsTrigger value="attendees">参加状況</TabsTrigger>
+                    <TabsTrigger value="detail">詳細</TabsTrigger>
                     {((event as any).eventType || "ベンチャー監査役の会") === "ベンチャー監査役の会" && (
-                      <TabsTrigger value="survey" className="cursor-pointer">アンケート結果</TabsTrigger>
+                      <TabsTrigger value="survey">アンケート結果</TabsTrigger>
                     )}
                 </TabsList>
                 
@@ -272,7 +294,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                     <Input
                                         type="search"
                                         placeholder="氏名、会社名で検索..."
-                                        className="pl-9 h-10"
+                                        className="pl-9 h-9 text-sm"
                                         value={searchKeyword}
                                         onChange={(e) => setSearchKeyword(e.target.value)}
                                     />
@@ -281,7 +303,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant="outline"
-                                            className="w-[200px] justify-between h-10"
+                                            className="w-[200px] justify-between h-9"
                                         >
                                             <span className="text-sm">
                                                 {selectedStatuses.length === 0
@@ -293,7 +315,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                             <ChevronDown className="h-4 w-4 opacity-50" />
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[280px] p-0 bg-white" align="start">
+                                    <PopoverContent className="w-[280px] p-0 bg-card" align="start">
                                         <div className="p-3 border-b">
                                             <div className="relative">
                                                 <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -301,11 +323,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                                     placeholder="ステータスを検索"
                                                     value={statusSearch}
                                                     onChange={(e) => setStatusSearch(e.target.value)}
-                                                    className="pl-8 h-9"
+                                                    className="pl-8 h-9 text-sm"
                                                 />
                                             </div>
                                         </div>
-                                        <div className="p-2 max-h-[300px] overflow-y-auto">
+                                        <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto">
                                             {RSVP_STATUSES
                                                 .filter((status) =>
                                                     status.label
@@ -313,24 +335,15 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                                         .includes(statusSearch.toLowerCase())
                                                 )
                                                 .map((status) => (
-                                                    <div
+                                                    <CheckboxItem
                                                         key={status.value}
-                                                        className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
-                                                        onClick={() =>
-                                                            handleStatusChange(
-                                                                status.value,
-                                                                !selectedStatuses.includes(status.value)
-                                                            )
+                                                        id={`rsvp-status-${status.value}`}
+                                                        label={status.label}
+                                                        checked={selectedStatuses.includes(status.value)}
+                                                        onCheckedChange={(checked) =>
+                                                            handleStatusChange(status.value, checked)
                                                         }
-                                                    >
-                                                        <Checkbox
-                                                            checked={selectedStatuses.includes(status.value)}
-                                                            onCheckedChange={(checked) =>
-                                                                handleStatusChange(status.value, checked === true)
-                                                            }
-                                                        />
-                                                        <span className="text-sm cursor-pointer">{status.label}</span>
-                                                    </div>
+                                                    />
                                                 ))}
                                         </div>
                                     </PopoverContent>
@@ -363,23 +376,17 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                                     <div className="flex flex-col gap-1">
                                                         <Badge 
                                                             variant={
-                                                                attendee.rsvpStatus === "参加" || attendee.rsvpStatus === "オンライン参加" ? "default" : 
-                                                                attendee.rsvpStatus === "不参加" ? "destructive" : "secondary"
+                                                                (attendee.rsvpStatus && RSVP_STATUS_CONFIG[attendee.rsvpStatus])
+                                                                    ? (RSVP_STATUS_CONFIG[attendee.rsvpStatus].variant as any)
+                                                                    : "outline"
                                                             }
-                                                            className={cn(
-                                                                attendee.rsvpStatus === "未回答" && "bg-gray-100 text-gray-600 hover:bg-gray-200",
-                                                                attendee.rsvpStatus === "不参加" && "text-foreground",
-                                                                (attendee.rsvpStatus === "オンライン参加" || attendee.attendanceType === "オンライン参加") && "bg-blue-100 text-blue-800 hover:bg-blue-200"
-                                                            )}
                                                         >
-                                                            {attendee.rsvpStatus === "オンライン参加" 
-                                                                ? "オンライン参加"
-                                                                : attendee.rsvpStatus === "参加" && attendee.attendanceType === "オンライン参加"
-                                                                ? "オンライン参加"
+                                                            {attendee.rsvpStatus && RSVP_STATUS_CONFIG[attendee.rsvpStatus]
+                                                                ? RSVP_STATUS_CONFIG[attendee.rsvpStatus].label
                                                                 : attendee.rsvpStatus}
                                                         </Badge>
-                                                        {attendee.rsvpStatus === "参加" && attendee.attendanceType === "通常参加" && attendee.afterPartyStatus && (
-                                                            <Badge variant="outline" className="text-xs">
+                                                        {attendee.rsvpStatus === "attending" && attendee.attendanceType === "通常参加" && attendee.afterPartyStatus && (
+                                                            <Badge variant="outline">
                                                                 懇親会: {attendee.afterPartyStatus}
                                                             </Badge>
                                                         )}
@@ -406,55 +413,81 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
                 <TabsContent value="detail" className="space-y-4">
                     <Card>
-                        <CardContent className="pt-6 space-y-6">
-                            <div className="grid gap-4">
-                                <div>
-                                    <Label className="text-sm font-medium text-muted-foreground">イベント種別</Label>
-                                    <div className="mt-1 text-base">{(event as any).eventType || "ベンチャー監査役の会"}</div>
-                                </div>
-                                
-                                <div>
-                                    <Label className="text-sm font-medium text-muted-foreground">開催日時</Label>
-                                    <div className="mt-1 text-base">{formatEventDate(event.date)}</div>
-                                </div>
-                                
-                                {event.location && (
-                                    <div>
-                                        <Label className="text-sm font-medium text-muted-foreground">場所</Label>
-                                        <div className="mt-1 text-base whitespace-pre-wrap">{event.location}</div>
-                                    </div>
-                                )}
-                                
-                                {event.description && (
-                                    <div>
-                                        <Label className="text-sm font-medium text-muted-foreground">イベント概要</Label>
-                                        <div className="mt-1 text-base whitespace-pre-wrap">{event.description}</div>
-                                    </div>
-                                )}
-                                
-                                {event.responseDeadline && (
-                                    <div>
-                                        <Label className="text-sm font-medium text-muted-foreground">回答期限</Label>
-                                        <div className="mt-1 text-base">{formatEventDate(event.responseDeadline)}</div>
-                                    </div>
-                                )}
-                                
-                                <div>
-                                    <Label className="text-sm font-medium text-muted-foreground">オンライン参加</Label>
-                                    <div className="mt-1 text-base">
+                        <CardContent>
+                            <Stack gap="lg">
+                                <SectionHeading>イベント情報</SectionHeading>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <DataItem label="イベント種別">
+                                        <Badge variant={getEventTypeVariant((event as any).eventType || "ベンチャー監査役の会") as "audit" | "naikan" | "ai" | "outline"}>
+                                            {(event as any).eventType || "ベンチャー監査役の会"}
+                                        </Badge>
+                                    </DataItem>
+                                    <DataItem label="開催日時">
+                                        {formatEventDate(event.date)}
+                                    </DataItem>
+                                    {event.location && (
+                                        <DataItem label="場所">
+                                            <span className="whitespace-pre-wrap">{event.location}</span>
+                                        </DataItem>
+                                    )}
+                                    {event.responseDeadline && (
+                                        <DataItem label="回答期限">
+                                            {formatEventDate(event.responseDeadline)}
+                                        </DataItem>
+                                    )}
+                                    <DataItem label="オンライン参加">
                                         {event.allowsOnline ? "可能" : "不可"}
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <Label className="text-sm font-medium text-muted-foreground">懇親会</Label>
-                                    <div className="mt-1 text-base">
+                                    </DataItem>
+                                    <DataItem label="懇親会">
                                         {event.hasAfterParty ? "あり" : "なし"}
-                                    </div>
+                                    </DataItem>
                                 </div>
-                            </div>
+                                {event.description && (
+                                    <>
+                                        <SectionHeading>イベント概要</SectionHeading>
+                                        <div className="text-base whitespace-pre-wrap">{event.description}</div>
+                                    </>
+                                )}
+                            </Stack>
                         </CardContent>
                     </Card>
+
+                    <div className="flex justify-end pt-4 border-t">
+                        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="border-destructive text-destructive bg-white hover:bg-white hover:text-destructive"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    削除
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="bg-card">
+                                <DialogHeader>
+                                    <DialogTitle>イベントを削除</DialogTitle>
+                                    <DialogDescription>
+                                        このイベントを削除してもよろしいですか？この操作は取り消せません。
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <DialogFooter>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setIsDeleteDialogOpen(false)}
+                                    >
+                                        キャンセル
+                                    </Button>
+                                    <Button
+                                        variant="destructive"
+                                        onClick={handleDelete}
+                                    >
+                                        削除
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
                 </TabsContent>
 
                 {((event as any).eventType || "ベンチャー監査役の会") === "ベンチャー監査役の会" && (
@@ -472,21 +505,21 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                   {item.question.title}
                                 </div>
                                 <div className="grid grid-cols-4 gap-4 text-sm">
-                                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-green-600">{item.ratingCounts.よかった}</div>
-                                    <div className="text-xs text-green-800">よかった</div>
+                                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                    <div className="text-2xl font-bold text-gray-600">{item.ratingCounts.よかった}</div>
+                                    <div className="text-xs text-gray-800">よかった</div>
                                   </div>
-                                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-blue-600">{item.ratingCounts.まぁよかった}</div>
-                                    <div className="text-xs text-blue-800">まぁよかった</div>
+                                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                    <div className="text-2xl font-bold text-gray-600">{item.ratingCounts.まぁよかった}</div>
+                                    <div className="text-xs text-gray-800">まぁよかった</div>
                                   </div>
-                                  <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-yellow-600">{item.ratingCounts.あまりよくなかった}</div>
-                                    <div className="text-xs text-yellow-800">あまりよくなかった</div>
+                                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                    <div className="text-2xl font-bold text-gray-600">{item.ratingCounts.あまりよくなかった}</div>
+                                    <div className="text-xs text-gray-800">あまりよくなかった</div>
                                   </div>
-                                  <div className="text-center p-3 bg-red-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-red-600">{item.ratingCounts.よくなかった}</div>
-                                    <div className="text-xs text-red-800">よくなかった</div>
+                                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                    <div className="text-2xl font-bold text-gray-600">{item.ratingCounts.よくなかった}</div>
+                                    <div className="text-xs text-gray-800">よくなかった</div>
                                   </div>
                                 </div>
                               </div>
@@ -506,21 +539,21 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                   };
                                   return (
                                     <div className="grid grid-cols-4 gap-4 text-sm">
-                                      <div className="text-center p-3 bg-green-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-green-600">{ratingCounts.よかった}</div>
-                                        <div className="text-xs text-green-800">よかった</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.よかった}</div>
+                                        <div className="text-xs text-gray-800">よかった</div>
                                       </div>
-                                      <div className="text-center p-3 bg-blue-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-blue-600">{ratingCounts.まぁよかった}</div>
-                                        <div className="text-xs text-blue-800">まぁよかった</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.まぁよかった}</div>
+                                        <div className="text-xs text-gray-800">まぁよかった</div>
                                       </div>
-                                      <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-yellow-600">{ratingCounts.あまりよくなかった}</div>
-                                        <div className="text-xs text-yellow-800">あまりよくなかった</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.あまりよくなかった}</div>
+                                        <div className="text-xs text-gray-800">あまりよくなかった</div>
                                       </div>
-                                      <div className="text-center p-3 bg-red-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-red-600">{ratingCounts.よくなかった}</div>
-                                        <div className="text-xs text-red-800">よくなかった</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.よくなかった}</div>
+                                        <div className="text-xs text-gray-800">よくなかった</div>
                                       </div>
                                     </div>
                                   );
@@ -544,17 +577,17 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                   };
                                   return (
                                     <div className="grid grid-cols-3 gap-4 text-sm">
-                                      <div className="text-center p-3 bg-green-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-green-600">{ratingCounts.ぜひ参加したい}</div>
-                                        <div className="text-xs text-green-800">ぜひ参加したい</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.ぜひ参加したい}</div>
+                                        <div className="text-xs text-gray-800">ぜひ参加したい</div>
                                       </div>
-                                      <div className="text-center p-3 bg-blue-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-blue-600">{ratingCounts.参加を検討したい}</div>
-                                        <div className="text-xs text-blue-800">参加を検討したい</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.参加を検討したい}</div>
+                                        <div className="text-xs text-gray-800">参加を検討したい</div>
                                       </div>
-                                      <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-yellow-600">{ratingCounts.参加しない}</div>
-                                        <div className="text-xs text-yellow-800">参加しない</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.参加しない}</div>
+                                        <div className="text-xs text-gray-800">参加しない</div>
                                       </div>
                                     </div>
                                   );
@@ -578,17 +611,17 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                   };
                                   return (
                                     <div className="grid grid-cols-3 gap-4 text-sm">
-                                      <div className="text-center p-3 bg-green-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-green-600">{ratingCounts.入会をしたい}</div>
-                                        <div className="text-xs text-green-800">入会をしたい</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.入会をしたい}</div>
+                                        <div className="text-xs text-gray-800">入会をしたい</div>
                                       </div>
-                                      <div className="text-center p-3 bg-blue-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-blue-600">{ratingCounts.入会を検討したい}</div>
-                                        <div className="text-xs text-blue-800">入会を検討したい</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.入会を検討したい}</div>
+                                        <div className="text-xs text-gray-800">入会を検討したい</div>
                                       </div>
-                                      <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                                        <div className="text-2xl font-bold text-yellow-600">{ratingCounts.関心がない}</div>
-                                        <div className="text-xs text-yellow-800">関心がない</div>
+                                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div className="text-2xl font-bold text-gray-600">{ratingCounts.関心がない}</div>
+                                        <div className="text-xs text-gray-800">関心がない</div>
                                       </div>
                                     </div>
                                   );
@@ -638,7 +671,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                   ) : (
                                     surveyResults.respondedCustomers.map((item) => (
                                       <TableRow key={item.customer!.id}>
-                                        <TableCell className="sticky left-0 z-10 bg-white font-medium">{item.customer!.name}</TableCell>
+                                        <TableCell className="sticky left-0 z-10 bg-white">{item.customer!.name}</TableCell>
                                         <TableCell>{item.customer!.company}</TableCell>
                                         {survey?.questions
                                           .sort((a: any, b: any) => a.order - b.order)
@@ -649,15 +682,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                                 {response ? (
                                                   <div className="space-y-1">
                                                     <Badge
-                                                      variant={
-                                                        response.rating === "よかった"
-                                                          ? "default"
-                                                          : response.rating === "まぁよかった"
-                                                          ? "secondary"
-                                                          : response.rating === "あまりよくなかった"
-                                                          ? "outline"
-                                                          : "destructive"
-                                                      }
+                                                      variant="secondary"
+                                                      className="font-medium"
                                                     >
                                                       {response.rating}
                                                     </Badge>
@@ -678,15 +704,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                             {item.fixedResponse?.afterParty ? (
                                               <div className="space-y-1">
                                                 <Badge
-                                                  variant={
-                                                    item.fixedResponse.afterParty.rating === "よかった"
-                                                      ? "default"
-                                                      : item.fixedResponse.afterParty.rating === "まぁよかった"
-                                                      ? "secondary"
-                                                      : item.fixedResponse.afterParty.rating === "あまりよくなかった"
-                                                      ? "outline"
-                                                      : "destructive"
-                                                  }
+                                                  variant="secondary"
+                                                  className="font-medium"
                                                 >
                                                   {item.fixedResponse.afterParty.rating}
                                                 </Badge>
@@ -706,7 +725,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                             <TableCell>
                                               {item.customer!.communities.length === 0 && item.fixedResponse?.futureParticipation ? (
                                                 <div className="space-y-1">
-                                                  <Badge variant="secondary">
+                                                  <Badge variant="secondary" className="font-medium">
                                                     {item.fixedResponse.futureParticipation.rating}
                                                   </Badge>
                                                   {item.fixedResponse.futureParticipation.reason && (
@@ -722,7 +741,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                             <TableCell>
                                               {item.customer!.communities.length === 0 && item.fixedResponse?.membership ? (
                                                 <div className="space-y-1">
-                                                  <Badge variant="secondary">
+                                                  <Badge variant="secondary" className="font-medium">
                                                     {item.fixedResponse.membership.rating}
                                                   </Badge>
                                                   {item.fixedResponse.membership.reason && (
@@ -790,8 +809,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                 eventStatus === "open"
                                     ? "default"
                                     : eventStatus === "closed"
-                                    ? "outline"
-                                    : "secondary"
+                                    ? "secondary"
+                                    : "outline"
                             }
                         >
                             {eventStatus === "open"
@@ -806,13 +825,9 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center p-4 bg-green-50 rounded-lg">
+                        <div className="text-center p-4 bg-green-50 rounded-lg col-span-2">
                             <div className="text-2xl font-bold text-green-600">{onsiteCount}</div>
                             <div className="text-xs text-green-800">現地参加</div>
-                        </div>
-                        <div className="text-center p-4 bg-red-50 rounded-lg">
-                            <div className="text-2xl font-bold text-red-600">{declineCount}</div>
-                            <div className="text-xs text-red-800">不参加</div>
                         </div>
                         <div className="text-center p-4 bg-blue-50 rounded-lg">
                             <div className="text-2xl font-bold text-blue-600">{onlineCount}</div>
@@ -822,7 +837,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                             <div className="text-2xl font-bold text-purple-600">{afterPartyCount}</div>
                             <div className="text-xs text-purple-800">懇親会参加</div>
                         </div>
-                        <div className="text-center p-4 bg-gray-50 rounded-lg col-span-2">
+                        <div className="text-center p-4 bg-red-50 rounded-lg">
+                            <div className="text-2xl font-bold text-red-600">{declineCount}</div>
+                            <div className="text-xs text-red-800">不参加</div>
+                        </div>
+                        <div className="text-center p-4 bg-gray-50 rounded-lg">
                             <div className="text-2xl font-bold text-gray-600">{noResponseCount}</div>
                             <div className="text-xs text-gray-800">未回答</div>
                         </div>

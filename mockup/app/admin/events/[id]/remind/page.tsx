@@ -5,22 +5,26 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check } from "lucide-react";
-import { customers, events, rsvps, getEventStatus } from "@/lib/data/mock";
-import type { Customer } from "@/lib/types";
+import { PageHeader } from "@/components/ui/page-header";
+import { FormField } from "@/components/ui/form-field";
+import { ActionButton } from "@/components/ui/action-button";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { customers, events, rsvps } from "@/lib/data/mock";
 import React from "react";
-import { cn, getRemindEmailTemplate, formatEventDate } from "@/lib/utils";
+import { cn, getRemindEmailTemplate } from "@/lib/utils";
+import { USER_ROLE_CONFIG } from "@/lib/constants/customer";
 
 type Step = "select" | "customize" | "confirm";
 
@@ -46,7 +50,6 @@ export default function EventRemindPage({
     );
   }
 
-  const eventStatus = getEventStatus(eventData);
   const event = eventData;
 
   // このイベントのRSVPデータを取得
@@ -54,7 +57,7 @@ export default function EventRemindPage({
   
   // 未回答者のみを取得
   const noResponseAttendees = useMemo(() => {
-    const noResponseRsvps = eventRsvps.filter((r) => r.status === "未回答");
+    const noResponseRsvps = eventRsvps.filter((r) => r.status === "pending");
     return noResponseRsvps.map((rsvp) => {
       const customer = customers.find((c) => c.id === rsvp.customerId);
       return customer ? { ...customer, rsvpStatus: rsvp.status } : null;
@@ -179,156 +182,160 @@ export default function EventRemindPage({
   if (step === "select") {
     return (
       <div className="max-w-4xl space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href={`/admin/events/${id}`}>
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">未回答者への再送</h1>
-            <p className="text-muted-foreground">
-              未回答者へのリマインドメールを送信します。
-            </p>
-          </div>
-        </div>
-        
+        <PageHeader
+          backHref={`/admin/events/${id}`}
+          title="未回答者への再送"
+          description="未回答者へのリマインドメールを送信します。"
+        />
+
         <StepIndicator />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>送信先確認</CardTitle>
-            <CardDescription>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <SectionHeading>送信先確認</SectionHeading>
+            <p className="text-sm text-muted-foreground">
               未回答者{noResponseAttendees.length}名にリマインドメールを送信します。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
-              <div>
-                <span className="font-medium">{noResponseAttendees.length}名</span> 送信予定
-              </div>
-            </div>
+            </p>
+          </div>
 
-            <div className="rounded-md border">
-              <div className="max-h-[400px] overflow-y-auto">
-                <table className="w-full">
-                  <thead className="bg-muted/50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium" style={{ fontSize: '14px' }}>氏名</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium" style={{ fontSize: '14px' }}>会社名</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium" style={{ fontSize: '14px' }}>会員区分</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium" style={{ fontSize: '14px' }}>メールアドレス</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {noResponseAttendees.map((attendee) => (
-                      <tr key={attendee.id} className="border-t">
-                        <td className="px-4 py-3" style={{ fontSize: '14px' }}>{attendee.name}</td>
-                        <td className="px-4 py-3" style={{ fontSize: '14px' }}>{attendee.company}</td>
-                        <td className="px-4 py-3" style={{ fontSize: '14px' }}>
-                          <div className="flex gap-1 flex-wrap items-center">
-                            {(() => {
-                              const badges: React.ReactElement[] = [];
-                              
-                              // 非会員の判定（communitiesが空配列）
-                              if (attendee.communities.length === 0) {
-                                badges.push(
-                                  <Badge key="non-member" variant="secondary" className="text-xs px-2 py-0.5">
-                                    非会員
-                                  </Badge>
-                                );
-                              } else if (attendee.memberCategory === "member") {
-                                const hasAudit = attendee.communities.includes("ベンチャー監査役の会");
-                                const hasNaikan = attendee.communities.includes("ないかんMeetup");
-                                
-                                if (hasNaikan && !hasAudit) {
-                                  badges.push(
-                                    <Badge key="naikan-member" variant="default" className="text-xs px-2 py-0.5">
-                                      ないかんMeetup(会員)
-                                    </Badge>
-                                  );
-                                } else if (hasAudit && !hasNaikan) {
-                                  const auditType = attendee.auditMemberType === "regular" ? "正会員" : "オンライン会員";
-                                  badges.push(
-                                    <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
-                                      ベンチャー監査役の会({auditType})
-                                    </Badge>
-                                  );
-                                } else if (hasAudit && hasNaikan) {
-                                  const auditType = attendee.auditMemberType === "regular" ? "正会員" : "オンライン会員";
-                                  badges.push(
-                                    <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
-                                      ベンチャー監査役の会({auditType})
-                                    </Badge>
-                                  );
-                                  badges.push(
-                                    <Badge key="naikan-member" variant="default" className="text-xs px-2 py-0.5">
-                                      ないかんMeetup(会員)
-                                    </Badge>
-                                  );
-                                }
-                                
-                                if (attendee.auditMemberPremium) {
-                                  badges.push(
-                                    <Badge key="premium" variant="default" className="text-xs px-1.5 py-0.5 bg-slate-600 hover:bg-slate-700 text-white">
-                                      プレミアム
-                                    </Badge>
-                                  );
-                                }
-                              } else if (attendee.memberCategory === "sponsor") {
-                                if (attendee.communities.includes("ないかんMeetup")) {
-                                  badges.push(
-                                    <Badge key="sponsor-naikan" variant="default" className="text-xs px-2 py-0.5">
-                                      ないかんMeetup(スポンサー)
-                                    </Badge>
-                                  );
-                                }
-                                if (attendee.communities.includes("ベンチャー監査役の会")) {
-                                  badges.push(
-                                    <Badge key="sponsor-audit" variant="default" className="text-xs px-2 py-0.5">
-                                      ベンチャー監査役の会(スポンサー)
-                                    </Badge>
-                                  );
-                                }
-                              } else if (attendee.memberCategory === "observer") {
-                                if (attendee.communities.includes("ないかんMeetup")) {
-                                  badges.push(
-                                    <Badge key="observer-naikan" variant="default" className="text-xs px-2 py-0.5">
-                                      ないかんMeetup(オブザーバー)
-                                    </Badge>
-                                  );
-                                }
-                                if (attendee.communities.includes("ベンチャー監査役の会")) {
-                                  badges.push(
-                                    <Badge key="observer-audit" variant="default" className="text-xs px-2 py-0.5">
-                                      ベンチャー監査役の会(オブザーバー)
-                                    </Badge>
-                                  );
-                                }
-                              }
-                              
-                              return badges.length > 0 ? badges : null;
-                            })()}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-muted-foreground" style={{ fontSize: '14px' }}>{attendee.email}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+          <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
+            <div>
+              <span className="font-medium">{noResponseAttendees.length}名</span> 送信予定
             </div>
+          </div>
 
-            <div className="flex justify-end gap-4 pt-4">
-              <Button variant="outline" asChild>
-                <Link href={`/admin/events/${id}`}>キャンセル</Link>
-              </Button>
-              <Button variant="outline" onClick={handleSelectNext} className="cursor-pointer">
-                次へ
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          <div className="rounded-lg border bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>氏名</TableHead>
+                  <TableHead>会社名</TableHead>
+                  <TableHead>会員区分</TableHead>
+                  <TableHead>メールアドレス</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {noResponseAttendees.map((attendee) => (
+                  <TableRow key={attendee.id}>
+                    <TableCell>{attendee.name}</TableCell>
+                    <TableCell>{attendee.company}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1 flex-wrap items-center">
+                        {(() => {
+                          const badges: React.ReactElement[] = [];
+
+                          // 非会員の判定（communitiesが空配列）
+                          if (attendee.communities.length === 0) {
+                            badges.push(
+                              <Badge key="non-member" variant="non-member">
+                                非会員
+                              </Badge>
+                            );
+                          } else if (attendee.memberCategory === "member") {
+                            const hasAudit = attendee.communities.includes("ベンチャー監査役の会");
+                            const hasNaikan = attendee.communities.includes("ないかんMeetup");
+                            const hasAi = attendee.communities.includes("AI部会");
+
+                            // ベンチャー監査役の会のバッジ
+                            if (hasAudit) {
+                              const auditType = attendee.auditMemberType === "regular" ? "正会員" : "オンライン会員";
+                              badges.push(
+                                <Badge key="audit-member" variant="audit">
+                                  ベンチャー監査役の会({auditType})
+                                </Badge>
+                              );
+                            }
+                            // ないかんMeetupのバッジ
+                            if (hasNaikan) {
+                              badges.push(
+                                <Badge key="naikan-member" variant="naikan">
+                                  ないかんMeetup(会員)
+                                </Badge>
+                              );
+                            }
+                            // AI部会のバッジ
+                            if (hasAi) {
+                              badges.push(
+                                <Badge key="ai-member" variant="ai">
+                                  AI部会(会員)
+                                </Badge>
+                              );
+                            }
+
+                            // プレミアム会員バッジ
+                            if (attendee.auditMemberPremium) {
+                              badges.push(
+                                <Badge key="premium" variant={USER_ROLE_CONFIG.premium.variant as any}>
+                                  {USER_ROLE_CONFIG.premium.label}
+                                </Badge>
+                              );
+                            }
+                          } else if (attendee.memberCategory === "sponsor") {
+                            if (attendee.communities.includes("ベンチャー監査役の会")) {
+                              badges.push(
+                                <Badge key="sponsor-audit" variant="audit">
+                                  ベンチャー監査役の会(スポンサー)
+                                </Badge>
+                              );
+                            }
+                            if (attendee.communities.includes("ないかんMeetup")) {
+                              badges.push(
+                                <Badge key="sponsor-naikan" variant="naikan">
+                                  ないかんMeetup(スポンサー)
+                                </Badge>
+                              );
+                            }
+                            if (attendee.communities.includes("AI部会")) {
+                              badges.push(
+                                <Badge key="sponsor-ai" variant="ai">
+                                  AI部会(スポンサー)
+                                </Badge>
+                              );
+                            }
+                          } else if (attendee.memberCategory === "observer") {
+                            if (attendee.communities.includes("ベンチャー監査役の会")) {
+                              badges.push(
+                                <Badge key="observer-audit" variant="audit">
+                                  ベンチャー監査役の会(オブザーバー)
+                                </Badge>
+                              );
+                            }
+                            if (attendee.communities.includes("ないかんMeetup")) {
+                              badges.push(
+                                <Badge key="observer-naikan" variant="naikan">
+                                  ないかんMeetup(オブザーバー)
+                                </Badge>
+                              );
+                            }
+                            if (attendee.communities.includes("AI部会")) {
+                              badges.push(
+                                <Badge key="observer-ai" variant="ai">
+                                  AI部会(オブザーバー)
+                                </Badge>
+                              );
+                            }
+                          }
+
+                          return badges.length > 0 ? badges : null;
+                        })()}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{attendee.email}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="flex justify-center gap-4 pt-4">
+            <ActionButton variant="outline" asChild>
+              <Link href={`/admin/events/${id}`}>キャンセル</Link>
+            </ActionButton>
+            <ActionButton onClick={handleSelectNext}>
+              次へ
+            </ActionButton>
+          </div>
+        </div>
       </div>
     );
   }
@@ -342,55 +349,50 @@ export default function EventRemindPage({
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">未回答者への再送</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">未回答者への再送</h1>
+            <p className="text-sm text-muted-foreground">
               リマインドメールのタイトルと本文を編集できます。
             </p>
           </div>
         </div>
-        
+
         <StepIndicator />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>メール文作成</CardTitle>
-            <CardDescription>
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <SectionHeading>メール文作成</SectionHeading>
+            <p className="text-sm text-muted-foreground">
               送信するメールのタイトルと本文を編集してください。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="emailTitle">メールタイトル</Label>
-              <Input 
-                id="emailTitle" 
-                value={emailTitle}
-                onChange={(e) => setEmailTitle(e.target.value)}
-                placeholder="メールタイトルを入力"
-              />
-            </div>
+            </p>
+          </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="emailBody">メール本文</Label>
-              <Textarea 
-                id="emailBody" 
-                value={emailBody}
-                onChange={(e) => setEmailBody(e.target.value)}
-                placeholder="メール本文を入力"
-                rows={30}
-                style={{ minHeight: '480px' }}
-              />
-            </div>
+          <FormField label="メールタイトル">
+            <Input
+              value={emailTitle}
+              onChange={(e) => setEmailTitle(e.target.value)}
+              placeholder="メールタイトルを入力"
+            />
+          </FormField>
 
-            <div className="flex justify-end gap-4 pt-4">
-              <Button variant="outline" onClick={() => setStep("select")}>
-                戻る
-              </Button>
-              <Button variant="outline" onClick={handleCustomizeNext} className="cursor-pointer">
-                次へ
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          <FormField label="メール本文">
+            <Textarea
+              value={emailBody}
+              onChange={(e) => setEmailBody(e.target.value)}
+              placeholder="メール本文を入力"
+              rows={30}
+              className="min-h-[480px]"
+            />
+          </FormField>
+
+          <div className="flex justify-center gap-4 pt-4">
+            <ActionButton variant="outline" onClick={() => setStep("select")}>
+              戻る
+            </ActionButton>
+            <ActionButton onClick={handleCustomizeNext}>
+              次へ
+            </ActionButton>
+          </div>
+        </div>
       </div>
     );
   }
@@ -404,75 +406,61 @@ export default function EventRemindPage({
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">未回答者への再送</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">未回答者への再送</h1>
+            <p className="text-sm text-muted-foreground">
               送信内容を確認して、テスト送信または送信を実行してください。
             </p>
           </div>
         </div>
-        
+
         <StepIndicator />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>確認</CardTitle>
-            <CardDescription>
-              送信内容を確認して、テスト送信または送信を実行してください。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>送信先</CardTitle>
-                <CardDescription>
-                  {noResponseAttendees.length}名に送信します
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm max-h-40 overflow-y-auto">
-                  {noResponseAttendees.map((attendee) => (
-                    <div key={attendee.id}>
-                      {attendee.name} ({attendee.email})
-                    </div>
-                  ))}
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <SectionHeading>送信先</SectionHeading>
+            <p className="text-sm text-muted-foreground">
+              {noResponseAttendees.length}名に送信します
+            </p>
+            <div className="space-y-2 text-sm">
+              {noResponseAttendees.map((attendee) => (
+                <div key={attendee.id}>
+                  {attendee.name} ({attendee.email})
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>メール内容</CardTitle>
-                <CardDescription>
-                  送信するメールのタイトルと本文です
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="font-medium mb-2">タイトル:</div>
-                  <div className="text-sm bg-muted p-3 rounded">{emailTitle}</div>
-                </div>
-                <div>
-                  <div className="font-medium mb-2">本文:</div>
-                  <div className="text-sm bg-muted p-3 rounded whitespace-pre-wrap">{emailBody}</div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="flex justify-end gap-4 pt-4">
-              <Button variant="outline" onClick={() => setStep("customize")}>
-                戻る
-              </Button>
-              <Button variant="outline" onClick={handleTestSend} className="cursor-pointer">
-                <Mail className="h-4 w-4" />
-                テスト送信
-              </Button>
-              <Button variant="outline" onClick={handleSend} className="cursor-pointer">
-                <Send className="h-4 w-4" />
-                送信
-              </Button>
+              ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          <div className="space-y-4">
+            <SectionHeading>メール内容</SectionHeading>
+            <p className="text-sm text-muted-foreground">
+              送信するメールのタイトルと本文です
+            </p>
+            <div className="space-y-4">
+              <div>
+                <div className="font-medium mb-2">タイトル:</div>
+                <div className="text-sm bg-muted p-3 rounded">{emailTitle}</div>
+              </div>
+              <div>
+                <div className="font-medium mb-2">本文:</div>
+                <div className="text-sm bg-muted p-3 rounded whitespace-pre-wrap">{emailBody}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-center gap-4 pt-4">
+            <ActionButton variant="outline" onClick={() => setStep("customize")}>
+              戻る
+            </ActionButton>
+            <ActionButton variant="outline" onClick={handleTestSend}>
+              <Mail className="h-4 w-4" />
+              テスト送信
+            </ActionButton>
+            <ActionButton onClick={handleSend}>
+              <Send className="h-4 w-4" />
+              送信
+            </ActionButton>
+          </div>
+        </div>
       </div>
     );
   }

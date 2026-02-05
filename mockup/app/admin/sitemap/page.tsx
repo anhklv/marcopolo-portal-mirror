@@ -48,8 +48,8 @@ export default function SitemapPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">画面一覧</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-bold tracking-tight">画面一覧</h1>
+        <p className="text-sm text-muted-foreground">
           各画面へのクイックアクセス用リンク集です。（本番環境には不要なページです）
         </p>
       </div>

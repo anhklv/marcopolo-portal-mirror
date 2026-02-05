@@ -1,15 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { PageHeader } from "@/components/ui/page-header";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { DataItem } from "@/components/ui/data-item";
+import { Stack } from "@/components/ui/stack";
 import {
   Table,
   TableBody,
@@ -18,12 +19,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Edit, Calendar } from "lucide-react";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Edit, Trash2 } from "lucide-react";
 import { customers, events, rsvps } from "@/lib/data/mock";
 import { CONTRACT_TYPE_LABELS, GENDER_LABELS } from "@/lib/constants/common";
-import { use } from "react";
+import { USER_ROLE_CONFIG } from "@/lib/constants/customer";
+import { use, useState } from "react";
 import React from "react";
+import { RSVP_STATUS_CONFIG } from "@/lib/constants/event";
 import { formatEventDate, formatDate } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function CustomerDetailPage({
   params,
@@ -31,24 +44,18 @@ export default function CustomerDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const router = useRouter();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const customer = customers.find((c) => c.id === id);
 
   if (!customer) {
     return (
       <div className="max-w-4xl space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin/customers">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">顧客が見つかりません</h1>
-            <p className="text-muted-foreground">
-              指定された顧客IDの情報が見つかりませんでした。
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          backHref="/admin/customers"
+          title="顧客が見つかりません"
+          description="指定された顧客IDの情報が見つかりませんでした。"
+        />
       </div>
     );
   }
@@ -87,22 +94,20 @@ export default function CustomerDetailPage({
   const pastEvents = sortedEvents.filter((e) => new Date(e.date) < now);
   const upcomingEvents = sortedEvents.filter((e) => new Date(e.date) >= now);
 
+  const handleDelete = () => {
+    toast.success("顧客を削除しました");
+    setIsDeleteDialogOpen(false);
+    router.push("/admin/customers");
+  };
+
   return (
     <div className="max-w-4xl space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin/customers">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">顧客詳細</h1>
-            <p className="text-muted-foreground">
-              {customer.name}さんの詳細情報
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          backHref="/admin/customers"
+          title="顧客詳細"
+          description={`${customer.name}さんの詳細情報`}
+        />
         <Button variant="outline" asChild>
           <Link href={`/admin/customers/${id}/edit`}>
             <Edit className="h-4 w-4" />
@@ -113,122 +118,98 @@ export default function CustomerDetailPage({
 
       {/* 会員情報 */}
       <Card>
-        <CardHeader>
-          <CardTitle>会員情報</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground mb-2">コミュニティ</p>
+        <CardContent>
+          <Stack gap="lg">
+            <SectionHeading>会員情報</SectionHeading>
+          <div className="grid grid-cols-2 gap-6">
+            <DataItem label="コミュニティ">
               <div className="flex gap-2 flex-wrap items-center">
                 {(() => {
                   const badges: React.ReactElement[] = [];
-                  
+
                   // 非会員の判定（communitiesが空配列）
                   if (customer.communities.length === 0) {
                     badges.push(
-                      <Badge key="non-member" variant="secondary" className="text-base px-3 py-1">
+                      <Badge key="non-member" variant="outline">
                         非会員
                       </Badge>
                     );
                   } else {
                     if (customer.communities.includes("ベンチャー監査役の会")) {
                       badges.push(
-                        <Badge key="audit" variant="default" className="text-base px-3 py-1">
+                        <Badge key="audit" variant="audit">
                           ベンチャー監査役の会
                         </Badge>
                       );
                     }
                     if (customer.communities.includes("ないかんMeetup")) {
                       badges.push(
-                        <Badge key="naikan" variant="default" className="text-base px-3 py-1">
+                        <Badge key="naikan" variant="naikan">
                           ないかんMeetup
                         </Badge>
                       );
                     }
-                    
+                    if (customer.communities.includes("AI部会")) {
+                      badges.push(
+                        <Badge key="ai" variant="ai">
+                          AI部会
+                        </Badge>
+                      );
+                    }
+
                     // プレミアム会員バッジ
                     if (customer.auditMemberPremium) {
                       badges.push(
-                        <Badge key="premium" variant="default" className="text-xs px-2 py-0.5 bg-slate-600 hover:bg-slate-700 text-white">
-                          プレミアム
+                        <Badge key="premium" variant={USER_ROLE_CONFIG.premium.variant}>
+                          {USER_ROLE_CONFIG.premium.label}
                         </Badge>
                       );
                     }
                   }
-                  
+
                   return badges.length > 0 ? badges : null;
                 })()}
               </div>
-            </div>
+            </DataItem>
             {customer.memberCategory === "member" && customer.contractType && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">契約主体</p>
-                <p className="text-base">{CONTRACT_TYPE_LABELS[customer.contractType]}</p>
+              <DataItem label="契約主体">{CONTRACT_TYPE_LABELS[customer.contractType]}</DataItem>
+            )}
+            <DataItem label="登録日">{formatDate(customer.registeredAt)}</DataItem>
+            </div>
+
+            {/* ベンチャー監査役の会 詳細 */}
+            {customer.communities.includes("ベンチャー監査役の会") && (
+              <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
+                <div className="flex items-center justify-between">
+                  <Label className="font-semibold text-base">ベンチャー監査役の会</Label>
+                  {customer.memberCategory === "member" && customer.auditMemberType && (
+                    <Badge variant={USER_ROLE_CONFIG.member.variant}>
+                      {customer.auditMemberType === "regular" ? "正会員" : "オンライン会員"}
+                    </Badge>
+                  )}
+                  {customer.memberCategory === "sponsor" && (
+                    <Badge variant={USER_ROLE_CONFIG.sponsor.variant}>{USER_ROLE_CONFIG.sponsor.label}</Badge>
+                  )}
+                  {customer.memberCategory === "observer" && (
+                    <Badge variant={USER_ROLE_CONFIG.observer.variant}>{USER_ROLE_CONFIG.observer.label}</Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-6">
+                  {customer.membershipQualification && (
+                    <DataItem label="入会資格">{customer.membershipQualification}</DataItem>
+                  )}
+                  {customer.originIndustry && (
+                    <DataItem label="出身業種">{customer.originIndustry}</DataItem>
+                  )}
+                  {customer.auditJoinedAt && (
+                    <DataItem label="入会日">{formatDate(customer.auditJoinedAt)}</DataItem>
+                  )}
+                  {customer.auditResignedAt && (
+                    <DataItem label="脱退日">{formatDate(customer.auditResignedAt)}</DataItem>
+                  )}
+                </div>
               </div>
             )}
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">ステータス</p>
-              <Badge
-                variant={customer.status === "active" ? "default" : "secondary"}
-                className="text-base"
-              >
-                {customer.status === "active" ? "アクティブ" : "非アクティブ"}
-              </Badge>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">登録日</p>
-              <p className="text-base">{formatDate(customer.registeredAt)}</p>
-            </div>
-          </div>
-
-          {/* ベンチャー監査役の会 詳細 */}
-          {customer.communities.includes("ベンチャー監査役の会") && (
-            <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
-              <div className="flex items-center justify-between">
-                <Label className="font-semibold text-base">ベンチャー監査役の会</Label>
-                {customer.memberCategory === "member" && customer.auditMemberType && (
-                  <Badge variant="outline" className="text-sm">
-                    {customer.auditMemberType === "regular" ? "正会員" : "オンライン会員"}
-                  </Badge>
-                )}
-                {customer.memberCategory === "sponsor" && (
-                  <Badge variant="outline" className="text-sm">スポンサー</Badge>
-                )}
-                {customer.memberCategory === "observer" && (
-                  <Badge variant="outline" className="text-sm">オブザーバー</Badge>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                {customer.membershipQualification ? (
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">入会資格</p>
-                    <p className="text-base">{customer.membershipQualification}</p>
-                  </div>
-                ) : null}
-                {customer.originIndustry ? (
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">出身業種</p>
-                    <p className="text-base">{customer.originIndustry}</p>
-                  </div>
-                ) : null}
-                {customer.auditJoinedAt ? (
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">入会日</p>
-                    <p className="text-base">{formatDate(customer.auditJoinedAt)}</p>
-                  </div>
-                ) : null}
-                {customer.auditResignedAt ? (
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">脱退日</p>
-                    <p className="text-base">{formatDate(customer.auditResignedAt)}</p>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          )}
 
           {/* ないかんMeetup 詳細 */}
           {customer.communities.includes("ないかんMeetup") && (
@@ -236,252 +217,261 @@ export default function CustomerDetailPage({
               <div className="flex items-center justify-between">
                 <Label className="font-semibold text-base">ないかんMeetup</Label>
                 {customer.memberCategory === "member" && (
-                  <Badge variant="outline" className="text-sm">会員</Badge>
+                  <Badge variant={USER_ROLE_CONFIG.member.variant}>{USER_ROLE_CONFIG.member.label}</Badge>
                 )}
                 {customer.memberCategory === "sponsor" && (
-                  <Badge variant="outline" className="text-sm">スポンサー</Badge>
+                  <Badge variant={USER_ROLE_CONFIG.sponsor.variant}>{USER_ROLE_CONFIG.sponsor.label}</Badge>
                 )}
                 {customer.memberCategory === "observer" && (
-                  <Badge variant="outline" className="text-sm">オブザーバー</Badge>
+                  <Badge variant={USER_ROLE_CONFIG.observer.variant}>{USER_ROLE_CONFIG.observer.label}</Badge>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                {customer.naikanAffiliation ? (
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">所属</p>
-                    <p className="text-base">{customer.naikanAffiliation}</p>
-                  </div>
-                ) : null}
-                {customer.naikanJoinedAt ? (
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">入会日</p>
-                    <p className="text-base">{formatDate(customer.naikanJoinedAt)}</p>
-                  </div>
-                ) : null}
-                {customer.naikanResignedAt ? (
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">脱退日</p>
-                    <p className="text-base">{formatDate(customer.naikanResignedAt)}</p>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* 顧客プロフィール */}
-      <Card>
-        <CardHeader>
-          <CardTitle>プロフィール</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">氏名</p>
-              <p className="text-base">{customer.name}</p>
-            </div>
-            {customer.nameKana ? (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">セイメイ</p>
-                <p className="text-base">{customer.nameKana}</p>
-              </div>
-            ) : (
-              <div></div>
-            )}
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">メールアドレス</p>
-              <p className="text-base">{customer.email}</p>
-            </div>
-            {customer.phone ? (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">電話番号</p>
-                <p className="text-base">{customer.phone}</p>
-              </div>
-            ) : (
-              <div></div>
-            )}
-            {customer.subEmails && customer.subEmails.length > 0 ? (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">サブメールアドレス</p>
-                <div className="space-y-1">
-                  {customer.subEmails.map((subEmail, index) => (
-                    <p key={index} className="text-base">{subEmail}</p>
-                  ))}
+              <div className="grid grid-cols-2 gap-6">
+                  {customer.naikanAffiliation && (
+                    <DataItem label="所属">{customer.naikanAffiliation}</DataItem>
+                  )}
+                  {customer.naikanJoinedAt && (
+                    <DataItem label="入会日">{formatDate(customer.naikanJoinedAt)}</DataItem>
+                  )}
+                  {customer.naikanResignedAt && (
+                    <DataItem label="脱退日">{formatDate(customer.naikanResignedAt)}</DataItem>
+                  )}
                 </div>
               </div>
-            ) : null}
-            {customer.company ? (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">会社名</p>
-                <p className="text-base">{customer.company}</p>
-              </div>
-            ) : null}
-            {customer.listingCategory ? (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">上場区分</p>
-                <p className="text-base">{customer.listingCategory}</p>
-              </div>
-            ) : null}
-            {(customer.postalCode || customer.prefecture || customer.city) ? (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">住所</p>
-                <div className="text-base">
-                  {customer.postalCode && (
-                    <div>〒{customer.postalCode}</div>
+            )}
+
+            {/* AI部会 詳細 */}
+            {customer.communities.includes("AI部会") && (
+              <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
+                <div className="flex items-center justify-between">
+                  <Label className="font-semibold text-base">AI部会</Label>
+                  {customer.memberCategory === "member" && (
+                    <Badge variant={USER_ROLE_CONFIG.member.variant}>{USER_ROLE_CONFIG.member.label}</Badge>
                   )}
+                  {customer.memberCategory === "sponsor" && (
+                    <Badge variant={USER_ROLE_CONFIG.sponsor.variant}>{USER_ROLE_CONFIG.sponsor.label}</Badge>
+                  )}
+                  {customer.memberCategory === "observer" && (
+                    <Badge variant={USER_ROLE_CONFIG.observer.variant}>{USER_ROLE_CONFIG.observer.label}</Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-6">
+                  {(customer as any).aiAffiliation && (
+                    <DataItem label="所属">{(customer as any).aiAffiliation}</DataItem>
+                  )}
+                  {(customer as any).aiJoinedAt && (
+                    <DataItem label="入会日">{formatDate((customer as any).aiJoinedAt)}</DataItem>
+                  )}
+                  {(customer as any).aiResignedAt && (
+                    <DataItem label="脱退日">{formatDate((customer as any).aiResignedAt)}</DataItem>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* プロフィール */}
+            <SectionHeading>プロフィール</SectionHeading>
+            <div className="grid grid-cols-2 gap-6">
+              <DataItem label="氏名">{customer.name}</DataItem>
+              {customer.nameKana ? (
+                <DataItem label="セイメイ">{customer.nameKana}</DataItem>
+              ) : (
+                <div></div>
+              )}
+              <DataItem label="メールアドレス">{customer.email}</DataItem>
+              {customer.phone ? (
+                <DataItem label="電話番号">{customer.phone}</DataItem>
+              ) : (
+                <div></div>
+              )}
+              {customer.subEmails && customer.subEmails.length > 0 && (
+                <DataItem label="サブメールアドレス">
+                  <div className="space-y-1">
+                    {customer.subEmails.map((subEmail, index) => (
+                      <p key={index}>{subEmail}</p>
+                    ))}
+                  </div>
+                </DataItem>
+              )}
+              {customer.company && (
+                <DataItem label="会社名">{customer.company}</DataItem>
+              )}
+              {customer.listingCategory && (
+                <DataItem label="上場区分">{customer.listingCategory}</DataItem>
+              )}
+              {(customer.postalCode || customer.prefecture || customer.city) && (
+                <DataItem label="住所">
+                  {customer.postalCode && <div>〒{customer.postalCode}</div>}
                   {customer.prefecture && (
                     <div>
                       {customer.prefecture}
                       {customer.city && customer.city}
                     </div>
                   )}
-                </div>
-              </div>
-            ) : null}
-            {customer.gender ? (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">性別</p>
-                <p className="text-base">{GENDER_LABELS[customer.gender]}</p>
-              </div>
-            ) : null}
-            {customer.note ? (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">備考</p>
-                <p className="text-base">{customer.note}</p>
-              </div>
-            ) : null}
-          </div>
+                </DataItem>
+              )}
+              {customer.gender && (
+                <DataItem label="性別">{GENDER_LABELS[customer.gender]}</DataItem>
+              )}
+              {customer.note && (
+                <DataItem label="備考">{customer.note}</DataItem>
+              )}
+            </div>
+          </Stack>
         </CardContent>
       </Card>
 
-      {/* 開催予定のイベント */}
-      {upcomingEvents.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              開催予定のイベント
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>イベント種別</TableHead>
-                    <TableHead>イベント名</TableHead>
-                    <TableHead>開催日時</TableHead>
-                    <TableHead>回答状況</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {upcomingEvents.map((event) => (
-                    <TableRow key={event.id}>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {event.eventType}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        <Link
-                          href={`/admin/events/${event.id}`}
-                          className="hover:underline"
-                        >
-                          {event.title}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{formatEventDate(event.date)}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            event.rsvpStatus === "参加"
-                              ? "default"
-                              : event.rsvpStatus === "不参加"
-                              ? "secondary"
-                              : "outline"
-                          }
-                        >
-                          {event.rsvpStatus}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* イベント参加履歴 */}
+      <Card>
+        <CardContent className="space-y-6">
+          {upcomingEvents.length > 0 || pastEvents.length > 0 ? (
+            <>
+              {upcomingEvents.length > 0 && (
+                <>
+                  <SectionHeading>開催予定のイベント</SectionHeading>
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>イベント種別</TableHead>
+                          <TableHead>イベント名</TableHead>
+                          <TableHead>開催日時</TableHead>
+                          <TableHead>回答状況</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {upcomingEvents.map((event) => (
+                          <TableRow key={event.id}>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {event.eventType}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              <Link
+                                href={`/admin/events/${event.id}`}
+                                className="hover:underline"
+                              >
+                                {event.title}
+                              </Link>
+                            </TableCell>
+                            <TableCell>{formatEventDate(event.date)}</TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  event.rsvpStatus && RSVP_STATUS_CONFIG[event.rsvpStatus]
+                                    ? (RSVP_STATUS_CONFIG[event.rsvpStatus].variant as any)
+                                    : "outline"
+                                }
+                              >
+                                {event.rsvpStatus && RSVP_STATUS_CONFIG[event.rsvpStatus]
+                                  ? RSVP_STATUS_CONFIG[event.rsvpStatus].label
+                                  : event.rsvpStatus}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
+              )}
 
-      {/* 過去のイベント */}
-      {pastEvents.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              過去のイベント
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>イベント種別</TableHead>
-                    <TableHead>イベント名</TableHead>
-                    <TableHead>開催日時</TableHead>
-                    <TableHead>参加状況</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pastEvents.map((event) => (
-                    <TableRow key={event.id}>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {event.eventType}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        <Link
-                          href={`/admin/events/${event.id}`}
-                          className="hover:underline"
-                        >
-                          {event.title}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{formatEventDate(event.date)}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            event.rsvpStatus === "参加"
-                              ? "default"
-                              : event.rsvpStatus === "不参加"
-                              ? "secondary"
-                              : "outline"
-                          }
-                        >
-                          {event.rsvpStatus}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {eventList.length === 0 && (
-        <Card>
-          <CardContent className="py-8">
-            <p className="text-center text-muted-foreground">
+              {pastEvents.length > 0 && (
+                <>
+                  <SectionHeading>過去のイベント</SectionHeading>
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>イベント種別</TableHead>
+                          <TableHead>イベント名</TableHead>
+                          <TableHead>開催日時</TableHead>
+                          <TableHead>参加状況</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {pastEvents.map((event) => (
+                          <TableRow key={event.id}>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {event.eventType}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              <Link
+                                href={`/admin/events/${event.id}`}
+                                className="hover:underline"
+                              >
+                                {event.title}
+                              </Link>
+                            </TableCell>
+                            <TableCell>{formatEventDate(event.date)}</TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  event.rsvpStatus && RSVP_STATUS_CONFIG[event.rsvpStatus]
+                                    ? (RSVP_STATUS_CONFIG[event.rsvpStatus].variant as any)
+                                    : "outline"
+                                }
+                              >
+                                {event.rsvpStatus && RSVP_STATUS_CONFIG[event.rsvpStatus]
+                                  ? RSVP_STATUS_CONFIG[event.rsvpStatus].label
+                                  : event.rsvpStatus}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">
               参加予定・参加済みのイベントはありません。
             </p>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end pt-4 border-t">
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-destructive text-destructive bg-white hover:bg-white hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+              削除
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="bg-card">
+            <DialogHeader>
+              <DialogTitle>顧客を削除</DialogTitle>
+              <DialogDescription>
+                この顧客を削除してもよろしいですか？この操作は取り消せません。
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteDialogOpen(false)}
+              >
+                キャンセル
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+              >
+                削除
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

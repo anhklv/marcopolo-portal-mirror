@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Sidebar } from "@/components/layout/sidebar";
+import { AppSidebar } from "@/components/layout/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/lib/contexts/auth.context";
 
 export default function AdminLayout({
@@ -49,11 +50,18 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
-      <Sidebar />
-      <main className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain bg-white p-8">
-        {children}
-      </main>
-    </div>
+    <SidebarProvider>
+      <div className="flex w-full">
+        <AppSidebar />
+        <main className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain bg-card h-svh">
+          <div className="flex h-14 items-center border-b px-4">
+            <SidebarTrigger />
+          </div>
+          <div className="p-8">
+            {children}
+          </div>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 }

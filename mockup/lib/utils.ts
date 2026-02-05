@@ -1,5 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import type { Event } from "@/lib/types/event";
+import type { EventDisplayStatus } from "@/lib/constants/event";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -141,3 +143,27 @@ export function getSurveyRequestEmailTemplate(event: EventData): { title: string
   return { title, body };
 }
 
+// イベントの表示ステータスを判定する関数
+export function getEventDisplayStatus(event: Pick<Event, "date" | "responseDeadline" | "isPaused">): EventDisplayStatus {
+  const now = new Date();
+  const eventDate = new Date(event.date);
+  
+  // 開催日時を過ぎている -> 終了
+  if (now > eventDate) {
+    return "closed";
+  }
+
+  // 一時停止フラグがON -> 一時停止
+  if (event.isPaused) {
+    return "paused";
+  }
+
+  // 回答期限（なければ開催日時）を過ぎている -> 受付終了
+  const deadline = event.responseDeadline ? new Date(event.responseDeadline) : eventDate;
+  if (now > deadline) {
+    return "waiting";
+  }
+
+  // それ以外 -> 受付中
+  return "open";
+}

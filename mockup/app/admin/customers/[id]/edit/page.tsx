@@ -6,8 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -18,7 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { PageHeader } from "@/components/ui/page-header";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { Stack } from "@/components/ui/stack";
+import { FormField } from "@/components/ui/form-field";
+import { CheckboxItem } from "@/components/ui/checkbox-item";
+import { RadioItem } from "@/components/ui/radio-item";
 import {
   Dialog,
   DialogTrigger,
@@ -29,7 +35,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ArrowLeft, Trash2, Plus, X } from "lucide-react";
+import { ArrowLeft, Plus, X } from "lucide-react";
+import { ActionButton } from "@/components/ui/action-button";
 import { customers } from "@/lib/data/mock";
 import type { CommunityScope } from "@/lib/types";
 import {
@@ -39,6 +46,7 @@ import {
   LISTING_OPTIONS,
   AUDIT_MEMBER_TYPES,
   NAIKAN_AFFILIATIONS,
+  AI_AFFILIATIONS,
 } from "@/lib/constants/customer";
 import { useAuth } from "@/lib/contexts/auth.context";
 import { DatePickerWithInput } from "@/components/ui/date-picker-with-input";
@@ -56,19 +64,11 @@ export default function CustomerEditPage({
   if (!customer) {
     return (
       <div className="max-w-4xl space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin/customers">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">顧客が見つかりません</h1>
-            <p className="text-muted-foreground">
-              指定された顧客IDの情報が見つかりませんでした。
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          backHref="/admin/customers"
+          title="顧客が見つかりません"
+          description="指定された顧客IDの情報が見つかりませんでした。"
+        />
       </div>
     );
   }
@@ -84,6 +84,9 @@ export default function CustomerEditPage({
   );
   const [naikanCommunityChecked, setNaikanCommunityChecked] = useState(
     customer.communities.includes("ないかんMeetup")
+  );
+  const [aiCommunityChecked, setAiCommunityChecked] = useState(
+    customer.communities.includes("AI部会")
   );
 
   // 会員区分
@@ -106,6 +109,11 @@ export default function CustomerEditPage({
   const [naikanJoinedAt, setNaikanJoinedAt] = useState<Date | undefined>(parseDateString(customer.naikanJoinedAt));
   const [naikanResignedAt, setNaikanResignedAt] = useState<Date | undefined>(parseDateString(customer.naikanResignedAt));
   const [naikanAffiliation, setNaikanAffiliation] = useState<string>(customer.naikanAffiliation || "");
+
+  // AI部会 詳細
+  const [aiJoinedAt, setAiJoinedAt] = useState<Date | undefined>(parseDateString((customer as any).aiJoinedAt));
+  const [aiResignedAt, setAiResignedAt] = useState<Date | undefined>(parseDateString((customer as any).aiResignedAt));
+  const [aiAffiliation, setAiAffiliation] = useState<string>((customer as any).aiAffiliation || "");
 
   // 契約主体
   const [contractType, setContractType] = useState<"corporate" | "individual">(
@@ -131,8 +139,6 @@ export default function CustomerEditPage({
   const [originIndustry, setOriginIndustry] = useState<string>(customer.originIndustry || "");
   const [membershipQualification, setMembershipQualification] = useState<string>(customer.membershipQualification || "");
   const [note, setNote] = useState(customer.note || "");
-  const [isInactive, setIsInactive] = useState(customer.status === "inactive");
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const originIndustries = ORIGIN_INDUSTRIES;
   const membershipQualifications = MEMBERSHIP_QUALIFICATIONS;
@@ -140,6 +146,7 @@ export default function CustomerEditPage({
   const prefectures = PREFECTURES;
   const auditMemberTypes = AUDIT_MEMBER_TYPES;
   const naikanAffiliations = NAIKAN_AFFILIATIONS;
+  const aiAffiliations = AI_AFFILIATIONS;
 
   const handleAddSubEmail = () => {
     if (subEmails.length < 3) {
@@ -161,7 +168,7 @@ export default function CustomerEditPage({
     e.preventDefault();
 
     // 何も選択しない場合は非会員として扱う（memberCategoryはundefinedにする）
-    const isNonMember = !auditCommunityChecked && !naikanCommunityChecked;
+    const isNonMember = !auditCommunityChecked && !naikanCommunityChecked && !aiCommunityChecked;
 
     if (!isNonMember) {
       // 会員区分が未選択の場合
@@ -181,6 +188,7 @@ export default function CustomerEditPage({
     const selectedCommunities: CommunityScope[] = [];
     if (auditCommunityChecked) selectedCommunities.push("ベンチャー監査役の会");
     if (naikanCommunityChecked) selectedCommunities.push("ないかんMeetup");
+    if (aiCommunityChecked) selectedCommunities.push("AI部会");
 
     const customerData = {
       communities: selectedCommunities,
@@ -195,39 +203,22 @@ export default function CustomerEditPage({
     router.push(`/admin/customers/${id}`);
   };
 
-  const handleDelete = () => {
-    toast.success("顧客を削除しました");
-    setIsDeleteDialogOpen(false);
-    router.push("/admin/customers");
-  };
-
   return (
     <div className="max-w-4xl space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href={`/admin/customers/${id}`}>
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">顧客編集</h1>
-          <p className="text-muted-foreground">
-            顧客情報を編集・更新します。
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        backHref={`/admin/customers/${id}`}
+        title="顧客編集"
+        description="顧客情報を編集・更新します。"
+      />
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        
+
         {/* 会員情報セクション */}
-        <Card>
-          <CardHeader>
-            <CardTitle>会員情報</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* コミュニティ選択 */}
-            <div className="grid gap-2">
-              <Label className="text-base font-medium">コミュニティ</Label>
+        <Stack gap="lg">
+          <SectionHeading>会員情報</SectionHeading>
+          {/* コミュニティ選択 */}
+          <div className="grid gap-2">
+              <Label>コミュニティ</Label>
               {currentAdmin?.role === "super" || 
                (currentAdmin?.role === "community_admin" && 
                 currentAdmin.communityScopes && 
@@ -236,61 +227,67 @@ export default function CustomerEditPage({
                   <div className="flex items-center gap-6">
                     {currentAdmin?.role === "super" ? (
                       <>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
+                        <CheckboxItem
+                          id="audit-community"
+                          label="ベンチャー監査役の会"
+                          checked={auditCommunityChecked}
+                          onCheckedChange={(c) => {
+                            setAuditCommunityChecked(c);
+                            if (!c) {
+                              setAuditMemberType("");
+                              setAuditMemberPremium(false);
+                            }
+                          }}
+                        />
+                        <CheckboxItem
+                          id="naikan-community"
+                          label="ないかんMeetup"
+                          checked={naikanCommunityChecked}
+                          onCheckedChange={(c) => setNaikanCommunityChecked(c)}
+                        />
+                        <CheckboxItem
+                          id="ai-community"
+                          label="AI部会"
+                          checked={aiCommunityChecked}
+                          onCheckedChange={(c) => setAiCommunityChecked(c)}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        {currentAdmin?.communityScopes?.includes("ベンチャー監査役の会") && (
+                          <CheckboxItem
                             id="audit-community"
+                            label="ベンチャー監査役の会"
                             checked={auditCommunityChecked}
                             onCheckedChange={(c) => {
-                              setAuditCommunityChecked(c === true);
+                              setAuditCommunityChecked(c);
                               if (!c) {
                                 setAuditMemberType("");
                                 setAuditMemberPremium(false);
                               }
                             }}
                           />
-                          <Label htmlFor="audit-community" className="cursor-pointer">ベンチャー監査役の会</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="naikan-community"
-                            checked={naikanCommunityChecked}
-                            onCheckedChange={(c) => setNaikanCommunityChecked(c === true)}
-                          />
-                          <Label htmlFor="naikan-community" className="cursor-pointer">ないかんMeetup</Label>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        {currentAdmin?.communityScopes?.includes("ベンチャー監査役の会") && (
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="audit-community"
-                              checked={auditCommunityChecked}
-                              onCheckedChange={(c) => {
-                                setAuditCommunityChecked(c === true);
-                                if (!c) {
-                                  setAuditMemberType("");
-                                  setAuditMemberPremium(false);
-                                }
-                              }}
-                            />
-                            <Label htmlFor="audit-community" className="cursor-pointer">ベンチャー監査役の会</Label>
-                          </div>
                         )}
                         {currentAdmin?.communityScopes?.includes("ないかんMeetup") && (
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="naikan-community"
-                              checked={naikanCommunityChecked}
-                              onCheckedChange={(c) => setNaikanCommunityChecked(c === true)}
-                            />
-                            <Label htmlFor="naikan-community" className="cursor-pointer">ないかんMeetup</Label>
-                          </div>
+                          <CheckboxItem
+                            id="naikan-community"
+                            label="ないかんMeetup"
+                            checked={naikanCommunityChecked}
+                            onCheckedChange={(c) => setNaikanCommunityChecked(c)}
+                          />
+                        )}
+                        {currentAdmin?.communityScopes?.includes("AI部会") && (
+                          <CheckboxItem
+                            id="ai-community"
+                            label="AI部会"
+                            checked={aiCommunityChecked}
+                            onCheckedChange={(c) => setAiCommunityChecked(c)}
+                          />
                         )}
                       </>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">何も選択しない場合は非会員として登録されます</p>
+                  <p className="text-xs text-muted-foreground">何も選択しない場合は非会員として登録されます</p>
                 </>
               ) : (
                 <div className="text-sm text-foreground">
@@ -305,33 +302,27 @@ export default function CustomerEditPage({
             </div>
 
             {/* 会員区分・詳細 (コミュニティが選択されている場合のみ) */}
-            {(auditCommunityChecked || naikanCommunityChecked) && (
+            {(auditCommunityChecked || naikanCommunityChecked || aiCommunityChecked) && (
               <>
                 {/* 契約主体 */}
                 <div className="grid gap-2">
-                  <Label className="text-base font-medium">契約主体 <span className="text-red-500">*</span></Label>
-                  <RadioGroup 
-                    value={contractType} 
+                  <Label>契約主体 <span className="text-destructive">*</span></Label>
+                  <RadioGroup
+                    value={contractType}
                     onValueChange={(v) => setContractType(v as any)}
                   >
                     <div className="flex items-center gap-6">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="corporate" id="corporate" />
-                        <Label htmlFor="corporate" className="cursor-pointer">法人</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="individual" id="individual" />
-                        <Label htmlFor="individual" className="cursor-pointer">個人</Label>
-                      </div>
+                      <RadioItem value="corporate" label="法人" />
+                      <RadioItem value="individual" label="個人" />
                     </div>
                   </RadioGroup>
                 </div>
 
                 {/* 会員区分 */}
                 <div className="grid gap-2">
-                  <Label className="text-base font-medium">会員区分 <span className="text-red-500">*</span></Label>
-                  <RadioGroup 
-                    value={memberCategory || ""} 
+                  <Label>会員区分 <span className="text-destructive">*</span></Label>
+                  <RadioGroup
+                    value={memberCategory || ""}
                     onValueChange={(v) => {
                       const newCategory = v as "member" | "sponsor" | "observer";
                       setMemberCategory(newCategory);
@@ -342,31 +333,25 @@ export default function CustomerEditPage({
                     }}
                   >
                     <div className="flex items-center gap-6">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="member" id="member" />
-                        <Label htmlFor="member" className="cursor-pointer">会員</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="sponsor" id="sponsor" />
-                        <Label htmlFor="sponsor" className="cursor-pointer">スポンサー</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="observer" id="observer" />
-                        <Label htmlFor="observer" className="cursor-pointer">オブザーバー</Label>
-                      </div>
+                      <RadioItem value="member" label="会員" />
+                      <RadioItem value="sponsor" label="スポンサー" />
+                      <RadioItem value="observer" label="オブザーバー" />
                     </div>
                   </RadioGroup>
                 </div>
 
                 {/* ベンチャー監査役の会 詳細 */}
                 {auditCommunityChecked && (
-                  <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
-                    <Label className="font-semibold text-base">ベンチャー監査役の会</Label>
+                  <div className="rounded-lg border p-4 space-y-6 bg-slate-50">
+                    <div className="space-y-3">
+                      <Label>ベンチャー監査役の会</Label>
+                      <div className="border-b border-border"></div>
+                    </div>
                     
                     {/* 会員の場合のみ会員種別とプレミアム表示 */}
                     {memberCategory === "member" && (
                       <div className="grid gap-2">
-                        <Label className="text-sm font-medium">会員種別 <span className="text-red-500">*</span></Label>
+                        <Label>会員種別 <span className="text-destructive">*</span></Label>
                         <div className="flex items-center gap-4">
                           <Select value={auditMemberType} onValueChange={setAuditMemberType}>
                             <SelectTrigger className="w-[300px] bg-white">
@@ -380,21 +365,19 @@ export default function CustomerEditPage({
                               ))}
                             </SelectContent>
                           </Select>
-                          <div className="flex items-center space-x-2">
-                            <Checkbox 
-                              id="audit-premium" 
-                              checked={auditMemberPremium} 
-                              onCheckedChange={(c) => setAuditMemberPremium(c === true)} 
-                            />
-                            <Label htmlFor="audit-premium" className="cursor-pointer">プレミアム会員</Label>
-                          </div>
+                          <CheckboxItem
+                            id="audit-premium"
+                            label="プレミアム会員"
+                            checked={auditMemberPremium}
+                            onCheckedChange={setAuditMemberPremium}
+                          />
                         </div>
                       </div>
                     )}
 
                     {/* 入会資格 */}
                     <div className="grid gap-2">
-                      <Label className="text-sm font-medium">入会資格</Label>
+                      <Label>入会資格</Label>
                       <Select value={membershipQualification} onValueChange={setMembershipQualification}>
                         <SelectTrigger className="w-full bg-white">
                           <SelectValue placeholder="選択してください" />
@@ -411,7 +394,7 @@ export default function CustomerEditPage({
 
                     {/* 出身業種 */}
                     <div className="grid gap-2">
-                      <Label className="text-sm font-medium">出身業種</Label>
+                      <Label>出身業種</Label>
                       <Select value={originIndustry} onValueChange={setOriginIndustry}>
                         <SelectTrigger className="w-full bg-white">
                           <SelectValue placeholder="選択してください" />
@@ -427,34 +410,33 @@ export default function CustomerEditPage({
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-3">
-                        <Label htmlFor="auditJoinedAt" className="px-1 text-sm">入会日</Label>
+                      <FormField label="入会日">
                         <DatePickerWithInput
-                          id="auditJoinedAt"
                           date={auditJoinedAt}
                           setDate={setAuditJoinedAt}
                         />
-                      </div>
-                      <div className="flex flex-col gap-3">
-                        <Label htmlFor="auditResignedAt" className="px-1 text-sm">脱退日</Label>
+                      </FormField>
+                      <FormField label="脱退日">
                         <DatePickerWithInput
-                          id="auditResignedAt"
                           date={auditResignedAt}
                           setDate={setAuditResignedAt}
                         />
-                      </div>
+                      </FormField>
                     </div>
                   </div>
                 )}
 
                 {/* ないかんMeetup 詳細 */}
                 {naikanCommunityChecked && (
-                  <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
-                    <Label className="font-semibold text-base">ないかんMeetup</Label>
+                  <div className="rounded-lg border p-4 space-y-6 bg-slate-50">
+                    <div className="space-y-3">
+                      <Label>ないかんMeetup</Label>
+                      <div className="border-b border-border"></div>
+                    </div>
                     
                     {/* 所属 */}
                     <div className="grid gap-2">
-                      <Label className="text-sm font-medium">所属</Label>
+                      <Label>所属</Label>
                       <Select value={naikanAffiliation} onValueChange={setNaikanAffiliation}>
                         <SelectTrigger className="w-full bg-white">
                           <SelectValue placeholder="選択してください" />
@@ -470,83 +452,107 @@ export default function CustomerEditPage({
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-3">
-                        <Label htmlFor="naikanJoinedAt" className="px-1 text-sm">入会日</Label>
+                      <FormField label="入会日">
                         <DatePickerWithInput
-                          id="naikanJoinedAt"
                           date={naikanJoinedAt}
                           setDate={setNaikanJoinedAt}
                         />
-                      </div>
-                      <div className="flex flex-col gap-3">
-                        <Label htmlFor="naikanResignedAt" className="px-1 text-sm">脱退日</Label>
+                      </FormField>
+                      <FormField label="脱退日">
                         <DatePickerWithInput
-                          id="naikanResignedAt"
                           date={naikanResignedAt}
                           setDate={setNaikanResignedAt}
                         />
-                      </div>
+                      </FormField>
+                    </div>
+                  </div>
+                )}
+
+                {/* AI部会 詳細 */}
+                {aiCommunityChecked && (
+                  <div className="rounded-lg border p-4 space-y-6 bg-slate-50">
+                    <div className="space-y-3">
+                      <Label>AI部会</Label>
+                      <div className="border-b border-border"></div>
+                    </div>
+                    
+                    {/* 所属 */}
+                    <div className="grid gap-2">
+                      <Label>所属</Label>
+                      <Select value={aiAffiliation} onValueChange={setAiAffiliation}>
+                        <SelectTrigger className="w-full bg-white">
+                          <SelectValue placeholder="選択してください" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          {aiAffiliations.map((affiliation) => (
+                            <SelectItem key={affiliation} value={affiliation} className="bg-white hover:bg-gray-100">
+                              {affiliation}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField label="入会日">
+                        <DatePickerWithInput
+                          date={aiJoinedAt}
+                          setDate={setAiJoinedAt}
+                        />
+                      </FormField>
+                      <FormField label="脱退日">
+                        <DatePickerWithInput
+                          date={aiResignedAt}
+                          setDate={setAiResignedAt}
+                        />
+                      </FormField>
                     </div>
                   </div>
                 )}
               </>
             )}
-          </CardContent>
-        </Card>
 
-        {/* プロフィールセクション */}
-        <Card>
-          <CardHeader>
-            <CardTitle>プロフィール</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+            {/* プロフィールセクション */}
+            <SectionHeading>プロフィール</SectionHeading>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="lastName">姓 <span className="text-red-500">*</span></Label>
-                <Input 
-                  id="lastName" 
-                  placeholder="例: 山田" 
-                  required 
-                  value={lastName} 
-                  onChange={e => setLastName(e.target.value)} 
+            <div className="grid grid-cols-2 gap-6">
+              <FormField label="姓" required>
+                <Input
+                  placeholder="例: 山田"
+                  required
+                  value={lastName}
+                  onChange={e => setLastName(e.target.value)}
                 />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="firstName">名 <span className="text-red-500">*</span></Label>
-                <Input 
-                  id="firstName" 
-                  placeholder="例: 太郎" 
-                  required 
-                  value={firstName} 
-                  onChange={e => setFirstName(e.target.value)} 
+              </FormField>
+              <FormField label="名" required>
+                <Input
+                  placeholder="例: 太郎"
+                  required
+                  value={firstName}
+                  onChange={e => setFirstName(e.target.value)}
                 />
-              </div>
+              </FormField>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="lastNameKana">セイ</Label>
-                <Input 
-                  id="lastNameKana" 
-                  placeholder="例: ヤマダ" 
-                  value={lastNameKana} 
-                  onChange={e => setLastNameKana(e.target.value)} 
+            <div className="grid grid-cols-2 gap-6">
+              <FormField label="セイ">
+                <Input
+                  placeholder="例: ヤマダ"
+                  value={lastNameKana}
+                  onChange={e => setLastNameKana(e.target.value)}
                 />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="firstNameKana">メイ</Label>
-                <Input 
-                  id="firstNameKana" 
-                  placeholder="例: タロウ" 
-                  value={firstNameKana} 
-                  onChange={e => setFirstNameKana(e.target.value)} 
+              </FormField>
+              <FormField label="メイ">
+                <Input
+                  placeholder="例: タロウ"
+                  value={firstNameKana}
+                  onChange={e => setFirstNameKana(e.target.value)}
                 />
-              </div>
+              </FormField>
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="email">メールアドレス <span className="text-red-500">*</span></Label>
+              <Label htmlFor="email">メールアドレス <span className="text-destructive">*</span></Label>
               <div className="flex gap-2">
                 <Input 
                   id="email" 
@@ -591,20 +597,17 @@ export default function CustomerEditPage({
               ))}
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="company">会社名</Label>
-              <Input 
-                id="company" 
-                placeholder="例: 株式会社マルコポーロ" 
+            <FormField label="会社名">
+              <Input
+                placeholder="例: 株式会社マルコポーロ"
                 value={company}
                 onChange={e => setCompany(e.target.value)}
               />
-            </div>
+            </FormField>
 
-            <div className="grid gap-2">
-              <Label>上場区分</Label>
-              <Select 
-                value={listingCategory} 
+            <FormField label="上場区分">
+              <Select
+                value={listingCategory}
                 onValueChange={(value) => {
                   if (value === "選択してください") {
                     setListingCategory("");
@@ -639,34 +642,29 @@ export default function CustomerEditPage({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </FormField>
 
-            <div className="grid gap-2">
-              <Label htmlFor="phone">電話番号</Label>
-              <Input 
-                id="phone" 
-                type="tel" 
-                placeholder="例: 0312345678" 
+            <FormField label="電話番号">
+              <Input
+                type="tel"
+                placeholder="例: 0312345678"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
               />
-            </div>
+            </FormField>
 
-            <div className="grid gap-2">
-              <Label htmlFor="postalCode">郵便番号</Label>
-              <Input 
-                id="postalCode" 
-                type="text" 
-                placeholder="例: 1234567" 
+            <FormField label="郵便番号">
+              <Input
+                type="text"
+                placeholder="例: 1234567"
                 value={postalCode}
                 onChange={e => setPostalCode(e.target.value)}
               />
-            </div>
+            </FormField>
 
-            <div className="grid gap-2">
-              <Label>都道府県</Label>
-              <Select 
-                value={prefecture} 
+            <FormField label="都道府県">
+              <Select
+                value={prefecture}
                 onValueChange={(value) => {
                   if (value === "選択してください") {
                     setPrefecture("");
@@ -689,18 +687,16 @@ export default function CustomerEditPage({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </FormField>
 
-            <div className="grid gap-2">
-              <Label htmlFor="city">市区町村以下</Label>
-              <Input 
-                id="city" 
-                type="text" 
-                placeholder="例: 千代田区丸の内1-1-1" 
+            <FormField label="市区町村以下">
+              <Input
+                type="text"
+                placeholder="例: 千代田区丸の内1-1-1"
                 value={city}
                 onChange={e => setCity(e.target.value)}
               />
-            </div>
+            </FormField>
 
             <div className="grid gap-2">
               <Label>性別</Label>
@@ -709,86 +705,25 @@ export default function CustomerEditPage({
                 onValueChange={(value) => setGender(value as "male" | "female")}
               >
                 <div className="flex items-center gap-6">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="male" id="male" />
-                    <Label htmlFor="male" className="cursor-pointer">男性</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="female" id="female" />
-                    <Label htmlFor="female" className="cursor-pointer">女性</Label>
-                  </div>
+                  <RadioItem value="male" label="男性" />
+                  <RadioItem value="female" label="女性" />
                 </div>
               </RadioGroup>
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="note">備考</Label>
-              <Textarea 
-                id="note" 
-                placeholder="紹介者や特記事項など" 
+            <FormField label="備考">
+              <Textarea
+                placeholder="紹介者や特記事項など"
                 value={note}
                 onChange={e => setNote(e.target.value)}
+                className="min-h-32"
               />
-            </div>
+            </FormField>
 
-            <div className="grid gap-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="inactive"
-                  checked={isInactive}
-                  onCheckedChange={(checked) => setIsInactive(checked === true)}
-                />
-                <Label htmlFor="inactive" className="cursor-pointer">
-                  非アクティブ
-                </Label>
-              </div>
-              <p className="text-sm text-muted-foreground ml-6">
-                非アクティブにすると、この顧客は検索結果から除外されます。
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        </Stack>
 
-        <div className="flex justify-between items-center pt-4 border-t">
-          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
-              >
-                <Trash2 className="h-4 w-4" />
-                削除
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-white">
-              <DialogHeader>
-                <DialogTitle>顧客を削除</DialogTitle>
-                <DialogDescription>
-                  この顧客を削除してもよろしいですか？この操作は取り消せません。
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDeleteDialogOpen(false)}
-                  className="cursor-pointer"
-                >
-                  キャンセル
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleDelete}
-                  className="cursor-pointer text-destructive hover:text-destructive"
-                >
-                  削除
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          <Button type="submit" variant="outline" className="cursor-pointer">
-            更新する
-          </Button>
+        <div className="flex justify-center">
+          <ActionButton type="submit">更新</ActionButton>
         </div>
       </form>
     </div>

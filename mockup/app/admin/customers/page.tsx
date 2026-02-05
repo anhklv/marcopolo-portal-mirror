@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
   Popover,
@@ -24,14 +23,17 @@ import { Badge } from "@/components/ui/badge";
 import { customers, getCommunityDisplayName } from "@/lib/data/mock";
 import type { CommunityScope } from "@/lib/types";
 import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/common";
-import { Plus, Search, Users, ChevronDown, Download } from "lucide-react";
+import { Search, Users, ChevronDown, Download, Plus } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
 import React from "react";
 import { useAuth } from "@/lib/contexts/auth.context";
+import { USER_ROLE_CONFIG } from "@/lib/constants/customer";
 
 type MemberCategoryFilter = "member" | "sponsor" | "observer";
-type OrganizationFilter = "ベンチャー監査役の会" | "ないかんMeetup" | "非会員";
+type OrganizationFilter = "ベンチャー監査役の会" | "ないかんMeetup" | "AI部会" | "非会員";
 type AuditMemberTypeFilter = "regular" | "online";
 
 export default function CustomersPage() {
@@ -42,8 +44,7 @@ export default function CustomersPage() {
   const [organizations, setOrganizations] = useState<OrganizationFilter[]>([]);
   const [auditMemberTypes, setAuditMemberTypes] = useState<AuditMemberTypeFilter[]>([]);
   const [premiumOnly, setPremiumOnly] = useState(false);
-  const [statuses, setStatuses] = useState<string[]>(["active"]);
-  const [statusSearch, setStatusSearch] = useState("");
+  const [includeFormerMembers, setIncludeFormerMembers] = useState(false);
 
   const handleMemberCategoryChange = (category: MemberCategoryFilter, checked: boolean) => {
     setMemberCategories((prev) => {
@@ -88,16 +89,6 @@ export default function CustomersPage() {
         return hasType ? prev : [...prev, type];
       }
       return hasType ? prev.filter((t) => t !== type) : prev;
-    });
-  };
-
-  const handleStatusChange = (status: string, checked: boolean) => {
-    setStatuses((prev) => {
-      const hasStatus = prev.includes(status);
-      if (checked) {
-        return hasStatus ? prev : [...prev, status];
-      }
-      return hasStatus ? prev.filter((s) => s !== status) : prev;
     });
   };
 
@@ -156,7 +147,6 @@ export default function CustomersPage() {
       "メールアドレス",
       "電話番号",
       "会員区分",
-      "ステータス",
       "登録日",
       "備考",
     ];
@@ -173,7 +163,6 @@ export default function CustomersPage() {
           customer.email,
           customer.phone || "",
           getCommunityDisplayName(customer.communities),
-          customer.status === "active" ? "アクティブ" : "非アクティブ",
           customer.registeredAt,
           customer.note || "",
         ];
@@ -239,6 +228,9 @@ export default function CustomersPage() {
           if (org === "ないかんMeetup") {
             return customer.communities.includes("ないかんMeetup");
           }
+          if (org === "AI部会") {
+            return customer.communities.includes("AI部会");
+          }
           return false;
         });
         
@@ -287,45 +279,42 @@ export default function CustomersPage() {
         matchesPremium = customer.auditMemberPremium === true;
       }
 
-      // ステータスフィルタ
-      const matchesStatus =
-        statuses.length === 0 || statuses.includes(customer.status);
+      // 元会員フィルタ（全コミュニティ脱退済みの顧客をデフォルト非表示）
+      let matchesFormerMember = true;
+      if (!includeFormerMembers && customer.communities.length > 0) {
+        const allResigned = customer.communities.every((community) => {
+          if (community === "ベンチャー監査役の会") return !!customer.auditResignedAt;
+          if (community === "ないかんMeetup") return !!customer.naikanResignedAt;
+          if (community === "AI部会") return !!customer.aiResignedAt;
+          return false;
+        });
+        if (allResigned) matchesFormerMember = false;
+      }
 
-      return matchesKeyword && matchesMemberCategory && matchesOrganizations && matchesAuditMemberType && matchesPremium && matchesStatus;
+      return matchesKeyword && matchesMemberCategory && matchesOrganizations && matchesAuditMemberType && matchesPremium && matchesFormerMember;
     });
 
-    // ソート: ID（昇順）、ステータス（activeが先）
+    // ソート: ID（昇順）
     return filtered.sort((a, b) => {
-      // まずIDでソート（数値として比較）
       const idA = parseInt(a.id.replace("C", "")) || 0;
       const idB = parseInt(b.id.replace("C", "")) || 0;
-      if (idA !== idB) {
-        return idA - idB;
-      }
-      // IDが同じ場合はステータスでソート（activeが先）
-      if (a.status === "active" && b.status === "inactive") return -1;
-      if (a.status === "inactive" && b.status === "active") return 1;
-      return 0;
+      return idA - idB;
     });
-  }, [currentAdmin, searchKeyword, memberCategories, organizations, auditMemberTypes, premiumOnly, statuses]);
+  }, [currentAdmin, searchKeyword, memberCategories, organizations, auditMemberTypes, premiumOnly, includeFormerMembers]);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">顧客管理</h1>
-          <p className="text-muted-foreground">
-            会員・非会員を含むすべての顧客情報を管理します。
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link href="/admin/customers/new">
-              <Plus className="h-4 w-4" />
-              新規登録
-            </Link>
-          </Button>
-        </div>
+        <PageHeader
+          title="顧客管理"
+          description="会員・非会員を含むすべての顧客情報を管理します。"
+        />
+        <Button asChild>
+          <Link href="/admin/customers/new">
+            <Plus className="h-4 w-4" />
+            新規登録
+          </Link>
+        </Button>
       </div>
 
       <div className="flex items-center gap-3 flex-wrap">
@@ -334,7 +323,7 @@ export default function CustomersPage() {
           <Input
             type="search"
             placeholder="名前、会社名、メールアドレスで検索..."
-            className="pl-9 h-10"
+            className="pl-9 h-9 text-sm"
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
           />
@@ -343,7 +332,7 @@ export default function CustomersPage() {
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="w-[280px] justify-between h-10"
+              className="w-[280px] justify-between h-9"
             >
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
@@ -354,93 +343,94 @@ export default function CustomersPage() {
               <ChevronDown className="h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[320px] p-0 bg-white" align="start">
+          <PopoverContent className="w-[320px] p-0 bg-card" align="start">
             <div className="p-4 space-y-4 max-h-[500px] overflow-y-auto">
               {/* コミュニティ選択（複数選択可能） */}
               <div className="space-y-2">
                 <Label className="text-sm font-semibold">コミュニティ</Label>
                 <div className="space-y-2">
                   {/* 特権管理者またはベンチャー監査役の会の権限がある場合のみ表示 */}
-                  {(currentAdmin?.role === "super" || 
-                    (currentAdmin?.role === "community_admin" && 
+                  {(currentAdmin?.role === "super" ||
+                    (currentAdmin?.role === "community_admin" &&
                      currentAdmin.communityScopes?.includes("ベンチャー監査役の会"))) && (
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="org-audit"
-                        checked={organizations.includes("ベンチャー監査役の会")}
-                        onCheckedChange={(checked) =>
-                          handleOrganizationChange("ベンチャー監査役の会", checked === true)
-                        }
-                      />
-                      <Label htmlFor="org-audit" className="cursor-pointer text-sm">ベンチャー監査役の会</Label>
-                    </div>
+                    <CheckboxItem
+                      id="org-audit"
+                      label="ベンチャー監査役の会"
+                      checked={organizations.includes("ベンチャー監査役の会")}
+                      onCheckedChange={(checked) =>
+                        handleOrganizationChange("ベンチャー監査役の会", checked)
+                      }
+                    />
                   )}
                   {/* 特権管理者またはないかんMeetupの権限がある場合のみ表示 */}
-                  {(currentAdmin?.role === "super" || 
-                    (currentAdmin?.role === "community_admin" && 
+                  {(currentAdmin?.role === "super" ||
+                    (currentAdmin?.role === "community_admin" &&
                      currentAdmin.communityScopes?.includes("ないかんMeetup"))) && (
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="org-naikan"
-                        checked={organizations.includes("ないかんMeetup")}
-                        onCheckedChange={(checked) =>
-                          handleOrganizationChange("ないかんMeetup", checked === true)
-                        }
-                      />
-                      <Label htmlFor="org-naikan" className="cursor-pointer text-sm">ないかんMeetup</Label>
-                    </div>
+                    <CheckboxItem
+                      id="org-naikan"
+                      label="ないかんMeetup"
+                      checked={organizations.includes("ないかんMeetup")}
+                      onCheckedChange={(checked) =>
+                        handleOrganizationChange("ないかんMeetup", checked)
+                      }
+                    />
+                  )}
+                  {/* 特権管理者またはAI部会の権限がある場合のみ表示 */}
+                  {(currentAdmin?.role === "super" ||
+                    (currentAdmin?.role === "community_admin" &&
+                     currentAdmin.communityScopes?.includes("AI部会"))) && (
+                    <CheckboxItem
+                      id="org-ai"
+                      label="AI部会"
+                      checked={organizations.includes("AI部会")}
+                      onCheckedChange={(checked) =>
+                        handleOrganizationChange("AI部会", checked)
+                      }
+                    />
                   )}
                   {/* 非会員は特権管理者のみ表示 */}
                   {currentAdmin?.role === "super" && (
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="org-non-member"
-                        checked={organizations.includes("非会員")}
-                        onCheckedChange={(checked) =>
-                          handleOrganizationChange("非会員", checked === true)
-                        }
-                      />
-                      <Label htmlFor="org-non-member" className="cursor-pointer text-sm">非会員</Label>
-                    </div>
+                    <CheckboxItem
+                      id="org-non-member"
+                      label="非会員"
+                      checked={organizations.includes("非会員")}
+                      onCheckedChange={(checked) =>
+                        handleOrganizationChange("非会員", checked)
+                      }
+                    />
                   )}
                 </div>
               </div>
 
               {/* 会員区分選択（コミュニティを選択した場合のみ表示） */}
-              {(organizations.includes("ベンチャー監査役の会") || organizations.includes("ないかんMeetup")) && (
+              {(organizations.includes("ベンチャー監査役の会") || organizations.includes("ないかんMeetup") || organizations.includes("AI部会")) && (
                 <div className="space-y-2 border-t pt-4">
                   <Label className="text-sm font-semibold">会員区分</Label>
                   <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="member-member"
-                        checked={memberCategories.includes("member")}
-                        onCheckedChange={(checked) =>
-                          handleMemberCategoryChange("member", checked === true)
-                        }
-                      />
-                      <Label htmlFor="member-member" className="cursor-pointer text-sm">会員</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="member-sponsor"
-                        checked={memberCategories.includes("sponsor")}
-                        onCheckedChange={(checked) =>
-                          handleMemberCategoryChange("sponsor", checked === true)
-                        }
-                      />
-                      <Label htmlFor="member-sponsor" className="cursor-pointer text-sm">スポンサー</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="member-observer"
-                        checked={memberCategories.includes("observer")}
-                        onCheckedChange={(checked) =>
-                          handleMemberCategoryChange("observer", checked === true)
-                        }
-                      />
-                      <Label htmlFor="member-observer" className="cursor-pointer text-sm">オブザーバー</Label>
-                    </div>
+                    <CheckboxItem
+                      id="member-member"
+                      label="会員"
+                      checked={memberCategories.includes("member")}
+                      onCheckedChange={(checked) =>
+                        handleMemberCategoryChange("member", checked)
+                      }
+                    />
+                    <CheckboxItem
+                      id="member-sponsor"
+                      label="スポンサー"
+                      checked={memberCategories.includes("sponsor")}
+                      onCheckedChange={(checked) =>
+                        handleMemberCategoryChange("sponsor", checked)
+                      }
+                    />
+                    <CheckboxItem
+                      id="member-observer"
+                      label="オブザーバー"
+                      checked={memberCategories.includes("observer")}
+                      onCheckedChange={(checked) =>
+                        handleMemberCategoryChange("observer", checked)
+                      }
+                    />
                   </div>
                 </div>
               )}
@@ -450,26 +440,22 @@ export default function CustomersPage() {
                 <div className="space-y-2 border-t pt-4">
                   <Label className="text-sm font-semibold">ベンチャー監査役の会 会員種別</Label>
                   <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="audit-regular"
-                        checked={auditMemberTypes.includes("regular")}
-                        onCheckedChange={(checked) =>
-                          handleAuditMemberTypeChange("regular", checked === true)
-                        }
-                      />
-                      <Label htmlFor="audit-regular" className="cursor-pointer text-sm">正会員</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="audit-online"
-                        checked={auditMemberTypes.includes("online")}
-                        onCheckedChange={(checked) =>
-                          handleAuditMemberTypeChange("online", checked === true)
-                        }
-                      />
-                      <Label htmlFor="audit-online" className="cursor-pointer text-sm">オンライン会員</Label>
-                    </div>
+                    <CheckboxItem
+                      id="audit-regular"
+                      label="正会員"
+                      checked={auditMemberTypes.includes("regular")}
+                      onCheckedChange={(checked) =>
+                        handleAuditMemberTypeChange("regular", checked)
+                      }
+                    />
+                    <CheckboxItem
+                      id="audit-online"
+                      label="オンライン会員"
+                      checked={auditMemberTypes.includes("online")}
+                      onCheckedChange={(checked) =>
+                        handleAuditMemberTypeChange("online", checked)
+                      }
+                    />
                   </div>
                 </div>
               )}
@@ -477,90 +463,26 @@ export default function CustomersPage() {
               {/* プレミアム会員（ベンチャー監査役の会を選択している場合のみ表示） */}
               {organizations.includes("ベンチャー監査役の会") && (
                 <div className="space-y-2 border-t pt-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="premium"
-                      checked={premiumOnly}
-                      onCheckedChange={(checked) => setPremiumOnly(checked === true)}
-                    />
-                    <Label htmlFor="premium" className="cursor-pointer text-sm">プレミアム会員のみ</Label>
-                  </div>
+                  <CheckboxItem
+                    id="premium"
+                    label="プレミアム会員のみ"
+                    checked={premiumOnly}
+                    onCheckedChange={(checked) => setPremiumOnly(checked)}
+                  />
                 </div>
               )}
             </div>
           </PopoverContent>
         </Popover>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-[200px] justify-between h-10"
-            >
-              <span className="text-sm">
-                {statuses.length === 0
-                  ? "ステータス"
-                  : statuses.length === 1
-                  ? statuses[0] === "active"
-                    ? "アクティブ"
-                    : "非アクティブ"
-                  : `${statuses.length}件選択`}
-              </span>
-              <ChevronDown className="h-4 w-4 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[280px] p-0 bg-white" align="start">
-            <div className="p-3 border-b">
-              <div className="relative">
-                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="ステータスを検索"
-                  value={statusSearch}
-                  onChange={(e) => setStatusSearch(e.target.value)}
-                  className="pl-8 h-9"
-                />
-              </div>
-            </div>
-            <div className="p-2 max-h-[300px] overflow-y-auto">
-              {[
-                { value: "active", label: "アクティブ" },
-                { value: "inactive", label: "非アクティブ" },
-              ]
-                .filter((status) =>
-                  status.label
-                    .toLowerCase()
-                    .includes(statusSearch.toLowerCase())
-                )
-                .map((status) => (
-                  <div
-                    key={status.value}
-                    className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
-                    onClick={() =>
-                      handleStatusChange(
-                        status.value,
-                        !statuses.includes(status.value)
-                      )
-                    }
-                  >
-                    <Checkbox
-                      checked={statuses.includes(status.value)}
-                      onCheckedChange={(checked) =>
-                        handleStatusChange(status.value, checked === true)
-                      }
-                    />
-                    <Badge
-                      variant={
-                        status.value === "active" ? "default" : "secondary"
-                      }
-                      className="cursor-pointer"
-                    >
-                      {status.label}
-                    </Badge>
-                  </div>
-                ))}
-            </div>
-          </PopoverContent>
-        </Popover>
+        <div className="flex items-center h-9">
+          <CheckboxItem
+            id="include-former-members"
+            label="元会員を含む"
+            checked={includeFormerMembers}
+            onCheckedChange={(checked) => setIncludeFormerMembers(checked)}
+          />
+        </div>
       </div>
 
       <div className="flex justify-end">
@@ -568,7 +490,7 @@ export default function CustomersPage() {
           <span className="font-semibold text-foreground">{filteredCustomers.length}</span>件
         </div>
       </div>
-      <div className="rounded-lg border bg-white shadow-sm">
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -576,7 +498,6 @@ export default function CustomersPage() {
               <TableHead>氏名</TableHead>
               <TableHead>会社名</TableHead>
               <TableHead>会員区分</TableHead>
-              <TableHead>ステータス</TableHead>
               <TableHead>登録日</TableHead>
               <TableHead className="text-right">操作</TableHead>
             </TableRow>
@@ -584,27 +505,20 @@ export default function CustomersPage() {
           <TableBody>
             {filteredCustomers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   検索条件に一致する顧客が見つかりませんでした。
                 </TableCell>
               </TableRow>
             ) : (
-              filteredCustomers.map((customer, index) => (
+              filteredCustomers.map((customer) => (
                 <TableRow
                   key={customer.id}
                   className="cursor-pointer hover:bg-gray-50"
-                  tabIndex={0}
                   onClick={() => {
                     router.push(`/admin/customers/${customer.id}`);
                   }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      router.push(`/admin/customers/${customer.id}`);
-                    }
-                  }}
                 >
-                  <TableCell className="font-medium">{index + 1}</TableCell>
+                  <TableCell>{customer.id}</TableCell>
                   <TableCell>{customer.name}</TableCell>
                   <TableCell>{customer.company}</TableCell>
                   <TableCell>
@@ -615,76 +529,90 @@ export default function CustomersPage() {
                         // 非会員の判定（communitiesが空配列）
                         if (customer.communities.length === 0) {
                           badges.push(
-                            <Badge key="non-member" variant="secondary" className="text-xs px-2 py-0.5">
+                            <Badge key="non-member" variant="non-member">
                               非会員
                             </Badge>
                           );
                         } else if (customer.memberCategory === "member") {
                           const hasAudit = customer.communities.includes("ベンチャー監査役の会");
                           const hasNaikan = customer.communities.includes("ないかんMeetup");
-                          
-                          if (hasNaikan && !hasAudit) {
-                            badges.push(
-                              <Badge key="naikan-member" variant="default" className="text-xs px-2 py-0.5">
-                                ないかんMeetup(会員)
-                              </Badge>
-                            );
-                          } else if (hasAudit && !hasNaikan) {
+                          const hasAi = customer.communities.includes("AI部会");
+
+                          // ベンチャー監査役の会のバッジ
+                          if (hasAudit) {
                             const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                             badges.push(
-                              <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
+                              <Badge key="audit-member" variant="audit">
                                 ベンチャー監査役の会({auditType})
                               </Badge>
                             );
-                          } else if (hasAudit && hasNaikan) {
-                            const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
+                          }
+                          // ないかんMeetupのバッジ
+                          if (hasNaikan) {
                             badges.push(
-                              <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
-                                ベンチャー監査役の会({auditType})
-                              </Badge>
-                            );
-                            badges.push(
-                              <Badge key="naikan-member" variant="default" className="text-xs px-2 py-0.5">
+                              <Badge key="naikan-member" variant="naikan">
                                 ないかんMeetup(会員)
                               </Badge>
                             );
                           }
-                          
+                          // AI部会のバッジ
+                          if (hasAi) {
+                            badges.push(
+                              <Badge key="ai-member" variant="ai">
+                                AI部会(会員)
+                              </Badge>
+                            );
+                          }
+
                           // プレミアム会員バッジ
                           if (customer.auditMemberPremium) {
                             badges.push(
-                              <Badge key="premium" variant="default" className="text-xs px-1.5 py-0.5 bg-slate-600 hover:bg-slate-700 text-white">
-                                プレミアム
+                              <Badge key="premium" variant={USER_ROLE_CONFIG.premium.variant as any}>
+                                {USER_ROLE_CONFIG.premium.label}
                               </Badge>
                             );
                           }
                         } else if (customer.memberCategory === "sponsor") {
-                          if (customer.communities.includes("ないかんMeetup")) {
-                            badges.push(
-                              <Badge key="sponsor-naikan" variant="default" className="text-xs px-2 py-0.5">
-                                ないかんMeetup(スポンサー)
-                              </Badge>
-                            );
-                          }
                           if (customer.communities.includes("ベンチャー監査役の会")) {
                             badges.push(
-                              <Badge key="sponsor-audit" variant="default" className="text-xs px-2 py-0.5">
+                              <Badge key="sponsor-audit" variant="audit">
                                 ベンチャー監査役の会(スポンサー)
                               </Badge>
                             );
                           }
-                        } else if (customer.memberCategory === "observer") {
                           if (customer.communities.includes("ないかんMeetup")) {
                             badges.push(
-                              <Badge key="observer-naikan" variant="default" className="text-xs px-2 py-0.5">
+                              <Badge key="sponsor-naikan" variant="naikan">
+                                ないかんMeetup(スポンサー)
+                              </Badge>
+                            );
+                          }
+                          if (customer.communities.includes("AI部会")) {
+                            badges.push(
+                              <Badge key="sponsor-ai" variant="ai">
+                                AI部会(スポンサー)
+                              </Badge>
+                            );
+                          }
+                        } else if (customer.memberCategory === "observer") {
+                          if (customer.communities.includes("ベンチャー監査役の会")) {
+                            badges.push(
+                              <Badge key="observer-audit" variant="audit">
+                                ベンチャー監査役の会(オブザーバー)
+                              </Badge>
+                            );
+                          }
+                          if (customer.communities.includes("ないかんMeetup")) {
+                            badges.push(
+                              <Badge key="observer-naikan" variant="naikan">
                                 ないかんMeetup(オブザーバー)
                               </Badge>
                             );
                           }
-                          if (customer.communities.includes("ベンチャー監査役の会")) {
+                          if (customer.communities.includes("AI部会")) {
                             badges.push(
-                              <Badge key="observer-audit" variant="default" className="text-xs px-2 py-0.5">
-                                ベンチャー監査役の会(オブザーバー)
+                              <Badge key="observer-ai" variant="ai">
+                                AI部会(オブザーバー)
                               </Badge>
                             );
                           }
@@ -693,15 +621,6 @@ export default function CustomersPage() {
                         return badges.length > 0 ? badges : null;
                       })()}
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        customer.status === "active" ? "default" : "secondary"
-                      }
-                    >
-                      {customer.status === "active" ? "アクティブ" : "非アクティブ"}
-                    </Badge>
                   </TableCell>
                   <TableCell>{formatDate(customer.registeredAt)}</TableCell>
                   <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>

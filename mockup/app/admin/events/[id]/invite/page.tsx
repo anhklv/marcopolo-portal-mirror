@@ -31,12 +31,18 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Send, Mail, Check, Search, Users, ChevronDown } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { FormField } from "@/components/ui/form-field";
+import { ActionButton } from "@/components/ui/action-button";
+import { CheckboxItem } from "@/components/ui/checkbox-item";
+import { SectionHeading } from "@/components/ui/section-heading";
 import { customers, events, rsvps } from "@/lib/data/mock";
 import type { Customer } from "@/lib/types";
 import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/common";
 import React from "react";
 import { cn, getInviteEmailTemplate, formatEventDate } from "@/lib/utils";
 import { useAuth } from "@/lib/contexts/auth.context";
+import { USER_ROLE_CONFIG } from "@/lib/constants/customer";
 
 type Step = "select" | "customize" | "confirm";
 
@@ -56,7 +62,7 @@ export default function EventInvitePage({
   const [emailBody, setEmailBody] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [memberCategories, setMemberCategories] = useState<("member" | "sponsor" | "observer")[]>([]);
-  const [organizations, setOrganizations] = useState<("ベンチャー監査役の会" | "ないかんMeetup" | "非会員")[]>([]);
+  const [organizations, setOrganizations] = useState<("ベンチャー監査役の会" | "ないかんMeetup" | "AI部会" | "非会員")[]>([]);
   const [auditMemberTypes, setAuditMemberTypes] = useState<("regular" | "online")[]>([]);
   const [premiumOnly, setPremiumOnly] = useState(false);
   const [inviteStatuses, setInviteStatuses] = useState<string[]>([]);
@@ -136,7 +142,7 @@ export default function EventInvitePage({
     }
   };
 
-  const handleOrganizationChange = (org: "ベンチャー監査役の会" | "ないかんMeetup" | "非会員", checked: boolean) => {
+  const handleOrganizationChange = (org: "ベンチャー監査役の会" | "ないかんMeetup" | "AI部会" | "非会員", checked: boolean) => {
     if (checked) {
       setOrganizations([...organizations, org]);
     } else {
@@ -210,10 +216,9 @@ export default function EventInvitePage({
     }
   };
 
-  // アクティブな顧客のみをフィルタリングし、検索条件で絞り込む
+  // 顧客をフィルタリングし、検索条件で絞り込む
   const filteredCustomers = useMemo(() => {
     const filtered = customers
-      .filter((customer) => customer.status === "active") // アクティブな顧客のみ
       .map((customer) => ({
         ...customer,
         isInvited: invitedCustomerIds.has(customer.id),
@@ -227,7 +232,7 @@ export default function EventInvitePage({
           }
           // 管理者の権限範囲内のコミュニティに所属している顧客のみを表示
           const hasAccess = customer.communities.some((community) =>
-            currentAdmin.communityScopes!.includes(community as "ベンチャー監査役の会" | "ないかんMeetup")
+            currentAdmin.communityScopes!.includes(community as "ベンチャー監査役の会" | "ないかんMeetup" | "AI部会")
           );
           if (!hasAccess) {
             return false;
@@ -251,6 +256,9 @@ export default function EventInvitePage({
             }
             if (org === "ないかんMeetup") {
               return customer.communities.includes("ないかんMeetup");
+            }
+            if (org === "AI部会") {
+              return customer.communities.includes("AI部会");
             }
             return false;
           });
@@ -295,6 +303,18 @@ export default function EventInvitePage({
           matchesPremium = customer.auditMemberPremium === true;
         }
 
+        // 元会員フィルタ（全コミュニティ脱退済みの顧客を除外）
+        let matchesFormerMember = true;
+        if (customer.communities.length > 0) {
+          const allResigned = customer.communities.every((community) => {
+            if (community === "ベンチャー監査役の会") return !!customer.auditResignedAt;
+            if (community === "ないかんMeetup") return !!customer.naikanResignedAt;
+            if (community === "AI部会") return !!customer.aiResignedAt;
+            return false;
+          });
+          if (allResigned) matchesFormerMember = false;
+        }
+
         // 案内状況フィルタ（チェックがない場合はすべて表示）
         const matchesInviteStatus =
           inviteStatuses.length === 0 ||
@@ -304,7 +324,7 @@ export default function EventInvitePage({
             return true;
           });
 
-        return matchesKeyword && matchesOrganizations && matchesMemberCategory && matchesAuditMemberType && matchesPremium && matchesInviteStatus;
+        return matchesKeyword && matchesOrganizations && matchesMemberCategory && matchesAuditMemberType && matchesPremium && matchesFormerMember && matchesInviteStatus;
       });
 
     return filtered;
@@ -387,39 +407,30 @@ export default function EventInvitePage({
   if (step === "select") {
     return (
       <div className="max-w-4xl space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href={`/admin/events/${id}`}>
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">案内メール送信</h1>
-            <p className="text-muted-foreground">
-              案内メールを送信する顧客を選択してください。
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          backHref={`/admin/events/${id}`}
+          title="案内メール送信"
+          description="案内メールを送信する顧客を選択してください。"
+        />
         
         <StepIndicator />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>案内者を選択</CardTitle>
-            <CardDescription>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <SectionHeading>案内者を選択</SectionHeading>
+            <p className="text-sm text-muted-foreground">
               未案内の顧客を選択して案内メールを送信します。
               <br/>
               ※送信時に自動で個別ID付きURLが生成されます。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-3 flex-wrap">
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   type="search"
                   placeholder="名前、会社名、メールアドレスで検索..."
-                  className="pl-9 h-10"
+                  className="pl-9 h-9 text-sm"
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
                 />
@@ -428,7 +439,7 @@ export default function EventInvitePage({
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-[280px] justify-between h-10"
+                    className="w-[280px] justify-between h-9 text-sm"
                   >
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
@@ -439,58 +450,61 @@ export default function EventInvitePage({
                     <ChevronDown className="h-4 w-4 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[320px] p-0 bg-white" align="start">
+                <PopoverContent className="w-[320px] p-0 bg-card" align="start">
                   <div className="p-4 space-y-4 max-h-[500px] overflow-y-auto">
                     {/* コミュニティ選択（複数選択可能） */}
                     <div className="space-y-2">
                       <Label className="text-sm font-semibold">コミュニティ</Label>
                       <div className="space-y-2">
                         {/* 特権管理者またはベンチャー監査役の会の権限がある場合のみ表示 */}
-                        {(currentAdmin?.role === "super" || 
-                          (currentAdmin?.role === "community_admin" && 
+                        {(currentAdmin?.role === "super" ||
+                          (currentAdmin?.role === "community_admin" &&
                            currentAdmin.communityScopes?.includes("ベンチャー監査役の会"))) && (
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="org-audit-invite"
-                              checked={organizations.includes("ベンチャー監査役の会")}
-                              onCheckedChange={(checked) =>
-                                handleOrganizationChange("ベンチャー監査役の会", checked === true)
-                              }
-                            />
-                            <Label htmlFor="org-audit-invite" className="cursor-pointer text-sm">
-                              ベンチャー監査役の会
-                            </Label>
-                          </div>
+                          <CheckboxItem
+                            id="org-audit-invite"
+                            label="ベンチャー監査役の会"
+                            checked={organizations.includes("ベンチャー監査役の会")}
+                            onCheckedChange={(checked) =>
+                              handleOrganizationChange("ベンチャー監査役の会", checked)
+                            }
+                          />
                         )}
                         {/* 特権管理者またはないかんMeetupの権限がある場合のみ表示 */}
-                        {(currentAdmin?.role === "super" || 
-                          (currentAdmin?.role === "community_admin" && 
+                        {(currentAdmin?.role === "super" ||
+                          (currentAdmin?.role === "community_admin" &&
                            currentAdmin.communityScopes?.includes("ないかんMeetup"))) && (
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="org-naikan-invite"
-                              checked={organizations.includes("ないかんMeetup")}
-                              onCheckedChange={(checked) =>
-                                handleOrganizationChange("ないかんMeetup", checked === true)
-                              }
-                            />
-                            <Label htmlFor="org-naikan-invite" className="cursor-pointer text-sm">
-                              ないかんMeetup
-                            </Label>
-                          </div>
+                          <CheckboxItem
+                            id="org-naikan-invite"
+                            label="ないかんMeetup"
+                            checked={organizations.includes("ないかんMeetup")}
+                            onCheckedChange={(checked) =>
+                              handleOrganizationChange("ないかんMeetup", checked)
+                            }
+                          />
+                        )}
+                        {/* 特権管理者またはAI部会の権限がある場合のみ表示 */}
+                        {(currentAdmin?.role === "super" ||
+                          (currentAdmin?.role === "community_admin" &&
+                           currentAdmin.communityScopes?.includes("AI部会"))) && (
+                          <CheckboxItem
+                            id="org-ai-invite"
+                            label="AI部会"
+                            checked={organizations.includes("AI部会")}
+                            onCheckedChange={(checked) =>
+                              handleOrganizationChange("AI部会", checked)
+                            }
+                          />
                         )}
                         {/* 非会員は特権管理者のみ表示 */}
                         {currentAdmin?.role === "super" && (
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="org-non-member-invite"
-                              checked={organizations.includes("非会員")}
-                              onCheckedChange={(checked) =>
-                                handleOrganizationChange("非会員", checked === true)
-                              }
-                            />
-                            <Label htmlFor="org-non-member-invite" className="cursor-pointer text-sm">非会員</Label>
-                          </div>
+                          <CheckboxItem
+                            id="org-non-member-invite"
+                            label="非会員"
+                            checked={organizations.includes("非会員")}
+                            onCheckedChange={(checked) =>
+                              handleOrganizationChange("非会員", checked)
+                            }
+                          />
                         )}
                       </div>
                     </div>
@@ -500,36 +514,30 @@ export default function EventInvitePage({
                       <div className="space-y-2 border-t pt-4">
                         <Label className="text-sm font-semibold">会員区分</Label>
                         <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="member-member-invite"
-                              checked={memberCategories.includes("member")}
-                              onCheckedChange={(checked) =>
-                                handleMemberCategoryChange("member", checked === true)
-                              }
-                            />
-                            <Label htmlFor="member-member-invite" className="cursor-pointer text-sm">会員</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="member-sponsor-invite"
-                              checked={memberCategories.includes("sponsor")}
-                              onCheckedChange={(checked) =>
-                                handleMemberCategoryChange("sponsor", checked === true)
-                              }
-                            />
-                            <Label htmlFor="member-sponsor-invite" className="cursor-pointer text-sm">スポンサー</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="member-observer-invite"
-                              checked={memberCategories.includes("observer")}
-                              onCheckedChange={(checked) =>
-                                handleMemberCategoryChange("observer", checked === true)
-                              }
-                            />
-                            <Label htmlFor="member-observer-invite" className="cursor-pointer text-sm">オブザーバー</Label>
-                          </div>
+                          <CheckboxItem
+                            id="member-member-invite"
+                            label="会員"
+                            checked={memberCategories.includes("member")}
+                            onCheckedChange={(checked) =>
+                              handleMemberCategoryChange("member", checked)
+                            }
+                          />
+                          <CheckboxItem
+                            id="member-sponsor-invite"
+                            label="スポンサー"
+                            checked={memberCategories.includes("sponsor")}
+                            onCheckedChange={(checked) =>
+                              handleMemberCategoryChange("sponsor", checked)
+                            }
+                          />
+                          <CheckboxItem
+                            id="member-observer-invite"
+                            label="オブザーバー"
+                            checked={memberCategories.includes("observer")}
+                            onCheckedChange={(checked) =>
+                              handleMemberCategoryChange("observer", checked)
+                            }
+                          />
                         </div>
                       </div>
                     )}
@@ -539,26 +547,22 @@ export default function EventInvitePage({
                       <div className="space-y-2 border-t pt-4">
                         <Label className="text-sm font-semibold">ベンチャー監査役の会 会員種別</Label>
                         <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="audit-regular-invite"
-                              checked={auditMemberTypes.includes("regular")}
-                              onCheckedChange={(checked) =>
-                                handleAuditMemberTypeChange("regular", checked === true)
-                              }
-                            />
-                            <Label htmlFor="audit-regular-invite" className="cursor-pointer text-sm">正会員</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="audit-online-invite"
-                              checked={auditMemberTypes.includes("online")}
-                              onCheckedChange={(checked) =>
-                                handleAuditMemberTypeChange("online", checked === true)
-                              }
-                            />
-                            <Label htmlFor="audit-online-invite" className="cursor-pointer text-sm">オンライン会員</Label>
-                          </div>
+                          <CheckboxItem
+                            id="audit-regular-invite"
+                            label="正会員"
+                            checked={auditMemberTypes.includes("regular")}
+                            onCheckedChange={(checked) =>
+                              handleAuditMemberTypeChange("regular", checked)
+                            }
+                          />
+                          <CheckboxItem
+                            id="audit-online-invite"
+                            label="オンライン会員"
+                            checked={auditMemberTypes.includes("online")}
+                            onCheckedChange={(checked) =>
+                              handleAuditMemberTypeChange("online", checked)
+                            }
+                          />
                         </div>
                       </div>
                     )}
@@ -566,14 +570,12 @@ export default function EventInvitePage({
                     {/* プレミアム会員（ベンチャー監査役の会を選択している場合のみ表示） */}
                     {organizations.includes("ベンチャー監査役の会") && (
                       <div className="space-y-2 border-t pt-4">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="premium-invite"
-                            checked={premiumOnly}
-                            onCheckedChange={(checked) => setPremiumOnly(checked === true)}
-                          />
-                          <Label htmlFor="premium-invite" className="cursor-pointer text-sm">プレミアム会員のみ</Label>
-                        </div>
+                        <CheckboxItem
+                          id="premium-invite"
+                          label="プレミアム会員のみ"
+                          checked={premiumOnly}
+                          onCheckedChange={(checked) => setPremiumOnly(checked)}
+                        />
                       </div>
                     )}
                   </div>
@@ -584,9 +586,9 @@ export default function EventInvitePage({
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-[200px] justify-between h-10"
+                    className="w-[200px] justify-between h-9 text-sm"
                   >
-                    <span className="text-sm">
+                    <span>
                       {inviteStatuses.length === 0
                         ? "案内状況"
                         : inviteStatuses.length === 1
@@ -596,7 +598,7 @@ export default function EventInvitePage({
                     <ChevronDown className="h-4 w-4 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[280px] p-0 bg-white" align="start">
+                <PopoverContent className="w-[280px] p-0 bg-card" align="start">
                   <div className="p-3 border-b">
                     <div className="relative">
                       <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -604,7 +606,7 @@ export default function EventInvitePage({
                         placeholder="案内状況を検索"
                         value={inviteStatusSearch}
                         onChange={(e) => setInviteStatusSearch(e.target.value)}
-                        className="pl-8 h-9"
+                        className="pl-8 h-9 text-sm"
                       />
                     </div>
                   </div>
@@ -635,14 +637,7 @@ export default function EventInvitePage({
                               handleInviteStatusChange(status.value, checked === true)
                             }
                           />
-                          <Badge
-                            variant={
-                              status.value === "案内済み" ? "default" : "secondary"
-                            }
-                            className="cursor-pointer"
-                          >
-                            {status.label}
-                          </Badge>
+                          <span className="text-sm">{status.label}</span>
                         </div>
                       ))}
                   </div>
@@ -650,160 +645,175 @@ export default function EventInvitePage({
               </Popover>
             </div>
 
-            <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
-              <div>
-                <span className="font-medium">{selectedCustomers.length}名</span> 選択中
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleAllCustomers}
-                className="cursor-pointer"
-                disabled={filteredCustomers.length === 0}
-              >
-                {selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0 ? "すべて解除" : "すべて選択"}
-              </Button>
+          <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
+            <div>
+              <span className="font-medium">{selectedCustomers.length}名</span> 選択中
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleAllCustomers}
+              disabled={filteredCustomers.length === 0}
+            >
+              {selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0 ? "すべて解除" : "すべて選択"}
+            </Button>
+          </div>
 
+          <div className="rounded-lg border bg-card">
             <Table>
               <TableHeader>
+              <TableRow>
+                <TableHead className="w-12">選択</TableHead>
+                <TableHead>氏名</TableHead>
+                <TableHead>会社名</TableHead>
+                <TableHead>会員区分</TableHead>
+                <TableHead>案内状況</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredCustomers.length === 0 ? (
                 <TableRow>
-                  <TableHead className="w-12">選択</TableHead>
-                  <TableHead>氏名</TableHead>
-                  <TableHead>会社名</TableHead>
-                  <TableHead>会員区分</TableHead>
-                  <TableHead>案内状況</TableHead>
+                  <TableCell colSpan={5} className="text-center text-muted-foreground">
+                    検索条件に一致する顧客が見つかりませんでした。
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCustomers.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">
-                      検索条件に一致する顧客が見つかりませんでした。
+              ) : (
+                filteredCustomers.map((customer) => (
+                  <TableRow key={customer.id}>
+                    <TableCell>
+                      <Checkbox 
+                        checked={selectedCustomers.includes(customer.id)}
+                        onCheckedChange={() => toggleCustomer(customer.id)}
+                      />
                     </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredCustomers.map((customer) => (
-                    <TableRow key={customer.id}>
-                      <TableCell>
-                        <Checkbox 
-                          checked={selectedCustomers.includes(customer.id)}
-                          onCheckedChange={() => toggleCustomer(customer.id)}
-                        />
-                      </TableCell>
-                      <TableCell>{customer.name}</TableCell>
-                      <TableCell>{customer.company}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-1 flex-wrap items-center">
-                          {(() => {
-                            const badges: React.ReactElement[] = [];
-                            
-                            // 非会員の判定（communitiesが空配列）
-                            if (customer.communities.length === 0) {
+                    <TableCell>{customer.name}</TableCell>
+                    <TableCell>{customer.company}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1 flex-wrap items-center">
+                        {(() => {
+                          const badges: React.ReactElement[] = [];
+                          
+                          // 非会員の判定（communitiesが空配列）
+                          if (customer.communities.length === 0) {
+                            badges.push(
+                              <Badge key="non-member" variant="non-member">
+                                非会員
+                              </Badge>
+                            );
+                          } else if (customer.memberCategory === "member") {
+                            const hasAudit = customer.communities.includes("ベンチャー監査役の会");
+                            const hasNaikan = customer.communities.includes("ないかんMeetup");
+                            const hasAi = customer.communities.includes("AI部会");
+
+                            // ベンチャー監査役の会のバッジ
+                            if (hasAudit) {
+                              const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
                               badges.push(
-                                <Badge key="non-member" variant="secondary" className="text-xs px-2 py-0.5">
-                                  非会員
+                                <Badge key="audit-member" variant="audit">
+                                  ベンチャー監査役の会({auditType})
                                 </Badge>
                               );
-                            } else if (customer.memberCategory === "member") {
-                              const hasAudit = customer.communities.includes("ベンチャー監査役の会");
-                              const hasNaikan = customer.communities.includes("ないかんMeetup");
-                              
-                              if (hasNaikan && !hasAudit) {
-                                badges.push(
-                                  <Badge key="naikan-member" variant="default" className="text-xs px-2 py-0.5">
-                                    ないかんMeetup(会員)
-                                  </Badge>
-                                );
-                              } else if (hasAudit && !hasNaikan) {
-                                const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
-                                badges.push(
-                                  <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
-                                    ベンチャー監査役の会({auditType})
-                                  </Badge>
-                                );
-                              } else if (hasAudit && hasNaikan) {
-                                const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
-                                badges.push(
-                                  <Badge key="audit-member" variant="default" className="text-xs px-2 py-0.5">
-                                    ベンチャー監査役の会({auditType})
-                                  </Badge>
-                                );
-                                badges.push(
-                                  <Badge key="naikan-member" variant="default" className="text-xs px-2 py-0.5">
-                                    ないかんMeetup(会員)
-                                  </Badge>
-                                );
-                              }
-                              
-                              if (customer.auditMemberPremium) {
-                                badges.push(
-                                  <Badge key="premium" variant="default" className="text-xs px-1.5 py-0.5 bg-slate-600 hover:bg-slate-700 text-white">
-                                    プレミアム
-                                  </Badge>
-                                );
-                              }
-                            } else if (customer.memberCategory === "sponsor") {
-                              if (customer.communities.includes("ないかんMeetup")) {
-                                badges.push(
-                                  <Badge key="sponsor-naikan" variant="default" className="text-xs px-2 py-0.5">
-                                    ないかんMeetup(スポンサー)
-                                  </Badge>
-                                );
-                              }
-                              if (customer.communities.includes("ベンチャー監査役の会")) {
-                                badges.push(
-                                  <Badge key="sponsor-audit" variant="default" className="text-xs px-2 py-0.5">
-                                    ベンチャー監査役の会(スポンサー)
-                                  </Badge>
-                                );
-                              }
-                            } else if (customer.memberCategory === "observer") {
-                              if (customer.communities.includes("ないかんMeetup")) {
-                                badges.push(
-                                  <Badge key="observer-naikan" variant="default" className="text-xs px-2 py-0.5">
-                                    ないかんMeetup(オブザーバー)
-                                  </Badge>
-                                );
-                              }
-                              if (customer.communities.includes("ベンチャー監査役の会")) {
-                                badges.push(
-                                  <Badge key="observer-audit" variant="default" className="text-xs px-2 py-0.5">
-                                    ベンチャー監査役の会(オブザーバー)
-                                  </Badge>
-                                );
-                              }
                             }
-                            
-                            return badges.length > 0 ? badges : null;
-                          })()}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            customer.isInvited ? "default" : "outline"
+                            // ないかんMeetupのバッジ
+                            if (hasNaikan) {
+                              badges.push(
+                                <Badge key="naikan-member" variant="naikan">
+                                  ないかんMeetup(会員)
+                                </Badge>
+                              );
+                            }
+                            // AI部会のバッジ
+                            if (hasAi) {
+                              badges.push(
+                                <Badge key="ai-member" variant="ai">
+                                  AI部会(会員)
+                                </Badge>
+                              );
+                            }
+
+                            // プレミアム会員バッジ
+                            if (customer.auditMemberPremium) {
+                              badges.push(
+                                <Badge key="premium" variant={USER_ROLE_CONFIG.premium.variant as any}>
+                                  {USER_ROLE_CONFIG.premium.label}
+                                </Badge>
+                              );
+                            }
+                          } else if (customer.memberCategory === "sponsor") {
+                            if (customer.communities.includes("ベンチャー監査役の会")) {
+                              badges.push(
+                                <Badge key="sponsor-audit" variant="audit">
+                                  ベンチャー監査役の会(スポンサー)
+                                </Badge>
+                              );
+                            }
+                            if (customer.communities.includes("ないかんMeetup")) {
+                              badges.push(
+                                <Badge key="sponsor-naikan" variant="naikan">
+                                  ないかんMeetup(スポンサー)
+                                </Badge>
+                              );
+                            }
+                            if (customer.communities.includes("AI部会")) {
+                              badges.push(
+                                <Badge key="sponsor-ai" variant="ai">
+                                  AI部会(スポンサー)
+                                </Badge>
+                              );
+                            }
+                          } else if (customer.memberCategory === "observer") {
+                            if (customer.communities.includes("ベンチャー監査役の会")) {
+                              badges.push(
+                                <Badge key="observer-audit" variant="audit">
+                                  ベンチャー監査役の会(オブザーバー)
+                                </Badge>
+                              );
+                            }
+                            if (customer.communities.includes("ないかんMeetup")) {
+                              badges.push(
+                                <Badge key="observer-naikan" variant="naikan">
+                                  ないかんMeetup(オブザーバー)
+                                </Badge>
+                              );
+                            }
+                            if (customer.communities.includes("AI部会")) {
+                              badges.push(
+                                <Badge key="observer-ai" variant="ai">
+                                  AI部会(オブザーバー)
+                                </Badge>
+                              );
+                            }
                           }
-                        >
-                          {customer.isInvited ? "案内済み" : "未案内"}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
+                          
+                          return badges.length > 0 ? badges : null;
+                        })()}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          customer.isInvited ? "default" : "outline"
+                        }
+                      >
+                        {customer.isInvited ? "案内済み" : "未案内"}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
               </TableBody>
             </Table>
+          </div>
 
-            <div className="flex justify-end gap-4 pt-4">
-              <Button variant="outline" asChild>
-                <Link href={`/admin/events/${id}`}>キャンセル</Link>
-              </Button>
-              <Button variant="outline" onClick={handleSelectNext} className="cursor-pointer">
-                次へ
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          <div className="flex justify-center gap-4 pt-4">
+            <ActionButton variant="outline" asChild>
+              <Link href={`/admin/events/${id}`}>キャンセル</Link>
+            </ActionButton>
+            <ActionButton onClick={handleSelectNext}>
+              次へ
+            </ActionButton>
+          </div>
+        </div>
       </div>
     );
   }
@@ -817,8 +827,8 @@ export default function EventInvitePage({
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">案内メール送信</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">案内メール送信</h1>
+            <p className="text-sm text-muted-foreground">
               案内メールのタイトルと本文を編集できます。
             </p>
           </div>
@@ -826,46 +836,41 @@ export default function EventInvitePage({
         
         <StepIndicator />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>メール文作成</CardTitle>
-            <CardDescription>
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <SectionHeading>メール文作成</SectionHeading>
+            <p className="text-sm text-muted-foreground">
               送信するメールのタイトルと本文を編集してください。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="emailTitle">メールタイトル</Label>
-              <Input 
-                id="emailTitle" 
-                value={emailTitle}
-                onChange={(e) => setEmailTitle(e.target.value)}
-                placeholder="メールタイトルを入力"
-              />
-            </div>
+            </p>
+          </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="emailBody">メール本文</Label>
-              <Textarea 
-                id="emailBody" 
-                value={emailBody}
-                onChange={(e) => setEmailBody(e.target.value)}
-                placeholder="メール本文を入力"
-                rows={30}
-                style={{ minHeight: '480px' }}
-              />
-            </div>
+          <FormField label="メールタイトル">
+            <Input
+              value={emailTitle}
+              onChange={(e) => setEmailTitle(e.target.value)}
+              placeholder="メールタイトルを入力"
+            />
+          </FormField>
 
-            <div className="flex justify-end gap-4 pt-4">
-              <Button variant="outline" onClick={() => setStep("select")}>
-                戻る
-              </Button>
-              <Button variant="outline" onClick={handleCustomizeNext} className="cursor-pointer">
-                次へ
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          <FormField label="メール本文">
+            <Textarea
+              value={emailBody}
+              onChange={(e) => setEmailBody(e.target.value)}
+              placeholder="メール本文を入力"
+              rows={30}
+              className="min-h-[480px]"
+            />
+          </FormField>
+
+          <div className="flex justify-center gap-4 pt-4">
+            <ActionButton variant="outline" onClick={() => setStep("select")}>
+              戻る
+            </ActionButton>
+            <ActionButton onClick={handleCustomizeNext}>
+              次へ
+            </ActionButton>
+          </div>
+        </div>
       </div>
     );
   }
@@ -879,8 +884,8 @@ export default function EventInvitePage({
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight">案内メール送信</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold tracking-tight">案内メール送信</h1>
+            <p className="text-sm text-muted-foreground">
               送信内容を確認して、テスト送信または送信を実行してください。
             </p>
           </div>
@@ -888,69 +893,55 @@ export default function EventInvitePage({
         
         <StepIndicator />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>確認</CardTitle>
-            <CardDescription>
-              送信内容を確認して、テスト送信または送信を実行してください。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>送信先</CardTitle>
-                <CardDescription>
-                  {selectedCustomers.length}名に送信します
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  {selectedCustomers.map((customerId) => {
-                    const customer = customers.find((c) => c.id === customerId);
-                    return customer ? (
-                      <div key={customerId}>
-                        {customer.name} ({customer.email})
-                      </div>
-                    ) : null;
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>メール内容</CardTitle>
-                <CardDescription>
-                  送信するメールのタイトルと本文です
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="font-medium mb-2">タイトル:</div>
-                  <div className="text-sm bg-muted p-3 rounded">{emailTitle}</div>
-                </div>
-                <div>
-                  <div className="font-medium mb-2">本文:</div>
-                  <div className="text-sm bg-muted p-3 rounded whitespace-pre-wrap">{emailBody}</div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="flex justify-end gap-4 pt-4">
-              <Button variant="outline" onClick={() => setStep("customize")}>
-                戻る
-              </Button>
-              <Button variant="outline" onClick={handleTestSend} className="cursor-pointer">
-                <Mail className="h-4 w-4" />
-                テスト送信
-              </Button>
-              <Button variant="outline" onClick={handleSend} className="cursor-pointer">
-                <Send className="h-4 w-4" />
-                送信
-              </Button>
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <SectionHeading>送信先</SectionHeading>
+            <p className="text-sm text-muted-foreground">
+              {selectedCustomers.length}名に送信します
+            </p>
+            <div className="space-y-2 text-sm">
+              {selectedCustomers.map((customerId) => {
+                const customer = customers.find((c) => c.id === customerId);
+                return customer ? (
+                  <div key={customerId}>
+                    {customer.name} ({customer.email})
+                  </div>
+                ) : null;
+              })}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          <div className="space-y-4">
+            <SectionHeading>メール内容</SectionHeading>
+            <p className="text-sm text-muted-foreground">
+              送信するメールのタイトルと本文です
+            </p>
+            <div className="space-y-4">
+              <div>
+                <div className="font-medium mb-2">タイトル:</div>
+                <div className="text-sm bg-muted p-3 rounded">{emailTitle}</div>
+              </div>
+              <div>
+                <div className="font-medium mb-2">本文:</div>
+                <div className="text-sm bg-muted p-3 rounded whitespace-pre-wrap">{emailBody}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-center gap-4 pt-4">
+            <ActionButton variant="outline" onClick={() => setStep("customize")}>
+              戻る
+            </ActionButton>
+            <ActionButton variant="outline" onClick={handleTestSend}>
+              <Mail className="h-4 w-4" />
+              テスト送信
+            </ActionButton>
+            <ActionButton onClick={handleSend}>
+              <Send className="h-4 w-4" />
+              送信
+            </ActionButton>
+          </div>
+        </div>
       </div>
     );
   }
