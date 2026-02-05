@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "todo/スタイルガイドv2適用状況.md",
+                "file": "DB設計_20260205.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "スタイルガイドv2適用状況"
+              "title": "DB設計_20260205"
             }
           }
         ]
@@ -182,11 +182,11 @@
   },
   "active": "3ffe563e52eb30d8",
   "lastOpenFiles": [
+    "todo/スタイルガイドv2適用状況.md",
     "ステータスバッジパターン.md",
     "URL設計_20260201.md",
     "報告/報告20260216.md",
     "画面設計書.md",
-    "todo/スタイルガイドv2適用状況.md",
     "サーバー構成_20260128.md",
     "報告20260128.md",
     "報告/報告20260128.md",
