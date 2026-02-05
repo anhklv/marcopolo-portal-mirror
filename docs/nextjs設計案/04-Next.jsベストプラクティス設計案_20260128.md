@@ -1,4 +1,4 @@
-# Next.jsベストプラクティス設計案（2026/01/28 更新）
+# Next.jsベストプラクティス設計案（2026/02/05 更新）
 
 > 02-Next.jsベストプラクティス設計案.md の改訂版。
 > モック実装で得た知見と壁打ちの結果を反映。
@@ -12,14 +12,14 @@
 | バリデーション | Service 層の validate() | Zod スキーマを独立ファイルに |
 | UI コンポーネント設計 | shadcn/ui のみ記載 | レイアウトコンポーネントの章を追加 |
 | テーマ・デザイン統一 | 記載なし | テーマ設計とコンポーネント使用ルールの章を追加 |
-| product/ の構築方針 | 記載なし | モックを参照しつつゼロから構築 |
+| ディレクトリ構造 | product/ 配下 | プロジェクト直下（_archive/mockup/ からコピー） |
 
 ---
 
 ## 基本方針
 
 - Next.js App Router の Server Components / Server Actions を最大限活用する
-- mockup/ は参照用として残し、product/ をゼロから構築する
+- `_archive/mockup/` のスタイルガイド・UIコンポーネントをベースにコピーし、必要に応じて改善する
 - 層を増やしすぎない。現在の規模では **Actions → Repository の2層**で十分
 - デザインの統一はドキュメントではなく**コンポーネントで強制**する
 
@@ -28,8 +28,12 @@
 ## ディレクトリ構造
 
 ```
-product/
-├── app/                              # Next.js App Router
+marcopolo-portal/
+├── _archive/
+│   └── mockup/                      # 旧モック（参照・コピー元）
+├── docs/                            # ドキュメント
+│
+├── app/                             # Next.js App Router
 │   ├── admin/
 │   │   ├── layout.tsx               # 管理画面共通レイアウト
 │   │   ├── customers/
@@ -47,12 +51,12 @@ product/
 │   │   │   └── ...                  # 同様の構成
 │   │   └── ...
 │   │
-│   ├── globals.css                  # テーマ変数定義
+│   ├── globals.css                  # テーマ変数定義（_archiveをベースに改善）
 │   ├── layout.tsx                   # ルートレイアウト
 │   └── page.tsx
 │
 ├── components/
-│   ├── ui/                          # shadcn/ui コンポーネント（そのまま or 微調整）
+│   ├── ui/                          # shadcn/ui コンポーネント（_archiveをベースに改善）
 │   └── layout/                      # プロジェクト共通レイアウトコンポーネント
 │       ├── form-page.tsx            # フォームページの共通レイアウト
 │       ├── list-page.tsx            # 一覧ページの共通レイアウト
@@ -72,11 +76,11 @@ product/
 │   │   ├── customer.schema.ts
 │   │   └── event.schema.ts
 │   │
-│   ├── types/                       # TypeScript 型定義
+│   ├── types/                       # TypeScript 型定義（_archiveをベースに改善）
 │   │   ├── customer.ts
 │   │   └── event.ts
 │   │
-│   ├── constants/                   # 定数
+│   ├── constants/                   # 定数（_archiveをベースに改善）
 │   └── utils.ts                     # ユーティリティ
 │
 └── components.json                  # shadcn/ui 設定
