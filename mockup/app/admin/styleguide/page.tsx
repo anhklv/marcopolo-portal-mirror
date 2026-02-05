@@ -1,41 +1,77 @@
-"use client";
+"use client"
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useState } from "react"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Plus, Search, Pencil, Trash2, Download, ChevronDown } from "lucide-react";
-import { DatePickerWithInput } from "@/components/ui/date-picker-with-input";
-import { toast } from "sonner";
-import { useState } from "react";
+} from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
+import { FormField } from "@/components/ui/form-field"
+import { Stack } from "@/components/ui/stack"
+import { SectionHeading } from "@/components/ui/section-heading"
+import { PageHeader } from "@/components/ui/page-header"
+import { DataItem } from "@/components/ui/data-item"
+import { CheckboxItem } from "@/components/ui/checkbox-item"
+import { RadioItem } from "@/components/ui/radio-item"
+import { RadioGroup } from "@/components/ui/radio-group"
+import { ActionButton } from "@/components/ui/action-button"
+import { RSVP_STATUS_CONFIG, EVENT_STATUS_CONFIG, type RsvpStatusConfigKey, type EventStatusConfigKey } from "@/lib/constants/event"
+import { USER_ROLE_CONFIG, type UserRoleConfigKey } from "@/lib/constants/customer"
+import { toast } from "sonner"
+import { Palette, LayoutGrid, FormInput, Package, FileCode, Type, Sparkles, Box, Trash2 } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
-export default function StyleGuidePage() {
-  const [date, setDate] = useState<Date>();
+// コードブロック表示コンポーネント
+function CodeBlock({ children }: { children: string }) {
+  return (
+    <pre className="bg-slate-900 text-slate-50 p-4 rounded-md text-sm overflow-x-auto">
+      <code>{children}</code>
+    </pre>
+  )
+}
+
+// サンプル表示コンポーネント
+function Example({
+  children,
+  code,
+}: {
+  children: React.ReactNode
+  code: string
+}) {
+  return (
+    <div className="border rounded-lg overflow-hidden">
+      <div className="p-4 bg-white">{children}</div>
+      <div className="border-t">
+        <details className="group">
+          <summary className="px-4 py-2 bg-slate-100 cursor-pointer text-sm font-medium hover:bg-slate-200">
+            コードを表示
+          </summary>
+          <CodeBlock>{code}</CodeBlock>
+        </details>
+      </div>
+    </div>
+  )
+}
+
+export default function StyleguidePage() {
+  const [sampleSelect, setSampleSelect] = useState("")
+  const [sampleCheckbox, setSampleCheckbox] = useState(false)
+  const [sampleRadio, setSampleRadio] = useState("")
 
   return (
     <div className="space-y-12">
@@ -43,188 +79,29 @@ export default function StyleGuidePage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">スタイルガイド</h1>
         <p className="text-sm text-muted-foreground">
-          UI コンポーネントとタイポグラフィの基準を定義するページです。新しいページを作る際はここを参照してください。
+          コピペで使えるコンポーネント集
         </p>
+        <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <Sparkles className="h-3 w-3 text-amber-500" />
+            独自コンポーネント
+          </span>
+          <span className="flex items-center gap-1">
+            <Box className="h-3 w-3 text-slate-500" />
+            shadcn/ui
+          </span>
+        </div>
       </div>
-
-      {/* ============================== */}
-      {/* タイポグラフィ */}
-      {/* ============================== */}
-      <section className="space-y-6">
-        <div>
-          <h2 className="text-lg font-semibold">タイポグラフィ</h2>
-          <Separator className="mt-2" />
-        </div>
-
-        <div className="rounded-lg border bg-white p-6 space-y-6">
-          {/* ページタイトル */}
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground font-mono">
-                text-2xl font-bold tracking-tight（ページタイトル / h1）
-              </p>
-              <p className="text-2xl font-bold tracking-tight">
-                ページタイトル — 24px
-              </p>
-            </div>
-            <p className="text-xs text-muted-foreground">用途: 各ページの最上部</p>
-          </div>
-
-          <Separator />
-
-          {/* セクション見出し h2 */}
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground font-mono">
-                text-lg font-semibold（セクション見出し / h2）
-              </p>
-              <p className="text-lg font-semibold">
-                セクション見出し — 18px
-              </p>
-            </div>
-            <p className="text-xs text-muted-foreground">用途: ページ内の大分類</p>
-          </div>
-
-          <Separator />
-
-          {/* サブセクション見出し h3 */}
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground font-mono">
-                text-base font-semibold（サブセクション見出し / h3）
-              </p>
-              <p className="text-base font-semibold">
-                サブセクション見出し — 16px
-              </p>
-            </div>
-            <p className="text-xs text-muted-foreground">用途: カード内のグループ見出し</p>
-          </div>
-
-          <Separator />
-
-          {/* CardTitle */}
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground font-mono">
-                CardTitle コンポーネント
-              </p>
-              <CardTitle>カードタイトル</CardTitle>
-            </div>
-            <p className="text-xs text-muted-foreground">用途: カードのタイトル</p>
-          </div>
-
-          <Separator />
-
-          {/* フォーム内小見出し */}
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground font-mono">
-                Label（標準）
-              </p>
-              <Label>フォーム内小見出し</Label>
-            </div>
-            <p className="text-xs text-muted-foreground">用途: フォーム内のグルーピング見出し</p>
-          </div>
-
-          <Separator />
-
-          {/* 本文 */}
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground font-mono">
-                text-base（本文テキスト / ベースサイズ）
-              </p>
-              <p className="text-base">
-                本文テキスト — 16px。管理画面のすべてのテキストはこのサイズを基準にします。
-              </p>
-            </div>
-            <p className="text-xs text-muted-foreground">用途: テーブル、フォーム入力値、一般テキスト</p>
-          </div>
-
-          <Separator />
-
-          {/* ラベル */}
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground font-mono">
-                Label（標準）
-              </p>
-              <p className="text-sm font-medium">
-                ラベルテキスト — 14px medium
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                ※Labelコンポーネントを使用（className指定不要）
-              </p>
-            </div>
-            <p className="text-xs text-muted-foreground">用途: フォームラベル、項目名</p>
-          </div>
-
-          <Separator />
-
-          {/* 説明・補足 */}
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground font-mono">
-                text-sm text-muted-foreground（説明・補足テキスト）
-              </p>
-              <p className="text-sm text-muted-foreground">
-                説明・補足テキスト — 14px muted
-              </p>
-            </div>
-            <p className="text-xs text-muted-foreground">用途: カード説明、ヘルプテキスト</p>
-          </div>
-
-          <Separator />
-
-          {/* 小さい補足 */}
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground font-mono">
-                text-xs text-muted-foreground（小さい補足）
-              </p>
-              <p className="text-xs text-muted-foreground">
-                小さい補足テキスト — 12px muted
-              </p>
-            </div>
-            <p className="text-xs text-muted-foreground">用途: バリデーション、日付、件数</p>
-          </div>
-
-          <Separator />
-
-          {/* 強調データ */}
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground font-mono">
-                text-base font-semibold（強調データ）
-              </p>
-              <p className="text-base">
-                件数: <span className="font-semibold text-foreground">42</span>件
-              </p>
-            </div>
-            <p className="text-xs text-muted-foreground">用途: 数値や重要データの強調表示</p>
-          </div>
-
-          <Separator />
-
-          {/* バッジ */}
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground font-mono">
-                Badge + text-xs px-2 py-0.5
-              </p>
-              <Badge variant="default" className="text-xs px-2 py-0.5">バッジ</Badge>
-            </div>
-            <p className="text-xs text-muted-foreground">用途: ステータス、カテゴリ表示（12px）</p>
-          </div>
-        </div>
-      </section>
 
       {/* ============================== */}
       {/* 色 */}
       {/* ============================== */}
       <section className="space-y-6">
         <div>
-          <h2 className="text-lg font-semibold">色</h2>
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Palette className="h-5 w-5" />
+            色
+          </h2>
           <Separator className="mt-2" />
         </div>
 
@@ -273,87 +150,196 @@ export default function StyleGuidePage() {
       </section>
 
       {/* ============================== */}
-      {/* ボタン */}
+      {/* タイポグラフィ */}
       {/* ============================== */}
       <section className="space-y-6">
         <div>
-          <h2 className="text-lg font-semibold">ボタン</h2>
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Type className="h-5 w-5" />
+            タイポグラフィ
+          </h2>
           <Separator className="mt-2" />
         </div>
 
-        <div className="rounded-lg border bg-white p-6 space-y-6">
-          {/* バリアント */}
-          <div className="space-y-3">
-            <p className="text-sm font-medium">バリアント</p>
-            <div className="flex flex-wrap items-center gap-3">
-              <Button>
-                <Plus className="h-4 w-4" />
-                Default
-              </Button>
-              <Button variant="secondary">Secondary</Button>
-              <Button variant="outline">
-                <Download className="h-4 w-4" />
-                Outline
-              </Button>
-              <Button variant="ghost">Ghost</Button>
-              <Button variant="destructive">
-                <Trash2 className="h-4 w-4" />
-                Destructive
-              </Button>
-              <Button variant="link">Link</Button>
-            </div>
+        <div className="rounded-lg border bg-white p-6 space-y-4">
+          <div className="space-y-1">
+            <p className="text-2xl font-bold tracking-tight">ページタイトル</p>
+            <p className="text-xs text-muted-foreground font-mono">text-2xl font-bold tracking-tight</p>
           </div>
-
           <Separator />
-
-          {/* サイズ */}
-          <div className="space-y-3">
-            <p className="text-sm font-medium">サイズ</p>
-            <div className="flex flex-wrap items-center gap-3">
-              <Button size="sm">Small</Button>
-              <Button size="default">Default</Button>
-              <Button size="lg">Large</Button>
-              <Button size="icon">
-                <Pencil className="h-4 w-4" />
-              </Button>
-            </div>
+          <div className="space-y-1">
+            <p className="text-lg font-semibold">セクション見出し</p>
+            <p className="text-xs text-muted-foreground font-mono">text-lg font-semibold</p>
           </div>
-
           <Separator />
-
-          {/* 使い分けルール */}
-          <div className="space-y-2">
-            <p className="text-sm font-medium">使い分けルール</p>
-            <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
-              <li>主要アクション: <span className="font-mono text-xs">default</span></li>
-              <li>一覧ページの新規登録: <span className="font-mono text-xs">default</span> + アイコン</li>
-              <li>テーブル行内の操作: <span className="font-mono text-xs">outline</span> + <span className="font-mono text-xs">size=&quot;sm&quot;</span></li>
-              <li>削除・危険操作: <span className="font-mono text-xs">destructive</span></li>
-              <li>ダウンロード: <span className="font-mono text-xs">outline</span> + Download アイコン</li>
-            </ul>
+          <div className="space-y-1">
+            <p className="text-base font-semibold">サブ見出し</p>
+            <p className="text-xs text-muted-foreground font-mono">text-base font-semibold</p>
+          </div>
+          <Separator />
+          <div className="space-y-1">
+            <p className="text-sm font-medium">ラベル</p>
+            <p className="text-xs text-muted-foreground font-mono">text-sm font-medium（Labelコンポーネント）</p>
+          </div>
+          <Separator />
+          <div className="space-y-1">
+            <p className="text-base">本文テキスト</p>
+            <p className="text-xs text-muted-foreground font-mono">text-base</p>
+          </div>
+          <Separator />
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">説明・補足テキスト</p>
+            <p className="text-xs text-muted-foreground font-mono">text-sm text-muted-foreground</p>
+          </div>
+          <Separator />
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">小さい補足（日付、件数等）</p>
+            <p className="text-xs text-muted-foreground font-mono">text-xs text-muted-foreground</p>
           </div>
         </div>
       </section>
 
       {/* ============================== */}
-      {/* バッジ */}
+      {/* レイアウト */}
       {/* ============================== */}
       <section className="space-y-6">
         <div>
-          <h2 className="text-lg font-semibold">バッジ</h2>
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <LayoutGrid className="h-5 w-5" />
+            レイアウト
+          </h2>
           <Separator className="mt-2" />
         </div>
 
-        <div className="rounded-lg border bg-white p-6 space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="default">Default</Badge>
-            <Badge variant="secondary">Secondary</Badge>
-            <Badge variant="outline">Outline</Badge>
-            <Badge variant="destructive">Destructive</Badge>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            バッジは常に <span className="font-mono">text-xs px-2 py-0.5</span> を使用します。
+        {/* Stack */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            Stack
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            縦積みレイアウト。gap で間隔を指定。
           </p>
+
+          <div className="text-sm rounded-lg border bg-white p-4">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2">gap</th>
+                  <th className="text-left py-2">値</th>
+                  <th className="text-left py-2">用途</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b">
+                  <td className="py-2"><code>xs</code></td>
+                  <td className="py-2">4px</td>
+                  <td className="py-2 text-muted-foreground">詳細項目内</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-2"><code>sm</code></td>
+                  <td className="py-2">8px</td>
+                  <td className="py-2 text-muted-foreground">Label-Input間</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-2"><code>md</code></td>
+                  <td className="py-2">16px</td>
+                  <td className="py-2 text-muted-foreground">中間（デフォルト）</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-2"><code>lg</code></td>
+                  <td className="py-2">24px</td>
+                  <td className="py-2 text-muted-foreground">フォーム項目間</td>
+                </tr>
+                <tr>
+                  <td className="py-2"><code>xl</code></td>
+                  <td className="py-2">32px</td>
+                  <td className="py-2 text-muted-foreground">セクション間</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <Example
+            code={`<Stack gap="lg">
+  <div className="h-12 w-full bg-muted rounded" />
+  <div className="h-12 w-full bg-muted rounded" />
+</Stack>`}
+          >
+            <Stack gap="lg">
+              <div className="h-12 w-full bg-muted rounded" />
+              <div className="h-12 w-full bg-muted rounded" />
+            </Stack>
+          </Example>
+        </div>
+
+        <Separator />
+
+        {/* SectionHeading */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            SectionHeading
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            セクション見出し。h2 + Separator。
+          </p>
+
+          <Example code={`<SectionHeading>プロフィール</SectionHeading>`}>
+            <SectionHeading>プロフィール</SectionHeading>
+          </Example>
+        </div>
+
+        <Separator />
+
+        {/* PageHeader */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            PageHeader
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            ページヘッダー。戻るボタン + タイトル + 説明。
+          </p>
+
+          <Example
+            code={`<PageHeader
+  backHref="/admin/customers"
+  title="顧客登録"
+  description="新しい顧客情報をシステムに登録します。"
+/>`}
+          >
+            <PageHeader
+              backHref="/admin/customers"
+              title="顧客登録"
+              description="新しい顧客情報をシステムに登録します。"
+            />
+          </Example>
+        </div>
+
+        <Separator />
+
+        {/* DataItem */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            DataItem
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            詳細表示用。ラベル + 値の組み合わせ。
+          </p>
+
+          <Example
+            code={`<div className="grid grid-cols-2 gap-6">
+  <DataItem label="氏名">山田 太郎</DataItem>
+  <DataItem label="会社名">株式会社マルコポーロ</DataItem>
+</div>`}
+          >
+            <div className="grid grid-cols-2 gap-6">
+              <DataItem label="氏名">山田 太郎</DataItem>
+              <DataItem label="会社名">株式会社マルコポーロ</DataItem>
+            </div>
+          </Example>
         </div>
       </section>
 
@@ -362,440 +348,607 @@ export default function StyleGuidePage() {
       {/* ============================== */}
       <section className="space-y-6">
         <div>
-          <h2 className="text-lg font-semibold">フォーム</h2>
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <FormInput className="h-5 w-5" />
+            フォーム
+          </h2>
           <Separator className="mt-2" />
         </div>
 
-        <Card>
-          <CardContent className="space-y-6">
-            <div>
-              <h2 className="text-lg font-semibold">基本情報</h2>
-              <Separator className="mt-2" />
-            </div>
-            {/* テキスト入力 */}
-            <div className="grid gap-2">
-              <Label htmlFor="sg-name">
-                氏名 <span className="text-destructive">*</span>
-              </Label>
-              <Input id="sg-name" placeholder="山田 太郎" />
-              <p className="text-xs text-muted-foreground">
-                姓と名の間にスペースを入れてください。
-              </p>
-            </div>
+        {/* FormField */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            FormField
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Label + Input + 補足テキストをまとめるコンポーネント。
+          </p>
 
-            {/* メール */}
-            <div className="grid gap-2">
-              <Label htmlFor="sg-email">
-                メールアドレス <span className="text-destructive">*</span>
-              </Label>
-              <Input id="sg-email" type="email" placeholder="taro@example.com" />
-            </div>
+          <Example
+            code={`<FormField label="姓" required>
+  <Input placeholder="例: 山田" />
+</FormField>`}
+          >
+            <FormField label="姓" required>
+              <Input placeholder="例: 山田" />
+            </FormField>
+          </Example>
 
-            {/* セレクト */}
-            <div className="grid gap-2">
-              <Label htmlFor="sg-role">役割</Label>
-              <Select>
-                <SelectTrigger id="sg-role">
+          <Example
+            code={`<FormField label="メールアドレス" description="メインの連絡先として使用します">
+  <Input type="email" placeholder="name@example.com" />
+</FormField>`}
+          >
+            <FormField
+              label="メールアドレス"
+              description="メインの連絡先として使用します"
+            >
+              <Input type="email" placeholder="name@example.com" />
+            </FormField>
+          </Example>
+
+          <Example
+            code={`<FormField label="姓" required error="姓を入力してください">
+  <Input placeholder="例: 山田" />
+</FormField>`}
+          >
+            <FormField label="姓" required error="姓を入力してください">
+              <Input placeholder="例: 山田" />
+            </FormField>
+          </Example>
+
+          <Example
+            code={`<FormField label="都道府県">
+  <Select>
+    <SelectTrigger>
+      <SelectValue placeholder="選択してください" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="tokyo">東京都</SelectItem>
+    </SelectContent>
+  </Select>
+</FormField>`}
+          >
+            <FormField label="都道府県">
+              <Select value={sampleSelect} onValueChange={setSampleSelect}>
+                <SelectTrigger>
                   <SelectValue placeholder="選択してください" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">管理者</SelectItem>
-                  <SelectItem value="member">会員</SelectItem>
-                  <SelectItem value="observer">オブザーバー</SelectItem>
+                  <SelectItem value="tokyo">東京都</SelectItem>
+                  <SelectItem value="osaka">大阪府</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </FormField>
+          </Example>
 
-            {/* チェックボックス */}
-            <div className="space-y-3">
-              <Label>オプション</Label>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="sg-check1" />
-                <Label htmlFor="sg-check1">
-                  メール通知を受け取る
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="sg-check2" />
-                <Label htmlFor="sg-check2">
-                  プレミアム会員として登録
-                </Label>
-              </div>
-            </div>
-
-            {/* テキストエリア */}
-            <div className="grid gap-2">
-              <Label htmlFor="sg-note">備考</Label>
-              <Textarea id="sg-note" placeholder="自由に入力してください" rows={3} />
-            </div>
-
-            {/* ボタン */}
-            <div className="flex justify-end gap-3">
-              <Button variant="outline">キャンセル</Button>
-              <Button>保存</Button>
-            </div>
-
-            {/* 複数セクションの例 */}
-            <div>
-              <h2 className="text-lg font-semibold">追加情報</h2>
-              <Separator className="mt-2" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="sg-additional">追加フィールド</Label>
-              <Input id="sg-additional" placeholder="追加情報を入力" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* フォームルール */}
-        <div className="rounded-lg border bg-white p-6 space-y-2">
-          <p className="text-sm font-medium">フォームのルール</p>
-          <div className="text-sm text-muted-foreground space-y-4">
-            <div className="grid gap-2">
-              <p className="font-medium text-foreground">コンポーネント使用（クラス指定不要）</p>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>ラベル: <span className="font-mono text-xs">&lt;Label&gt;</span></li>
-              </ul>
-            </div>
-            
-            <div className="grid gap-2">
-              <p className="font-medium text-foreground">クラス指定が必要な要素</p>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>必須マーク: <span className="font-mono text-xs">&lt;span className=&quot;text-destructive&quot;&gt;*&lt;/span&gt;</span></li>
-                <li>ヘルプテキスト: <span className="font-mono text-xs">&lt;p className=&quot;text-xs text-muted-foreground&quot;&gt;</span></li>
-                <li>入力フィールド間の余白: 親要素に <span className="font-mono text-xs">space-y-6</span></li>
-                <li>ラベルとフィールドの間: 親要素に <span className="font-mono text-xs">grid gap-2</span></li>
-                <li>セクション見出し: <span className="font-mono text-xs">&lt;h2 className=&quot;text-lg font-semibold&quot;&gt;</span> + <span className="font-mono text-xs">&lt;Separator className=&quot;mt-2&quot; /&gt;</span></li>
-                <li>複数セクション: 1つのCard内に複数のセクション見出しを配置可能</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================== */}
-      {/* 検索・フィルタエリア */}
-      {/* ============================== */}
-      <section className="space-y-6">
-        <div>
-          <h2 className="text-lg font-semibold">検索・フィルタエリア（一覧画面用）</h2>
-          <Separator className="mt-2" />
+          <Example
+            code={`<FormField label="備考">
+  <Textarea placeholder="紹介者や特記事項など" />
+</FormField>`}
+          >
+            <FormField label="備考">
+              <Textarea placeholder="紹介者や特記事項など" />
+            </FormField>
+          </Example>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>検索・絞り込みツールバー</CardTitle>
-            <CardDescription>
-              一覧画面の検索エリアは、メインの入力フォームとは区別してコンパクトなサイズ（h-9 / 36px）を使用します。
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* ツールバー例 */}
-            <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-lg border">
-              {/* 検索バー */}
-              <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="名前、会社名で検索..."
-                  className="pl-9 h-9 text-sm"
-                />
-              </div>
-              
-              {/* フィルタボタン */}
-              <Button variant="outline" className="h-9 text-sm">
-                <span className="mr-2">ステータス</span>
-                <ChevronDown className="h-4 w-4 opacity-50" />
-              </Button>
-              
-              {/* チェックボックス */}
-              <div className="flex items-center space-x-2 h-9">
-                <Checkbox id="sg-filter-check" />
-                <Label htmlFor="sg-filter-check" className="text-sm">
-                  元会員を含む
-                </Label>
-              </div>
-            </div>
+        <Separator />
 
-            {/* ルール説明 */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium">適用ルール</p>
-              <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
-                <li>高さ: <span className="font-mono text-xs">h-9 (36px)</span> <span className="text-xs bg-muted px-1 rounded">※フォームは h-10</span></li>
-                <li>フォントサイズ: <span className="font-mono text-xs">text-sm (14px)</span> <span className="text-xs bg-muted px-1 rounded">※フォームは text-base</span></li>
-                <li>構成要素: 検索窓、プルダウン、フィルタ用チェックボックス</li>
-                <li>目的: 情報密度の高い一覧画面において、ツールバーの専有面積を抑え、データ表示領域を確保するため</li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
-
-      {/* ============================== */}
-      {/* テーブル */}
-      {/* ============================== */}
-      <section className="space-y-6">
-        <div>
-          <h2 className="text-lg font-semibold">テーブル（一覧ページ）</h2>
-          <Separator className="mt-2" />
-        </div>
-
-        {/* 一覧ヘッダー例 */}
+        {/* 2列グリッド */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">一覧ページ例</h1>
-              <p className="text-sm text-muted-foreground">
-                ページの説明テキストはこのスタイルで記述します。
-              </p>
-            </div>
-            <Button>
-              <Plus className="h-4 w-4" />
-              新規登録
-            </Button>
-          </div>
+          <h3 className="text-base font-semibold">2列グリッド</h3>
+          <p className="text-sm text-muted-foreground">
+            フォームで2列表示する場合。gap-6（24px）を使用。
+          </p>
 
-          {/* 検索バー */}
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="検索..."
-                className="pl-9 h-9 text-sm"
-                readOnly
-              />
-            </div>
-            
-            {/* フィルタ例 */}
-            <Button variant="outline" className="h-9 text-sm">
-              絞り込み
-              <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
-            </Button>
-          </div>
-
-          {/* 件数表示 */}
-          <div className="flex justify-end">
-            <div className="text-sm text-muted-foreground">
-              <span className="font-semibold text-foreground">3</span>件
-            </div>
-          </div>
-
-          {/* テーブル */}
-          <div className="rounded-lg border bg-white">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>氏名</TableHead>
-                  <TableHead>会社名</TableHead>
-                  <TableHead>区分</TableHead>
-                  <TableHead>登録日</TableHead>
-                  <TableHead className="text-right">操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow className="cursor-pointer hover:bg-gray-50">
-                  <TableCell className="font-medium">C001</TableCell>
-                  <TableCell>山田 太郎</TableCell>
-                  <TableCell>株式会社サンプル</TableCell>
-                  <TableCell>
-                    <Badge variant="default">会員</Badge>
-                  </TableCell>
-                  <TableCell>2024/01/15</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="outline" size="sm">編集</Button>
-                  </TableCell>
-                </TableRow>
-                <TableRow className="cursor-pointer hover:bg-gray-50">
-                  <TableCell className="font-medium">C002</TableCell>
-                  <TableCell>鈴木 花子</TableCell>
-                  <TableCell>テスト株式会社</TableCell>
-                  <TableCell>
-                    <Badge variant="default">スポンサー</Badge>
-                  </TableCell>
-                  <TableCell>2024/02/20</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="outline" size="sm">編集</Button>
-                  </TableCell>
-                </TableRow>
-                <TableRow className="cursor-pointer hover:bg-gray-50">
-                  <TableCell className="font-medium">C003</TableCell>
-                  <TableCell>佐藤 一郎</TableCell>
-                  <TableCell>—</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">非会員</Badge>
-                  </TableCell>
-                  <TableCell>2024/03/10</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="outline" size="sm">編集</Button>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-
-        {/* テーブルルール */}
-        <div className="rounded-lg border bg-white p-6 space-y-2">
-          <p className="text-sm font-medium">テーブルのルール</p>
-          <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
-            <li>テーブル外枠: <span className="font-mono text-xs">rounded-lg border bg-white</span></li>
-            <li>クリック可能な行: <span className="font-mono text-xs">cursor-pointer hover:bg-gray-50</span></li>
-            <li>ID列: <span className="font-mono text-xs">font-medium</span></li>
-            <li>操作列: <span className="font-mono text-xs">text-right</span> + Button outline sm</li>
-            <li>件数表示: ページタイトルとテーブルの間に配置</li>
-          </ul>
-        </div>
-      </section>
-
-      {/* ============================== */}
-      {/* 詳細ページ */}
-      {/* ============================== */}
-      <section className="space-y-6">
-        <div>
-          <h2 className="text-lg font-semibold">詳細ページ</h2>
-          <Separator className="mt-2" />
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>プロフィール</CardTitle>
-            <CardDescription>詳細ページのカードレイアウト例です。</CardDescription>
-          </CardHeader>
-          <CardContent>
+          <Example
+            code={`<div className="grid grid-cols-2 gap-6">
+  <FormField label="姓" required>
+    <Input placeholder="例: 山田" />
+  </FormField>
+  <FormField label="名" required>
+    <Input placeholder="例: 太郎" />
+  </FormField>
+</div>`}
+          >
             <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">氏名</p>
-                <p className="text-base">山田 太郎</p>
+              <FormField label="姓" required>
+                <Input placeholder="例: 山田" />
+              </FormField>
+              <FormField label="名" required>
+                <Input placeholder="例: 太郎" />
+              </FormField>
+            </div>
+          </Example>
+        </div>
+
+        <Separator />
+
+        {/* CheckboxItem */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            CheckboxItem
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Checkbox + Labelをまとめたコンポーネント。
+          </p>
+
+          <Example
+            code={`<CheckboxItem
+  id="premium"
+  label="プレミアム会員"
+  checked={checked}
+  onCheckedChange={setChecked}
+/>`}
+          >
+            <CheckboxItem
+              id="premium"
+              label="プレミアム会員"
+              checked={sampleCheckbox}
+              onCheckedChange={setSampleCheckbox}
+            />
+          </Example>
+
+          <Example
+            code={`<div className="flex items-center gap-6">
+  <CheckboxItem id="audit" label="ベンチャー監査役の会" />
+  <CheckboxItem id="naikan" label="ないかんMeetup" />
+</div>`}
+          >
+            <div className="flex items-center gap-6">
+              <CheckboxItem id="audit" label="ベンチャー監査役の会" />
+              <CheckboxItem id="naikan" label="ないかんMeetup" />
+            </div>
+          </Example>
+        </div>
+
+        <Separator />
+
+        {/* RadioItem */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            RadioItem
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            RadioGroupItem + Labelをまとめたコンポーネント。RadioGroup内で使用。
+          </p>
+
+          <Example
+            code={`<RadioGroup value={value} onValueChange={setValue}>
+  <div className="flex items-center gap-6">
+    <RadioItem value="member" label="会員" />
+    <RadioItem value="sponsor" label="スポンサー" />
+    <RadioItem value="observer" label="オブザーバー" />
+  </div>
+</RadioGroup>`}
+          >
+            <RadioGroup value={sampleRadio} onValueChange={setSampleRadio}>
+              <div className="flex items-center gap-6">
+                <RadioItem value="member" label="会員" />
+                <RadioItem value="sponsor" label="スポンサー" />
+                <RadioItem value="observer" label="オブザーバー" />
               </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">会社名</p>
-                <p className="text-base">株式会社サンプル</p>
+            </RadioGroup>
+          </Example>
+        </div>
+
+        <Separator />
+
+        {/* Input */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Box className="h-4 w-4 text-slate-500" />
+            Input
+          </h3>
+
+          <Example code={`// フォーム用（デフォルト: h-10 / text-base）
+<Input placeholder="例: 山田" />
+
+// 検索・フィルター用（h-9 / text-sm）
+<Input className="h-9 text-sm" placeholder="検索..." />`}>
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">フォーム用（h-10 / text-base）</p>
+                <Input placeholder="例: 山田" />
               </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">メールアドレス</p>
-                <p className="text-base">taro@example.com</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">登録日</p>
-                <p className="text-base">2024/01/15</p>
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">検索・フィルター用（h-9 / text-sm）</p>
+                <Input className="h-9 text-sm" placeholder="検索..." />
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* 詳細ページルール */}
-        <div className="rounded-lg border bg-white p-6 space-y-2">
-          <p className="text-sm font-medium">詳細ページのルール</p>
-          <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
-            <li>項目名: <span className="font-mono text-xs">text-sm font-medium text-muted-foreground</span></li>
-            <li>項目値: <span className="font-mono text-xs">text-base</span></li>
-            <li>項目名と値の間: <span className="font-mono text-xs">space-y-1 (4px)</span></li>
-            <li>グリッド: <span className="font-mono text-xs">grid grid-cols-2 gap-6 (24px)</span></li>
-          </ul>
+          </Example>
         </div>
       </section>
 
       {/* ============================== */}
-      {/* スペーシング */}
+      {/* 部品 */}
       {/* ============================== */}
       <section className="space-y-6">
         <div>
-          <h2 className="text-lg font-semibold">スペーシング</h2>
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            部品
+          </h2>
           <Separator className="mt-2" />
         </div>
 
-        <div className="rounded-lg border bg-white">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>要素</TableHead>
-                <TableHead>Tailwind クラス</TableHead>
-                <TableHead>用途</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell className="font-medium">ページ全体</TableCell>
-                <TableCell className="font-mono text-xs">space-y-6</TableCell>
-                <TableCell className="text-muted-foreground">ページ内のセクション間</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">メインコンテンツ</TableCell>
-                <TableCell className="font-mono text-xs">p-8</TableCell>
-                <TableCell className="text-muted-foreground">レイアウトのメイン領域パディング</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">カード内</TableCell>
-                <TableCell className="font-mono text-xs">space-y-6（CardContent内）</TableCell>
-                <TableCell className="text-muted-foreground">フォームフィールド間</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">ラベル-フィールド間</TableCell>
-                <TableCell className="font-mono text-xs">grid gap-2</TableCell>
-                <TableCell className="text-muted-foreground">ラベルと入力フィールドの間</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">ボタン間</TableCell>
-                <TableCell className="font-mono text-xs">gap-3</TableCell>
-                <TableCell className="text-muted-foreground">複数ボタンの間隔</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">フォーム入力高さ</TableCell>
-                <TableCell className="font-mono text-xs">h-10</TableCell>
-                <TableCell className="text-muted-foreground">登録・編集フォームの入力欄</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">検索・フィルタ高さ</TableCell>
-                <TableCell className="font-mono text-xs">h-9</TableCell>
-                <TableCell className="text-muted-foreground">一覧画面の検索バーとフィルタ（text-sm併用）</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </div>
-      </section>
+        {/* Button */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Box className="h-4 w-4 text-slate-500" />
+            Button
+          </h3>
 
-      {/* ============================== */}
-      {/* UI コンポーネント（その他） */}
-      {/* ============================== */}
-      <section className="space-y-6">
-        <div>
-          <h2 className="text-lg font-semibold">UI コンポーネント（その他）</h2>
-          <Separator className="mt-2" />
-        </div>
-
-        {/* DatePicker */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">日付選択</h3>
-          <div className="rounded-lg border bg-white p-6">
-            <div className="w-[240px]">
-              <DatePickerWithInput date={date} setDate={setDate} />
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              <span className="font-mono">DatePickerWithInput</span> コンポーネントを使用
-            </p>
+          <div className="text-sm rounded-lg border bg-white p-4">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2">variant</th>
+                  <th className="text-left py-2">用途</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b">
+                  <td className="py-2"><code>default</code></td>
+                  <td className="py-2 text-muted-foreground">主要アクション（新規登録、作成など）</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-2"><code>outline</code></td>
+                  <td className="py-2 text-muted-foreground">副次アクション（キャンセル、CSVダウンロードなど）</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-2"><code>ghost</code></td>
+                  <td className="py-2 text-muted-foreground">軽いアクション（戻る、閉じるなど）</td>
+                </tr>
+                <tr>
+                  <td className="py-2"><code>destructive</code></td>
+                  <td className="py-2 text-muted-foreground">危険なアクション（削除など）</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
+
+          <Example
+            code={`<Button variant="default">登録</Button>
+<Button variant="outline">キャンセル</Button>
+<Button variant="ghost">戻る</Button>
+<Button variant="destructive">削除</Button>`}
+          >
+            <div className="flex gap-4">
+              <Button variant="default">登録</Button>
+              <Button variant="outline">キャンセル</Button>
+              <Button variant="ghost">戻る</Button>
+              <Button variant="destructive">削除</Button>
+            </div>
+          </Example>
+
+          <h4 className="text-sm font-medium pt-4">Dialogを使った削除ボタン</h4>
+          <p className="text-xs text-muted-foreground">
+            DialogTriggerの削除ボタンは<code>variant="outline"</code>に<code>className="border-destructive text-destructive bg-white hover:bg-white hover:text-destructive"</code>を追加します。
+            <br />
+            モーダル内の実際の削除ボタンは<code>variant="destructive"</code>を使用します。
+          </p>
+          <Example
+            code={`<Dialog>
+  <DialogTrigger asChild>
+    <Button
+      variant="outline"
+      className="border-destructive text-destructive bg-white hover:bg-white hover:text-destructive"
+    >
+      <Trash2 className="h-4 w-4" />
+      削除
+    </Button>
+  </DialogTrigger>
+  <DialogContent className="bg-white">
+    <DialogHeader>
+      <DialogTitle>削除確認</DialogTitle>
+      <DialogDescription>
+        この操作は取り消せません。
+      </DialogDescription>
+    </DialogHeader>
+    <DialogFooter>
+      <Button variant="outline" onClick={() => setIsOpen(false)}>
+        キャンセル
+      </Button>
+      <Button variant="destructive" onClick={handleDelete}>
+        削除
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>`}
+          >
+            <div className="text-xs text-muted-foreground">
+              ※実際の動作例はコードを参照してください
+            </div>
+          </Example>
+        </div>
+
+        <Separator />
+
+        {/* ActionButton */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            ActionButton
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            フォームの決定ボタン用。min-w-32 / h-11 で押しやすいサイズ。
+            <br />
+            主要アクション（登録、送信など）だけでなく、副次アクション（戻る、キャンセル、テスト送信など）にも使用可。
+          </p>
+
+          <Example
+            code={`// 主要アクション
+<ActionButton variant="default">登録</ActionButton>
+<ActionButton variant="default">送信</ActionButton>
+<ActionButton variant="destructive">削除</ActionButton>
+
+// 副次アクション
+<ActionButton variant="outline">戻る</ActionButton>
+<ActionButton variant="outline">キャンセル</ActionButton>
+<ActionButton variant="outline">テスト送信</ActionButton>`}
+          >
+            <div className="space-y-4">
+              <div className="flex gap-4 justify-start">
+                <ActionButton variant="default">登録</ActionButton>
+                <ActionButton variant="default">送信</ActionButton>
+                <ActionButton variant="destructive">削除</ActionButton>
+              </div>
+              <div className="flex gap-4 justify-start">
+                <ActionButton variant="outline">戻る</ActionButton>
+                <ActionButton variant="outline">キャンセル</ActionButton>
+                <ActionButton variant="outline">テスト送信</ActionButton>
+              </div>
+            </div>
+          </Example>
+        </div>
+
+        <Separator />
+
+        {/* Badge */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Box className="h-4 w-4 text-slate-500" />
+            Badge
+          </h3>
+
+          <Example
+            code={`<Badge variant="default">default</Badge>
+<Badge variant="secondary">secondary</Badge>
+<Badge variant="outline">outline</Badge>
+<Badge variant="destructive">destructive</Badge>
+<Badge variant="destructive-outline">destructive-outline</Badge>`}
+          >
+            <div className="flex gap-2">
+              <Badge variant="default">default</Badge>
+              <Badge variant="secondary">secondary</Badge>
+              <Badge variant="outline">outline</Badge>
+              <Badge variant="destructive">destructive</Badge>
+              <Badge variant="destructive-outline">destructive-outline</Badge>
+            </div>
+          </Example>
+
+          <h4 className="text-sm font-medium pt-4">コミュニティバッジ</h4>
+          <Example
+            code={`<Badge variant="audit">ベンチャー監査役の会</Badge>
+<Badge variant="naikan">ないかんMeetup</Badge>
+<Badge variant="ai">AI部会</Badge>
+<Badge variant="non-member">非会員</Badge>`}
+          >
+            <div className="flex gap-2 flex-wrap">
+              <Badge variant="audit">ベンチャー監査役の会</Badge>
+              <Badge variant="naikan">ないかんMeetup</Badge>
+              <Badge variant="ai">AI部会</Badge>
+              <Badge variant="non-member">非会員</Badge>
+            </div>
+          </Example>
+
+          <h4 className="text-sm font-medium pt-4">ステータスバッジ定義</h4>
+          <Example
+            code={`// 定数定義のインポート
+import { USER_ROLE_CONFIG } from "@/lib/constants/customer"
+import { RSVP_STATUS_CONFIG, EVENT_STATUS_CONFIG } from "@/lib/constants/event"
+
+// --- 会員ステータスの使用例 ---
+<Badge variant={USER_ROLE_CONFIG.member.variant}>
+  {USER_ROLE_CONFIG.member.label}
+</Badge>
+
+// --- 参加者ステータスの使用例 ---
+<Badge variant={RSVP_STATUS_CONFIG.attending.variant}>
+  {RSVP_STATUS_CONFIG.attending.label}
+</Badge>
+
+// --- イベントステータスの使用例 ---
+<Badge variant={EVENT_STATUS_CONFIG.open.variant}>
+  {EVENT_STATUS_CONFIG.open.label}
+</Badge>`}
+          >
+            <div className="space-y-8">
+              {/* 会員ステータス */}
+              <div>
+                <h5 className="font-semibold mb-3">会員ステータス</h5>
+                <div className="text-sm rounded-lg bg-white overflow-hidden">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b bg-slate-50">
+                        <th className="text-left py-2 px-4 w-[120px]">プレビュー</th>
+                        <th className="text-left py-2 px-4">ステータス</th>
+                        <th className="text-left py-2 px-4">表示テキスト</th>
+                        <th className="text-left py-2 px-4">Variant</th>
+                        <th className="text-left py-2 px-4">説明</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(USER_ROLE_CONFIG).map(([key, config]) => (
+                        <tr key={key} className="border-b last:border-0">
+                          <td className="py-2 px-4">
+                            <Badge variant={config.variant as any}>
+                              {config.label}
+                            </Badge>
+                          </td>
+                          <td className="py-2 px-4">{key}</td>
+                          <td className="py-2 px-4">{config.label}</td>
+                          <td className="py-2 px-4"><code>{config.variant}</code></td>
+                          <td className="py-2 px-4 text-muted-foreground">{config.description}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* 参加者（RSVP）ステータス */}
+              <div>
+                <h5 className="font-semibold mb-3">参加者（RSVP）ステータス</h5>
+                <div className="text-sm rounded-lg bg-white overflow-hidden">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b bg-slate-50">
+                        <th className="text-left py-2 px-4 w-[120px]">プレビュー</th>
+                        <th className="text-left py-2 px-4">ステータス</th>
+                        <th className="text-left py-2 px-4">表示テキスト</th>
+                        <th className="text-left py-2 px-4">Variant</th>
+                        <th className="text-left py-2 px-4">説明</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(RSVP_STATUS_CONFIG).map(([key, config]) => (
+                        <tr key={key} className="border-b last:border-0">
+                          <td className="py-2 px-4">
+                            <Badge variant={config.variant as any}>
+                              {config.label}
+                            </Badge>
+                          </td>
+                          <td className="py-2 px-4">{key}</td>
+                          <td className="py-2 px-4">{config.label}</td>
+                          <td className="py-2 px-4"><code>{config.variant}</code></td>
+                          <td className="py-2 px-4 text-muted-foreground">{config.description}</td>
+                        </tr>
+                      ))}
+                      <tr>
+                        <td className="py-2 px-4">
+                          <Badge variant="outline">
+                            懇親会: {`{ステータス}`}
+                          </Badge>
+                        </td>
+                        <td className="py-2 px-4">懇親会</td>
+                        <td className="py-2 px-4">懇親会: {"{ステータス}"}</td>
+                        <td className="py-2 px-4"><code>outline</code></td>
+                        <td className="py-2 px-4 text-muted-foreground">懇親会の参加ステータス</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* イベントステータス */}
+              <div>
+                <h5 className="font-semibold mb-3">イベントステータス</h5>
+                <div className="text-sm rounded-lg bg-white overflow-hidden">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b bg-slate-50">
+                        <th className="text-left py-2 px-4 w-[120px]">プレビュー</th>
+                        <th className="text-left py-2 px-4">ステータス</th>
+                        <th className="text-left py-2 px-4">表示テキスト</th>
+                        <th className="text-left py-2 px-4">Variant</th>
+                        <th className="text-left py-2 px-4">説明</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(EVENT_STATUS_CONFIG).map(([key, config]) => (
+                        <tr key={key} className="border-b last:border-0">
+                          <td className="py-2 px-4">
+                            <Badge variant={config.variant as any}>
+                              {config.label}
+                            </Badge>
+                          </td>
+                          <td className="py-2 px-4">{key}</td>
+                          <td className="py-2 px-4">{config.label}</td>
+                          <td className="py-2 px-4"><code>{config.variant}</code></td>
+                          <td className="py-2 px-4 text-muted-foreground">{config.description}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </Example>
         </div>
 
         <Separator />
 
         {/* Toast */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">トースト通知</h3>
-          <div className="rounded-lg border bg-white p-6 flex gap-4">
-            <Button onClick={() => toast.success("保存しました")}>
-              Success
-            </Button>
-            <Button variant="destructive" onClick={() => toast.error("エラーが発生しました")}>
-              Error
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            <span className="font-mono">sonner</span> の <span className="font-mono">toast</span> 関数を使用
-          </p>
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Box className="h-4 w-4 text-slate-500" />
+            Toast
+          </h3>
+
+          <Example
+            code={`import { toast } from "sonner"
+
+toast.success("保存しました")
+toast.error("エラーが発生しました")`}
+          >
+            <div className="flex gap-4">
+              <Button onClick={() => toast.success("保存しました")}>
+                Success
+              </Button>
+              <Button variant="destructive" onClick={() => toast.error("エラーが発生しました")}>
+                Error
+              </Button>
+            </div>
+          </Example>
         </div>
       </section>
+
+      {/* ============================== */}
+      {/* Import */}
+      {/* ============================== */}
+      <section className="space-y-6">
+        <div>
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <FileCode className="h-5 w-5" />
+            Import
+          </h2>
+          <Separator className="mt-2" />
+        </div>
+
+        <CodeBlock>{`// レイアウトコンポーネント
+import { Stack } from "@/components/ui/stack"
+import { SectionHeading } from "@/components/ui/section-heading"
+import { PageHeader } from "@/components/ui/page-header"
+import { FormField } from "@/components/ui/form-field"
+import { DataItem } from "@/components/ui/data-item"
+import { CheckboxItem } from "@/components/ui/checkbox-item"
+import { RadioItem } from "@/components/ui/radio-item"
+import { ActionButton } from "@/components/ui/action-button"
+
+// shadcn/ui
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
+import { RadioGroup } from "@/components/ui/radio-group"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+// Toast
+import { toast } from "sonner"`}</CodeBlock>
+      </section>
     </div>
-  );
+  )
 }

@@ -82,10 +82,6 @@ export function AppSidebar() {
       label: "スタイルガイド",
       href: "/admin/styleguide",
     },
-    {
-      label: "スタイルガイド v2",
-      href: "/admin/styleguide-v2",
-    },
   ];
 
   const adminInitial = currentAdmin
