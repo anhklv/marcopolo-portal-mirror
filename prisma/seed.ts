@@ -133,6 +133,137 @@ async function main() {
     console.log(`${adminData.role}を作成: ${admin.email}`);
   }
 
+  // テスト用顧客データの投入
+  const ventureAuditor = await prisma.community.findUnique({ where: { code: "venture_auditor" } });
+  const naikanMeetup = await prisma.community.findUnique({ where: { code: "naikan_meetup" } });
+  const aiClub = await prisma.community.findUnique({ where: { code: "ai_club" } });
+
+  if (ventureAuditor && naikanMeetup && aiClub) {
+    const customers = [
+      {
+        firstName: "太郎",
+        lastName: "田中",
+        firstNameKana: "タロウ",
+        lastNameKana: "タナカ",
+        email: "tanaka@example.com",
+        company: "株式会社テスト",
+        phone: "03-1234-5678",
+        postalCode: "100-0001",
+        prefecture: "東京都",
+        city: "千代田区丸の内1-1-1",
+        gender: "male" as const,
+        listingCategory: "プライム",
+        originIndustry: "事業会社",
+        membershipQualification: "監査役",
+        memberCategory: "member" as const,
+        contractType: "corporate" as const,
+        communities: [
+          {
+            communityId: ventureAuditor.id,
+            auditMemberType: "regular" as const,
+            auditMemberPremium: true,
+            joinedAt: new Date("2024-04-01"),
+          },
+          {
+            communityId: naikanMeetup.id,
+            affiliation: "内部監査部門",
+            joinedAt: new Date("2024-06-01"),
+          },
+        ],
+      },
+      {
+        firstName: "花子",
+        lastName: "鈴木",
+        firstNameKana: "ハナコ",
+        lastNameKana: "スズキ",
+        email: "suzuki@example.com",
+        company: "鈴木監査法人",
+        gender: "female" as const,
+        memberCategory: "member" as const,
+        contractType: "individual" as const,
+        communities: [
+          {
+            communityId: ventureAuditor.id,
+            auditMemberType: "online" as const,
+            auditMemberPremium: false,
+            joinedAt: new Date("2024-05-01"),
+          },
+        ],
+      },
+      {
+        firstName: "一郎",
+        lastName: "佐藤",
+        firstNameKana: "イチロウ",
+        lastNameKana: "サトウ",
+        email: "sato@example.com",
+        company: "佐藤コンサルティング",
+        gender: "male" as const,
+        memberCategory: "sponsor" as const,
+        contractType: "corporate" as const,
+        communities: [
+          {
+            communityId: naikanMeetup.id,
+            affiliation: "経営企画部門",
+            joinedAt: new Date("2024-03-01"),
+          },
+          {
+            communityId: aiClub.id,
+            affiliation: "情報システム部門",
+            joinedAt: new Date("2024-07-01"),
+          },
+        ],
+      },
+      {
+        firstName: "二郎",
+        lastName: "高橋",
+        email: "takahashi@example.com",
+        company: "高橋株式会社",
+        memberCategory: "observer" as const,
+        communities: [
+          {
+            communityId: aiClub.id,
+            affiliation: "代表者（社長・CEO）",
+            joinedAt: new Date("2024-08-01"),
+          },
+        ],
+      },
+      {
+        firstName: "三郎",
+        lastName: "渡辺",
+        email: "watanabe@example.com",
+        note: "非会員（イベント参加のみ）",
+        communities: [],
+      },
+    ];
+
+    for (const customerData of customers) {
+      const { communities: communityData, ...customerFields } = customerData;
+      const customer = await prisma.customer.upsert({
+        where: { email: customerFields.email },
+        update: customerFields,
+        create: customerFields,
+      });
+
+      for (const comm of communityData) {
+        await prisma.customerCommunity.upsert({
+          where: {
+            customerId_communityId: {
+              customerId: customer.id,
+              communityId: comm.communityId,
+            },
+          },
+          update: comm,
+          create: {
+            customerId: customer.id,
+            ...comm,
+          },
+        });
+      }
+
+      console.log(`顧客を作成: ${customer.lastName} ${customer.firstName} (${customer.email})`);
+    }
+  }
+
   console.log("シードデータの投入が完了しました");
 }
 

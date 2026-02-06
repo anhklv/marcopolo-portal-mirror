@@ -1,13 +1,22 @@
 import { z } from "zod";
 
 export const customerSchema = z.object({
-  name: z
+  firstName: z
     .string()
-    .min(1, "氏名を入力してください")
-    .max(100, "氏名は100文字以内で入力してください"),
-  nameKana: z
+    .min(1, "名を入力してください")
+    .max(100, "名は100文字以内で入力してください"),
+  lastName: z
     .string()
-    .max(100, "氏名カナは100文字以内で入力してください")
+    .min(1, "姓を入力してください")
+    .max(100, "姓は100文字以内で入力してください"),
+  firstNameKana: z
+    .string()
+    .max(100, "メイは100文字以内で入力してください")
+    .optional()
+    .or(z.literal("")),
+  lastNameKana: z
+    .string()
+    .max(100, "セイは100文字以内で入力してください")
     .optional()
     .or(z.literal("")),
   email: z
@@ -75,10 +84,29 @@ export const customerSchema = z.object({
     .string()
     .optional()
     .or(z.literal("")),
-  // コミュニティ紐づけ（IDの配列）
-  communityIds: z
-    .array(z.number().int().positive())
+});
+
+export const customerCommunitySchema = z.object({
+  communityId: z.number().int().positive("コミュニティIDは正の整数を指定してください"),
+  joinedAt: z.string().nullable().optional(),
+  resignedAt: z.string().nullable().optional(),
+  auditMemberType: z
+    .enum(["regular", "online"])
+    .nullable()
     .optional(),
+  auditMemberPremium: z.boolean().nullable().optional(),
+  affiliation: z
+    .string()
+    .max(100, "所属は100文字以内で入力してください")
+    .nullable()
+    .optional()
+    .or(z.literal("")),
+});
+
+export const customerFormSchema = customerSchema.extend({
+  communities: z.array(customerCommunitySchema).optional(),
 });
 
 export type CustomerInput = z.infer<typeof customerSchema>;
+export type CustomerCommunityInput = z.infer<typeof customerCommunitySchema>;
+export type CustomerFormInput = z.infer<typeof customerFormSchema>;
