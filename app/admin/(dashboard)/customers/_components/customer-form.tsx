@@ -308,6 +308,7 @@ export function CustomerForm({
       } catch (err) {
         // redirect() は例外を投げるので、NEXT_REDIRECT は正常動作
         if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) {
+          toast.success(mode === "create" ? "顧客情報を登録しました" : "顧客情報を更新しました");
           return;
         }
         toast.error("エラーが発生しました");

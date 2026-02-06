@@ -156,7 +156,7 @@ export async function findAll(
         include: { community: true },
       },
     },
-    orderBy: { id: "asc" },
+    orderBy: { id: "desc" },
   });
 
   // 元会員フィルタ（アプリケーション側でフィルタ）
