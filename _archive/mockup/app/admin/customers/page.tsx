@@ -540,28 +540,52 @@ export default function CustomersPage() {
 
                           // ベンチャー監査役の会のバッジ
                           if (hasAudit) {
-                            const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
-                            badges.push(
-                              <Badge key="audit-member" variant="audit">
-                                ベンチャー監査役の会({auditType})
-                              </Badge>
-                            );
+                            if (customer.auditResignedAt) {
+                              badges.push(
+                                <Badge key="audit-member" variant="destructive-outline">
+                                  ベンチャー監査役の会(退会)
+                                </Badge>
+                              );
+                            } else {
+                              const auditType = customer.auditMemberType === "regular" ? "正会員" : "オンライン会員";
+                              badges.push(
+                                <Badge key="audit-member" variant="audit">
+                                  ベンチャー監査役の会({auditType})
+                                </Badge>
+                              );
+                            }
                           }
                           // ないかんMeetupのバッジ
                           if (hasNaikan) {
-                            badges.push(
-                              <Badge key="naikan-member" variant="naikan">
-                                ないかんMeetup(会員)
-                              </Badge>
-                            );
+                            if (customer.naikanResignedAt) {
+                              badges.push(
+                                <Badge key="naikan-member" variant="destructive-outline">
+                                  ないかんMeetup(退会)
+                                </Badge>
+                              );
+                            } else {
+                              badges.push(
+                                <Badge key="naikan-member" variant="naikan">
+                                  ないかんMeetup(会員)
+                                </Badge>
+                              );
+                            }
                           }
                           // AI部会のバッジ
                           if (hasAi) {
-                            badges.push(
-                              <Badge key="ai-member" variant="ai">
-                                AI部会(会員)
-                              </Badge>
-                            );
+                            if (customer.aiResignedAt) {
+                              badges.push(
+                                <Badge key="ai-member" variant="destructive-outline">
+                                  AI部会(退会)
+                                </Badge>
+                              );
+                            } else {
+                              badges.push(
+                                <Badge key="ai-member" variant="ai">
+                                  AI部会(会員)
+                                </Badge>
+                              );
+                            }
                           }
 
                           // プレミアム会員バッジ
@@ -574,47 +598,95 @@ export default function CustomersPage() {
                           }
                         } else if (customer.memberCategory === "sponsor") {
                           if (customer.communities.includes("ベンチャー監査役の会")) {
-                            badges.push(
-                              <Badge key="sponsor-audit" variant="audit">
-                                ベンチャー監査役の会(スポンサー)
-                              </Badge>
-                            );
+                            if (customer.auditResignedAt) {
+                              badges.push(
+                                <Badge key="sponsor-audit" variant="destructive-outline">
+                                  ベンチャー監査役の会(退会)
+                                </Badge>
+                              );
+                            } else {
+                              badges.push(
+                                <Badge key="sponsor-audit" variant="audit">
+                                  ベンチャー監査役の会(スポンサー)
+                                </Badge>
+                              );
+                            }
                           }
                           if (customer.communities.includes("ないかんMeetup")) {
-                            badges.push(
-                              <Badge key="sponsor-naikan" variant="naikan">
-                                ないかんMeetup(スポンサー)
-                              </Badge>
-                            );
+                            if (customer.naikanResignedAt) {
+                              badges.push(
+                                <Badge key="sponsor-naikan" variant="destructive-outline">
+                                  ないかんMeetup(退会)
+                                </Badge>
+                              );
+                            } else {
+                              badges.push(
+                                <Badge key="sponsor-naikan" variant="naikan">
+                                  ないかんMeetup(スポンサー)
+                                </Badge>
+                              );
+                            }
                           }
                           if (customer.communities.includes("AI部会")) {
-                            badges.push(
-                              <Badge key="sponsor-ai" variant="ai">
-                                AI部会(スポンサー)
-                              </Badge>
-                            );
+                            if (customer.aiResignedAt) {
+                              badges.push(
+                                <Badge key="sponsor-ai" variant="destructive-outline">
+                                  AI部会(退会)
+                                </Badge>
+                              );
+                            } else {
+                              badges.push(
+                                <Badge key="sponsor-ai" variant="ai">
+                                  AI部会(スポンサー)
+                                </Badge>
+                              );
+                            }
                           }
                         } else if (customer.memberCategory === "observer") {
                           if (customer.communities.includes("ベンチャー監査役の会")) {
-                            badges.push(
-                              <Badge key="observer-audit" variant="audit">
-                                ベンチャー監査役の会(オブザーバー)
-                              </Badge>
-                            );
+                            if (customer.auditResignedAt) {
+                              badges.push(
+                                <Badge key="observer-audit" variant="destructive-outline">
+                                  ベンチャー監査役の会(退会)
+                                </Badge>
+                              );
+                            } else {
+                              badges.push(
+                                <Badge key="observer-audit" variant="audit">
+                                  ベンチャー監査役の会(オブザーバー)
+                                </Badge>
+                              );
+                            }
                           }
                           if (customer.communities.includes("ないかんMeetup")) {
-                            badges.push(
-                              <Badge key="observer-naikan" variant="naikan">
-                                ないかんMeetup(オブザーバー)
-                              </Badge>
-                            );
+                            if (customer.naikanResignedAt) {
+                              badges.push(
+                                <Badge key="observer-naikan" variant="destructive-outline">
+                                  ないかんMeetup(退会)
+                                </Badge>
+                              );
+                            } else {
+                              badges.push(
+                                <Badge key="observer-naikan" variant="naikan">
+                                  ないかんMeetup(オブザーバー)
+                                </Badge>
+                              );
+                            }
                           }
                           if (customer.communities.includes("AI部会")) {
-                            badges.push(
-                              <Badge key="observer-ai" variant="ai">
-                                AI部会(オブザーバー)
-                              </Badge>
-                            );
+                            if (customer.aiResignedAt) {
+                              badges.push(
+                                <Badge key="observer-ai" variant="destructive-outline">
+                                  AI部会(退会)
+                                </Badge>
+                              );
+                            } else {
+                              badges.push(
+                                <Badge key="observer-ai" variant="ai">
+                                  AI部会(オブザーバー)
+                                </Badge>
+                              );
+                            }
                           }
                         }
                         

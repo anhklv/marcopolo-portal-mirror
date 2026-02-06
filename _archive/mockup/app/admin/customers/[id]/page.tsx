@@ -35,7 +35,7 @@ import { USER_ROLE_CONFIG } from "@/lib/constants/customer";
 import { use, useState } from "react";
 import React from "react";
 import { RSVP_STATUS_CONFIG } from "@/lib/constants/event";
-import { formatEventDate, formatDate } from "@/lib/utils";
+import { formatEventDate, formatDate, cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export default function CustomerDetailPage({
@@ -136,25 +136,49 @@ export default function CustomerDetailPage({
                     );
                   } else {
                     if (customer.communities.includes("ベンチャー監査役の会")) {
-                      badges.push(
-                        <Badge key="audit" variant="audit">
-                          ベンチャー監査役の会
-                        </Badge>
-                      );
+                      if (customer.auditResignedAt) {
+                        badges.push(
+                          <Badge key="audit" variant="destructive-outline">
+                            ベンチャー監査役の会(退会)
+                          </Badge>
+                        );
+                      } else {
+                        badges.push(
+                          <Badge key="audit" variant="audit">
+                            ベンチャー監査役の会
+                          </Badge>
+                        );
+                      }
                     }
                     if (customer.communities.includes("ないかんMeetup")) {
-                      badges.push(
-                        <Badge key="naikan" variant="naikan">
-                          ないかんMeetup
-                        </Badge>
-                      );
+                      if (customer.naikanResignedAt) {
+                        badges.push(
+                          <Badge key="naikan" variant="destructive-outline">
+                            ないかんMeetup(退会)
+                          </Badge>
+                        );
+                      } else {
+                        badges.push(
+                          <Badge key="naikan" variant="naikan">
+                            ないかんMeetup
+                          </Badge>
+                        );
+                      }
                     }
                     if (customer.communities.includes("AI部会")) {
-                      badges.push(
-                        <Badge key="ai" variant="ai">
-                          AI部会
-                        </Badge>
-                      );
+                      if (customer.aiResignedAt) {
+                        badges.push(
+                          <Badge key="ai" variant="destructive-outline">
+                            AI部会(退会)
+                          </Badge>
+                        );
+                      } else {
+                        badges.push(
+                          <Badge key="ai" variant="ai">
+                            AI部会
+                          </Badge>
+                        );
+                      }
                     }
 
                     // プレミアム会員バッジ
@@ -179,19 +203,28 @@ export default function CustomerDetailPage({
 
             {/* ベンチャー監査役の会 詳細 */}
             {customer.communities.includes("ベンチャー監査役の会") && (
-              <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
+              <div className={cn(
+                "rounded-lg border p-4 space-y-4",
+                customer.auditResignedAt ? "bg-red-50" : "bg-slate-50"
+              )}>
                 <div className="flex items-center justify-between">
                   <Label className="font-semibold text-base">ベンチャー監査役の会</Label>
-                  {customer.memberCategory === "member" && customer.auditMemberType && (
-                    <Badge variant={USER_ROLE_CONFIG.member.variant}>
-                      {customer.auditMemberType === "regular" ? "正会員" : "オンライン会員"}
-                    </Badge>
-                  )}
-                  {customer.memberCategory === "sponsor" && (
-                    <Badge variant={USER_ROLE_CONFIG.sponsor.variant}>{USER_ROLE_CONFIG.sponsor.label}</Badge>
-                  )}
-                  {customer.memberCategory === "observer" && (
-                    <Badge variant={USER_ROLE_CONFIG.observer.variant}>{USER_ROLE_CONFIG.observer.label}</Badge>
+                  {customer.auditResignedAt ? (
+                    <Badge variant="destructive-outline">退会済み</Badge>
+                  ) : (
+                    <>
+                      {customer.memberCategory === "member" && customer.auditMemberType && (
+                        <Badge variant={USER_ROLE_CONFIG.member.variant}>
+                          {customer.auditMemberType === "regular" ? "正会員" : "オンライン会員"}
+                        </Badge>
+                      )}
+                      {customer.memberCategory === "sponsor" && (
+                        <Badge variant={USER_ROLE_CONFIG.sponsor.variant}>{USER_ROLE_CONFIG.sponsor.label}</Badge>
+                      )}
+                      {customer.memberCategory === "observer" && (
+                        <Badge variant={USER_ROLE_CONFIG.observer.variant}>{USER_ROLE_CONFIG.observer.label}</Badge>
+                      )}
+                    </>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-6">
@@ -213,17 +246,26 @@ export default function CustomerDetailPage({
 
           {/* ないかんMeetup 詳細 */}
           {customer.communities.includes("ないかんMeetup") && (
-            <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
+            <div className={cn(
+              "rounded-lg border p-4 space-y-4",
+              customer.naikanResignedAt ? "bg-red-50" : "bg-slate-50"
+            )}>
               <div className="flex items-center justify-between">
                 <Label className="font-semibold text-base">ないかんMeetup</Label>
-                {customer.memberCategory === "member" && (
-                  <Badge variant={USER_ROLE_CONFIG.member.variant}>{USER_ROLE_CONFIG.member.label}</Badge>
-                )}
-                {customer.memberCategory === "sponsor" && (
-                  <Badge variant={USER_ROLE_CONFIG.sponsor.variant}>{USER_ROLE_CONFIG.sponsor.label}</Badge>
-                )}
-                {customer.memberCategory === "observer" && (
-                  <Badge variant={USER_ROLE_CONFIG.observer.variant}>{USER_ROLE_CONFIG.observer.label}</Badge>
+                {customer.naikanResignedAt ? (
+                  <Badge variant="destructive-outline">退会済み</Badge>
+                ) : (
+                  <>
+                    {customer.memberCategory === "member" && (
+                      <Badge variant={USER_ROLE_CONFIG.member.variant}>{USER_ROLE_CONFIG.member.label}</Badge>
+                    )}
+                    {customer.memberCategory === "sponsor" && (
+                      <Badge variant={USER_ROLE_CONFIG.sponsor.variant}>{USER_ROLE_CONFIG.sponsor.label}</Badge>
+                    )}
+                    {customer.memberCategory === "observer" && (
+                      <Badge variant={USER_ROLE_CONFIG.observer.variant}>{USER_ROLE_CONFIG.observer.label}</Badge>
+                    )}
+                  </>
                 )}
               </div>
               <div className="grid grid-cols-2 gap-6">
@@ -242,17 +284,26 @@ export default function CustomerDetailPage({
 
             {/* AI部会 詳細 */}
             {customer.communities.includes("AI部会") && (
-              <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
+              <div className={cn(
+                "rounded-lg border p-4 space-y-4",
+                (customer as any).aiResignedAt ? "bg-red-50" : "bg-slate-50"
+              )}>
                 <div className="flex items-center justify-between">
                   <Label className="font-semibold text-base">AI部会</Label>
-                  {customer.memberCategory === "member" && (
-                    <Badge variant={USER_ROLE_CONFIG.member.variant}>{USER_ROLE_CONFIG.member.label}</Badge>
-                  )}
-                  {customer.memberCategory === "sponsor" && (
-                    <Badge variant={USER_ROLE_CONFIG.sponsor.variant}>{USER_ROLE_CONFIG.sponsor.label}</Badge>
-                  )}
-                  {customer.memberCategory === "observer" && (
-                    <Badge variant={USER_ROLE_CONFIG.observer.variant}>{USER_ROLE_CONFIG.observer.label}</Badge>
+                  {(customer as any).aiResignedAt ? (
+                    <Badge variant="destructive-outline">退会済み</Badge>
+                  ) : (
+                    <>
+                      {customer.memberCategory === "member" && (
+                        <Badge variant={USER_ROLE_CONFIG.member.variant}>{USER_ROLE_CONFIG.member.label}</Badge>
+                      )}
+                      {customer.memberCategory === "sponsor" && (
+                        <Badge variant={USER_ROLE_CONFIG.sponsor.variant}>{USER_ROLE_CONFIG.sponsor.label}</Badge>
+                      )}
+                      {customer.memberCategory === "observer" && (
+                        <Badge variant={USER_ROLE_CONFIG.observer.variant}>{USER_ROLE_CONFIG.observer.label}</Badge>
+                      )}
+                    </>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-6">
