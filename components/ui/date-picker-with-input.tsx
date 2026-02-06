@@ -56,7 +56,7 @@ export function DatePickerWithInput({
       const month = parseInt(match[2]) - 1
       const day = parseInt(match[3])
       const newDate = new Date(year, month, day)
-
+      
       if (!isNaN(newDate.getTime()) && newDate.getFullYear() === year && newDate.getMonth() === month && newDate.getDate() === day) {
         setDate(newDate)
         setMonth(newDate)
