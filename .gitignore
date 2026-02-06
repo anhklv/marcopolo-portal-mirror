@@ -50,3 +50,6 @@ sandbox-*.json
 /playwright-report/
 
 /lib/generated/prisma
+
+# Obsidian
+docs/.obsidian
