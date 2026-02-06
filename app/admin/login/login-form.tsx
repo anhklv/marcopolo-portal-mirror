@@ -9,11 +9,7 @@ import { ActionButton } from "@/components/ui/action-button";
 import { loginAction } from "@/lib/actions/auth";
 import { toast } from "sonner";
 
-interface LoginFormProps {
-  debugMode: boolean;
-}
-
-export function LoginForm({ debugMode }: LoginFormProps) {
+export function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -87,13 +83,6 @@ export function LoginForm({ debugMode }: LoginFormProps) {
               </ActionButton>
             </Stack>
           </form>
-
-          {debugMode && (
-            <div className="text-center text-sm text-muted-foreground">
-              <p>開発用アカウント:</p>
-              <p className="mt-1">admin@example.com / password12345</p>
-            </div>
-          )}
         </Stack>
       </div>
     </div>

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { logoutAction } from "@/lib/actions/auth";
+import { AdminSwitcher } from "@/components/debug/admin-switcher";
 import { toast } from "sonner";
 import {
   Sidebar,
@@ -134,6 +135,7 @@ export function AppSidebar({ admin, debugMode }: AppSidebarProps) {
                       </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-56" side="right">
+                      <AdminSwitcher currentEmail={admin.email} />
                       {devMenuItems.map((item) => (
                         <DropdownMenuItem key={item.href} asChild>
                           <Link

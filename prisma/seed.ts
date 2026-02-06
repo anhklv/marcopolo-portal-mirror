@@ -50,84 +50,89 @@ async function main() {
   }
 
   // テスト用管理者データの投入
-  const passwordHash = await bcrypt.hash("password12345", 10);
+  const passwordHash = await bcrypt.hash("rara6y", 10);
 
-  const superAdmin = await prisma.admin.upsert({
-    where: { email: "admin@example.com" },
-    update: {
-      firstName: "太郎",
-      lastName: "管理",
-      passwordHash,
-      role: "super",
-    },
-    create: {
+  const admins = [
+    {
       email: "admin@example.com",
       firstName: "太郎",
       lastName: "管理",
-      passwordHash,
-      role: "super",
+      role: "super" as const,
+      communities: [] as string[], // superは全アクセス
     },
-  });
-
-  const communityAdmin = await prisma.admin.upsert({
-    where: { email: "community@example.com" },
-    update: {
+    {
+      email: "kansa@example.com",
+      firstName: "一郎",
+      lastName: "監査",
+      role: "community_admin" as const,
+      communities: ["venture_auditor"],
+    },
+    {
+      email: "naikan@example.com",
+      firstName: "二郎",
+      lastName: "内観",
+      role: "community_admin" as const,
+      communities: ["naikan_meetup"],
+    },
+    {
+      email: "ai@example.com",
+      firstName: "三郎",
+      lastName: "知能",
+      role: "community_admin" as const,
+      communities: ["ai_club"],
+    },
+    {
+      email: "all@example.com",
       firstName: "花子",
-      lastName: "運営",
-      passwordHash,
-      role: "community_admin",
+      lastName: "全部",
+      role: "community_admin" as const,
+      communities: ["venture_auditor", "naikan_meetup", "ai_club"],
     },
-    create: {
-      email: "community@example.com",
-      firstName: "花子",
-      lastName: "運営",
-      passwordHash,
-      role: "community_admin",
-    },
-  });
+  ];
 
-  // community_admin に venture_auditor と naikan_meetup を紐づけ
-  const ventureAuditor = await prisma.community.findUnique({
-    where: { code: "venture_auditor" },
-  });
-  const naikanMeetup = await prisma.community.findUnique({
-    where: { code: "naikan_meetup" },
-  });
-
-  if (ventureAuditor) {
-    await prisma.adminCommunity.upsert({
-      where: {
-        adminId_communityId: {
-          adminId: communityAdmin.id,
-          communityId: ventureAuditor.id,
-        },
+  for (const adminData of admins) {
+    const admin = await prisma.admin.upsert({
+      where: { email: adminData.email },
+      update: {
+        firstName: adminData.firstName,
+        lastName: adminData.lastName,
+        passwordHash,
+        role: adminData.role,
       },
-      update: {},
       create: {
-        adminId: communityAdmin.id,
-        communityId: ventureAuditor.id,
+        email: adminData.email,
+        firstName: adminData.firstName,
+        lastName: adminData.lastName,
+        passwordHash,
+        role: adminData.role,
       },
     });
+
+    // コミュニティ紐付け
+    for (const communityCode of adminData.communities) {
+      const community = await prisma.community.findUnique({
+        where: { code: communityCode },
+      });
+      if (community) {
+        await prisma.adminCommunity.upsert({
+          where: {
+            adminId_communityId: {
+              adminId: admin.id,
+              communityId: community.id,
+            },
+          },
+          update: {},
+          create: {
+            adminId: admin.id,
+            communityId: community.id,
+          },
+        });
+      }
+    }
+
+    console.log(`${adminData.role}を作成: ${admin.email}`);
   }
 
-  if (naikanMeetup) {
-    await prisma.adminCommunity.upsert({
-      where: {
-        adminId_communityId: {
-          adminId: communityAdmin.id,
-          communityId: naikanMeetup.id,
-        },
-      },
-      update: {},
-      create: {
-        adminId: communityAdmin.id,
-        communityId: naikanMeetup.id,
-      },
-    });
-  }
-
-  console.log(`super管理者を作成: ${superAdmin.email}`);
-  console.log(`community_adminを作成: ${communityAdmin.email}`);
   console.log("シードデータの投入が完了しました");
 }
 
