@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/auth";
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/sidebar";
 
 export default async function DashboardLayout({
@@ -18,24 +18,26 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <AppSidebar
-        admin={{
-          id: session.user.id,
-          email: session.user.email ?? "",
-          firstName: session.user.firstName,
-          lastName: session.user.lastName,
-          role: session.user.role,
-        }}
-        debugMode={debugMode}
-      />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-        </header>
-        <main className="flex-1 p-6">
-          {children}
+      <div className="flex w-full">
+        <AppSidebar
+          admin={{
+            id: session.user.id,
+            email: session.user.email ?? "",
+            firstName: session.user.firstName,
+            lastName: session.user.lastName,
+            role: session.user.role,
+          }}
+          debugMode={debugMode}
+        />
+        <main className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain bg-card h-svh">
+          <div className="flex h-14 items-center border-b px-4">
+            <SidebarTrigger />
+          </div>
+          <div className="p-8">
+            {children}
+          </div>
         </main>
-      </SidebarInset>
+      </div>
     </SidebarProvider>
   );
 }
