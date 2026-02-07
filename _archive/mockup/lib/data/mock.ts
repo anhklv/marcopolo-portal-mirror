@@ -335,6 +335,51 @@ export const customers: Customer[] = [
     communities: [],
     registeredAt: "2024-12-01",
   },
+  {
+    id: "C016",
+    name: "鈴木 一部",
+    nameKana: "スズキ イチブ",
+    company: "株式会社一部脱退",
+    email: "suzuki.partial@example.com",
+    phone: "0300000004",
+    postalCode: "1000010",
+    prefecture: "東京都",
+    city: "港区芝1-1-1",
+    originIndustry: "事業会社",
+    membershipQualification: "監査役",
+    memberCategory: "member",
+    communities: ["ベンチャー監査役の会", "ないかんMeetup"],
+    contractType: "corporate",
+    auditMemberType: "regular",
+    auditJoinedAt: "2023-04-01",
+    auditResignedAt: "2024-03-31", // ベンチャー監査役の会は脱退
+    naikanJoinedAt: "2023-04-01", // ないかんMeetupは現役
+    naikanAffiliation: "内部監査室",
+    registeredAt: "2023-04-01",
+  },
+  {
+    id: "C017",
+    name: "佐藤 全部",
+    nameKana: "サトウ ゼンブ",
+    company: "株式会社全部脱退",
+    email: "sato.full@example.com",
+    phone: "0300000005",
+    postalCode: "1000011",
+    prefecture: "東京都",
+    city: "港区赤坂1-1-1",
+    originIndustry: "事業会社",
+    membershipQualification: "監査役",
+    memberCategory: "member",
+    communities: ["ベンチャー監査役の会", "ないかんMeetup"],
+    contractType: "corporate",
+    auditMemberType: "regular",
+    auditJoinedAt: "2023-04-01",
+    auditResignedAt: "2024-03-31", // ベンチャー監査役の会は脱退
+    naikanJoinedAt: "2023-04-01",
+    naikanResignedAt: "2024-03-31", // ないかんMeetupも脱退
+    naikanAffiliation: "内部監査室",
+    registeredAt: "2023-04-01",
+  },
 ];
 
 export const events: Event[] = [

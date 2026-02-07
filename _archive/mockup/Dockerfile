@@ -6,7 +6,7 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy package files from mockup directory
-COPY mockup/package.json mockup/package-lock.json* ./
+COPY _archive/mockup/package.json _archive/mockup/package-lock.json* ./
 RUN npm ci
 
 # Rebuild the source code only when needed
@@ -14,7 +14,7 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 # Copy mockup contents into /app so Next.js root is consistent
-COPY mockup/ ./
+COPY _archive/mockup/ ./
 # Copy docs directory for build time (if needed) and runtime
 COPY docs ./docs
 

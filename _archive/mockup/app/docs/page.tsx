@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function DocsPage() {
-  const docsDir = process.env.DOCS_DIR || join(process.cwd(), "..", "docs");
+  const docsDir = process.env.DOCS_DIR || join(process.cwd(), "..", "..", "docs");
   const files = await readdir(docsDir);
   const mdFiles = files.filter((file) => file.endsWith(".md"));
 
