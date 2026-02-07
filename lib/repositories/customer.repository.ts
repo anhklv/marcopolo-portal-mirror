@@ -97,10 +97,13 @@ export async function findAll(
       },
     });
   } else if (!includeNonMember) {
-    // super + 非会員を含まない場合
+    // super + 非会員を含まない場合 = 現役会員のみ
+    // 少なくとも1つのコミュニティに所属し、かつ脱退していない（現役である）
     conditions.push({
       customerCommunities: {
-        some: {},
+        some: {
+          resignedAt: null,
+        },
       },
     });
   }

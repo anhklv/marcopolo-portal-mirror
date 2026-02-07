@@ -116,6 +116,7 @@ export function CustomerList({
   const [auditMemberTypes, setAuditMemberTypes] = useState<string[]>([]);
   const [premiumOnly, setPremiumOnly] = useState(false);
   const [includeFormerMembers, setIncludeFormerMembers] = useState(false);
+  const [includeNonMemberFilter, setIncludeNonMemberFilter] = useState(false);
 
   // フィルタリング
   const filteredCustomers = useMemo(
@@ -127,8 +128,9 @@ export function CustomerList({
         auditMemberTypes,
         premiumOnly,
         includeFormerMembers,
+        includeNonMemberFilter,
       }),
-    [initialCustomers, searchKeyword, selectedCommunityIds, memberCategories, auditMemberTypes, premiumOnly, includeFormerMembers]
+    [initialCustomers, searchKeyword, selectedCommunityIds, memberCategories, auditMemberTypes, premiumOnly, includeFormerMembers, includeNonMemberFilter]
   );
 
   // コミュニティ選択操作
@@ -163,10 +165,16 @@ export function CustomerList({
 
   // フィルタ表示テキスト
   const getFilterDisplayText = () => {
-    if (selectedCommunityIds.length === 0) return "コミュニティ";
+    if (selectedCommunityIds.length === 0 && !includeNonMemberFilter) return "コミュニティ";
+    
     const names = communities
       .filter((c) => selectedCommunityIds.includes(c.id))
       .map((c) => c.name);
+      
+    if (includeNonMemberFilter) {
+      names.push("非会員");
+    }
+
     if (names.length === 1) return names[0];
     return `${names.length}件選択`;
   };
@@ -216,12 +224,25 @@ export function CustomerList({
 
     for (const cc of customer.customerCommunities) {
       const communityName = cc.community.name;
-      let variant: "audit" | "naikan" | "ai" | "default" = "default";
-      if (cc.community.code === "venture_auditor") variant = "audit";
-      else if (cc.community.code === "naikan_meetup") variant = "naikan";
-      else if (cc.community.code === "ai_club") variant = "ai";
+      let variant: "audit" | "naikan" | "ai" | "default" | "destructive-outline" = "default";
+      
+      if (cc.resignedAt) {
+        variant = "destructive-outline";
+      } else if (cc.community.code === "venture_auditor") {
+        variant = "audit";
+      } else if (cc.community.code === "naikan_meetup") {
+        variant = "naikan";
+      } else if (cc.community.code === "ai_club") {
+        variant = "ai";
+      }
 
-      if (customer.memberCategory === "member" && cc.auditMemberType) {
+      if (cc.resignedAt) {
+        badges.push(
+          <Badge key={`${cc.communityId}-resigned`} variant={variant}>
+            {communityName}(退会)
+          </Badge>
+        );
+      } else if (customer.memberCategory === "member" && cc.auditMemberType) {
         const typeLabel = AUDIT_MEMBER_TYPES.find((t) => t.value === cc.auditMemberType)?.label ?? "";
         badges.push(
           <Badge key={`${cc.communityId}-type`} variant={variant}>
@@ -305,11 +326,20 @@ export function CustomerList({
                         onCheckedChange={(checked) => handleCommunityChange(c.id, checked)}
                       />
                     ))}
+                  {/* 非会員（特権管理者のみ） */}
+                  {isSuper && (
+                    <CheckboxItem
+                      id="non-member"
+                      label="非会員"
+                      checked={includeNonMemberFilter}
+                      onCheckedChange={setIncludeNonMemberFilter}
+                    />
+                  )}
                 </div>
               </div>
 
               {/* 会員区分 */}
-              {anyCommunitySelected && (
+              {(anyCommunitySelected || includeNonMemberFilter) && (
                 <div className="space-y-2 border-t pt-4">
                   <Label className="text-sm font-semibold">会員区分</Label>
                   <div className="space-y-2">

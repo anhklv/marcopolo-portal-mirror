@@ -214,6 +214,93 @@ async function main() {
         ],
       },
       {
+        firstName: "一部",
+        lastName: "鈴木",
+        email: "suzuki.partial@example.com",
+        company: "株式会社一部脱退",
+        gender: "female" as const,
+        memberCategory: "member" as const,
+        contractType: "corporate" as const,
+        communities: [
+          {
+            communityId: ventureAuditor.id,
+            auditMemberType: "regular" as const,
+            auditMemberPremium: false,
+            joinedAt: new Date("2023-04-01"),
+            resignedAt: new Date("2024-03-31"), // ベンチャー監査役の会は脱退
+          },
+          {
+            communityId: naikanMeetup.id,
+            affiliation: "内部監査室",
+            joinedAt: new Date("2023-04-01"), // ないかんMeetupは現役
+          },
+          {
+            communityId: aiClub.id,
+            affiliation: "AI推進室",
+            joinedAt: new Date("2023-04-01"), // AI部会は現役
+          },
+        ],
+      },
+      {
+        firstName: "二部",
+        lastName: "佐藤",
+        email: "sato.partial2@example.com",
+        company: "株式会社二部脱退",
+        gender: "male" as const,
+        memberCategory: "member" as const,
+        contractType: "corporate" as const,
+        communities: [
+          {
+            communityId: ventureAuditor.id,
+            auditMemberType: "regular" as const,
+            auditMemberPremium: false,
+            joinedAt: new Date("2023-04-01"),
+            resignedAt: new Date("2024-03-31"), // ベンチャー監査役の会は脱退
+          },
+          {
+            communityId: naikanMeetup.id,
+            affiliation: "内部監査室",
+            joinedAt: new Date("2023-04-01"),
+            resignedAt: new Date("2024-03-31"), // ないかんMeetupも脱退
+          },
+          {
+            communityId: aiClub.id,
+            affiliation: "AI推進室",
+            joinedAt: new Date("2023-04-01"), // AI部会は現役
+          },
+        ],
+      },
+      {
+        firstName: "全部",
+        lastName: "田中",
+        email: "tanaka.full@example.com",
+        company: "株式会社全部脱退",
+        gender: "male" as const,
+        memberCategory: "member" as const,
+        contractType: "corporate" as const,
+        communities: [
+          {
+            communityId: ventureAuditor.id,
+            auditMemberType: "regular" as const,
+            auditMemberPremium: false,
+            joinedAt: new Date("2023-04-01"),
+            resignedAt: new Date("2024-03-31"), // ベンチャー監査役の会は脱退
+          },
+          {
+            communityId: naikanMeetup.id,
+            affiliation: "内部監査室",
+            joinedAt: new Date("2023-04-01"),
+            resignedAt: new Date("2024-03-31"), // ないかんMeetupも脱退
+          },
+          {
+            communityId: aiClub.id,
+            affiliation: "AI推進室",
+            joinedAt: new Date("2023-04-01"),
+            resignedAt: new Date("2024-03-31"), // AI部会も脱退
+          },
+        ],
+      },
+      {
         firstName: "二郎",
         lastName: "高橋",
         email: "takahashi@example.com",
