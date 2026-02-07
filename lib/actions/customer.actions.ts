@@ -232,13 +232,10 @@ export async function exportCustomersAction(
   const isSuper = admin.role === "super";
   const scopedIds = await getScopedCommunityIds(admin);
 
-  // community_adminの場合、includeNonMemberを強制false
-  const appliedFilters = {
-    ...filters,
-    includeNonMember: isSuper ? filters?.includeNonMember : false,
-  };
-
-  const customers = await customerRepo.findAll(scopedIds, isSuper, appliedFilters);
+  const customers = await customerRepo.findAll(scopedIds, isSuper, {
+    includeFormerMembers: true,
+    includeNonMember: true,
+  });
 
   // UIと同じロジックで再フィルタリング（CSV出力の整合性確保）
   // 特に「非会員のみ」選択時に会員が混ざるのを防ぐため
@@ -259,7 +256,7 @@ export async function exportCustomersAction(
     auditMemberTypes: filters?.auditMemberTypes ?? [],
     premiumOnly: filters?.premiumOnly ?? false,
     includeFormerMembers: filters?.includeFormerMembers ?? false,
-    includeNonMemberFilter: appliedFilters.includeNonMember ?? false,
+    includeNonMemberFilter: isSuper ? (filters?.includeNonMember ?? false) : false,
   };
 
   // 型アサーションで回避（memberCategoriesなどがstring[]と厳密なunion型で不一致の可能性）

@@ -106,8 +106,9 @@ export function filterCustomers<T extends FilterableCustomer>(
     }
 
     // 非会員フィルタ（履歴なしの除外）
-    // includeNonMemberFilterがOFFの場合、履歴なしを除外（デフォルトは現役のみ表示のため）
-    if (!filters.includeNonMemberFilter && customer.customerCommunities.length === 0) {
+    // includeNonMemberFilterがOFFの場合、かつ、コミュニティフィルタが有効な場合のみ、履歴なしを除外
+    // （デフォルトは全表示のため、コミュニティフィルタ無効時は非会員も表示する）
+    if (hasCommunityFilter && !filters.includeNonMemberFilter && customer.customerCommunities.length === 0) {
       return false;
     }
 
