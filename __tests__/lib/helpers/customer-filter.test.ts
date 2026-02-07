@@ -102,34 +102,30 @@ describe("customer-filter", () => {
 
   it("非会員フィルタ（履歴なし）がヒットすること", () => {
     const filters = { ...defaultFilters, includeNonMemberFilter: true };
-    // includeNonMemberFilterがONの場合、全脱退者の除外ロジックはスキップされるが、
-    // matchesNonMemberの判定でヒットするかどうか。
-    // ID:3 (履歴なし) -> Hit
-    // ID:4 (全脱退) -> Hit (allResigned check)
-    // ID:1, 2, 5 (現役あり) -> Miss
+    // includeNonMemberFilterがONの場合、履歴なし（ID:3）のみヒットするはず
+    // 全脱退者（ID:4）は非会員としてはヒットしない（includeFormerMembers=trueが必要）
     const result = filterCustomers(mockCustomers, filters);
-    expect(result).toHaveLength(2);
-    expect(result.map(c => c.id).sort()).toEqual([3, 4]);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(3);
   });
 
   it("元会員を含む（includeFormerMembers=true）の場合、脱退済みもヒットすること", () => {
     const filters = { ...defaultFilters, communityIds: [1], includeFormerMembers: true };
     // ID:1 (現役) -> Hit
-    // ID:4 (全脱退, comm1) -> Hit (resignedAt check skipped)
-    // ID:5 (一部脱退, comm1) -> Hit (resignedAt check skipped)
+    // ID:4 (全脱退, comm1) -> Hit
+    // ID:5 (一部脱退, comm1) -> Hit
     const result = filterCustomers(mockCustomers, filters);
     expect(result).toHaveLength(3);
     expect(result.map(c => c.id).sort()).toEqual([1, 4, 5]);
   });
   
   it("デフォルト（元会員を含まない）の場合、全脱退者は除外されること", () => {
-    // フィルタなしの場合、全員表示されるが、全脱退者（ID:4）は除外されるはず。
+    // フィルタなし（デフォルト）の場合、全脱退者（ID:4）は除外
+    // 非会員（履歴なし、ID:3）もデフォルトでは除外
+    // 現役のみ（ID:1, 2, 5）が表示されるはず
     const result = filterCustomers(mockCustomers, defaultFilters);
-    // ID:3 (履歴なし) -> 表示される (length > 0 check fails, so allResigned check skipped? No.)
-    // Logic: if (!includeFormerMembers && !includeNonMember && customer.customerCommunities.length > 0)
-    // ID:3 -> length=0 -> skip -> True.
-    // ID:4 -> length>0 -> allResigned=true -> False.
-    expect(result.map(c => c.id).sort()).toEqual([1, 2, 3, 5]);
+    expect(result.map(c => c.id).sort()).toEqual([1, 2, 5]);
+    expect(result).not.toContainEqual(expect.objectContaining({ id: 3 }));
     expect(result).not.toContainEqual(expect.objectContaining({ id: 4 }));
   });
 
@@ -141,10 +137,10 @@ describe("customer-filter", () => {
     };
     // ID:2 (Comm2現役) -> Hit (Community)
     // ID:3 (履歴なし) -> Hit (NonMember)
-    // ID:4 (全脱退) -> Hit (NonMember)
+    // ID:4 (全脱退) -> Miss (NonMember=false, Community=false)
     // ID:5 (Comm2現役) -> Hit (Community)
     const result = filterCustomers(mockCustomers, filters);
-    expect(result).toHaveLength(4);
-    expect(result.map(c => c.id).sort()).toEqual([2, 3, 4, 5]);
+    expect(result).toHaveLength(3);
+    expect(result.map(c => c.id).sort()).toEqual([2, 3, 5]);
   });
 });

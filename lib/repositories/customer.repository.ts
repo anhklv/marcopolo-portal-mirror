@@ -86,7 +86,7 @@ export async function findAll(
   }
 
   // スコープフィルタ + includeNonMember
-  const includeNonMember = isSuper && (filters?.includeNonMember !== false);
+  const includeNonMember = isSuper && (filters?.includeNonMember === true);
   if (!isSuper) {
     // community_admin: スコープ内コミュニティに所属する顧客のみ
     conditions.push({
@@ -97,13 +97,10 @@ export async function findAll(
       },
     });
   } else if (!includeNonMember) {
-    // super + 非会員を含まない場合 = 現役会員のみ
-    // 少なくとも1つのコミュニティに所属し、かつ脱退していない（現役である）
+    // super + 非会員（履歴なし）を含まない場合 = 少なくとも1つのコミュニティ履歴がある
     conditions.push({
       customerCommunities: {
-        some: {
-          resignedAt: null,
-        },
+        some: {},
       },
     });
   }

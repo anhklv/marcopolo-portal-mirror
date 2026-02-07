@@ -147,9 +147,11 @@ describe("filterCustomers", () => {
       expect(result).toHaveLength(2);
     });
 
-    it("フィルタ未選択 → 全件表示", () => {
+    it("フィルタ未選択 → 全件表示（ただし非会員はデフォルト除外）", () => {
       const result = filterCustomers(customers, defaultFilters);
-      expect(result).toHaveLength(3);
+      // ID:3 (履歴なし非会員) はデフォルトフィルタ（includeNonMemberFilter: false）により除外される
+      expect(result).toHaveLength(2);
+      expect(result.map(c => c.id)).not.toContain(3);
     });
   });
 

@@ -62,15 +62,10 @@ export function filterCustomers<T extends FilterableCustomer>(
         });
       }
 
-      // 非会員判定（履歴なし OR 全脱退）
+      // 非会員判定（履歴なしのみ）
       if (hasNonMemberFilter) {
         if (customer.customerCommunities.length === 0) {
           matchesNonMember = true;
-        } else {
-          const allResigned = customer.customerCommunities.every(
-            (cc) => cc.resignedAt !== null
-          );
-          if (allResigned) matchesNonMember = true;
         }
       }
 
@@ -102,12 +97,18 @@ export function filterCustomers<T extends FilterableCustomer>(
     }
 
     // 元会員フィルタ（全脱退者の除外）
-    // 非会員フィルタがONの場合は除外しない
-    if (!filters.includeFormerMembers && !filters.includeNonMemberFilter && customer.customerCommunities.length > 0) {
+    // includeFormerMembersがOFFの場合、全脱退者を除外
+    if (!filters.includeFormerMembers && customer.customerCommunities.length > 0) {
       const allResigned = customer.customerCommunities.every(
         (cc) => cc.resignedAt !== null
       );
       if (allResigned) return false;
+    }
+
+    // 非会員フィルタ（履歴なしの除外）
+    // includeNonMemberFilterがOFFの場合、履歴なしを除外（デフォルトは現役のみ表示のため）
+    if (!filters.includeNonMemberFilter && customer.customerCommunities.length === 0) {
+      return false;
     }
 
     return true;

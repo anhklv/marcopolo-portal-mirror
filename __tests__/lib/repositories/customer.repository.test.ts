@@ -140,19 +140,36 @@ describe("customer.repository", () => {
       );
     });
 
-    it("includeNonMember=false（super）: コミュニティ未所属または全脱退済みの顧客を除外（現役のみ）", async () => {
+    it("includeNonMember=false（super）: コミュニティ未所属（履歴なし）を除外", async () => {
       mockPrisma.customer.findMany.mockResolvedValue([]);
 
       await findAll([], true, { includeNonMember: false });
 
       const calledArgs = mockPrisma.customer.findMany.mock.calls[0][0];
+      // includeNonMember=false -> some: {} (履歴あり)
       expect(calledArgs.where.AND).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            customerCommunities: { some: { resignedAt: null } },
+            customerCommunities: { some: {} },
           }),
         ])
       );
+    });
+
+    it("includeNonMember=true（super）: コミュニティ未所属（履歴なし）を含める", async () => {
+      mockPrisma.customer.findMany.mockResolvedValue([]);
+
+      // includeNonMember=true -> customerCommunities の制約なし（全件）
+      await findAll([], true, { includeNonMember: true });
+
+      const calledArgs = mockPrisma.customer.findMany.mock.calls[0][0];
+      // AND条件が存在しないか、customerCommunities関連が含まれていないことを確認
+      if (calledArgs.where.AND) {
+        const hasCommunityCondition = calledArgs.where.AND.some((cond: any) => 
+          cond.customerCommunities && cond.customerCommunities.some && Object.keys(cond.customerCommunities.some).length === 0
+        );
+        expect(hasCommunityCondition).toBe(false);
+      }
     });
 
     it("includeFormerMembers=true: resignedAt ありの顧客も含む", async () => {
