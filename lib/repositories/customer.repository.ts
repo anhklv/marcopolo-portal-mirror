@@ -114,6 +114,8 @@ export async function findAll(
       customerCommunities: {
         some: {
           communityId: { in: filters.communityIds },
+          // 元会員を含まない場合は、現役のみに絞る
+          resignedAt: filters.includeFormerMembers ? undefined : null,
         },
       },
     });

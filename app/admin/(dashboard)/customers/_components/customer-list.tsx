@@ -190,6 +190,7 @@ export function CustomerList({
           auditMemberTypes: auditMemberTypes.length > 0 ? auditMemberTypes : undefined,
           premiumOnly,
           includeFormerMembers,
+          includeNonMember: includeNonMemberFilter,
         });
 
         if ("csv" in result) {

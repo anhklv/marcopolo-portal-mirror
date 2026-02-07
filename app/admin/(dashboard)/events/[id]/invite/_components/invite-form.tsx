@@ -43,6 +43,7 @@ interface InviteFormProps {
   event: any; // イベント情報の型
   customers: SerializedCustomer[];
   currentUserRole: "super" | "community_admin";
+  communities: { id: number; code: string; name: string }[];
 }
 
 type Step = "select" | "customize" | "confirm";
@@ -53,17 +54,7 @@ const MEMBER_CATEGORY_LABELS: Record<string, string> = {
   observer: "オブザーバー",
 };
 
-// コミュニティIDのマッピング（仮）
-// 本来はDBから取得したコミュニティリストを使うべきだが、
-// ここでは簡易的にコードベースでマッピングする
-// ※実際の環境に合わせてIDを確認・修正する必要あり
-const COMMUNITY_IDS = {
-  venture_auditor: 1, // ベンチャー監査役の会
-  naikan_meetup: 2,   // ないかんMeetup
-  ai_club: 3,         // AI部会
-};
-
-export function InviteForm({ event, customers, currentUserRole }: InviteFormProps) {
+export function InviteForm({ event, customers, currentUserRole, communities }: InviteFormProps) {
   const router = useRouter();
   
   const [step, setStep] = useState<Step>("select");
@@ -211,10 +202,10 @@ export function InviteForm({ event, customers, currentUserRole }: InviteFormProp
 
     const parts: string[] = [];
     
-    // コミュニティ名（仮）
-    if (selectedCommunityIds.includes(COMMUNITY_IDS.venture_auditor)) parts.push("ベンチャー監査役の会");
-    if (selectedCommunityIds.includes(COMMUNITY_IDS.naikan_meetup)) parts.push("ないかんMeetup");
-    if (selectedCommunityIds.includes(COMMUNITY_IDS.ai_club)) parts.push("AI部会");
+    // 選択されたコミュニティ名を取得
+    communities
+      .filter(c => selectedCommunityIds.includes(c.id))
+      .forEach(c => parts.push(c.name));
     
     if (includeNonMemberFilter) parts.push("非会員");
 
@@ -305,10 +296,11 @@ export function InviteForm({ event, customers, currentUserRole }: InviteFormProp
       const stepIndex = steps.findIndex((s) => s.key === stepKey);
       
       if (stepKey === "send") {
-        return step === "confirm" ? "current" : "upcoming";
+        return "upcoming";
       }
       
-      if (stepIndex <= currentIndex) return "completed";
+      if (stepIndex < currentIndex) return "completed";
+      if (stepIndex === currentIndex) return "current";
       return "upcoming";
     };
 
@@ -382,25 +374,15 @@ export function InviteForm({ event, customers, currentUserRole }: InviteFormProp
                     <div className="space-y-2">
                       <Label className="text-sm font-semibold">コミュニティ</Label>
                       <div className="space-y-2">
-                        {/* ハードコードされたコミュニティIDを使用 */}
-                        <CheckboxItem
-                          id="org-audit"
-                          label="ベンチャー監査役の会"
-                          checked={selectedCommunityIds.includes(COMMUNITY_IDS.venture_auditor)}
-                          onCheckedChange={(c) => handleCommunityChange(COMMUNITY_IDS.venture_auditor, c)}
-                        />
-                        <CheckboxItem
-                          id="org-naikan"
-                          label="ないかんMeetup"
-                          checked={selectedCommunityIds.includes(COMMUNITY_IDS.naikan_meetup)}
-                          onCheckedChange={(c) => handleCommunityChange(COMMUNITY_IDS.naikan_meetup, c)}
-                        />
-                        <CheckboxItem
-                          id="org-ai"
-                          label="AI部会"
-                          checked={selectedCommunityIds.includes(COMMUNITY_IDS.ai_club)}
-                          onCheckedChange={(c) => handleCommunityChange(COMMUNITY_IDS.ai_club, c)}
-                        />
+                        {communities.map((community) => (
+                          <CheckboxItem
+                            key={community.id}
+                            id={`org-${community.code}`}
+                            label={community.name}
+                            checked={selectedCommunityIds.includes(community.id)}
+                            onCheckedChange={(c) => handleCommunityChange(community.id, c)}
+                          />
+                        ))}
                         {/* 特権管理者のみ非会員表示 */}
                         {currentUserRole === "super" && (
                           <CheckboxItem
