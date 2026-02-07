@@ -35,8 +35,9 @@ marcopolo-portal/
 │
 ├── app/                             # Next.js App Router
 │   ├── admin/
-│   │   ├── layout.tsx               # 管理画面共通レイアウト
-│   │   ├── customers/
+│   │   ├── (authenticated)/         # 認証済みエリア（Route Group）
+│   │   │   ├── layout.tsx           # 管理画面共通レイアウト
+│   │   │   ├── customers/
 │   │   │   ├── page.tsx             # Server Component（一覧）
 │   │   │   ├── new/
 │   │   │   │   └── page.tsx         # Client Component（新規作成フォーム）
