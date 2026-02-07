@@ -288,10 +288,8 @@ export default function EventInvitePage({
             matchesOrganizations = hasOrganizations;
           }
         } else {
-          // コミュニティフィルタがない場合（デフォルト）、非会員は表示しない
-          if (customer.communities.length === 0) {
-            matchesOrganizations = false;
-          }
+          // コミュニティフィルタがない場合（デフォルト）、全て表示（非会員含む）
+          matchesOrganizations = true;
         }
 
         // 会員区分フィルタ（コミュニティを選択した場合のみ適用、チェックがない場合はすべて表示）
