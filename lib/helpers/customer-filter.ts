@@ -8,6 +8,7 @@ export interface CustomerListFilters {
   auditMemberTypes: string[];
   premiumOnly: boolean;
   includeFormerMembers: boolean;
+  includeNonMemberFilter: boolean;
 }
 
 export interface FilterableCustomerCommunity {
@@ -43,14 +44,38 @@ export function filterCustomers<T extends FilterableCustomer>(
       if (!matches) return false;
     }
 
-    // コミュニティフィルタ
-    if (filters.communityIds.length > 0) {
-      if (customer.customerCommunities.length === 0) return false;
-      const customerCommunityIds = customer.customerCommunities.map((cc) => cc.communityId);
-      const matchesCommunity = filters.communityIds.some((id) =>
-        customerCommunityIds.includes(id)
-      );
-      if (!matchesCommunity) return false;
+    // コミュニティフィルタ & 非会員フィルタ
+    const hasCommunityFilter = filters.communityIds.length > 0;
+    const hasNonMemberFilter = filters.includeNonMemberFilter;
+
+    if (hasCommunityFilter || hasNonMemberFilter) {
+      let matchesCommunity = false;
+      let matchesNonMember = false;
+
+      // コミュニティ判定
+      if (hasCommunityFilter) {
+        matchesCommunity = customer.customerCommunities.some((cc) => {
+          if (!filters.communityIds.includes(cc.communityId)) return false;
+          // 元会員を含まない場合、脱退済みならヒットしない
+          if (!filters.includeFormerMembers && cc.resignedAt !== null) return false;
+          return true;
+        });
+      }
+
+      // 非会員判定（履歴なし OR 全脱退）
+      if (hasNonMemberFilter) {
+        if (customer.customerCommunities.length === 0) {
+          matchesNonMember = true;
+        } else {
+          const allResigned = customer.customerCommunities.every(
+            (cc) => cc.resignedAt !== null
+          );
+          if (allResigned) matchesNonMember = true;
+        }
+      }
+
+      // どちらにもヒットしない場合は除外
+      if (!matchesCommunity && !matchesNonMember) return false;
     }
 
     // 会員区分フィルタ
@@ -76,8 +101,9 @@ export function filterCustomers<T extends FilterableCustomer>(
       if (!hasPremium) return false;
     }
 
-    // 元会員フィルタ
-    if (!filters.includeFormerMembers && customer.customerCommunities.length > 0) {
+    // 元会員フィルタ（全脱退者の除外）
+    // 非会員フィルタがONの場合は除外しない
+    if (!filters.includeFormerMembers && !filters.includeNonMemberFilter && customer.customerCommunities.length > 0) {
       const allResigned = customer.customerCommunities.every(
         (cc) => cc.resignedAt !== null
       );

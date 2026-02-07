@@ -140,7 +140,7 @@ describe("customer.repository", () => {
       );
     });
 
-    it("includeNonMember=false（super）: コミュニティ未所属の顧客を除外", async () => {
+    it("includeNonMember=false（super）: コミュニティ未所属または全脱退済みの顧客を除外（現役のみ）", async () => {
       mockPrisma.customer.findMany.mockResolvedValue([]);
 
       await findAll([], true, { includeNonMember: false });
@@ -149,7 +149,7 @@ describe("customer.repository", () => {
       expect(calledArgs.where.AND).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            customerCommunities: { some: {} },
+            customerCommunities: { some: { resignedAt: null } },
           }),
         ])
       );

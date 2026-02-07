@@ -280,25 +280,17 @@ export default function EventInvitePage({
             return false;
           });
           
-          // 非会員の場合（communitiesが空配列）または全脱退済みの場合（非会員フィルタ選択時）
+          // 非会員の場合（communitiesが空配列）
           if (customer.communities.length === 0) {
             matchesOrganizations = hasNonMember;
           } else {
             // コミュニティに所属している場合
             matchesOrganizations = hasOrganizations;
-
-            // 「非会員」フィルタが選択されている場合、全脱退済みの顧客もヒットさせる
-            if (hasNonMember && !matchesOrganizations) {
-              const allResigned = customer.communities.every((community) => {
-                if (community === "ベンチャー監査役の会") return !!customer.auditResignedAt;
-                if (community === "ないかんMeetup") return !!customer.naikanResignedAt;
-                if (community === "AI部会") return !!customer.aiResignedAt;
-                return false;
-              });
-              if (allResigned) {
-                matchesOrganizations = true;
-              }
-            }
+          }
+        } else {
+          // コミュニティフィルタがない場合（デフォルト）、非会員は表示しない
+          if (customer.communities.length === 0) {
+            matchesOrganizations = false;
           }
         }
 
@@ -334,18 +326,16 @@ export default function EventInvitePage({
         }
 
         // 元会員フィルタ（全コミュニティ脱退済みの顧客を除外）
-        // 「非会員」フィルタ選択時、または「元会員を含む」チェック時は除外しない
+        // includeFormerMembersがOFFの場合、全脱退者を除外
         let matchesFormerMember = true;
-        const isNonMemberFilterSelected = organizations.includes("非会員");
 
-        if (!includeFormerMembers && !isNonMemberFilterSelected && customer.communities.length > 0) {
+        if (!includeFormerMembers && customer.communities.length > 0) {
           const allResigned = customer.communities.every((community) => {
             if (community === "ベンチャー監査役の会") return !!customer.auditResignedAt;
             if (community === "ないかんMeetup") return !!customer.naikanResignedAt;
             if (community === "AI部会") return !!customer.aiResignedAt;
             return false;
           });
-          // 全脱退済みの場合、includeFormerMembersがOFFなら非表示（ただし非会員フィルタがONなら表示）
           if (allResigned) matchesFormerMember = false;
         }
 

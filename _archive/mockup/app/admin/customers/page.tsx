@@ -240,19 +240,11 @@ export default function CustomersPage() {
         } else {
           // コミュニティに所属している場合
           matchesOrganizations = hasOrganizations;
-          
-          // 「非会員」フィルタが選択されている場合、全脱退済みの顧客もヒットさせる
-          if (hasNonMember && !matchesOrganizations) {
-            const allResigned = customer.communities.every((community) => {
-              if (community === "ベンチャー監査役の会") return !!customer.auditResignedAt;
-              if (community === "ないかんMeetup") return !!customer.naikanResignedAt;
-              if (community === "AI部会") return !!customer.aiResignedAt;
-              return false;
-            });
-            if (allResigned) {
-              matchesOrganizations = true;
-            }
-          }
+        }
+      } else {
+        // コミュニティフィルタがない場合（デフォルト）、非会員は表示しない
+        if (customer.communities.length === 0) {
+          matchesOrganizations = false;
         }
       }
 
@@ -293,11 +285,9 @@ export default function CustomersPage() {
       }
 
       // 元会員フィルタ（全コミュニティ脱退済みの顧客をデフォルト非表示）
-      // 「非会員」フィルタが選択されている場合は、全脱退済みの顧客も表示する
       let matchesFormerMember = true;
-      const isNonMemberFilterSelected = organizations.includes("非会員");
       
-      if (!includeFormerMembers && !isNonMemberFilterSelected && customer.communities.length > 0) {
+      if (!includeFormerMembers && customer.communities.length > 0) {
         const allResigned = customer.communities.every((community) => {
           if (community === "ベンチャー監査役の会") return !!customer.auditResignedAt;
           if (community === "ないかんMeetup") return !!customer.naikanResignedAt;

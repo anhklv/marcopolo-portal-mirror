@@ -12,6 +12,7 @@ import type { AdminForPermission } from "@/lib/auth/permissions";
 import { customerFormSchema } from "@/lib/validations/customer";
 import type { CustomerFormInput } from "@/lib/validations/customer";
 import * as customerRepo from "@/lib/repositories/customer.repository";
+import { filterCustomers } from "@/lib/helpers/customer-filter";
 
 // ============================================================
 // 型定義
@@ -239,6 +240,33 @@ export async function exportCustomersAction(
 
   const customers = await customerRepo.findAll(scopedIds, isSuper, appliedFilters);
 
+  // UIと同じロジックで再フィルタリング（CSV出力の整合性確保）
+  // 特に「非会員のみ」選択時に会員が混ざるのを防ぐため
+  const filterableCustomers = customers.map((c) => ({
+    ...c,
+    customerCommunities: c.customerCommunities.map((cc) => ({
+      communityId: cc.communityId,
+      resignedAt: cc.resignedAt?.toISOString() ?? null,
+      auditMemberType: cc.auditMemberType,
+      auditMemberPremium: cc.auditMemberPremium,
+    })),
+  }));
+
+  const helperFilters = {
+    keyword: filters?.keyword ?? "",
+    communityIds: filters?.communityIds ?? [],
+    memberCategories: filters?.memberCategories ?? [], // string[]型互換性注意（anyキャスト等必要かも）
+    auditMemberTypes: filters?.auditMemberTypes ?? [],
+    premiumOnly: filters?.premiumOnly ?? false,
+    includeFormerMembers: filters?.includeFormerMembers ?? false,
+    includeNonMemberFilter: appliedFilters.includeNonMember ?? false,
+  };
+
+  // 型アサーションで回避（memberCategoriesなどがstring[]と厳密なunion型で不一致の可能性）
+  const filteredResult = filterCustomers(filterableCustomers as any, helperFilters as any);
+  const filteredIds = new Set(filteredResult.map((c) => c.id));
+  const targetCustomers = customers.filter((c) => filteredIds.has(c.id));
+
   // CSV生成
   const BOM = "\uFEFF";
   const headers = [
@@ -254,7 +282,7 @@ export async function exportCustomersAction(
     "登録日",
   ];
 
-  const rows = customers.map((c) => {
+  const rows = targetCustomers.map((c) => {
     const communityNames = c.customerCommunities
       .map((cc) => cc.community.name)
       .join("・");
