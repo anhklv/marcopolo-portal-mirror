@@ -1,0 +1,342 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ======================
+// ENUM Definitions
+// ======================
+
+enum Gender {
+  male
+  female
+}
+
+enum MemberCategory {
+  member
+  sponsor
+  observer
+}
+
+enum ContractType {
+  corporate
+  individual
+}
+
+enum AuditMemberType {
+  regular
+  online
+}
+
+enum AdminRole {
+  super
+  community_admin
+}
+
+enum RsvpStatus {
+  pending
+  attending
+  online
+  absent
+}
+
+enum AfterPartyStatus {
+  attending
+  not_attending
+}
+
+enum SurveyRating {
+  excellent
+  good
+  fair
+  poor
+}
+
+enum FutureParticipation {
+  definitely_yes
+  considering
+  no
+}
+
+enum MembershipInterest {
+  want_to_join
+  considering
+  not_interested
+}
+
+// ======================
+// Master Tables
+// ======================
+
+model Community {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique @db.VarChar(50)
+  name      String   @db.VarChar(100)
+  hasSurvey Boolean  @default(false) @map("has_survey")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  customerCommunities CustomerCommunity[]
+  events              Event[]
+  adminCommunities    AdminCommunity[]
+
+  @@map("communities")
+}
+
+// ======================
+// Customer Tables
+// ======================
+
+model Customer {
+  id                      Int            @id @default(autoincrement())
+  firstName               String         @map("first_name") @db.VarChar(100)
+  lastName                String         @map("last_name") @db.VarChar(100)
+  firstNameKana           String?        @map("first_name_kana") @db.VarChar(100)
+  lastNameKana            String?        @map("last_name_kana") @db.VarChar(100)
+  company                 String?        @db.VarChar(200)
+  email                   String         @unique @db.VarChar(255)
+  subEmails               String[]       @default([]) @map("sub_emails")
+  phone                   String?        @db.VarChar(20)
+  postalCode              String?        @map("postal_code") @db.VarChar(10)
+  prefecture              String?        @db.VarChar(20)
+  city                    String?        @db.VarChar(255)
+  gender                  Gender?
+  listingCategory         String?        @map("listing_category") @db.VarChar(100)
+  originIndustry          String?        @map("origin_industry") @db.VarChar(100)
+  membershipQualification String?        @map("membership_qualification") @db.VarChar(100)
+  memberCategory          MemberCategory? @map("member_category")
+  contractType            ContractType?  @map("contract_type")
+  note                    String?        @db.Text
+  registeredAt            DateTime       @default(now()) @map("registered_at")
+  deletedAt               DateTime?      @map("deleted_at")
+
+  // Relations
+  customerCommunities    CustomerCommunity[]
+  rsvps                  Rsvp[]
+  surveyResponses        SurveyResponse[]
+  fixedSurveyResponses   FixedSurveyResponse[]
+  surveyTokens           SurveyToken[]
+
+  @@map("customers")
+}
+
+model CustomerCommunity {
+  id                 Int             @id @default(autoincrement())
+  customerId         Int             @map("customer_id")
+  communityId        Int             @map("community_id")
+  joinedAt           DateTime?       @map("joined_at")
+  resignedAt         DateTime?       @map("resigned_at")
+  auditMemberType    AuditMemberType? @map("audit_member_type")
+  auditMemberPremium Boolean?        @map("audit_member_premium")
+  affiliation        String?         @db.VarChar(100)
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  customer  Customer  @relation(fields: [customerId], references: [id])
+  community Community @relation(fields: [communityId], references: [id])
+
+  @@unique([customerId, communityId])
+  @@map("customer_communities")
+}
+
+// ======================
+// Event Tables
+// ======================
+
+model Event {
+  id               Int       @id @default(autoincrement())
+  communityId      Int       @map("community_id")
+  title            String    @db.VarChar(200)
+  date             DateTime
+  location         String?   @db.VarChar(255)
+  description      String?   @db.Text
+  timetable        String?   @db.Text
+  note             String?   @db.Text
+  attendeesCount   Int       @default(0) @map("attendees_count")
+  responseDeadline DateTime? @map("response_deadline")
+  isPaused         Boolean   @default(false) @map("is_paused")
+  allowsOnline     Boolean   @default(false) @map("allows_online")
+  hasAfterParty    Boolean   @default(false) @map("has_after_party")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  // Relations
+  community Community @relation(fields: [communityId], references: [id])
+  rsvps     Rsvp[]
+  survey    Survey?
+
+  @@map("events")
+}
+
+model Rsvp {
+  id               Int              @id @default(autoincrement())
+  eventId          Int              @map("event_id")
+  customerId       Int              @map("customer_id")
+  token            String           @unique @db.VarChar(100)
+  status           RsvpStatus       @default(pending)
+  afterPartyStatus AfterPartyStatus? @map("after_party_status")
+  comment          String?          @db.Text
+  respondedAt      DateTime?        @map("responded_at")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  event    Event    @relation(fields: [eventId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@unique([eventId, customerId])
+  @@map("rsvps")
+}
+
+// ======================
+// Survey Tables
+// ======================
+
+model Survey {
+  id        Int      @id @default(autoincrement())
+  eventId   Int      @unique @map("event_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  event                Event                @relation(fields: [eventId], references: [id])
+  questions            SurveyQuestion[]
+  fixedSurveyResponses FixedSurveyResponse[]
+  tokens               SurveyToken[]
+
+  @@map("surveys")
+}
+
+model SurveyQuestion {
+  id        Int      @id @default(autoincrement())
+  surveyId  Int      @map("survey_id")
+  title     String   @db.VarChar(500)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  survey    Survey           @relation(fields: [surveyId], references: [id])
+  responses SurveyResponse[]
+
+  @@map("survey_questions")
+}
+
+/// 自由設問への回答
+/// - surveyId は question.surveyId 経由で取得可能なため保持しない（整合性担保）
+/// - surveyTokenId で回答時のトークンを参照（参照整合性担保）
+model SurveyResponse {
+  id            Int           @id @default(autoincrement())
+  questionId    Int           @map("question_id")
+  customerId    Int           @map("customer_id")
+  surveyTokenId Int           @map("survey_token_id")
+  rating        SurveyRating?
+  reason        String?       @db.Text
+  respondedAt   DateTime?     @map("responded_at")
+
+  // Relations
+  question    SurveyQuestion @relation(fields: [questionId], references: [id])
+  customer    Customer       @relation(fields: [customerId], references: [id])
+  surveyToken SurveyToken    @relation(fields: [surveyTokenId], references: [id])
+
+  @@unique([questionId, customerId])
+  @@map("survey_responses")
+}
+
+/// 固定設問への回答
+/// - surveyTokenId で回答時のトークンを参照（参照整合性担保）
+///
+/// null許容条件:
+/// - afterPartyRating/afterPartyReason: event.hasAfterParty === true の場合のみ入力
+/// - futureParticipation/futureParticipationReason: 常に入力対象
+/// - membership/membershipReason: ベンチャー監査役の会イベント かつ 非会員の場合のみ入力
+/// - comments: 任意入力
+model FixedSurveyResponse {
+  id                          Int                  @id @default(autoincrement())
+  surveyId                    Int                  @map("survey_id")
+  customerId                  Int                  @map("customer_id")
+  surveyTokenId               Int                  @map("survey_token_id")
+  afterPartyRating            SurveyRating?        @map("after_party_rating")
+  afterPartyReason            String?              @map("after_party_reason") @db.Text
+  futureParticipation         FutureParticipation? @map("future_participation")
+  futureParticipationReason   String?              @map("future_participation_reason") @db.Text
+  membership                  MembershipInterest?
+  membershipReason            String?              @map("membership_reason") @db.Text
+  comments                    String?              @db.Text
+  respondedAt                 DateTime?            @map("responded_at")
+
+  // Relations
+  survey      Survey      @relation(fields: [surveyId], references: [id])
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  surveyToken SurveyToken @relation(fields: [surveyTokenId], references: [id])
+
+  @@unique([surveyId, customerId])
+  @@map("fixed_survey_responses")
+}
+
+/// アンケートトークン管理
+/// - token は全体でUNIQUE（URLで使用）
+/// - 再送時は既存レコードの sentAt を更新（新規作成しない）
+model SurveyToken {
+  id         Int       @id @default(autoincrement())
+  surveyId   Int       @map("survey_id")
+  customerId Int       @map("customer_id")
+  token      String    @unique @db.VarChar(100)
+  sentAt     DateTime? @map("sent_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  survey               Survey                @relation(fields: [surveyId], references: [id])
+  customer             Customer              @relation(fields: [customerId], references: [id])
+  surveyResponses      SurveyResponse[]
+  fixedSurveyResponses FixedSurveyResponse[]
+
+  @@unique([surveyId, customerId])
+  @@map("survey_tokens")
+}
+
+// ======================
+// Admin Tables
+// ======================
+
+model Admin {
+  id           Int       @id @default(autoincrement())
+  firstName    String    @map("first_name") @db.VarChar(50)
+  lastName     String    @map("last_name") @db.VarChar(50)
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  role         AdminRole
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  adminCommunities AdminCommunity[]
+
+  @@map("admins")
+}
+
+model AdminCommunity {
+  id          Int      @id @default(autoincrement())
+  adminId     Int      @map("admin_id")
+  communityId Int      @map("community_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  admin     Admin     @relation(fields: [adminId], references: [id])
+  community Community @relation(fields: [communityId], references: [id])
+
+  @@unique([adminId, communityId])
+  @@map("admin_communities")
+}
