@@ -338,7 +338,7 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
           </div>
 
           <div className="rounded-lg bg-muted p-4 text-sm">
-            <p className="font-medium">{customer?.name} 様</p>
+            <p className="font-medium">回答者: {customer?.name}様</p>
           </div>
 
           {isDeadlinePassed && (
@@ -374,13 +374,12 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
                 <RadioGroupItem value="attend" id="attend" className="peer sr-only" />
                 <Label
                   htmlFor="attend"
-                  className={`flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer text-center h-full transition-colors ${
+                  className={`flex flex-col items-center justify-between rounded-md border-2 px-4 py-6 cursor-pointer text-center h-full transition-colors ${
                     status === "attend"
                       ? "border-green-500 bg-green-50 text-green-900"
                       : "border-muted bg-popover hover:bg-accent hover:text-accent-foreground"
                   }`}
                 >
-                  <span className="text-xl mb-2">🙆‍♂️</span>
                   <span className="font-semibold">{event.allowsOnline ? "現地参加" : "参加する"}</span>
                 </Label>
               </div>
@@ -389,13 +388,12 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
                   <RadioGroupItem value="online" id="online" className="peer sr-only" />
                   <Label
                     htmlFor="online"
-                    className={`flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer text-center h-full transition-colors ${
+                    className={`flex flex-col items-center justify-between rounded-md border-2 px-4 py-6 cursor-pointer text-center h-full transition-colors ${
                       status === "online"
                         ? "border-blue-500 bg-blue-50 text-blue-900"
                         : "border-muted bg-popover hover:bg-accent hover:text-accent-foreground"
                     }`}
                   >
-                    <span className="text-xl mb-2">💻</span>
                     <span className="font-semibold">オンライン参加</span>
                   </Label>
                 </div>
@@ -404,13 +402,12 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
                 <RadioGroupItem value="decline" id="decline" className="peer sr-only" />
                 <Label
                   htmlFor="decline"
-                  className={`flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer text-center h-full transition-colors ${
+                  className={`flex flex-col items-center justify-between rounded-md border-2 px-4 py-6 cursor-pointer text-center h-full transition-colors ${
                     status === "decline"
                       ? "border-red-500 bg-red-50 text-red-900"
                       : "border-muted bg-popover hover:bg-accent hover:text-accent-foreground"
                   }`}
                 >
-                  <span className="text-xl mb-2">🙅‍♀️</span>
                   <span className="font-semibold">参加しない</span>
                 </Label>
               </div>
@@ -429,13 +426,12 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
                   <RadioGroupItem value="参加" id="afterPartyAttend" className="peer sr-only" />
                   <Label
                     htmlFor="afterPartyAttend"
-                    className={`flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer text-center h-full transition-colors ${
+                    className={`flex flex-col items-center justify-between rounded-md border-2 px-4 py-6 cursor-pointer text-center h-full transition-colors ${
                       afterPartyStatus === "参加"
                         ? "border-green-500 bg-green-50 text-green-900"
                         : "border-muted bg-popover hover:bg-accent hover:text-accent-foreground"
                     }`}
                   >
-                    <span className="text-xl mb-2">🙆‍♂️</span>
                     <span className="font-semibold">参加する</span>
                   </Label>
                 </div>
@@ -443,13 +439,12 @@ export default function RSVPPage({ params }: { params: Promise<{ id: string }> }
                   <RadioGroupItem value="不参加" id="afterPartyDecline" className="peer sr-only" />
                   <Label
                     htmlFor="afterPartyDecline"
-                    className={`flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer text-center h-full transition-colors ${
+                    className={`flex flex-col items-center justify-between rounded-md border-2 px-4 py-6 cursor-pointer text-center h-full transition-colors ${
                       afterPartyStatus === "不参加"
                         ? "border-red-500 bg-red-50 text-red-900"
                         : "border-muted bg-popover hover:bg-accent hover:text-accent-foreground"
                     }`}
                   >
-                    <span className="text-xl mb-2">🙅‍♀️</span>
                     <span className="font-semibold">参加しない</span>
                   </Label>
                 </div>
