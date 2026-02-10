@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import { notFound } from "next/navigation";
-import { RadioGroup } from "@/components/ui/radio-group";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -12,11 +12,15 @@ import { RATINGS, FUTURE_PARTICIPATION_OPTIONS, MEMBERSHIP_OPTIONS } from "@/lib
 import { formatEventDate } from "@/lib/utils";
 import { Stack } from "@/components/ui/stack";
 import { FormField } from "@/components/ui/form-field";
-import { RadioItem } from "@/components/ui/radio-item";
 import { ActionButton } from "@/components/ui/action-button";
 import type { SurveyQuestion } from "@/lib/types";
 
 type Rating = "よかった" | "まぁよかった" | "あまりよくなかった" | "よくなかった";
+
+const getRatingBoxClass = (selected: boolean) =>
+  selected
+    ? "border-blue-500 bg-blue-50 text-blue-900"
+    : "border-muted bg-muted/50 hover:bg-accent hover:text-accent-foreground";
 type FutureParticipation = "ぜひ参加したい" | "参加を検討したい" | "参加しない";
 type Membership = "入会をしたい" | "入会を検討したい" | "関心がない";
 
@@ -316,17 +320,19 @@ export default function SurveyAnswerPage({
                     <RadioGroup
                       value={answers[question.id]?.rating || ""}
                       onValueChange={(value) => updateAnswer(question.id, "rating", value)}
+                      className="grid grid-cols-4 gap-4"
                     >
-                      <div className="flex flex-wrap gap-4">
-                        {RATINGS.map((rating) => (
-                          <RadioItem
-                            key={rating}
-                            value={rating}
-                            label={rating}
-                            id={`question-${question.id}-${rating}`}
-                          />
-                        ))}
-                      </div>
+                      {RATINGS.map((rating) => (
+                        <div key={rating}>
+                          <RadioGroupItem value={rating} id={`question-${question.id}-${rating}`} className="peer sr-only" />
+                          <Label
+                            htmlFor={`question-${question.id}-${rating}`}
+                            className={`flex flex-col items-center justify-center rounded-md border-2 px-4 py-6 cursor-pointer text-center transition-colors ${getRatingBoxClass(answers[question.id]?.rating === rating)}`}
+                          >
+                            <span className="font-semibold">{rating}</span>
+                          </Label>
+                        </div>
+                      ))}
                     </RadioGroup>
 
                     <FormField label="上記を選んだ理由を、具体的に教えて下さい。">
@@ -348,17 +354,19 @@ export default function SurveyAnswerPage({
                   <RadioGroup
                     value={fixedAnswers.afterParty?.rating || ""}
                     onValueChange={(value) => updateFixedAnswer("afterParty", "rating", value)}
+                    className="grid grid-cols-4 gap-4"
                   >
-                    <div className="flex flex-wrap gap-4">
-                      {RATINGS.map((rating) => (
-                        <RadioItem
-                          key={rating}
-                          value={rating}
-                          label={rating}
-                          id={`after-party-${rating}`}
-                        />
-                      ))}
-                    </div>
+                    {RATINGS.map((rating) => (
+                      <div key={rating}>
+                        <RadioGroupItem value={rating} id={`after-party-${rating}`} className="peer sr-only" />
+                        <Label
+                          htmlFor={`after-party-${rating}`}
+                          className={`flex flex-col items-center justify-center rounded-md border-2 px-4 py-6 cursor-pointer text-center transition-colors ${getRatingBoxClass(fixedAnswers.afterParty?.rating === rating)}`}
+                        >
+                          <span className="font-semibold">{rating}</span>
+                        </Label>
+                      </div>
+                    ))}
                   </RadioGroup>
 
                   <FormField label="上記を選んだ理由を、具体的に教えて下さい。">
@@ -381,17 +389,19 @@ export default function SurveyAnswerPage({
                 <RadioGroup
                   value={fixedAnswers.futureParticipation?.rating || ""}
                   onValueChange={(value) => updateFixedAnswer("futureParticipation", "rating", value)}
+                  className="grid grid-cols-3 gap-4"
                 >
-                  <div className="flex flex-wrap gap-4">
-                    {FUTURE_PARTICIPATION_OPTIONS.map((option) => (
-                      <RadioItem
-                        key={option}
-                        value={option}
-                        label={option}
-                        id={`future-participation-${option}`}
-                      />
-                    ))}
-                  </div>
+                  {FUTURE_PARTICIPATION_OPTIONS.map((option) => (
+                    <div key={option}>
+                      <RadioGroupItem value={option} id={`future-participation-${option}`} className="peer sr-only" />
+                      <Label
+                        htmlFor={`future-participation-${option}`}
+                        className={`flex flex-col items-center justify-center rounded-md border-2 px-4 py-6 cursor-pointer text-center transition-colors ${getRatingBoxClass(fixedAnswers.futureParticipation?.rating === option)}`}
+                      >
+                        <span className="font-semibold">{option}</span>
+                      </Label>
+                    </div>
+                  ))}
                 </RadioGroup>
 
                 <FormField label="上記を選んだ理由を、具体的に教えて下さい。">
@@ -412,17 +422,19 @@ export default function SurveyAnswerPage({
                   <RadioGroup
                     value={fixedAnswers.membership?.rating || ""}
                     onValueChange={(value) => updateFixedAnswer("membership", "rating", value)}
+                    className="grid grid-cols-3 gap-4"
                   >
-                    <div className="flex flex-wrap gap-4">
-                      {MEMBERSHIP_OPTIONS.map((option) => (
-                        <RadioItem
-                          key={option}
-                          value={option}
-                          label={option}
-                          id={`membership-${option}`}
-                        />
-                      ))}
-                    </div>
+                    {MEMBERSHIP_OPTIONS.map((option) => (
+                      <div key={option}>
+                        <RadioGroupItem value={option} id={`membership-${option}`} className="peer sr-only" />
+                        <Label
+                          htmlFor={`membership-${option}`}
+                          className={`flex flex-col items-center justify-center rounded-md border-2 px-4 py-6 cursor-pointer text-center transition-colors ${getRatingBoxClass(fixedAnswers.membership?.rating === option)}`}
+                        >
+                          <span className="font-semibold">{option}</span>
+                        </Label>
+                      </div>
+                    ))}
                   </RadioGroup>
 
                   <FormField label="上記を選んだ理由を、具体的に教えて下さい。">
