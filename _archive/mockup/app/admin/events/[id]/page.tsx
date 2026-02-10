@@ -300,11 +300,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                 
                 <TabsContent value="attendees" className="space-y-4">
                     <Card className="border-0">
-                        <CardHeader>
-                            <CardTitle>参加者リスト</CardTitle>
-                            <CardDescription>現在の回答状況です。</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-4 pt-6">
                             <div className="flex items-center gap-3 flex-wrap">
                                 <div className="relative flex-1 max-w-md">
                                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -367,10 +363,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                 </Popover>
                             </div>
 
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>氏名</TableHead>
+                            <div className="rounded-lg border bg-card">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>氏名</TableHead>
                                         <TableHead>会社名</TableHead>
                                         <TableHead>ステータス</TableHead>
                                         <TableHead>回答日時</TableHead>
@@ -410,9 +407,9 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>{attendee.respondedAt === "-" ? "-" : formatDateTime(attendee.respondedAt)}</TableCell>
-                                                <TableCell className="max-w-xs">
+                                                <TableCell className="whitespace-normal max-w-md">
                                                     {attendee.comment ? (
-                                                        <div className="text-sm text-muted-foreground truncate" title={attendee.comment}>
+                                                        <div className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
                                                             {attendee.comment}
                                                         </div>
                                                     ) : (
@@ -424,6 +421,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                     )}
                                 </TableBody>
                             </Table>
+                            </div>
                         </CardContent>
                     </Card>
                 </TabsContent>
