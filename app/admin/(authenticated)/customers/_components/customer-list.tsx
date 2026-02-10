@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useTransition } from "react";
+import { useState, useMemo, useEffect, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -27,8 +27,19 @@ import { formatDate } from "@/lib/utils";
 import { Search, Users, ChevronDown, Download, Plus } from "lucide-react";
 import { MEMBER_CATEGORY_LABELS, AUDIT_MEMBER_TYPES } from "@/lib/constants/customer";
 import { USER_ROLE_CONFIG } from "@/lib/constants/customer";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 import { exportCustomersAction } from "@/lib/actions/customer.actions";
 import { filterCustomers } from "@/lib/helpers/customer-filter";
+
+const ITEMS_PER_PAGE = 10;
 
 // ============================================================
 // 型定義
@@ -117,6 +128,7 @@ export function CustomerList({
   const [premiumOnly, setPremiumOnly] = useState(false);
   const [includeFormerMembers, setIncludeFormerMembers] = useState(false);
   const [includeNonMemberFilter, setIncludeNonMemberFilter] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // フィルタリング
   const filteredCustomers = useMemo(
@@ -132,6 +144,28 @@ export function CustomerList({
       }),
     [initialCustomers, searchKeyword, selectedCommunityIds, memberCategories, auditMemberTypes, premiumOnly, includeFormerMembers, includeNonMemberFilter]
   );
+
+  const totalPages = Math.ceil(filteredCustomers.length / ITEMS_PER_PAGE);
+  const paginatedCustomers = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredCustomers.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredCustomers, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchKeyword, selectedCommunityIds, memberCategories, auditMemberTypes, premiumOnly, includeFormerMembers, includeNonMemberFilter]);
+
+  const getPageNumbers = (): (number | "ellipsis")[] => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const pages: (number | "ellipsis")[] = [1];
+    if (currentPage > 3) pages.push("ellipsis");
+    if (currentPage > 1 && currentPage < totalPages) pages.push(currentPage);
+    if (currentPage < totalPages - 2) pages.push("ellipsis");
+    if (totalPages > 1) pages.push(totalPages);
+    return pages;
+  };
 
   // コミュニティ選択操作
   const handleCommunityChange = (communityId: number, checked: boolean) => {
@@ -339,8 +373,8 @@ export function CustomerList({
                 </div>
               </div>
 
-              {/* 会員区分 */}
-              {(anyCommunitySelected || includeNonMemberFilter) && (
+              {/* 会員区分（コミュニティを選択した場合のみ表示、非会員には会員区分がないため） */}
+              {anyCommunitySelected && (
                 <div className="space-y-2 border-t pt-4">
                   <Label className="text-sm font-semibold">会員区分</Label>
                   <div className="space-y-2">
@@ -413,15 +447,20 @@ export function CustomerList({
       </div>
 
       {/* 結果件数 */}
-      <div className="flex justify-end">
-        <div className="text-sm text-muted-foreground">
-          <span className="font-semibold text-foreground">{filteredCustomers.length}</span>件
+      <div className="space-y-2">
+        <div className="flex justify-end">
+          <div className="text-sm text-muted-foreground">
+            <span className="font-semibold text-foreground">{filteredCustomers.length}</span>件
+            {filteredCustomers.length > ITEMS_PER_PAGE && (
+              <span className="ml-2">
+                （{(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+                {Math.min(currentPage * ITEMS_PER_PAGE, filteredCustomers.length)}件目を表示）
+              </span>
+            )}
+          </div>
         </div>
-      </div>
-
-      {/* テーブル */}
-      <div className="rounded-lg border bg-card">
-        <Table>
+        <div className="rounded-lg bg-card">
+          <Table className="[&_th]:py-3 [&_td]:py-3">
           <TableHeader>
             <TableRow>
               <TableHead>ID</TableHead>
@@ -440,7 +479,7 @@ export function CustomerList({
                 </TableCell>
               </TableRow>
             ) : (
-              filteredCustomers.map((customer) => (
+              paginatedCustomers.map((customer) => (
                 <TableRow
                   key={customer.id}
                   className="cursor-pointer hover:bg-gray-50"
@@ -465,7 +504,43 @@ export function CustomerList({
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
+
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+              />
+            </PaginationItem>
+            {getPageNumbers().map((page, i) =>
+              page === "ellipsis" ? (
+                <PaginationItem key={`ellipsis-${i}`}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    isActive={currentPage === page}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              )
+            )}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
 
       {/* CSVダウンロード */}
       <div className="flex justify-end">
