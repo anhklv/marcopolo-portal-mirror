@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
 import { CheckboxItem } from "@/components/ui/checkbox-item";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 import { events, getEventStatus, rsvps, customers } from "@/lib/data/mock";
 import { formatEventDate, getEventDisplayStatus } from "@/lib/utils";
 import { EVENT_STATUS_CONFIG, type EventDisplayStatus } from "@/lib/constants/event";
@@ -52,7 +61,8 @@ export default function EventsPage() {
   const [statusSearch, setStatusSearch] = useState("");
   const [eventTypes, setEventTypes] = useState<string[]>([]);
   const [eventTypeSearch, setEventTypeSearch] = useState("");
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   const handleStatusChange = (status: string, checked: boolean) => {
     if (checked) {
@@ -145,6 +155,29 @@ export default function EventsPage() {
 
     return sorted;
   }, [currentAdmin, searchKeyword, statuses, eventTypes]);
+
+  const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
+  const paginatedEvents = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredEvents.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredEvents, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchKeyword, statuses, eventTypes]);
+
+  const getPageNumbers = (): (number | "ellipsis")[] => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const pages: (number | "ellipsis")[] = [1];
+    if (currentPage > 3) pages.push("ellipsis");
+    if (currentPage > 1 && currentPage < totalPages) pages.push(currentPage);
+    if (currentPage < totalPages - 2) pages.push("ellipsis");
+    if (totalPages > 1) pages.push(totalPages);
+    return pages;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -325,13 +358,20 @@ export default function EventsPage() {
         </Popover>
       </div>
 
-      <div className="flex justify-end">
-        <div className="text-sm text-muted-foreground">
-          <span className="font-semibold text-foreground">{filteredEvents.length}</span>件
+      <div className="space-y-2">
+        <div className="flex justify-end">
+          <div className="text-sm text-muted-foreground">
+            <span className="font-semibold text-foreground">{filteredEvents.length}</span>件
+            {filteredEvents.length > ITEMS_PER_PAGE && (
+              <span className="ml-2">
+                （{(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+                {Math.min(currentPage * ITEMS_PER_PAGE, filteredEvents.length)}件目を表示）
+              </span>
+            )}
+          </div>
         </div>
-      </div>
-      <div className="rounded-lg border bg-card">
-        <Table>
+        <div className="rounded-lg border bg-card">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>イベント種別</TableHead>
@@ -350,7 +390,7 @@ export default function EventsPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredEvents.map((event) => (
+              paginatedEvents.map((event) => (
               <TableRow
                 key={event.id}
                 className="cursor-pointer hover:bg-gray-50"
@@ -410,7 +450,43 @@ export default function EventsPage() {
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
+
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+              />
+            </PaginationItem>
+            {getPageNumbers().map((page, i) =>
+              page === "ellipsis" ? (
+                <PaginationItem key={`ellipsis-${i}`}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    isActive={currentPage === page}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              )
+            )}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 }

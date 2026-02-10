@@ -328,11 +328,11 @@ describe("exportCustomersAction", () => {
     expect(mockRepoFindAll).toHaveBeenCalledWith(
       [1],
       false,
-      expect.objectContaining({ includeNonMember: false })
+      expect.objectContaining({ includeFormerMembers: true, includeNonMember: true })
     );
   });
 
-  it("正常系: フィルタ条件が Repository に渡される", async () => {
+  it("正常系: フィルタ条件はクライアント側で適用される（Repositoryは全件取得）", async () => {
     setupSuperAdmin();
     mockRepoFindAll.mockResolvedValue([]);
 
@@ -341,7 +341,7 @@ describe("exportCustomersAction", () => {
     expect(mockRepoFindAll).toHaveBeenCalledWith(
       [1, 2, 3],
       true,
-      expect.objectContaining({ keyword: "テスト", premiumOnly: true })
+      expect.objectContaining({ includeFormerMembers: true, includeNonMember: true })
     );
   });
 });

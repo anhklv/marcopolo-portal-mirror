@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,15 @@ import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/common";
 import { Search, Users, ChevronDown, Download, Plus } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { CheckboxItem } from "@/components/ui/checkbox-item";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
 import React from "react";
@@ -45,6 +54,8 @@ export default function CustomersPage() {
   const [auditMemberTypes, setAuditMemberTypes] = useState<AuditMemberTypeFilter[]>([]);
   const [premiumOnly, setPremiumOnly] = useState(false);
   const [includeFormerMembers, setIncludeFormerMembers] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   const handleMemberCategoryChange = (category: MemberCategoryFilter, checked: boolean) => {
     setMemberCategories((prev) => {
@@ -306,6 +317,28 @@ export default function CustomersPage() {
     });
   }, [currentAdmin, searchKeyword, memberCategories, organizations, auditMemberTypes, premiumOnly, includeFormerMembers]);
 
+  const totalPages = Math.ceil(filteredCustomers.length / ITEMS_PER_PAGE);
+  const paginatedCustomers = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredCustomers.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredCustomers, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchKeyword, memberCategories, organizations, auditMemberTypes, premiumOnly, includeFormerMembers]);
+
+  const getPageNumbers = (): (number | "ellipsis")[] => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const pages: (number | "ellipsis")[] = [1];
+    if (currentPage > 3) pages.push("ellipsis");
+    if (currentPage > 1 && currentPage < totalPages) pages.push(currentPage);
+    if (currentPage < totalPages - 2) pages.push("ellipsis");
+    if (totalPages > 1) pages.push(totalPages);
+    return pages;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -489,13 +522,20 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <div className="text-sm text-muted-foreground">
-          <span className="font-semibold text-foreground">{filteredCustomers.length}</span>件
+      <div className="space-y-2">
+        <div className="flex justify-end">
+          <div className="text-sm text-muted-foreground">
+            <span className="font-semibold text-foreground">{filteredCustomers.length}</span>件
+            {filteredCustomers.length > ITEMS_PER_PAGE && (
+              <span className="ml-2">
+                （{(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+                {Math.min(currentPage * ITEMS_PER_PAGE, filteredCustomers.length)}件目を表示）
+              </span>
+            )}
+          </div>
         </div>
-      </div>
-      <div className="rounded-lg border bg-card">
-        <Table>
+        <div className="rounded-lg border bg-card">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>ID</TableHead>
@@ -514,7 +554,7 @@ export default function CustomersPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredCustomers.map((customer) => (
+              paginatedCustomers.map((customer) => (
                 <TableRow
                   key={customer.id}
                   className="cursor-pointer hover:bg-gray-50"
@@ -709,7 +749,43 @@ export default function CustomersPage() {
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
+
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+              />
+            </PaginationItem>
+            {getPageNumbers().map((page, i) =>
+              page === "ellipsis" ? (
+                <PaginationItem key={`ellipsis-${i}`}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    isActive={currentPage === page}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              )
+            )}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
 
       <div className="flex justify-end">
         <Button variant="outline" onClick={handleDownloadCSV}>

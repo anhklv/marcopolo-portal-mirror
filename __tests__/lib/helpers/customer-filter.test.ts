@@ -121,11 +121,10 @@ describe("customer-filter", () => {
   
   it("デフォルト（元会員を含まない）の場合、全脱退者は除外されること", () => {
     // フィルタなし（デフォルト）の場合、全脱退者（ID:4）は除外
-    // 非会員（履歴なし、ID:3）もデフォルトでは除外
-    // 現役のみ（ID:1, 2, 5）が表示されるはず
+    // 非会員（履歴なし、ID:3）はデフォルト（コミュニティフィルタ無効時）は全表示のため含まれる
+    // 現役＋履歴なし非会員（ID:1, 2, 3, 5）が表示されるはず
     const result = filterCustomers(mockCustomers, defaultFilters);
-    expect(result.map(c => c.id).sort()).toEqual([1, 2, 5]);
-    expect(result).not.toContainEqual(expect.objectContaining({ id: 3 }));
+    expect(result.map(c => c.id).sort()).toEqual([1, 2, 3, 5]);
     expect(result).not.toContainEqual(expect.objectContaining({ id: 4 }));
   });
 

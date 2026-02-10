@@ -65,6 +65,7 @@ const defaultFilters: CustomerListFilters = {
   auditMemberTypes: [],
   premiumOnly: false,
   includeFormerMembers: false,
+  includeNonMemberFilter: false,
 };
 
 describe("filterCustomers", () => {
@@ -147,11 +148,10 @@ describe("filterCustomers", () => {
       expect(result).toHaveLength(2);
     });
 
-    it("フィルタ未選択 → 全件表示（ただし非会員はデフォルト除外）", () => {
+    it("フィルタ未選択 → 全件表示（コミュニティフィルタ無効時は非会員も含む）", () => {
       const result = filterCustomers(customers, defaultFilters);
-      // ID:3 (履歴なし非会員) はデフォルトフィルタ（includeNonMemberFilter: false）により除外される
-      expect(result).toHaveLength(2);
-      expect(result.map(c => c.id)).not.toContain(3);
+      // コミュニティフィルタ無効時はデフォルト全表示のため、履歴なし非会員（ID:3）も含まれる
+      expect(result).toHaveLength(3);
     });
   });
 
