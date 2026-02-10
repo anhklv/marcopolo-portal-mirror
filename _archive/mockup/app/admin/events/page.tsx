@@ -370,8 +370,8 @@ export default function EventsPage() {
             )}
           </div>
         </div>
-        <div className="rounded-lg border bg-card">
-          <Table>
+        <div className="rounded-lg bg-card">
+          <Table className="[&_th]:py-3 [&_td]:py-3">
           <TableHeader>
             <TableRow>
               <TableHead>イベント種別</TableHead>
