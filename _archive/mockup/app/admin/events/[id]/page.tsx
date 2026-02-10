@@ -363,8 +363,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                                 </Popover>
                             </div>
 
-                            <div className="rounded-lg border bg-card">
-                                <Table>
+                            <div className="rounded-lg bg-card">
+                                <Table className="[&_th]:py-4 [&_td]:py-4">
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead>氏名</TableHead>
@@ -651,7 +651,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                               <p className="text-sm text-muted-foreground">回答者: {surveyResults.respondedCustomers.length}名</p>
                             </div>
                             <div className="overflow-x-auto">
-                              <Table>
+                              <Table className="[&_th]:py-3 [&_td]:py-3">
                                 <TableHeader>
                                   <TableRow>
                                     <TableHead className="sticky left-0 z-10 bg-white">回答者</TableHead>

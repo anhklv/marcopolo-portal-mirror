@@ -117,7 +117,7 @@ export default function CustomerDetailPage({
       </div>
 
       {/* 会員情報 */}
-      <Card>
+      <Card className="border-0">
         <CardContent>
           <Stack gap="lg">
             <SectionHeading>会員情報</SectionHeading>
@@ -373,15 +373,15 @@ export default function CustomerDetailPage({
       </Card>
 
       {/* イベント参加履歴 */}
-      <Card>
+      <Card className="border-0">
         <CardContent className="space-y-6">
           {upcomingEvents.length > 0 || pastEvents.length > 0 ? (
             <>
               {upcomingEvents.length > 0 && (
                 <>
                   <SectionHeading>開催予定のイベント</SectionHeading>
-                  <div className="rounded-md border">
-                    <Table>
+                  <div className="rounded-md">
+                    <Table className="[&_th]:py-3 [&_td]:py-3">
                       <TableHeader>
                         <TableRow>
                           <TableHead>イベント種別</TableHead>
@@ -431,8 +431,8 @@ export default function CustomerDetailPage({
               {pastEvents.length > 0 && (
                 <>
                   <SectionHeading>過去のイベント</SectionHeading>
-                  <div className="rounded-md border">
-                    <Table>
+                  <div className="rounded-md">
+                    <Table className="[&_th]:py-3 [&_td]:py-3">
                       <TableHeader>
                         <TableRow>
                           <TableHead>イベント種別</TableHead>

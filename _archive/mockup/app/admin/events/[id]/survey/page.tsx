@@ -296,8 +296,8 @@ export default function EventSurveyPage({
               </Button>
             </div>
 
-          <div className="rounded-lg border bg-card">
-            <Table>
+          <div className="rounded-lg bg-card">
+            <Table className="[&_th]:py-4 [&_td]:py-4">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12">選択</TableHead>
