@@ -234,13 +234,23 @@ export default function CustomersPage() {
         const hasNonMember = organizations.includes("非会員");
         const hasOrganizations = organizations.some((org) => {
           if (org === "ベンチャー監査役の会") {
-            return customer.communities.includes("ベンチャー監査役の会");
+            const isMember = customer.communities.includes("ベンチャー監査役の会");
+            if (!isMember) return false;
+            // 元会員を含まない場合、このコミュニティを脱退している場合は除外
+            if (!includeFormerMembers && customer.auditResignedAt) return false;
+            return true;
           }
           if (org === "ないかんMeetup") {
-            return customer.communities.includes("ないかんMeetup");
+            const isMember = customer.communities.includes("ないかんMeetup");
+            if (!isMember) return false;
+            if (!includeFormerMembers && customer.naikanResignedAt) return false;
+            return true;
           }
           if (org === "AI部会") {
-            return customer.communities.includes("AI部会");
+            const isMember = customer.communities.includes("AI部会");
+            if (!isMember) return false;
+            if (!includeFormerMembers && customer.aiResignedAt) return false;
+            return true;
           }
           return false;
         });

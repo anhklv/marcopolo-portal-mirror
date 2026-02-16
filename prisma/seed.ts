@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { randomUUID } from "node:crypto";
 import { PrismaClient } from "../lib/generated/prisma";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
@@ -349,6 +350,180 @@ async function main() {
 
       console.log(`顧客を作成: ${customer.lastName} ${customer.firstName} (${customer.email})`);
     }
+  }
+
+  // テスト用イベントデータの投入
+  const otherCommunity = await prisma.community.findUnique({
+    where: { code: "other" },
+  });
+
+  if (ventureAuditor && naikanMeetup && aiClub) {
+    const now = new Date();
+    const events = [
+      {
+        communityId: ventureAuditor.id,
+        title: "第1回 定例勉強会",
+        date: new Date("2025-06-15T18:00:00"),
+        location: "東京都千代田区 会議室A",
+        description: "監査実務における最新動向の共有とディスカッション",
+        timetable: "18:00 受付\n18:30 開始\n20:00 懇親会",
+        responseDeadline: new Date("2025-06-10T23:59:59"),
+        allowsOnline: false,
+        hasAfterParty: true,
+      },
+      {
+        communityId: ventureAuditor.id,
+        title: "2026年3月 定例勉強会",
+        date: new Date("2026-03-20T18:00:00"),
+        location: "東京都港区 セミナールーム",
+        description: "四半期レビューと今後の活動方針",
+        responseDeadline: new Date("2026-03-15T23:59:59"),
+        allowsOnline: true,
+        hasAfterParty: false,
+      },
+      {
+        communityId: ventureAuditor.id,
+        title: "2026年4月 特別例会",
+        date: new Date("2026-04-20T18:00:00"),
+        location: "東京都渋谷区 会議室",
+        description: "外部講師を招いた特別セミナー",
+        responseDeadline: new Date("2026-03-31T23:59:59"),
+        allowsOnline: true,
+        hasAfterParty: true,
+      },
+      {
+        communityId: ventureAuditor.id,
+        title: "2026年5月 定例勉強会（一時停止中）",
+        date: new Date("2026-05-10T18:00:00"),
+        location: "東京都新宿区",
+        description: "会場調整のため受付を一時停止しています",
+        responseDeadline: new Date("2026-05-05T23:59:59"),
+        isPaused: true,
+        allowsOnline: false,
+        hasAfterParty: false,
+      },
+      {
+        communityId: naikanMeetup.id,
+        title: "ないかんMeetup #12",
+        date: new Date("2025-07-10T19:00:00"),
+        location: "オンライン（Zoom）",
+        description: "内観法の実践と事例共有",
+        responseDeadline: new Date("2025-07-08T23:59:59"),
+        allowsOnline: true,
+        hasAfterParty: false,
+      },
+      {
+        communityId: naikanMeetup.id,
+        title: "ないかんMeetup 2026年春",
+        date: new Date("2026-04-15T19:00:00"),
+        location: "東京都品川区 研修室",
+        description: "春の交流会",
+        responseDeadline: new Date("2026-04-10T23:59:59"),
+        allowsOnline: false,
+        hasAfterParty: true,
+      },
+      {
+        communityId: aiClub.id,
+        title: "AI部会 キックオフ Meetup",
+        date: new Date("2025-09-05T18:30:00"),
+        location: "東京都中央区 イベントスペース",
+        description: "AI部会発足記念のキックオフイベント",
+        timetable: "18:30 開場\n19:00 オープニング\n19:30  LT\n20:30 懇親",
+        responseDeadline: new Date("2025-09-01T23:59:59"),
+        allowsOnline: true,
+        hasAfterParty: true,
+      },
+      {
+        communityId: aiClub.id,
+        title: "AI部会 勉強会 #2",
+        date: new Date("2026-03-25T19:00:00"),
+        location: "オンライン（Zoom）",
+        description: "生成AIの監査への活用",
+        responseDeadline: new Date("2026-03-20T23:59:59"),
+        allowsOnline: true,
+        hasAfterParty: false,
+      },
+    ];
+
+    if (otherCommunity) {
+      events.push({
+        communityId: otherCommunity.id,
+        title: "合同交流会",
+        date: new Date("2026-06-01T18:00:00"),
+        location: "東京都 未定",
+        description: "複数コミュニティ合同の交流会",
+        responseDeadline: new Date("2026-05-25T23:59:59"),
+        allowsOnline: false,
+        hasAfterParty: true,
+      } as (typeof events)[0]);
+    }
+
+    for (const eventData of events) {
+      const existing = await prisma.event.findFirst({
+        where: {
+          communityId: eventData.communityId,
+          title: eventData.title,
+          date: eventData.date,
+          deletedAt: null,
+        },
+      });
+
+      if (!existing) {
+        const eventRecord = await prisma.event.create({ data: eventData });
+        console.log(`イベントを作成: ${eventRecord.title}`);
+      }
+    }
+
+    // RSVPの投入（既存顧客に紐づけ）
+    const tanaka = await prisma.customer.findUnique({
+      where: { email: "tanaka@example.com" },
+    });
+    const suzuki = await prisma.customer.findUnique({
+      where: { email: "suzuki@example.com" },
+    });
+    const sato = await prisma.customer.findUnique({
+      where: { email: "sato@example.com" },
+    });
+
+    const ventureEvent1 = await prisma.event.findFirst({
+      where: {
+        communityId: ventureAuditor.id,
+        title: "第1回 定例勉強会",
+      },
+    });
+    const ventureEvent2 = await prisma.event.findFirst({
+      where: {
+        communityId: ventureAuditor.id,
+        title: "2026年3月 定例勉強会",
+      },
+    });
+
+    const rsvpCandidates = [
+      { customer: tanaka, event: ventureEvent1, status: "attending" as const },
+      { customer: suzuki, event: ventureEvent1, status: "attending" as const },
+      { customer: sato, event: ventureEvent1, status: "online" as const },
+      { customer: tanaka, event: ventureEvent2, status: "pending" as const },
+      { customer: suzuki, event: ventureEvent2, status: "attending" as const },
+    ];
+
+    for (const { customer, event, status } of rsvpCandidates) {
+      if (customer && event) {
+        await prisma.rsvp.upsert({
+          where: {
+            eventId_customerId: { eventId: event.id, customerId: customer.id },
+          },
+          update: { status },
+          create: {
+            eventId: event.id,
+            customerId: customer.id,
+            token: randomUUID(),
+            status,
+            respondedAt: status !== "pending" ? new Date() : null,
+          },
+        });
+      }
+    }
+    console.log("RSVPを作成しました");
   }
 
   console.log("シードデータの投入が完了しました");
