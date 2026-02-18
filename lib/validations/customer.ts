@@ -80,6 +80,10 @@ export const customerSchema = z.object({
     .enum(["corporate", "individual"])
     .optional()
     .nullable(),
+  jobChangeIntent: z
+    .enum(["active", "considering", "if_good", "not_thinking"])
+    .optional()
+    .nullable(),
   note: z
     .string()
     .optional()

@@ -93,6 +93,30 @@ function buildCommunityData(communities?: CustomerFormInput["communities"]) {
   }));
 }
 
+/**
+ * ベンチャー監査役の会＋会員の場合、会員種別は必須
+ */
+async function validateAuditMemberType(
+  data: CustomerFormInput
+): Promise<{ error?: string }> {
+  const ventureAuditor = await prisma.community.findUnique({
+    where: { code: "venture_auditor" },
+  });
+  if (!ventureAuditor) return {};
+
+  const auditCommunity = (data.communities ?? []).find(
+    (c) => c.communityId === ventureAuditor.id
+  );
+  if (!auditCommunity) return {};
+
+  if (data.memberCategory !== "member") return {};
+
+  if (!auditCommunity.auditMemberType || !["regular", "online"].includes(auditCommunity.auditMemberType)) {
+    return { error: "会員種別を選択してください" };
+  }
+  return {};
+}
+
 // ============================================================
 // Actions
 // ============================================================
@@ -114,6 +138,9 @@ export async function createCustomerAction(
   const { data, errors } = parseFormData(formData);
   if (errors) return errors;
   if (!data) return { error: "データが不正です" };
+
+  const auditError = await validateAuditMemberType(data);
+  if (auditError.error) return auditError;
 
   // スコープ検証
   const communityIds = (data.communities ?? []).map((c) => c.communityId);
@@ -167,6 +194,9 @@ export async function updateCustomerAction(
   const { data, errors } = parseFormData(formData);
   if (errors) return errors;
   if (!data) return { error: "データが不正です" };
+
+  const auditError = await validateAuditMemberType(data);
+  if (auditError.error) return auditError;
 
   // スコープ検証
   const communityIds = (data.communities ?? []).map((c) => c.communityId);

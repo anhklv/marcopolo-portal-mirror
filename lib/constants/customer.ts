@@ -1,4 +1,4 @@
-import type { MemberCategory, ContractType, Gender, AuditMemberType } from "@/lib/generated/prisma";
+import type { MemberCategory, ContractType, Gender, AuditMemberType, JobChangeIntent } from "@/lib/generated/prisma";
 
 // 都道府県一覧
 export const PREFECTURES = [
@@ -134,6 +134,24 @@ export const CONTRACT_TYPE_LABELS: Record<ContractType, string> = {
 export const GENDER_LABELS: Record<Gender, string> = {
   male: "男性",
   female: "女性",
+} as const;
+
+// 転職意欲の選択肢
+export const JOB_CHANGE_INTENT_OPTIONS: readonly {
+  value: JobChangeIntent;
+  label: string;
+}[] = [
+  { value: "active", label: "積極的に検討中" },
+  { value: "considering", label: "検討している" },
+  { value: "if_good", label: "よい案件があれば" },
+  { value: "not_thinking", label: "全く考えていない" },
+] as const;
+
+export const JOB_CHANGE_INTENT_LABELS: Record<JobChangeIntent, string> = {
+  active: "積極的に検討中",
+  considering: "検討している",
+  if_good: "よい案件があれば",
+  not_thinking: "全く考えていない",
 } as const;
 
 // ユーザーロール（会員区分）の表示設定

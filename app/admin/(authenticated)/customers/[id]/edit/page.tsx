@@ -77,6 +77,7 @@ export default async function EditCustomerPage({
     membershipQualification: customer.membershipQualification,
     memberCategory: customer.memberCategory,
     contractType: customer.contractType,
+    jobChangeIntent: customer.jobChangeIntent,
     note: customer.note,
     communities: customer.customerCommunities.map((cc) => ({
       communityId: cc.communityId,

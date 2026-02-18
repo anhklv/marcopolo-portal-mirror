@@ -33,6 +33,7 @@ import {
   AUDIT_MEMBER_TYPES,
   NAIKAN_AFFILIATIONS,
   AI_AFFILIATIONS,
+  JOB_CHANGE_INTENT_OPTIONS,
 } from "@/lib/constants/customer";
 import {
   createCustomerAction,
@@ -78,6 +79,7 @@ interface InitialData {
   membershipQualification: string | null;
   memberCategory: string | null;
   contractType: string | null;
+  jobChangeIntent: string | null;
   note: string | null;
   communities: InitialCommunityData[];
 }
@@ -163,7 +165,7 @@ export function CustomerForm({
   );
 
   // ベンチャー監査役の会
-  const [auditMemberType, setAuditMemberType] = useState(auditInitial?.auditMemberType ?? "");
+  const [auditMemberType, setAuditMemberType] = useState(auditInitial?.auditMemberType || "regular");
   const [auditMemberPremium, setAuditMemberPremium] = useState(auditInitial?.auditMemberPremium ?? false);
   const [auditJoinedAt, setAuditJoinedAt] = useState<Date | undefined>(parseDateStr(auditInitial?.joinedAt));
   const [auditResignedAt, setAuditResignedAt] = useState<Date | undefined>(parseDateStr(auditInitial?.resignedAt));
@@ -194,6 +196,7 @@ export function CustomerForm({
   const [prefecture, setPrefecture] = useState(initialData?.prefecture ?? "");
   const [city, setCity] = useState(initialData?.city ?? "");
   const [gender, setGender] = useState(initialData?.gender ?? "");
+  const [jobChangeIntent, setJobChangeIntent] = useState(initialData?.jobChangeIntent ?? "");
   const [note, setNote] = useState(initialData?.note ?? "");
 
   // エラー状態
@@ -222,6 +225,12 @@ export function CustomerForm({
     e.preventDefault();
     setFieldErrors({});
     setGeneralError(null);
+
+    // ベンチャー監査役の会・会員の場合、会員種別は必須
+    if (auditChecked && memberCategory === "member" && !auditMemberType) {
+      toast.error("会員種別を選択してください");
+      return;
+    }
 
     // コミュニティデータ構築
     const communitiesData: Array<{
@@ -284,6 +293,7 @@ export function CustomerForm({
       membershipQualification,
       memberCategory: anyCommunityChecked ? memberCategory : null,
       contractType: anyCommunityChecked ? contractType : null,
+      jobChangeIntent: jobChangeIntent || null,
       note,
       communities: communitiesData,
     };
@@ -725,6 +735,17 @@ export function CustomerForm({
               <div className="flex items-center gap-6">
                 <RadioItem value="male" label="男性" />
                 <RadioItem value="female" label="女性" />
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div className="grid gap-2">
+            <Label>転職意欲</Label>
+            <RadioGroup value={jobChangeIntent} onValueChange={setJobChangeIntent}>
+              <div className="flex items-center gap-6">
+                {JOB_CHANGE_INTENT_OPTIONS.map((opt) => (
+                  <RadioItem key={opt.value} value={opt.value} id={`job-${opt.value}`} label={opt.label} />
+                ))}
               </div>
             </RadioGroup>
           </div>

@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { Edit, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import { CONTRACT_TYPE_LABELS, GENDER_LABELS } from "@/lib/constants/customer";
+import { CONTRACT_TYPE_LABELS, GENDER_LABELS, JOB_CHANGE_INTENT_LABELS } from "@/lib/constants/customer";
 import { USER_ROLE_CONFIG, AUDIT_MEMBER_TYPES } from "@/lib/constants/customer";
 import { RSVP_STATUS_CONFIG } from "@/lib/constants/event";
 import { deleteCustomerAction } from "@/lib/actions/customer.actions";
@@ -60,6 +60,7 @@ interface SerializedCustomerDetail {
   membershipQualification: string | null;
   memberCategory: string | null;
   contractType: string | null;
+  jobChangeIntent: string | null;
   note: string | null;
   registeredAt: string;
   deletedAt: string | null;
@@ -300,6 +301,11 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
               {customer.gender && (
                 <DataItem label="性別">
                   {GENDER_LABELS[customer.gender as keyof typeof GENDER_LABELS]}
+                </DataItem>
+              )}
+              {customer.jobChangeIntent && (
+                <DataItem label="転職意欲">
+                  {JOB_CHANGE_INTENT_LABELS[customer.jobChangeIntent as keyof typeof JOB_CHANGE_INTENT_LABELS]}
                 </DataItem>
               )}
               {customer.note && <DataItem label="備考">{customer.note}</DataItem>}

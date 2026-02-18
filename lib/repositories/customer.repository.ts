@@ -41,6 +41,7 @@ export interface CustomerCreateData {
   membershipQualification?: string | null;
   memberCategory?: "member" | "sponsor" | "observer" | null;
   contractType?: "corporate" | "individual" | null;
+  jobChangeIntent?: "active" | "considering" | "if_good" | "not_thinking" | null;
   note?: string | null;
   communities?: CommunityCreateData[];
 }

@@ -71,6 +71,14 @@ enum MembershipInterest {
   not_interested
 }
 
+/// 転職意欲（顧客プロフィール）
+enum JobChangeIntent {
+  active        // 積極的に検討中
+  considering   // 検討している
+  if_good       // よい案件があれば
+  not_thinking  // 全く考えていない
+}
+
 // ======================
 // Master Tables
 // ======================
@@ -115,6 +123,7 @@ model Customer {
   membershipQualification String?        @map("membership_qualification") @db.VarChar(100)
   memberCategory          MemberCategory? @map("member_category")
   contractType            ContractType?  @map("contract_type")
+  jobChangeIntent         JobChangeIntent? @map("job_change_intent")
   note                    String?        @db.Text
   registeredAt            DateTime       @default(now()) @map("registered_at")
   deletedAt               DateTime?      @map("deleted_at")
