@@ -329,7 +329,9 @@ export function CustomerForm({
   const pageTitle = mode === "create" ? "顧客登録" : "顧客編集";
   const pageDescription = mode === "create"
     ? "新しい顧客情報をシステムに登録します。"
-    : "顧客情報を編集します。";
+    : initialData
+      ? `${initialData.lastName} ${initialData.firstName}さんの情報を編集します。`
+      : "顧客情報を編集します。";
   const submitLabel = mode === "create" ? "登録" : "更新";
 
   return (
@@ -448,11 +450,14 @@ export function CustomerForm({
 
                   <div className="grid gap-2">
                     <Label>入会資格</Label>
-                    <Select value={membershipQualification} onValueChange={setMembershipQualification}>
+                    <Select value={membershipQualification} onValueChange={(v) => setMembershipQualification(v === "選択してください" ? "" : v)}>
                       <SelectTrigger className="w-full bg-white">
                         <SelectValue placeholder="選択してください" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
+                        <SelectItem value="選択してください" className="bg-white hover:bg-gray-100">
+                          選択してください
+                        </SelectItem>
                         {MEMBERSHIP_QUALIFICATIONS.map((q) => (
                           <SelectItem key={q} value={q} className="bg-white hover:bg-gray-100">{q}</SelectItem>
                         ))}
@@ -462,11 +467,14 @@ export function CustomerForm({
 
                   <div className="grid gap-2">
                     <Label>出身業種</Label>
-                    <Select value={originIndustry} onValueChange={setOriginIndustry}>
+                    <Select value={originIndustry} onValueChange={(v) => setOriginIndustry(v === "選択してください" ? "" : v)}>
                       <SelectTrigger className="w-full bg-white">
                         <SelectValue placeholder="選択してください" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
+                        <SelectItem value="選択してください" className="bg-white hover:bg-gray-100">
+                          選択してください
+                        </SelectItem>
                         {ORIGIN_INDUSTRIES.map((i) => (
                           <SelectItem key={i} value={i} className="bg-white hover:bg-gray-100">{i}</SelectItem>
                         ))}
@@ -495,11 +503,14 @@ export function CustomerForm({
 
                   <div className="grid gap-2">
                     <Label>所属</Label>
-                    <Select value={naikanAffiliation} onValueChange={setNaikanAffiliation}>
+                    <Select value={naikanAffiliation} onValueChange={(v) => setNaikanAffiliation(v === "選択してください" ? "" : v)}>
                       <SelectTrigger className="w-full bg-white">
                         <SelectValue placeholder="選択してください" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
+                        <SelectItem value="選択してください" className="bg-white hover:bg-gray-100">
+                          選択してください
+                        </SelectItem>
                         {NAIKAN_AFFILIATIONS.map((a) => (
                           <SelectItem key={a} value={a} className="bg-white hover:bg-gray-100">{a}</SelectItem>
                         ))}
@@ -528,11 +539,14 @@ export function CustomerForm({
 
                   <div className="grid gap-2">
                     <Label>所属</Label>
-                    <Select value={aiAffiliation} onValueChange={setAiAffiliation}>
+                    <Select value={aiAffiliation} onValueChange={(v) => setAiAffiliation(v === "選択してください" ? "" : v)}>
                       <SelectTrigger className="w-full bg-white">
                         <SelectValue placeholder="選択してください" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
+                        <SelectItem value="選択してください" className="bg-white hover:bg-gray-100">
+                          選択してください
+                        </SelectItem>
                         {AI_AFFILIATIONS.map((a) => (
                           <SelectItem key={a} value={a} className="bg-white hover:bg-gray-100">{a}</SelectItem>
                         ))}
