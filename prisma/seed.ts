@@ -41,7 +41,6 @@ const LISTING_CATEGORIES: { marketName: string; stockExchangeName: string }[] = 
   { marketName: "本則市場", stockExchangeName: "札幌証券取引所" },
   { marketName: "アンビシャス", stockExchangeName: "札幌証券取引所" },
   { marketName: "未上場", stockExchangeName: "" },
-  { marketName: "その他", stockExchangeName: "" },
 ];
 
 const AFFILIATIONS = [

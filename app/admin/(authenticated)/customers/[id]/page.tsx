@@ -60,7 +60,9 @@ export default async function CustomerDetailPage({
     } : null,
     listingCategory: customer.listingCategory ? {
       id: customer.listingCategory.id,
-      name: customer.listingCategory.marketName,
+      name: customer.listingCategory.stockExchangeName
+        ? `${customer.listingCategory.stockExchangeName} ${customer.listingCategory.marketName}`
+        : customer.listingCategory.marketName,
     } : null,
     customerCommunities: customer.customerCommunities.map((cc) => ({
       ...cc,
