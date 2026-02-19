@@ -250,8 +250,8 @@ CREATE TABLE "survey_tokens" (
 -- CreateTable
 CREATE TABLE "admins" (
     "id" SERIAL NOT NULL,
-    "first_name" VARCHAR(50) NOT NULL,
     "last_name" VARCHAR(50) NOT NULL,
+    "first_name" VARCHAR(50) NOT NULL,
     "email" VARCHAR(255) NOT NULL,
     "password_hash" VARCHAR(255) NOT NULL,
     "role" "AdminRole" NOT NULL,
@@ -388,3 +388,8 @@ ALTER TABLE "admin_communities" ADD CONSTRAINT "admin_communities_admin_id_fkey"
 
 -- AddForeignKey
 ALTER TABLE "admin_communities" ADD CONSTRAINT "admin_communities_community_id_fkey" FOREIGN KEY ("community_id") REFERENCES "communities"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- ColumnComments
+COMMENT ON COLUMN "customer_communities"."affiliation_id" IS '所属';
+COMMENT ON COLUMN "customer_communities"."origin_industry_id" IS '出身業種';
+COMMENT ON COLUMN "customer_communities"."membership_qualification_id" IS '入会資格';
