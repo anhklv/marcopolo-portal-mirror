@@ -1,15 +1,29 @@
 import { prisma } from "@/lib/prisma";
-import type { Prisma, Customer, CustomerCommunity, Community, Rsvp, Event } from "@/lib/generated/prisma";
+import type { Prisma, Customer, CustomerCommunity, Community, Rsvp, Event, Prefecture, ListingCategory, OriginIndustry, MembershipQualification, Affiliation } from "@/lib/generated/prisma";
+
 
 // ============================================================
 // 型定義
 // ============================================================
 
 export type CustomerWithCommunities = Customer & {
-  customerCommunities: (CustomerCommunity & { community: Community })[];
+  customerCommunities: (CustomerCommunity & {
+    community: Community;
+    affiliation?: Affiliation | null;
+    originIndustry?: OriginIndustry | null;
+    membershipQualification?: MembershipQualification | null;
+  })[];
+  prefecture?: Prefecture | null;
+  listingCategory?: ListingCategory | null;
 };
 
-export type CustomerDetail = CustomerWithCommunities & {
+export type CustomerDetail = Omit<CustomerWithCommunities, "customerCommunities"> & {
+  customerCommunities: (CustomerCommunity & {
+    community: Community;
+    affiliation?: Affiliation | null;
+    originIndustry?: OriginIndustry | null;
+    membershipQualification?: MembershipQualification | null;
+  })[];
   rsvps: (Rsvp & { event: Event })[];
 };
 
@@ -33,12 +47,10 @@ export interface CustomerCreateData {
   company?: string | null;
   phone?: string | null;
   postalCode?: string | null;
-  prefecture?: string | null;
+  prefectureId?: number | null;
   city?: string | null;
   gender?: "male" | "female" | null;
-  listingCategory?: string | null;
-  originIndustry?: string | null;
-  membershipQualification?: string | null;
+  listingCategoryId?: number | null;
   memberCategory?: "member" | "sponsor" | "observer" | null;
   contractType?: "corporate" | "individual" | null;
   jobChangeIntent?: "active" | "considering" | "if_good" | "not_thinking" | null;
@@ -52,7 +64,9 @@ export interface CommunityCreateData {
   resignedAt?: Date | null;
   auditMemberType?: "regular" | "online" | null;
   auditMemberPremium?: boolean | null;
-  affiliation?: string | null;
+  affiliationId?: number | null;
+  originIndustryId?: number | null;
+  membershipQualificationId?: number | null;
 }
 
 // ============================================================
@@ -156,8 +170,15 @@ export async function findAll(
     where,
     include: {
       customerCommunities: {
-        include: { community: true },
+        include: {
+          community: true,
+          affiliation: true,
+          originIndustry: true,
+          membershipQualification: true,
+        },
       },
+      prefecture: true,
+      listingCategory: true,
     },
     orderBy: { id: "desc" },
   });
@@ -184,12 +205,19 @@ export async function findById(id: number): Promise<CustomerDetail | null> {
     where: { id, deletedAt: null },
     include: {
       customerCommunities: {
-        include: { community: true },
+        include: {
+          community: true,
+          affiliation: true,
+          originIndustry: true,
+          membershipQualification: true,
+        },
       },
       rsvps: {
         include: { event: true },
         orderBy: { event: { date: "desc" } },
       },
+      prefecture: true,
+      listingCategory: true,
     },
   });
 }
@@ -217,7 +245,9 @@ export async function create(data: CustomerCreateData): Promise<Customer> {
           resignedAt: c.resignedAt,
           auditMemberType: c.auditMemberType,
           auditMemberPremium: c.auditMemberPremium,
-          affiliation: c.affiliation,
+          affiliationId: c.affiliationId,
+          originIndustryId: c.originIndustryId,
+          membershipQualificationId: c.membershipQualificationId,
         })),
       });
     }
@@ -255,7 +285,9 @@ export async function update(id: number, data: CustomerCreateData): Promise<Cust
           resignedAt: c.resignedAt,
           auditMemberType: c.auditMemberType,
           auditMemberPremium: c.auditMemberPremium,
-          affiliation: c.affiliation,
+          affiliationId: c.affiliationId,
+          originIndustryId: c.originIndustryId,
+          membershipQualificationId: c.membershipQualificationId,
         })),
       });
     }

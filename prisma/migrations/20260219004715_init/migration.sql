@@ -1,6 +1,3 @@
--- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "public";
-
 -- CreateEnum
 CREATE TYPE "Gender" AS ENUM ('male', 'female');
 
@@ -31,6 +28,9 @@ CREATE TYPE "FutureParticipation" AS ENUM ('definitely_yes', 'considering', 'no'
 -- CreateEnum
 CREATE TYPE "MembershipInterest" AS ENUM ('want_to_join', 'considering', 'not_interested');
 
+-- CreateEnum
+CREATE TYPE "JobChangeIntent" AS ENUM ('active', 'considering', 'if_good', 'not_thinking');
+
 -- CreateTable
 CREATE TABLE "communities" (
     "id" SERIAL NOT NULL,
@@ -45,23 +45,84 @@ CREATE TABLE "communities" (
 );
 
 -- CreateTable
-CREATE TABLE "customers" (
+CREATE TABLE "prefectures" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(20) NOT NULL,
+    "code" VARCHAR(10),
+    "sort_order" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "prefectures_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "listing_categories" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(100) NOT NULL,
-    "name_kana" VARCHAR(100),
+    "code" VARCHAR(50),
+    "sort_order" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "listing_categories_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "origin_industries" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(100) NOT NULL,
+    "code" VARCHAR(50),
+    "sort_order" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "origin_industries_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "membership_qualifications" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(100) NOT NULL,
+    "code" VARCHAR(50),
+    "sort_order" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "membership_qualifications_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "affiliations" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(100) NOT NULL,
+    "code" VARCHAR(50),
+    "sort_order" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "affiliations_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "customers" (
+    "id" SERIAL NOT NULL,
+    "last_name" VARCHAR(100) NOT NULL,
+    "first_name" VARCHAR(100) NOT NULL,
+    "last_name_kana" VARCHAR(100),
+    "first_name_kana" VARCHAR(100),
     "company" VARCHAR(200),
     "email" VARCHAR(255) NOT NULL,
     "sub_emails" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "phone" VARCHAR(20),
     "postal_code" VARCHAR(10),
-    "prefecture" VARCHAR(20),
+    "prefecture_id" INTEGER,
     "city" VARCHAR(255),
     "gender" "Gender",
-    "listing_category" VARCHAR(100),
-    "origin_industry" VARCHAR(100),
-    "membership_qualification" VARCHAR(100),
+    "listing_category_id" INTEGER,
     "member_category" "MemberCategory",
     "contract_type" "ContractType",
+    "job_change_intent" "JobChangeIntent",
     "note" TEXT,
     "registered_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMP(3),
@@ -78,7 +139,9 @@ CREATE TABLE "customer_communities" (
     "resigned_at" TIMESTAMP(3),
     "audit_member_type" "AuditMemberType",
     "audit_member_premium" BOOLEAN,
-    "affiliation" VARCHAR(100),
+    "affiliation_id" INTEGER,
+    "origin_industry_id" INTEGER,
+    "membership_qualification_id" INTEGER,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -217,6 +280,21 @@ CREATE TABLE "admin_communities" (
 CREATE UNIQUE INDEX "communities_code_key" ON "communities"("code");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "prefectures_name_key" ON "prefectures"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "listing_categories_name_key" ON "listing_categories"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "origin_industries_name_key" ON "origin_industries"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "membership_qualifications_name_key" ON "membership_qualifications"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "affiliations_name_key" ON "affiliations"("name");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "customers_email_key" ON "customers"("email");
 
 -- CreateIndex
@@ -250,10 +328,25 @@ CREATE UNIQUE INDEX "admins_email_key" ON "admins"("email");
 CREATE UNIQUE INDEX "admin_communities_admin_id_community_id_key" ON "admin_communities"("admin_id", "community_id");
 
 -- AddForeignKey
+ALTER TABLE "customers" ADD CONSTRAINT "customers_prefecture_id_fkey" FOREIGN KEY ("prefecture_id") REFERENCES "prefectures"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "customers" ADD CONSTRAINT "customers_listing_category_id_fkey" FOREIGN KEY ("listing_category_id") REFERENCES "listing_categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "customer_communities" ADD CONSTRAINT "customer_communities_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "customers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "customer_communities" ADD CONSTRAINT "customer_communities_community_id_fkey" FOREIGN KEY ("community_id") REFERENCES "communities"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "customer_communities" ADD CONSTRAINT "customer_communities_affiliation_id_fkey" FOREIGN KEY ("affiliation_id") REFERENCES "affiliations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "customer_communities" ADD CONSTRAINT "customer_communities_origin_industry_id_fkey" FOREIGN KEY ("origin_industry_id") REFERENCES "origin_industries"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "customer_communities" ADD CONSTRAINT "customer_communities_membership_qualification_id_fkey" FOREIGN KEY ("membership_qualification_id") REFERENCES "membership_qualifications"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "events" ADD CONSTRAINT "events_community_id_fkey" FOREIGN KEY ("community_id") REFERENCES "communities"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -299,4 +392,3 @@ ALTER TABLE "admin_communities" ADD CONSTRAINT "admin_communities_admin_id_fkey"
 
 -- AddForeignKey
 ALTER TABLE "admin_communities" ADD CONSTRAINT "admin_communities_community_id_fkey" FOREIGN KEY ("community_id") REFERENCES "communities"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-

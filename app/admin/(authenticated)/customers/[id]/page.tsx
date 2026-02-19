@@ -54,6 +54,14 @@ export default async function CustomerDetailPage({
     ...customer,
     registeredAt: customer.registeredAt.toISOString(),
     deletedAt: customer.deletedAt?.toISOString() ?? null,
+    prefecture: customer.prefecture ? {
+      id: customer.prefecture.id,
+      name: customer.prefecture.name,
+    } : null,
+    listingCategory: customer.listingCategory ? {
+      id: customer.listingCategory.id,
+      name: customer.listingCategory.name,
+    } : null,
     customerCommunities: customer.customerCommunities.map((cc) => ({
       ...cc,
       joinedAt: cc.joinedAt?.toISOString() ?? null,
@@ -65,6 +73,18 @@ export default async function CustomerDetailPage({
         createdAt: cc.community.createdAt.toISOString(),
         updatedAt: cc.community.updatedAt.toISOString(),
       },
+      affiliation: cc.affiliation ? {
+        id: cc.affiliation.id,
+        name: cc.affiliation.name,
+      } : null,
+      originIndustry: cc.originIndustry ? {
+        id: cc.originIndustry.id,
+        name: cc.originIndustry.name,
+      } : null,
+      membershipQualification: cc.membershipQualification ? {
+        id: cc.membershipQualification.id,
+        name: cc.membershipQualification.name,
+      } : null,
     })),
     rsvps: customer.rsvps.map((r) => ({
       ...r,
@@ -82,5 +102,5 @@ export default async function CustomerDetailPage({
     })),
   };
 
-  return <CustomerDetail customer={serializedCustomer} />;
+  return <CustomerDetail customer={serializedCustomer as any} />;
 }

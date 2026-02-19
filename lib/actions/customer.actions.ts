@@ -89,7 +89,9 @@ function buildCommunityData(communities?: CustomerFormInput["communities"]) {
     resignedAt: c.resignedAt ? new Date(c.resignedAt) : null,
     auditMemberType: c.auditMemberType ?? null,
     auditMemberPremium: c.auditMemberPremium ?? null,
-    affiliation: c.affiliation ?? null,
+    affiliationId: c.affiliationId ?? null,
+    originIndustryId: c.originIndustryId ?? null,
+    membershipQualificationId: c.membershipQualificationId ?? null,
   }));
 }
 
@@ -306,6 +308,10 @@ export async function exportCustomersAction(
     "会社名",
     "所属コミュニティ",
     "会員区分",
+    "都道府県",
+    "上場区分",
+    "出身業種",
+    "入会資格",
     "登録日",
   ];
 
@@ -317,6 +323,8 @@ export async function exportCustomersAction(
       ? { member: "会員", sponsor: "スポンサー", observer: "オブザーバー" }[c.memberCategory]
       : "";
     const registeredAt = formatDateForCsv(c.registeredAt);
+    // originIndustry/membershipQualification は CustomerCommunity（ベンチャー監査役の会）に紐づく
+    const auditCC = c.customerCommunities.find((cc) => cc.community.code === "venture_auditor");
 
     return [
       String(c.id),
@@ -328,6 +336,10 @@ export async function exportCustomersAction(
       c.company ?? "",
       communityNames,
       memberCategoryLabel,
+      c.prefecture?.name ?? "",
+      c.listingCategory?.name ?? "",
+      auditCC?.originIndustry?.name ?? "",
+      auditCC?.membershipQualification?.name ?? "",
       registeredAt,
     ];
   });

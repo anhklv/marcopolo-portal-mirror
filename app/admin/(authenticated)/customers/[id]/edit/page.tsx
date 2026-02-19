@@ -52,10 +52,15 @@ export default async function EditCustomerPage({
   const isSuper = admin.role === "super";
   const scopedCommunityIds = await getScopedCommunityIds(adminForPermission);
 
-  const communities = await prisma.community.findMany({
-    where: { code: { not: "other" } },
-    orderBy: { sortOrder: "asc" },
-  });
+  const [communities, prefectures, listingCategories, originIndustries, membershipQualifications, affiliations] =
+    await Promise.all([
+      prisma.community.findMany({ where: { code: { not: "other" } }, orderBy: { sortOrder: "asc" } }),
+      prisma.prefecture.findMany({ orderBy: { sortOrder: "asc" } }),
+      prisma.listingCategory.findMany({ orderBy: { sortOrder: "asc" } }),
+      prisma.originIndustry.findMany({ orderBy: { sortOrder: "asc" } }),
+      prisma.membershipQualification.findMany({ orderBy: { sortOrder: "asc" } }),
+      prisma.affiliation.findMany({ orderBy: { sortOrder: "asc" } }),
+    ]);
 
   // Date をシリアライズして initialData を構築
   const initialData = {
@@ -69,12 +74,10 @@ export default async function EditCustomerPage({
     company: customer.company,
     phone: customer.phone,
     postalCode: customer.postalCode,
-    prefecture: customer.prefecture,
+    prefectureId: customer.prefectureId,
     city: customer.city,
     gender: customer.gender,
-    listingCategory: customer.listingCategory,
-    originIndustry: customer.originIndustry,
-    membershipQualification: customer.membershipQualification,
+    listingCategoryId: customer.listingCategoryId,
     memberCategory: customer.memberCategory,
     contractType: customer.contractType,
     jobChangeIntent: customer.jobChangeIntent,
@@ -85,7 +88,9 @@ export default async function EditCustomerPage({
       resignedAt: cc.resignedAt?.toISOString() ?? null,
       auditMemberType: cc.auditMemberType,
       auditMemberPremium: cc.auditMemberPremium,
-      affiliation: cc.affiliation,
+      affiliationId: cc.affiliationId,
+      originIndustryId: cc.originIndustryId,
+      membershipQualificationId: cc.membershipQualificationId,
     })),
   };
 
@@ -98,6 +103,11 @@ export default async function EditCustomerPage({
         code: c.code,
         name: c.name,
       }))}
+      prefectures={prefectures}
+      listingCategories={listingCategories}
+      originIndustries={originIndustries}
+      membershipQualifications={membershipQualifications}
+      affiliations={affiliations}
       isSuper={isSuper}
       scopedCommunityIds={scopedCommunityIds}
     />

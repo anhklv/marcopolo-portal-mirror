@@ -43,14 +43,21 @@ export default async function CustomersPage() {
   });
 
   // Date をシリアライズ
-  const serializedCustomers = customers.map((c) => ({
+  const serializedCustomers = customers.map((c) => {
+    const auditCC = c.customerCommunities.find((cc) => cc.community.code === "venture_auditor");
+    return {
     ...c,
+    prefecture: c.prefecture?.name ?? null,
+    listingCategory: c.listingCategory?.name ?? null,
+    originIndustry: auditCC?.originIndustry?.name ?? null,
+    membershipQualification: auditCC?.membershipQualification?.name ?? null,
     registeredAt: c.registeredAt.toISOString(),
     deletedAt: c.deletedAt?.toISOString() ?? null,
     customerCommunities: c.customerCommunities.map((cc) => ({
       ...cc,
       joinedAt: cc.joinedAt?.toISOString() ?? null,
       resignedAt: cc.resignedAt?.toISOString() ?? null,
+      affiliation: cc.affiliation?.name ?? null,
       createdAt: cc.createdAt.toISOString(),
       updatedAt: cc.updatedAt.toISOString(),
       community: {
@@ -59,11 +66,12 @@ export default async function CustomersPage() {
         updatedAt: cc.community.updatedAt.toISOString(),
       },
     })),
-  }));
+  };
+  });
 
   return (
     <CustomerList
-      initialCustomers={serializedCustomers}
+      initialCustomers={serializedCustomers as any}
       communities={communities.map((c) => ({
         id: c.id,
         code: c.code,

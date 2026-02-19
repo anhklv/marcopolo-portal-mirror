@@ -11,9 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -26,13 +24,7 @@ import { DatePickerWithInput } from "@/components/ui/date-picker-with-input";
 import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
 import {
-  PREFECTURES,
-  ORIGIN_INDUSTRIES,
-  MEMBERSHIP_QUALIFICATIONS,
-  LISTING_OPTIONS,
   AUDIT_MEMBER_TYPES,
-  NAIKAN_AFFILIATIONS,
-  AI_AFFILIATIONS,
   JOB_CHANGE_INTENT_OPTIONS,
 } from "@/lib/constants/customer";
 import {
@@ -44,6 +36,11 @@ import type { ActionResult } from "@/lib/actions/customer.actions";
 // ============================================================
 // 型定義
 // ============================================================
+
+interface MasterData {
+  id: number;
+  name: string;
+}
 
 interface CommunityData {
   id: number;
@@ -57,7 +54,9 @@ interface InitialCommunityData {
   resignedAt: string | null;
   auditMemberType: string | null;
   auditMemberPremium: boolean | null;
-  affiliation: string | null;
+  affiliationId: number | null;
+  originIndustryId: number | null;
+  membershipQualificationId: number | null;
 }
 
 interface InitialData {
@@ -71,12 +70,10 @@ interface InitialData {
   company: string | null;
   phone: string | null;
   postalCode: string | null;
-  prefecture: string | null;
+  prefectureId: number | null;
   city: string | null;
   gender: string | null;
-  listingCategory: string | null;
-  originIndustry: string | null;
-  membershipQualification: string | null;
+  listingCategoryId: number | null;
   memberCategory: string | null;
   contractType: string | null;
   jobChangeIntent: string | null;
@@ -88,9 +85,20 @@ interface CustomerFormProps {
   mode: "create" | "edit";
   initialData?: InitialData;
   communities: CommunityData[];
+  prefectures: MasterData[];
+  listingCategories: MasterData[];
+  originIndustries: MasterData[];
+  membershipQualifications: MasterData[];
+  affiliations: MasterData[];
   isSuper: boolean;
   scopedCommunityIds: number[];
 }
+
+// ============================================================
+// 定数
+// ============================================================
+
+const NONE_VALUE = "__none__";
 
 // ============================================================
 // ヘルパー
@@ -129,6 +137,11 @@ export function CustomerForm({
   mode,
   initialData,
   communities,
+  prefectures,
+  listingCategories,
+  originIndustries,
+  membershipQualifications,
+  affiliations,
   isSuper,
   scopedCommunityIds,
 }: CustomerFormProps) {
@@ -169,16 +182,16 @@ export function CustomerForm({
   const [auditMemberPremium, setAuditMemberPremium] = useState(auditInitial?.auditMemberPremium ?? false);
   const [auditJoinedAt, setAuditJoinedAt] = useState<Date | undefined>(parseDateStr(auditInitial?.joinedAt));
   const [auditResignedAt, setAuditResignedAt] = useState<Date | undefined>(parseDateStr(auditInitial?.resignedAt));
-  const [originIndustry, setOriginIndustry] = useState(initialData?.originIndustry ?? "");
-  const [membershipQualification, setMembershipQualification] = useState(initialData?.membershipQualification ?? "");
+  const [originIndustryId, setOriginIndustryId] = useState<number | undefined>(auditInitial?.originIndustryId ?? undefined);
+  const [membershipQualificationId, setMembershipQualificationId] = useState<number | undefined>(auditInitial?.membershipQualificationId ?? undefined);
 
   // ないかんMeetup
-  const [naikanAffiliation, setNaikanAffiliation] = useState(naikanInitial?.affiliation ?? "");
+  const [naikanAffiliationId, setNaikanAffiliationId] = useState<number | undefined>(naikanInitial?.affiliationId ?? undefined);
   const [naikanJoinedAt, setNaikanJoinedAt] = useState<Date | undefined>(parseDateStr(naikanInitial?.joinedAt));
   const [naikanResignedAt, setNaikanResignedAt] = useState<Date | undefined>(parseDateStr(naikanInitial?.resignedAt));
 
   // AI部会
-  const [aiAffiliation, setAiAffiliation] = useState(aiInitial?.affiliation ?? "");
+  const [aiAffiliationId, setAiAffiliationId] = useState<number | undefined>(aiInitial?.affiliationId ?? undefined);
   const [aiJoinedAt, setAiJoinedAt] = useState<Date | undefined>(parseDateStr(aiInitial?.joinedAt));
   const [aiResignedAt, setAiResignedAt] = useState<Date | undefined>(parseDateStr(aiInitial?.resignedAt));
 
@@ -190,10 +203,10 @@ export function CustomerForm({
   const [email, setEmail] = useState(initialData?.email ?? "");
   const [subEmails, setSubEmails] = useState<string[]>(initialData?.subEmails ?? []);
   const [company, setCompany] = useState(initialData?.company ?? "");
-  const [listingCategory, setListingCategory] = useState(initialData?.listingCategory ?? "");
+  const [listingCategoryId, setListingCategoryId] = useState<number | undefined>(initialData?.listingCategoryId ?? undefined);
   const [phone, setPhone] = useState(initialData?.phone ?? "");
   const [postalCode, setPostalCode] = useState(initialData?.postalCode ?? "");
-  const [prefecture, setPrefecture] = useState(initialData?.prefecture ?? "");
+  const [prefectureId, setPrefectureId] = useState<number | undefined>(initialData?.prefectureId ?? undefined);
   const [city, setCity] = useState(initialData?.city ?? "");
   const [gender, setGender] = useState(initialData?.gender ?? "");
   const [jobChangeIntent, setJobChangeIntent] = useState(initialData?.jobChangeIntent ?? "");
@@ -239,7 +252,9 @@ export function CustomerForm({
       resignedAt: string | null;
       auditMemberType: string | null;
       auditMemberPremium: boolean | null;
-      affiliation: string | null;
+      affiliationId: number | null;
+      originIndustryId: number | null;
+      membershipQualificationId: number | null;
     }> = [];
 
     if (auditChecked && auditCommunity) {
@@ -249,7 +264,9 @@ export function CustomerForm({
         resignedAt: dateToIsoString(auditResignedAt),
         auditMemberType: memberCategory === "member" ? (auditMemberType || null) : null,
         auditMemberPremium: memberCategory === "member" ? auditMemberPremium : null,
-        affiliation: null,
+        affiliationId: null,
+        originIndustryId: originIndustryId || null,
+        membershipQualificationId: membershipQualificationId || null,
       });
     }
 
@@ -260,7 +277,9 @@ export function CustomerForm({
         resignedAt: dateToIsoString(naikanResignedAt),
         auditMemberType: null,
         auditMemberPremium: null,
-        affiliation: naikanAffiliation || null,
+        affiliationId: naikanAffiliationId || null,
+        originIndustryId: null,
+        membershipQualificationId: null,
       });
     }
 
@@ -271,7 +290,9 @@ export function CustomerForm({
         resignedAt: dateToIsoString(aiResignedAt),
         auditMemberType: null,
         auditMemberPremium: null,
-        affiliation: aiAffiliation || null,
+        affiliationId: aiAffiliationId || null,
+        originIndustryId: null,
+        membershipQualificationId: null,
       });
     }
 
@@ -285,12 +306,10 @@ export function CustomerForm({
       company,
       phone,
       postalCode,
-      prefecture,
+      prefectureId: prefectureId || null,
       city,
       gender: gender || null,
-      listingCategory,
-      originIndustry,
-      membershipQualification,
+      listingCategoryId: listingCategoryId || null,
       memberCategory: anyCommunityChecked ? memberCategory : null,
       contractType: anyCommunityChecked ? contractType : null,
       jobChangeIntent: jobChangeIntent || null,
@@ -450,16 +469,17 @@ export function CustomerForm({
 
                   <div className="grid gap-2">
                     <Label>入会資格</Label>
-                    <Select value={membershipQualification} onValueChange={(v) => setMembershipQualification(v === "選択してください" ? "" : v)}>
+                    <Select
+                      value={membershipQualificationId ? String(membershipQualificationId) : NONE_VALUE}
+                      onValueChange={(v) => setMembershipQualificationId(v === NONE_VALUE ? undefined : Number(v))}
+                    >
                       <SelectTrigger className="w-full bg-white">
                         <SelectValue placeholder="選択してください" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        <SelectItem value="選択してください" className="bg-white hover:bg-gray-100">
-                          選択してください
-                        </SelectItem>
-                        {MEMBERSHIP_QUALIFICATIONS.map((q) => (
-                          <SelectItem key={q} value={q} className="bg-white hover:bg-gray-100">{q}</SelectItem>
+                        <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100 text-muted-foreground">選択してください</SelectItem>
+                        {membershipQualifications.map((q) => (
+                          <SelectItem key={q.id} value={String(q.id)} className="bg-white hover:bg-gray-100">{q.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -467,16 +487,17 @@ export function CustomerForm({
 
                   <div className="grid gap-2">
                     <Label>出身業種</Label>
-                    <Select value={originIndustry} onValueChange={(v) => setOriginIndustry(v === "選択してください" ? "" : v)}>
+                    <Select
+                      value={originIndustryId ? String(originIndustryId) : NONE_VALUE}
+                      onValueChange={(v) => setOriginIndustryId(v === NONE_VALUE ? undefined : Number(v))}
+                    >
                       <SelectTrigger className="w-full bg-white">
                         <SelectValue placeholder="選択してください" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        <SelectItem value="選択してください" className="bg-white hover:bg-gray-100">
-                          選択してください
-                        </SelectItem>
-                        {ORIGIN_INDUSTRIES.map((i) => (
-                          <SelectItem key={i} value={i} className="bg-white hover:bg-gray-100">{i}</SelectItem>
+                        <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100 text-muted-foreground">選択してください</SelectItem>
+                        {originIndustries.map((i) => (
+                          <SelectItem key={i.id} value={String(i.id)} className="bg-white hover:bg-gray-100">{i.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -503,16 +524,17 @@ export function CustomerForm({
 
                   <div className="grid gap-2">
                     <Label>所属</Label>
-                    <Select value={naikanAffiliation} onValueChange={(v) => setNaikanAffiliation(v === "選択してください" ? "" : v)}>
+                    <Select
+                      value={naikanAffiliationId ? String(naikanAffiliationId) : NONE_VALUE}
+                      onValueChange={(v) => setNaikanAffiliationId(v === NONE_VALUE ? undefined : Number(v))}
+                    >
                       <SelectTrigger className="w-full bg-white">
                         <SelectValue placeholder="選択してください" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        <SelectItem value="選択してください" className="bg-white hover:bg-gray-100">
-                          選択してください
-                        </SelectItem>
-                        {NAIKAN_AFFILIATIONS.map((a) => (
-                          <SelectItem key={a} value={a} className="bg-white hover:bg-gray-100">{a}</SelectItem>
+                        <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100 text-muted-foreground">選択してください</SelectItem>
+                        {affiliations.map((a) => (
+                          <SelectItem key={a.id} value={String(a.id)} className="bg-white hover:bg-gray-100">{a.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -539,16 +561,17 @@ export function CustomerForm({
 
                   <div className="grid gap-2">
                     <Label>所属</Label>
-                    <Select value={aiAffiliation} onValueChange={(v) => setAiAffiliation(v === "選択してください" ? "" : v)}>
+                    <Select
+                      value={aiAffiliationId ? String(aiAffiliationId) : NONE_VALUE}
+                      onValueChange={(v) => setAiAffiliationId(v === NONE_VALUE ? undefined : Number(v))}
+                    >
                       <SelectTrigger className="w-full bg-white">
                         <SelectValue placeholder="選択してください" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        <SelectItem value="選択してください" className="bg-white hover:bg-gray-100">
-                          選択してください
-                        </SelectItem>
-                        {AI_AFFILIATIONS.map((a) => (
-                          <SelectItem key={a} value={a} className="bg-white hover:bg-gray-100">{a}</SelectItem>
+                        <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100 text-muted-foreground">選択してください</SelectItem>
+                        {affiliations.map((a) => (
+                          <SelectItem key={a.id} value={String(a.id)} className="bg-white hover:bg-gray-100">{a.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -664,32 +687,22 @@ export function CustomerForm({
 
           <FormField label="上場区分">
             <Select
-              value={listingCategory}
-              onValueChange={(v) => setListingCategory(v === "選択してください" ? "" : v)}
+              value={listingCategoryId ? String(listingCategoryId) : NONE_VALUE}
+              onValueChange={(v) => setListingCategoryId(v === NONE_VALUE ? undefined : Number(v))}
             >
               <SelectTrigger className="w-full bg-white">
                 <SelectValue placeholder="選択してください" />
               </SelectTrigger>
               <SelectContent className="bg-white">
-                <SelectItem value="選択してください" className="bg-white hover:bg-gray-100">
-                  選択してください
-                </SelectItem>
-                <SelectItem value="未上場" className="bg-white hover:bg-gray-100">
-                  未上場
-                </SelectItem>
-                {LISTING_OPTIONS.map((option) => (
-                  <SelectGroup key={option.exchange}>
-                    <SelectLabel className="bg-gray-100">{option.exchange}</SelectLabel>
-                    {option.markets.map((market) => (
-                      <SelectItem
-                        key={`${option.exchange}-${market}`}
-                        value={`${option.exchange}-${market}`}
-                        className="bg-white hover:bg-gray-100"
-                      >
-                        {market}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
+                <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100 text-muted-foreground">選択してください</SelectItem>
+                {listingCategories.map((option) => (
+                  <SelectItem
+                    key={option.id}
+                    value={String(option.id)}
+                    className="bg-white hover:bg-gray-100"
+                  >
+                    {option.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -715,19 +728,17 @@ export function CustomerForm({
 
           <FormField label="都道府県">
             <Select
-              value={prefecture}
-              onValueChange={(v) => setPrefecture(v === "選択してください" ? "" : v)}
+              value={prefectureId ? String(prefectureId) : NONE_VALUE}
+              onValueChange={(v) => setPrefectureId(v === NONE_VALUE ? undefined : Number(v))}
             >
               <SelectTrigger className="w-full bg-white">
                 <SelectValue placeholder="選択してください" />
               </SelectTrigger>
               <SelectContent className="bg-white">
-                <SelectItem value="選択してください" className="bg-white hover:bg-gray-100">
-                  選択してください
-                </SelectItem>
-                {PREFECTURES.map((pref) => (
-                  <SelectItem key={pref} value={pref} className="bg-white hover:bg-gray-100">
-                    {pref}
+                <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100 text-muted-foreground">選択してください</SelectItem>
+                {prefectures.map((pref) => (
+                  <SelectItem key={pref.id} value={String(pref.id)} className="bg-white hover:bg-gray-100">
+                    {pref.name}
                   </SelectItem>
                 ))}
               </SelectContent>

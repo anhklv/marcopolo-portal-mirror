@@ -100,59 +100,134 @@ model Community {
   @@map("communities")
 }
 
+model Prefecture {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(20)
+  code      String?  @db.VarChar(10) // JIS code etc.
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  customers Customer[]
+
+  @@map("prefectures")
+}
+
+model ListingCategory {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(100)
+  code      String?  @db.VarChar(50)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  customers Customer[]
+
+  @@map("listing_categories")
+}
+
+model OriginIndustry {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(100)
+  code      String?  @db.VarChar(50)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  customerCommunities CustomerCommunity[]
+
+  @@map("origin_industries")
+}
+
+model MembershipQualification {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(100)
+  code      String?  @db.VarChar(50)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  customerCommunities CustomerCommunity[]
+
+  @@map("membership_qualifications")
+}
+
+model Affiliation {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(100)
+  code      String?  @db.VarChar(50)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  customerCommunities CustomerCommunity[]
+
+  @@map("affiliations")
+}
+
 // ======================
 // Customer Tables
 // ======================
 
 model Customer {
-  id                      Int            @id @default(autoincrement())
-  firstName               String         @map("first_name") @db.VarChar(100)
-  lastName                String         @map("last_name") @db.VarChar(100)
-  firstNameKana           String?        @map("first_name_kana") @db.VarChar(100)
-  lastNameKana            String?        @map("last_name_kana") @db.VarChar(100)
-  company                 String?        @db.VarChar(200)
-  email                   String         @unique @db.VarChar(255)
-  subEmails               String[]       @default([]) @map("sub_emails")
-  phone                   String?        @db.VarChar(20)
-  postalCode              String?        @map("postal_code") @db.VarChar(10)
-  prefecture              String?        @db.VarChar(20)
-  city                    String?        @db.VarChar(255)
-  gender                  Gender?
-  listingCategory         String?        @map("listing_category") @db.VarChar(100)
-  originIndustry          String?        @map("origin_industry") @db.VarChar(100)
-  membershipQualification String?        @map("membership_qualification") @db.VarChar(100)
-  memberCategory          MemberCategory? @map("member_category")
-  contractType            ContractType?  @map("contract_type")
-  jobChangeIntent         JobChangeIntent? @map("job_change_intent")
-  note                    String?        @db.Text
-  registeredAt            DateTime       @default(now()) @map("registered_at")
-  deletedAt               DateTime?      @map("deleted_at")
+  id                        Int             @id @default(autoincrement())
+  lastName                  String          @map("last_name") @db.VarChar(100)
+  firstName                 String          @map("first_name") @db.VarChar(100)
+  lastNameKana              String?         @map("last_name_kana") @db.VarChar(100)
+  firstNameKana             String?         @map("first_name_kana") @db.VarChar(100)
+  company                   String?         @db.VarChar(200)
+  email                     String          @unique @db.VarChar(255)
+  subEmails                 String[]        @default([]) @map("sub_emails")
+  phone                     String?         @db.VarChar(20)
+  postalCode                String?         @map("postal_code") @db.VarChar(10)
+  prefectureId              Int?            @map("prefecture_id")
+  city                      String?         @db.VarChar(255)
+  gender                    Gender?
+  listingCategoryId         Int?            @map("listing_category_id")
+  memberCategory            MemberCategory? @map("member_category")
+  contractType              ContractType?   @map("contract_type")
+  jobChangeIntent           JobChangeIntent? @map("job_change_intent")
+  note                      String?         @db.Text
+  registeredAt              DateTime        @default(now()) @map("registered_at")
+  deletedAt                 DateTime?       @map("deleted_at")
 
   // Relations
-  customerCommunities    CustomerCommunity[]
-  rsvps                  Rsvp[]
-  surveyResponses        SurveyResponse[]
-  fixedSurveyResponses   FixedSurveyResponse[]
-  surveyTokens           SurveyToken[]
+  prefecture              Prefecture?              @relation(fields: [prefectureId], references: [id])
+  listingCategory         ListingCategory?         @relation(fields: [listingCategoryId], references: [id])
+  customerCommunities     CustomerCommunity[]
+  rsvps                   Rsvp[]
+  surveyResponses         SurveyResponse[]
+  fixedSurveyResponses    FixedSurveyResponse[]
+  surveyTokens            SurveyToken[]
 
   @@map("customers")
 }
 
 model CustomerCommunity {
-  id                 Int             @id @default(autoincrement())
-  customerId         Int             @map("customer_id")
-  communityId        Int             @map("community_id")
-  joinedAt           DateTime?       @map("joined_at")
-  resignedAt         DateTime?       @map("resigned_at")
-  auditMemberType    AuditMemberType? @map("audit_member_type")
-  auditMemberPremium Boolean?        @map("audit_member_premium")
-  affiliation        String?         @db.VarChar(100)
-  createdAt          DateTime        @default(now()) @map("created_at")
-  updatedAt          DateTime        @updatedAt @map("updated_at")
+  id                        Int             @id @default(autoincrement())
+  customerId                Int             @map("customer_id")
+  communityId               Int             @map("community_id")
+  joinedAt                  DateTime?       @map("joined_at")
+  resignedAt                DateTime?       @map("resigned_at")
+  auditMemberType           AuditMemberType? @map("audit_member_type")
+  auditMemberPremium        Boolean?        @map("audit_member_premium")
+  affiliationId             Int?            @map("affiliation_id")
+  originIndustryId          Int?            @map("origin_industry_id")
+  membershipQualificationId Int?            @map("membership_qualification_id")
+  createdAt                 DateTime        @default(now()) @map("created_at")
+  updatedAt                 DateTime        @updatedAt @map("updated_at")
 
   // Relations
-  customer  Customer  @relation(fields: [customerId], references: [id])
-  community Community @relation(fields: [communityId], references: [id])
+  customer                Customer                 @relation(fields: [customerId], references: [id])
+  community               Community                @relation(fields: [communityId], references: [id])
+  affiliation             Affiliation?             @relation(fields: [affiliationId], references: [id])
+  originIndustry          OriginIndustry?          @relation(fields: [originIndustryId], references: [id])
+  membershipQualification MembershipQualification? @relation(fields: [membershipQualificationId], references: [id])
 
   @@unique([customerId, communityId])
   @@map("customer_communities")

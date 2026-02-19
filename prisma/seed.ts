@@ -5,37 +5,127 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import bcrypt from "bcryptjs";
 
+// Constants (copied/adapted from lib/constants/customer.ts to avoid build dependency issues in seed)
+const PREFECTURES = [
+  "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
+  "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
+  "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県",
+  "静岡県", "愛知県", "三重県", "滋賀県", "京都府", "大阪府", "兵庫県",
+  "奈良県", "和歌山県", "鳥取県", "島根県", "岡山県", "広島県", "山口県",
+  "徳島県", "香川県", "愛媛県", "高知県", "福岡県", "佐賀県", "長崎県",
+  "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県", "その他",
+];
+
+const ORIGIN_INDUSTRIES = [
+  "事業会社", "公認会計士", "銀行", "内部", "証券会社", "弁護士",
+  "社労士", "損保", "VC", "生保", "司法書士", "大学教員", "その他",
+];
+
+const MEMBERSHIP_QUALIFICATIONS = [
+  "監査役", "元監査役", "監査等委員", "監査役候補", "元監事", "監査委員",
+  "事業会社（内部監査部門）", "事業会社（内部監査部門以外）", "その他",
+];
+
+// Listing categories with exchange info to distinguish same-name markets
+const LISTING_CATEGORIES: { name: string; code: string | null }[] = [
+  { name: "プライム", code: "tse" },
+  { name: "スタンダード", code: "tse" },
+  { name: "グロース", code: "tse" },
+  { name: "TOKYO PRO Market", code: "tse" },
+  { name: "プレミア", code: "nse" },
+  { name: "メイン", code: "nse" },
+  { name: "ネクスト", code: "nse" },
+  { name: "本則市場（福岡）", code: "fse" },
+  { name: "Q-Board", code: "fse" },
+  { name: "Fukuoka PRO Market", code: "fse" },
+  { name: "本則市場（札幌）", code: "sse" },
+  { name: "アンビシャス", code: "sse" },
+  { name: "未上場", code: null },
+  { name: "その他", code: null },
+];
+
+const AFFILIATIONS = [
+  "内部監査部門", "常勤監査役・常勤監査等委員", "代表者（社長・CEO）",
+  "CFO", "管理部門長", "経理部門", "法務部門", "総務部門",
+  "情報システム部門", "経営企画部門", "社長室", "人事部門",
+  "IR部門", "その他",
+];
+
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool, { disposeExternalPool: true });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  console.log("Seeding master tables...");
+
+  // 1. Prefecture
+  const prefectureMap = new Map<string, number>();
+  for (let i = 0; i < PREFECTURES.length; i++) {
+    const name = PREFECTURES[i];
+    const rec = await prisma.prefecture.upsert({
+      where: { name },
+      update: { sortOrder: i + 1 },
+      create: { name, sortOrder: i + 1 },
+    });
+    prefectureMap.set(name, rec.id);
+  }
+
+  // 2. OriginIndustry
+  const originIndustryMap = new Map<string, number>();
+  for (let i = 0; i < ORIGIN_INDUSTRIES.length; i++) {
+    const name = ORIGIN_INDUSTRIES[i];
+    const rec = await prisma.originIndustry.upsert({
+      where: { name },
+      update: { sortOrder: i + 1 },
+      create: { name, sortOrder: i + 1 },
+    });
+    originIndustryMap.set(name, rec.id);
+  }
+
+  // 3. MembershipQualification
+  const membershipQualificationMap = new Map<string, number>();
+  for (let i = 0; i < MEMBERSHIP_QUALIFICATIONS.length; i++) {
+    const name = MEMBERSHIP_QUALIFICATIONS[i];
+    const rec = await prisma.membershipQualification.upsert({
+      where: { name },
+      update: { sortOrder: i + 1 },
+      create: { name, sortOrder: i + 1 },
+    });
+    membershipQualificationMap.set(name, rec.id);
+  }
+
+  // 4. ListingCategory
+  const listingCategoryMap = new Map<string, number>();
+  for (let i = 0; i < LISTING_CATEGORIES.length; i++) {
+    const { name, code } = LISTING_CATEGORIES[i];
+    const rec = await prisma.listingCategory.upsert({
+      where: { name },
+      update: { sortOrder: i + 1, code },
+      create: { name, code, sortOrder: i + 1 },
+    });
+    listingCategoryMap.set(name, rec.id);
+  }
+
+  // 5. Affiliation
+  const affiliationMap = new Map<string, number>();
+  for (let i = 0; i < AFFILIATIONS.length; i++) {
+    const name = AFFILIATIONS[i];
+    const rec = await prisma.affiliation.upsert({
+      where: { name },
+      update: { sortOrder: i + 1 },
+      create: { name, sortOrder: i + 1 },
+    });
+    affiliationMap.set(name, rec.id);
+  }
+
+  console.log("Master tables seeded.");
+
   // コミュニティマスターデータの投入
   const communities = [
-    {
-      code: "venture_auditor",
-      name: "ベンチャー監査役の会",
-      hasSurvey: true,
-      sortOrder: 1,
-    },
-    {
-      code: "naikan_meetup",
-      name: "ないかんMeetup",
-      hasSurvey: false,
-      sortOrder: 2,
-    },
-    {
-      code: "ai_club",
-      name: "AI部会",
-      hasSurvey: false,
-      sortOrder: 3,
-    },
-    {
-      code: "other",
-      name: "その他",
-      hasSurvey: false,
-      sortOrder: 99,
-    },
+    { code: "venture_auditor", name: "ベンチャー監査役の会", hasSurvey: true, sortOrder: 1 },
+    { code: "naikan_meetup", name: "ないかんMeetup", hasSurvey: false, sortOrder: 2 },
+    { code: "ai_club", name: "AI部会", hasSurvey: false, sortOrder: 3 },
+    { code: "other", name: "その他", hasSurvey: false, sortOrder: 99 },
   ];
 
   for (const community of communities) {
@@ -54,41 +144,11 @@ async function main() {
   const passwordHash = await bcrypt.hash("rara6y", 10);
 
   const admins = [
-    {
-      email: "admin@example.com",
-      firstName: "太郎",
-      lastName: "管理",
-      role: "super" as const,
-      communities: [] as string[], // superは全アクセス
-    },
-    {
-      email: "kansa@example.com",
-      firstName: "一郎",
-      lastName: "監査",
-      role: "community_admin" as const,
-      communities: ["venture_auditor"],
-    },
-    {
-      email: "naikan@example.com",
-      firstName: "二郎",
-      lastName: "内観",
-      role: "community_admin" as const,
-      communities: ["naikan_meetup"],
-    },
-    {
-      email: "ai@example.com",
-      firstName: "三郎",
-      lastName: "知能",
-      role: "community_admin" as const,
-      communities: ["ai_club"],
-    },
-    {
-      email: "all@example.com",
-      firstName: "花子",
-      lastName: "全部",
-      role: "community_admin" as const,
-      communities: ["venture_auditor", "naikan_meetup", "ai_club"],
-    },
+    { email: "admin@example.com", firstName: "太郎", lastName: "管理", role: "super" as const, communities: [] as string[] },
+    { email: "kansa@example.com", firstName: "一郎", lastName: "監査", role: "community_admin" as const, communities: ["venture_auditor"] },
+    { email: "naikan@example.com", firstName: "二郎", lastName: "内観", role: "community_admin" as const, communities: ["naikan_meetup"] },
+    { email: "ai@example.com", firstName: "三郎", lastName: "知能", role: "community_admin" as const, communities: ["ai_club"] },
+    { email: "all@example.com", firstName: "花子", lastName: "全部", role: "community_admin" as const, communities: ["venture_auditor", "naikan_meetup", "ai_club"] },
   ];
 
   for (const adminData of admins) {
@@ -109,28 +169,16 @@ async function main() {
       },
     });
 
-    // コミュニティ紐付け
     for (const communityCode of adminData.communities) {
-      const community = await prisma.community.findUnique({
-        where: { code: communityCode },
-      });
+      const community = await prisma.community.findUnique({ where: { code: communityCode } });
       if (community) {
         await prisma.adminCommunity.upsert({
-          where: {
-            adminId_communityId: {
-              adminId: admin.id,
-              communityId: community.id,
-            },
-          },
+          where: { adminId_communityId: { adminId: admin.id, communityId: community.id } },
           update: {},
-          create: {
-            adminId: admin.id,
-            communityId: community.id,
-          },
+          create: { adminId: admin.id, communityId: community.id },
         });
       }
     }
-
     console.log(`${adminData.role}を作成: ${admin.email}`);
   }
 
@@ -142,197 +190,106 @@ async function main() {
   if (ventureAuditor && naikanMeetup && aiClub) {
     const customers = [
       {
-        firstName: "太郎",
-        lastName: "田中",
-        firstNameKana: "タロウ",
-        lastNameKana: "タナカ",
-        email: "tanaka@example.com",
-        company: "株式会社テスト",
-        phone: "03-1234-5678",
-        postalCode: "100-0001",
+        firstName: "太郎", lastName: "田中", firstNameKana: "タロウ", lastNameKana: "タナカ",
+        email: "tanaka@example.com", company: "株式会社テスト", phone: "03-1234-5678",
+        postalCode: "100-0001", city: "千代田区丸の内1-1-1",
         prefecture: "東京都",
-        city: "千代田区丸の内1-1-1",
-        gender: "male" as const,
         listingCategory: "プライム",
-        originIndustry: "事業会社",
-        membershipQualification: "監査役",
-        memberCategory: "member" as const,
-        contractType: "corporate" as const,
-        communities: [
-          {
-            communityId: ventureAuditor.id,
-            auditMemberType: "regular" as const,
-            auditMemberPremium: true,
-            joinedAt: new Date("2024-04-01"),
-          },
-          {
-            communityId: naikanMeetup.id,
-            affiliation: "内部監査部門",
-            joinedAt: new Date("2024-06-01"),
-          },
-        ],
-      },
-      {
-        firstName: "花子",
-        lastName: "鈴木",
-        firstNameKana: "ハナコ",
-        lastNameKana: "スズキ",
-        email: "suzuki@example.com",
-        company: "鈴木監査法人",
-        gender: "female" as const,
-        memberCategory: "member" as const,
-        contractType: "individual" as const,
-        communities: [
-          {
-            communityId: ventureAuditor.id,
-            auditMemberType: "online" as const,
-            auditMemberPremium: false,
-            joinedAt: new Date("2024-05-01"),
-          },
-        ],
-      },
-      {
-        firstName: "一郎",
-        lastName: "佐藤",
-        firstNameKana: "イチロウ",
-        lastNameKana: "サトウ",
-        email: "sato@example.com",
-        company: "佐藤コンサルティング",
-        gender: "male" as const,
-        memberCategory: "sponsor" as const,
-        contractType: "corporate" as const,
-        communities: [
-          {
-            communityId: naikanMeetup.id,
-            affiliation: "経営企画部門",
-            joinedAt: new Date("2024-03-01"),
-          },
-          {
-            communityId: aiClub.id,
-            affiliation: "情報システム部門",
-            joinedAt: new Date("2024-07-01"),
-          },
-        ],
-      },
-      {
-        firstName: "一部",
-        lastName: "鈴木",
-        email: "suzuki.partial@example.com",
-        company: "株式会社一部脱退",
-        gender: "female" as const,
-        memberCategory: "member" as const,
-        contractType: "corporate" as const,
-        communities: [
-          {
-            communityId: ventureAuditor.id,
-            auditMemberType: "regular" as const,
-            auditMemberPremium: false,
-            joinedAt: new Date("2023-04-01"),
-            resignedAt: new Date("2024-03-31"), // ベンチャー監査役の会は脱退
-          },
-          {
-            communityId: naikanMeetup.id,
-            affiliation: "内部監査室",
-            joinedAt: new Date("2023-04-01"), // ないかんMeetupは現役
-          },
-          {
-            communityId: aiClub.id,
-            affiliation: "AI推進室",
-            joinedAt: new Date("2023-04-01"), // AI部会は現役
-          },
-        ],
-      },
-      {
-        firstName: "二部",
-        lastName: "佐藤",
-        email: "sato.partial2@example.com",
-        company: "株式会社二部脱退",
         gender: "male" as const,
         memberCategory: "member" as const,
         contractType: "corporate" as const,
         communities: [
-          {
-            communityId: ventureAuditor.id,
-            auditMemberType: "regular" as const,
-            auditMemberPremium: false,
-            joinedAt: new Date("2023-04-01"),
-            resignedAt: new Date("2024-03-31"), // ベンチャー監査役の会は脱退
-          },
-          {
-            communityId: naikanMeetup.id,
-            affiliation: "内部監査室",
-            joinedAt: new Date("2023-04-01"),
-            resignedAt: new Date("2024-03-31"), // ないかんMeetupも脱退
-          },
-          {
-            communityId: aiClub.id,
-            affiliation: "AI推進室",
-            joinedAt: new Date("2023-04-01"), // AI部会は現役
-          },
+          { communityId: ventureAuditor.id, auditMemberType: "regular" as const, auditMemberPremium: true, joinedAt: new Date("2024-04-01"), originIndustry: "事業会社", membershipQualification: "監査役" },
+          { communityId: naikanMeetup.id, affiliation: "内部監査部門", joinedAt: new Date("2024-06-01") },
         ],
       },
       {
-        firstName: "全部",
-        lastName: "田中",
-        email: "tanaka.full@example.com",
-        company: "株式会社全部脱退",
-        gender: "male" as const,
-        memberCategory: "member" as const,
-        contractType: "corporate" as const,
+        firstName: "花子", lastName: "鈴木", firstNameKana: "ハナコ", lastNameKana: "スズキ",
+        email: "suzuki@example.com", company: "鈴木監査法人",
+        gender: "female" as const, memberCategory: "member" as const, contractType: "individual" as const,
         communities: [
-          {
-            communityId: ventureAuditor.id,
-            auditMemberType: "regular" as const,
-            auditMemberPremium: false,
-            joinedAt: new Date("2023-04-01"),
-            resignedAt: new Date("2024-03-31"), // ベンチャー監査役の会は脱退
-          },
-          {
-            communityId: naikanMeetup.id,
-            affiliation: "内部監査室",
-            joinedAt: new Date("2023-04-01"),
-            resignedAt: new Date("2024-03-31"), // ないかんMeetupも脱退
-          },
-          {
-            communityId: aiClub.id,
-            affiliation: "AI推進室",
-            joinedAt: new Date("2023-04-01"),
-            resignedAt: new Date("2024-03-31"), // AI部会も脱退
-          },
+          { communityId: ventureAuditor.id, auditMemberType: "online" as const, auditMemberPremium: false, joinedAt: new Date("2024-05-01") },
         ],
       },
       {
-        firstName: "二郎",
-        lastName: "高橋",
-        email: "takahashi@example.com",
-        company: "高橋株式会社",
+        firstName: "一郎", lastName: "佐藤", firstNameKana: "イチロウ", lastNameKana: "サトウ",
+        email: "sato@example.com", company: "佐藤コンサルティング",
+        gender: "male" as const, memberCategory: "sponsor" as const, contractType: "corporate" as const,
+        communities: [
+          { communityId: naikanMeetup.id, affiliation: "経営企画部門", joinedAt: new Date("2024-03-01") },
+          { communityId: aiClub.id, affiliation: "情報システム部門", joinedAt: new Date("2024-07-01") },
+        ],
+      },
+      {
+        firstName: "一部", lastName: "鈴木", email: "suzuki.partial@example.com", company: "株式会社一部脱退",
+        gender: "female" as const, memberCategory: "member" as const, contractType: "corporate" as const,
+        communities: [
+          { communityId: ventureAuditor.id, auditMemberType: "regular" as const, auditMemberPremium: false, joinedAt: new Date("2023-04-01"), resignedAt: new Date("2024-03-31") },
+          { communityId: naikanMeetup.id, affiliation: "内部監査部門", joinedAt: new Date("2023-04-01") },
+          { communityId: aiClub.id, affiliation: "AI推進室", joinedAt: new Date("2023-04-01") },
+        ],
+      },
+      {
+        firstName: "二部", lastName: "佐藤", email: "sato.partial2@example.com", company: "株式会社二部脱退",
+        gender: "male" as const, memberCategory: "member" as const, contractType: "corporate" as const,
+        communities: [
+          { communityId: ventureAuditor.id, auditMemberType: "regular" as const, auditMemberPremium: false, joinedAt: new Date("2023-04-01"), resignedAt: new Date("2024-03-31") },
+          { communityId: naikanMeetup.id, affiliation: "内部監査部門", joinedAt: new Date("2023-04-01"), resignedAt: new Date("2024-03-31") },
+          { communityId: aiClub.id, affiliation: "AI推進室", joinedAt: new Date("2023-04-01") },
+        ],
+      },
+      {
+        firstName: "全部", lastName: "田中", email: "tanaka.full@example.com", company: "株式会社全部脱退",
+        gender: "male" as const, memberCategory: "member" as const, contractType: "corporate" as const,
+        communities: [
+          { communityId: ventureAuditor.id, auditMemberType: "regular" as const, auditMemberPremium: false, joinedAt: new Date("2023-04-01"), resignedAt: new Date("2024-03-31") },
+          { communityId: naikanMeetup.id, affiliation: "内部監査部門", joinedAt: new Date("2023-04-01"), resignedAt: new Date("2024-03-31") },
+          { communityId: aiClub.id, affiliation: "AI推進室", joinedAt: new Date("2023-04-01"), resignedAt: new Date("2024-03-31") },
+        ],
+      },
+      {
+        firstName: "二郎", lastName: "高橋", email: "takahashi@example.com", company: "高橋株式会社",
         memberCategory: "observer" as const,
         communities: [
-          {
-            communityId: aiClub.id,
-            affiliation: "代表者（社長・CEO）",
-            joinedAt: new Date("2024-08-01"),
-          },
+          { communityId: aiClub.id, affiliation: "代表者（社長・CEO）", joinedAt: new Date("2024-08-01") },
         ],
       },
       {
-        firstName: "三郎",
-        lastName: "渡辺",
-        email: "watanabe@example.com",
-        note: "非会員（イベント参加のみ）",
+        firstName: "三郎", lastName: "渡辺", email: "watanabe@example.com", note: "非会員（イベント参加のみ）",
         communities: [],
       },
     ];
 
     for (const customerData of customers) {
       const { communities: communityData, ...customerFields } = customerData;
+      
+      // Resolve IDs from maps
+      const prefectureId = customerFields.prefecture ? prefectureMap.get(customerFields.prefecture) : undefined;
+      const listingCategoryId = customerFields.listingCategory ? listingCategoryMap.get(customerFields.listingCategory) : undefined;
+
+      // Clean up fields that are now IDs (remove string versions)
+      const { prefecture, listingCategory, ...baseFields } = customerFields as any;
+
+      const createData = {
+        ...baseFields,
+        prefectureId,
+        listingCategoryId,
+      };
+
       const customer = await prisma.customer.upsert({
         where: { email: customerFields.email },
-        update: customerFields,
-        create: customerFields,
+        update: createData,
+        create: createData,
       });
 
       for (const comm of communityData) {
+        const commAny = comm as any;
+        const affiliationId = commAny.affiliation ? affiliationMap.get(commAny.affiliation) : undefined;
+        const commOriginIndustryId = commAny.originIndustry ? originIndustryMap.get(commAny.originIndustry) : undefined;
+        const commMembershipQualificationId = commAny.membershipQualification ? membershipQualificationMap.get(commAny.membershipQualification) : undefined;
+        // Clean up string lookup fields
+        const { affiliation, originIndustry, membershipQualification, ...commBase } = commAny;
+
         await prisma.customerCommunity.upsert({
           where: {
             customerId_communityId: {
@@ -340,10 +297,13 @@ async function main() {
               communityId: comm.communityId,
             },
           },
-          update: comm,
+          update: { ...commBase, affiliationId, originIndustryId: commOriginIndustryId, membershipQualificationId: commMembershipQualificationId },
           create: {
             customerId: customer.id,
-            ...comm,
+            ...commBase,
+            affiliationId,
+            originIndustryId: commOriginIndustryId,
+            membershipQualificationId: commMembershipQualificationId,
           },
         });
       }
@@ -353,12 +313,9 @@ async function main() {
   }
 
   // テスト用イベントデータの投入
-  const otherCommunity = await prisma.community.findUnique({
-    where: { code: "other" },
-  });
+  const otherCommunity = await prisma.community.findUnique({ where: { code: "other" } });
 
   if (ventureAuditor && naikanMeetup && aiClub) {
-    const now = new Date();
     const events = [
       {
         communityId: ventureAuditor.id,
@@ -455,6 +412,7 @@ async function main() {
         responseDeadline: new Date("2026-05-25T23:59:59"),
         allowsOnline: false,
         hasAfterParty: true,
+        isPaused: false, // Default value to fix error
       } as (typeof events)[0]);
     }
 
@@ -474,28 +432,16 @@ async function main() {
       }
     }
 
-    // RSVPの投入（既存顧客に紐づけ）
-    const tanaka = await prisma.customer.findUnique({
-      where: { email: "tanaka@example.com" },
-    });
-    const suzuki = await prisma.customer.findUnique({
-      where: { email: "suzuki@example.com" },
-    });
-    const sato = await prisma.customer.findUnique({
-      where: { email: "sato@example.com" },
-    });
+    // RSVPの投入
+    const tanaka = await prisma.customer.findUnique({ where: { email: "tanaka@example.com" } });
+    const suzuki = await prisma.customer.findUnique({ where: { email: "suzuki@example.com" } });
+    const sato = await prisma.customer.findUnique({ where: { email: "sato@example.com" } });
 
     const ventureEvent1 = await prisma.event.findFirst({
-      where: {
-        communityId: ventureAuditor.id,
-        title: "第1回 定例勉強会",
-      },
+      where: { communityId: ventureAuditor.id, title: "第1回 定例勉強会" },
     });
     const ventureEvent2 = await prisma.event.findFirst({
-      where: {
-        communityId: ventureAuditor.id,
-        title: "2026年3月 定例勉強会",
-      },
+      where: { communityId: ventureAuditor.id, title: "2026年3月 定例勉強会" },
     });
 
     const rsvpCandidates = [
@@ -509,9 +455,7 @@ async function main() {
     for (const { customer, event, status } of rsvpCandidates) {
       if (customer && event) {
         await prisma.rsvp.upsert({
-          where: {
-            eventId_customerId: { eventId: event.id, customerId: customer.id },
-          },
+          where: { eventId_customerId: { eventId: event.id, customerId: customer.id } },
           update: { status },
           create: {
             eventId: event.id,

@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+// null/undefined/""/0 を null にし、正の整数のみ受け付けるオプショナルID
+const optionalId = z.preprocess(
+  (v) => (v === null || v === undefined || v === "" || v === 0 ? null : Number(v)),
+  z.number().int().positive().nullable().optional()
+);
+
 export const customerSchema = z.object({
   firstName: z
     .string()
@@ -43,11 +49,7 @@ export const customerSchema = z.object({
     .max(10, "郵便番号は10文字以内で入力してください")
     .optional()
     .or(z.literal("")),
-  prefecture: z
-    .string()
-    .max(20, "都道府県は20文字以内で入力してください")
-    .optional()
-    .or(z.literal("")),
+  prefectureId: optionalId,
   city: z
     .string()
     .max(255, "市区町村は255文字以内で入力してください")
@@ -57,21 +59,7 @@ export const customerSchema = z.object({
     .enum(["male", "female"])
     .optional()
     .nullable(),
-  listingCategory: z
-    .string()
-    .max(100, "上場区分は100文字以内で入力してください")
-    .optional()
-    .or(z.literal("")),
-  originIndustry: z
-    .string()
-    .max(100, "出身業種は100文字以内で入力してください")
-    .optional()
-    .or(z.literal("")),
-  membershipQualification: z
-    .string()
-    .max(100, "入会資格は100文字以内で入力してください")
-    .optional()
-    .or(z.literal("")),
+  listingCategoryId: optionalId,
   memberCategory: z
     .enum(["member", "sponsor", "observer"])
     .optional()
@@ -91,7 +79,7 @@ export const customerSchema = z.object({
 });
 
 export const customerCommunitySchema = z.object({
-  communityId: z.number().int().positive("コミュニティIDは正の整数を指定してください"),
+  communityId: z.coerce.number().int().positive("コミュニティIDは正の整数を指定してください"),
   joinedAt: z.string().nullable().optional(),
   resignedAt: z.string().nullable().optional(),
   auditMemberType: z
@@ -99,12 +87,9 @@ export const customerCommunitySchema = z.object({
     .nullable()
     .optional(),
   auditMemberPremium: z.boolean().nullable().optional(),
-  affiliation: z
-    .string()
-    .max(100, "所属は100文字以内で入力してください")
-    .nullable()
-    .optional()
-    .or(z.literal("")),
+  affiliationId: optionalId,
+  originIndustryId: optionalId,
+  membershipQualificationId: optionalId,
 });
 
 export const customerFormSchema = customerSchema.extend({

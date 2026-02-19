@@ -41,6 +41,11 @@ import type { RsvpEvent } from "@/lib/helpers/customer-detail";
 // 型定義
 // ============================================================
 
+interface MasterData {
+  id: number;
+  name: string;
+}
+
 interface SerializedCustomerDetail {
   id: number;
   firstName: string;
@@ -52,12 +57,10 @@ interface SerializedCustomerDetail {
   company: string | null;
   phone: string | null;
   postalCode: string | null;
-  prefecture: string | null;
+  prefecture: MasterData | null;
   city: string | null;
   gender: string | null;
-  listingCategory: string | null;
-  originIndustry: string | null;
-  membershipQualification: string | null;
+  listingCategory: MasterData | null;
   memberCategory: string | null;
   contractType: string | null;
   jobChangeIntent: string | null;
@@ -71,7 +74,9 @@ interface SerializedCustomerDetail {
     resignedAt: string | null;
     auditMemberType: string | null;
     auditMemberPremium: boolean | null;
-    affiliation: string | null;
+    affiliation: MasterData | null;
+    originIndustry: MasterData | null;
+    membershipQualification: MasterData | null;
     community: {
       id: number;
       code: string;
@@ -202,11 +207,11 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-6">
-                  {customer.membershipQualification && (
-                    <DataItem label="入会資格">{customer.membershipQualification}</DataItem>
+                  {auditCommunity?.membershipQualification && (
+                    <DataItem label="入会資格">{auditCommunity.membershipQualification.name}</DataItem>
                   )}
-                  {customer.originIndustry && (
-                    <DataItem label="出身業種">{customer.originIndustry}</DataItem>
+                  {auditCommunity?.originIndustry && (
+                    <DataItem label="出身業種">{auditCommunity.originIndustry.name}</DataItem>
                   )}
                   {auditCommunity.joinedAt && (
                     <DataItem label="入会日">{formatDate(auditCommunity.joinedAt)}</DataItem>
@@ -231,7 +236,7 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
                 </div>
                 <div className="grid grid-cols-2 gap-6">
                   {naikanCommunity.affiliation && (
-                    <DataItem label="所属">{naikanCommunity.affiliation}</DataItem>
+                    <DataItem label="所属">{naikanCommunity.affiliation.name}</DataItem>
                   )}
                   {naikanCommunity.joinedAt && (
                     <DataItem label="入会日">{formatDate(naikanCommunity.joinedAt)}</DataItem>
@@ -256,7 +261,7 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
                 </div>
                 <div className="grid grid-cols-2 gap-6">
                   {aiCommunity.affiliation && (
-                    <DataItem label="所属">{aiCommunity.affiliation}</DataItem>
+                    <DataItem label="所属">{aiCommunity.affiliation.name}</DataItem>
                   )}
                   {aiCommunity.joinedAt && (
                     <DataItem label="入会日">{formatDate(aiCommunity.joinedAt)}</DataItem>
@@ -288,13 +293,13 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
               )}
               {customer.company && <DataItem label="会社名">{customer.company}</DataItem>}
               {customer.listingCategory && (
-                <DataItem label="上場区分">{customer.listingCategory}</DataItem>
+                <DataItem label="上場区分">{customer.listingCategory.name}</DataItem>
               )}
               {(customer.postalCode || customer.prefecture || customer.city) && (
                 <DataItem label="住所">
                   {customer.postalCode && <div>〒{customer.postalCode}</div>}
                   {customer.prefecture && (
-                    <div>{customer.prefecture}{customer.city}</div>
+                    <div>{customer.prefecture.name}{customer.city}</div>
                   )}
                 </DataItem>
               )}
