@@ -1,15 +1,5 @@
 import type { RsvpStatus } from "@/lib/generated/prisma";
 
-// イベント種別の選択肢（コミュニティ名と対応）
-export const EVENT_TYPES = [
-  "ベンチャー監査役の会",
-  "ないかんMeetup",
-  "AI部会",
-  "その他",
-] as const;
-
-export type EventType = (typeof EVENT_TYPES)[number];
-
 // RSVPステータスの選択肢
 export const RSVP_STATUSES: readonly { value: RsvpStatus; label: string }[] = [
   { value: "pending", label: "未回答" },
@@ -42,15 +32,3 @@ export const EVENT_STATUS_CONFIG: Record<EventDisplayStatus, { label: string; va
   waiting: { label: "受付終了", variant: "outline", description: "受付終了（開催前）" },
   closed: { label: "終了", variant: "secondary", description: "イベント終了" },
 } as const;
-
-// 参加タイプの選択肢
-export const ATTENDANCE_TYPES = [
-  "通常参加",
-  "オンライン参加",
-] as const;
-
-// 懇親会ステータスの選択肢
-export const AFTER_PARTY_STATUSES = [
-  "参加",
-  "不参加",
-] as const;
