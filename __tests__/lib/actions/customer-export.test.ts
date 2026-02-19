@@ -56,7 +56,7 @@ const makeExportCustomer = (overrides: Record<string, unknown> = {}) => ({
   memberCategory: "member",
   registeredAt: new Date("2024-01-15"),
   prefecture: { name: "東京都" },
-  listingCategory: { marketName: "プライム" },
+  listingCategory: { marketName: "プライム", stockExchangeName: "東京証券取引所" },
   customerCommunities: [
     {
       community: { code: "venture_auditor", name: "ベンチャー監査役の会" },
@@ -83,7 +83,7 @@ describe("exportCustomersAction - CSV生成", () => {
     // ヘッダー行確認
     expect(csv).toContain("ID,姓,名,セイ,メイ,メールアドレス,会社名,所属コミュニティ,会員区分,都道府県,上場区分,出身業種,入会資格,登録日");
     // データ行確認
-    expect(csv).toContain("1,田中,太郎,タナカ,タロウ,tanaka@example.com,テスト株式会社,ベンチャー監査役の会,会員,東京都,プライム,公認会計士,監査役,2024/01/15");
+    expect(csv).toContain("1,田中,太郎,タナカ,タロウ,tanaka@example.com,テスト株式会社,ベンチャー監査役の会,会員,東京都,東京証券取引所 プライム,公認会計士,監査役,2024/01/15");
   });
 
   it("BOM付き確認（先頭がFEFF）", async () => {

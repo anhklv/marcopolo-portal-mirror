@@ -337,7 +337,11 @@ export async function exportCustomersAction(
       communityNames,
       memberCategoryLabel,
       c.prefecture?.name ?? "",
-      c.listingCategory?.marketName ?? "",
+      c.listingCategory
+        ? (c.listingCategory.stockExchangeName
+            ? `${c.listingCategory.stockExchangeName} ${c.listingCategory.marketName}`
+            : c.listingCategory.marketName)
+        : "",
       auditCC?.originIndustry?.name ?? "",
       auditCC?.membershipQualification?.name ?? "",
       registeredAt,
