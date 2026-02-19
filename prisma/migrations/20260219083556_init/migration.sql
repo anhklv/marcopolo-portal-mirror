@@ -48,7 +48,6 @@ CREATE TABLE "communities" (
 CREATE TABLE "prefectures" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(20) NOT NULL,
-    "code" VARCHAR(10),
     "sort_order" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -72,7 +71,6 @@ CREATE TABLE "listing_categories" (
 CREATE TABLE "origin_industries" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(100) NOT NULL,
-    "code" VARCHAR(50),
     "sort_order" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -84,7 +82,6 @@ CREATE TABLE "origin_industries" (
 CREATE TABLE "membership_qualifications" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(100) NOT NULL,
-    "code" VARCHAR(50),
     "sort_order" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -96,7 +93,6 @@ CREATE TABLE "membership_qualifications" (
 CREATE TABLE "affiliations" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(100) NOT NULL,
-    "code" VARCHAR(50),
     "sort_order" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
