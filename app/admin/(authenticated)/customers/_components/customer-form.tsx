@@ -11,7 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -81,12 +83,18 @@ interface InitialData {
   communities: InitialCommunityData[];
 }
 
+interface ListingCategoryData {
+  id: number;
+  name: string;
+  code: string;
+}
+
 interface CustomerFormProps {
   mode: "create" | "edit";
   initialData?: InitialData;
   communities: CommunityData[];
   prefectures: MasterData[];
-  listingCategories: MasterData[];
+  listingCategories: ListingCategoryData[];
   originIndustries: MasterData[];
   membershipQualifications: MasterData[];
   affiliations: MasterData[];
@@ -99,6 +107,13 @@ interface CustomerFormProps {
 // ============================================================
 
 const NONE_VALUE = "__none__";
+
+const EXCHANGE_NAMES: Record<string, string> = {
+  tse: "東京証券取引所",
+  nse: "名古屋証券取引所",
+  fse: "福岡証券取引所",
+  sse: "札幌証券取引所",
+};
 
 // ============================================================
 // ヘルパー
@@ -474,10 +489,10 @@ export function CustomerForm({
                       onValueChange={(v) => setMembershipQualificationId(v === NONE_VALUE ? undefined : Number(v))}
                     >
                       <SelectTrigger className="w-full bg-white">
-                        <SelectValue placeholder="選択してください" />
+                        <SelectValue placeholder="----" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100 text-muted-foreground">選択してください</SelectItem>
+                        <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100">----</SelectItem>
                         {membershipQualifications.map((q) => (
                           <SelectItem key={q.id} value={String(q.id)} className="bg-white hover:bg-gray-100">{q.name}</SelectItem>
                         ))}
@@ -492,10 +507,10 @@ export function CustomerForm({
                       onValueChange={(v) => setOriginIndustryId(v === NONE_VALUE ? undefined : Number(v))}
                     >
                       <SelectTrigger className="w-full bg-white">
-                        <SelectValue placeholder="選択してください" />
+                        <SelectValue placeholder="----" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100 text-muted-foreground">選択してください</SelectItem>
+                        <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100">----</SelectItem>
                         {originIndustries.map((i) => (
                           <SelectItem key={i.id} value={String(i.id)} className="bg-white hover:bg-gray-100">{i.name}</SelectItem>
                         ))}
@@ -529,10 +544,10 @@ export function CustomerForm({
                       onValueChange={(v) => setNaikanAffiliationId(v === NONE_VALUE ? undefined : Number(v))}
                     >
                       <SelectTrigger className="w-full bg-white">
-                        <SelectValue placeholder="選択してください" />
+                        <SelectValue placeholder="----" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100 text-muted-foreground">選択してください</SelectItem>
+                        <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100">----</SelectItem>
                         {affiliations.map((a) => (
                           <SelectItem key={a.id} value={String(a.id)} className="bg-white hover:bg-gray-100">{a.name}</SelectItem>
                         ))}
@@ -566,10 +581,10 @@ export function CustomerForm({
                       onValueChange={(v) => setAiAffiliationId(v === NONE_VALUE ? undefined : Number(v))}
                     >
                       <SelectTrigger className="w-full bg-white">
-                        <SelectValue placeholder="選択してください" />
+                        <SelectValue placeholder="----" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100 text-muted-foreground">選択してください</SelectItem>
+                        <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100">----</SelectItem>
                         {affiliations.map((a) => (
                           <SelectItem key={a.id} value={String(a.id)} className="bg-white hover:bg-gray-100">{a.name}</SelectItem>
                         ))}
@@ -691,19 +706,33 @@ export function CustomerForm({
               onValueChange={(v) => setListingCategoryId(v === NONE_VALUE ? undefined : Number(v))}
             >
               <SelectTrigger className="w-full bg-white">
-                <SelectValue placeholder="選択してください" />
+                <SelectValue placeholder="----" />
               </SelectTrigger>
               <SelectContent className="bg-white">
-                <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100 text-muted-foreground">選択してください</SelectItem>
-                {listingCategories.map((option) => (
-                  <SelectItem
-                    key={option.id}
-                    value={String(option.id)}
-                    className="bg-white hover:bg-gray-100"
-                  >
-                    {option.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100">----</SelectItem>
+                {/* グループなし（未上場・その他） */}
+                {listingCategories
+                  .filter((lc) => lc.code === "")
+                  .map((lc) => (
+                    <SelectItem key={lc.id} value={String(lc.id)} className="bg-white hover:bg-gray-100">
+                      {lc.name}
+                    </SelectItem>
+                  ))}
+                {/* 取引所別グループ */}
+                {Object.entries(EXCHANGE_NAMES).map(([code, exchangeName]) => {
+                  const items = listingCategories.filter((lc) => lc.code === code);
+                  if (items.length === 0) return null;
+                  return (
+                    <SelectGroup key={code}>
+                      <SelectLabel className="bg-gray-100">{exchangeName}</SelectLabel>
+                      {items.map((lc) => (
+                        <SelectItem key={lc.id} value={String(lc.id)} className="bg-white hover:bg-gray-100">
+                          {lc.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  );
+                })}
               </SelectContent>
             </Select>
           </FormField>
@@ -732,10 +761,10 @@ export function CustomerForm({
               onValueChange={(v) => setPrefectureId(v === NONE_VALUE ? undefined : Number(v))}
             >
               <SelectTrigger className="w-full bg-white">
-                <SelectValue placeholder="選択してください" />
+                <SelectValue placeholder="----" />
               </SelectTrigger>
               <SelectContent className="bg-white">
-                <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100 text-muted-foreground">選択してください</SelectItem>
+                <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100">----</SelectItem>
                 {prefectures.map((pref) => (
                   <SelectItem key={pref.id} value={String(pref.id)} className="bg-white hover:bg-gray-100">
                     {pref.name}

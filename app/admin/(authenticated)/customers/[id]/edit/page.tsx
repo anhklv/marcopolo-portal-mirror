@@ -104,7 +104,11 @@ export default async function EditCustomerPage({
         name: c.name,
       }))}
       prefectures={prefectures}
-      listingCategories={listingCategories}
+      listingCategories={listingCategories.map((lc) => ({
+        id: lc.id,
+        name: lc.name,
+        code: lc.code,
+      }))}
       originIndustries={originIndustries}
       membershipQualifications={membershipQualifications}
       affiliations={affiliations}

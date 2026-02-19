@@ -27,7 +27,7 @@ const MEMBERSHIP_QUALIFICATIONS = [
 ];
 
 // Listing categories with exchange info to distinguish same-name markets
-const LISTING_CATEGORIES: { name: string; code: string | null }[] = [
+const LISTING_CATEGORIES: { name: string; code: string }[] = [
   { name: "プライム", code: "tse" },
   { name: "スタンダード", code: "tse" },
   { name: "グロース", code: "tse" },
@@ -35,13 +35,13 @@ const LISTING_CATEGORIES: { name: string; code: string | null }[] = [
   { name: "プレミア", code: "nse" },
   { name: "メイン", code: "nse" },
   { name: "ネクスト", code: "nse" },
-  { name: "本則市場（福岡）", code: "fse" },
+  { name: "本則市場", code: "fse" },
   { name: "Q-Board", code: "fse" },
   { name: "Fukuoka PRO Market", code: "fse" },
-  { name: "本則市場（札幌）", code: "sse" },
+  { name: "本則市場", code: "sse" },
   { name: "アンビシャス", code: "sse" },
-  { name: "未上場", code: null },
-  { name: "その他", code: null },
+  { name: "未上場", code: "" },
+  { name: "その他", code: "" },
 ];
 
 const AFFILIATIONS = [
@@ -99,11 +99,12 @@ async function main() {
   for (let i = 0; i < LISTING_CATEGORIES.length; i++) {
     const { name, code } = LISTING_CATEGORIES[i];
     const rec = await prisma.listingCategory.upsert({
-      where: { name },
-      update: { sortOrder: i + 1, code },
+      where: { name_code: { name, code } },
+      update: { sortOrder: i + 1 },
       create: { name, code, sortOrder: i + 1 },
     });
-    listingCategoryMap.set(name, rec.id);
+    // code付きキーでマップ（同名の本則市場を区別）
+    listingCategoryMap.set(`${name}:${code ?? ""}`, rec.id);
   }
 
   // 5. Affiliation

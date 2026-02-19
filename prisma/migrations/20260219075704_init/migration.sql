@@ -60,7 +60,7 @@ CREATE TABLE "prefectures" (
 CREATE TABLE "listing_categories" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(100) NOT NULL,
-    "code" VARCHAR(50),
+    "code" VARCHAR(50) NOT NULL DEFAULT '',
     "sort_order" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -283,7 +283,7 @@ CREATE UNIQUE INDEX "communities_code_key" ON "communities"("code");
 CREATE UNIQUE INDEX "prefectures_name_key" ON "prefectures"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "listing_categories_name_key" ON "listing_categories"("name");
+CREATE UNIQUE INDEX "listing_categories_name_code_key" ON "listing_categories"("name", "code");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "origin_industries_name_key" ON "origin_industries"("name");

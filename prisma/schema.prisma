@@ -116,8 +116,8 @@ model Prefecture {
 
 model ListingCategory {
   id        Int      @id @default(autoincrement())
-  name      String   @unique @db.VarChar(100)
-  code      String?  @db.VarChar(50)
+  name      String   @db.VarChar(100)
+  code      String   @default("") @db.VarChar(50) // 取引所コード: tse, nse, fse, sse
   sortOrder Int      @default(0) @map("sort_order")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -125,6 +125,7 @@ model ListingCategory {
   // Relations
   customers Customer[]
 
+  @@unique([name, code])
   @@map("listing_categories")
 }
 

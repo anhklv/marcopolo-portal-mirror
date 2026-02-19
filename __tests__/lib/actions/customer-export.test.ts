@@ -55,8 +55,14 @@ const makeExportCustomer = (overrides: Record<string, unknown> = {}) => ({
   company: "テスト株式会社",
   memberCategory: "member",
   registeredAt: new Date("2024-01-15"),
+  prefecture: { name: "東京都" },
+  listingCategory: { name: "プライム" },
   customerCommunities: [
-    { community: { name: "ベンチャー監査役の会" } },
+    {
+      community: { code: "venture_auditor", name: "ベンチャー監査役の会" },
+      originIndustry: { name: "公認会計士" },
+      membershipQualification: { name: "監査役" },
+    },
   ],
   ...overrides,
 });
@@ -75,9 +81,9 @@ describe("exportCustomersAction - CSV生成", () => {
     const csv = (result as { csv: string }).csv;
 
     // ヘッダー行確認
-    expect(csv).toContain("ID,姓,名,セイ,メイ,メールアドレス,会社名,所属コミュニティ,会員区分,登録日");
+    expect(csv).toContain("ID,姓,名,セイ,メイ,メールアドレス,会社名,所属コミュニティ,会員区分,都道府県,上場区分,出身業種,入会資格,登録日");
     // データ行確認
-    expect(csv).toContain("1,田中,太郎,タナカ,タロウ,tanaka@example.com,テスト株式会社,ベンチャー監査役の会,会員,2024/01/15");
+    expect(csv).toContain("1,田中,太郎,タナカ,タロウ,tanaka@example.com,テスト株式会社,ベンチャー監査役の会,会員,東京都,プライム,公認会計士,監査役,2024/01/15");
   });
 
   it("BOM付き確認（先頭がFEFF）", async () => {
@@ -104,8 +110,16 @@ describe("exportCustomersAction - CSV生成", () => {
     mockRepoFindAll.mockResolvedValue([
       makeExportCustomer({
         customerCommunities: [
-          { community: { name: "ベンチャー監査役の会" } },
-          { community: { name: "ないかんMeetup" } },
+          {
+            community: { code: "venture_auditor", name: "ベンチャー監査役の会" },
+            originIndustry: null,
+            membershipQualification: null,
+          },
+          {
+            community: { code: "naikan_meetup", name: "ないかんMeetup" },
+            originIndustry: null,
+            membershipQualification: null,
+          },
         ],
       }),
     ]);
