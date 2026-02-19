@@ -60,7 +60,7 @@ export default async function CustomerDetailPage({
     } : null,
     listingCategory: customer.listingCategory ? {
       id: customer.listingCategory.id,
-      name: customer.listingCategory.name,
+      name: customer.listingCategory.marketName,
     } : null,
     customerCommunities: customer.customerCommunities.map((cc) => ({
       ...cc,

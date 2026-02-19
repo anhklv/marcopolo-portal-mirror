@@ -51,8 +51,8 @@ export default async function NewCustomerPage() {
       prefectures={prefectures}
       listingCategories={listingCategories.map((lc) => ({
         id: lc.id,
-        name: lc.name,
-        code: lc.code,
+        marketName: lc.marketName,
+        stockExchangeName: lc.stockExchangeName,
       }))}
       originIndustries={originIndustries}
       membershipQualifications={membershipQualifications}

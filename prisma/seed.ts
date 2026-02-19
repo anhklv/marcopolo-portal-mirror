@@ -26,22 +26,22 @@ const MEMBERSHIP_QUALIFICATIONS = [
   "事業会社（内部監査部門）", "事業会社（内部監査部門以外）", "その他",
 ];
 
-// Listing categories with exchange info to distinguish same-name markets
-const LISTING_CATEGORIES: { name: string; code: string }[] = [
-  { name: "プライム", code: "tse" },
-  { name: "スタンダード", code: "tse" },
-  { name: "グロース", code: "tse" },
-  { name: "TOKYO PRO Market", code: "tse" },
-  { name: "プレミア", code: "nse" },
-  { name: "メイン", code: "nse" },
-  { name: "ネクスト", code: "nse" },
-  { name: "本則市場", code: "fse" },
-  { name: "Q-Board", code: "fse" },
-  { name: "Fukuoka PRO Market", code: "fse" },
-  { name: "本則市場", code: "sse" },
-  { name: "アンビシャス", code: "sse" },
-  { name: "未上場", code: "" },
-  { name: "その他", code: "" },
+// 上場区分マスター（市場名 + 証券取引所名）
+const LISTING_CATEGORIES: { marketName: string; stockExchangeName: string }[] = [
+  { marketName: "プライム", stockExchangeName: "東京証券取引所" },
+  { marketName: "スタンダード", stockExchangeName: "東京証券取引所" },
+  { marketName: "グロース", stockExchangeName: "東京証券取引所" },
+  { marketName: "TOKYO PRO Market", stockExchangeName: "東京証券取引所" },
+  { marketName: "プレミア", stockExchangeName: "名古屋証券取引所" },
+  { marketName: "メイン", stockExchangeName: "名古屋証券取引所" },
+  { marketName: "ネクスト", stockExchangeName: "名古屋証券取引所" },
+  { marketName: "本則市場", stockExchangeName: "福岡証券取引所" },
+  { marketName: "Q-Board", stockExchangeName: "福岡証券取引所" },
+  { marketName: "Fukuoka PRO Market", stockExchangeName: "福岡証券取引所" },
+  { marketName: "本則市場", stockExchangeName: "札幌証券取引所" },
+  { marketName: "アンビシャス", stockExchangeName: "札幌証券取引所" },
+  { marketName: "未上場", stockExchangeName: "" },
+  { marketName: "その他", stockExchangeName: "" },
 ];
 
 const AFFILIATIONS = [
@@ -97,14 +97,13 @@ async function main() {
   // 4. ListingCategory
   const listingCategoryMap = new Map<string, number>();
   for (let i = 0; i < LISTING_CATEGORIES.length; i++) {
-    const { name, code } = LISTING_CATEGORIES[i];
+    const { marketName, stockExchangeName } = LISTING_CATEGORIES[i];
     const rec = await prisma.listingCategory.upsert({
-      where: { name_code: { name, code } },
+      where: { marketName_stockExchangeName: { marketName, stockExchangeName } },
       update: { sortOrder: i + 1 },
-      create: { name, code, sortOrder: i + 1 },
+      create: { marketName, stockExchangeName, sortOrder: i + 1 },
     });
-    // code付きキーでマップ（同名の本則市場を区別）
-    listingCategoryMap.set(`${name}:${code ?? ""}`, rec.id);
+    listingCategoryMap.set(`${marketName}:${stockExchangeName}`, rec.id);
   }
 
   // 5. Affiliation
@@ -195,7 +194,7 @@ async function main() {
         email: "tanaka@example.com", company: "株式会社テスト", phone: "03-1234-5678",
         postalCode: "100-0001", city: "千代田区丸の内1-1-1",
         prefecture: "東京都",
-        listingCategory: "プライム",
+        listingCategory: "プライム:東京証券取引所",
         gender: "male" as const,
         memberCategory: "member" as const,
         contractType: "corporate" as const,

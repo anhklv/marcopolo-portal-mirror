@@ -114,17 +114,17 @@ model Prefecture {
 }
 
 model ListingCategory {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(100)
-  code      String   @default("") @db.VarChar(50) // 取引所コード: tse, nse, fse, sse
-  sortOrder Int      @default(0) @map("sort_order")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                Int      @id @default(autoincrement())
+  marketName        String   @map("market_name") @db.VarChar(100)
+  stockExchangeName String   @default("") @map("stock_exchange_name") @db.VarChar(100)
+  sortOrder         Int      @default(0) @map("sort_order")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
   // Relations
   customers Customer[]
 
-  @@unique([name, code])
+  @@unique([marketName, stockExchangeName])
   @@map("listing_categories")
 }
 

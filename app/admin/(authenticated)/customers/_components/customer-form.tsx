@@ -85,8 +85,8 @@ interface InitialData {
 
 interface ListingCategoryData {
   id: number;
-  name: string;
-  code: string;
+  marketName: string;
+  stockExchangeName: string;
 }
 
 interface CustomerFormProps {
@@ -107,13 +107,6 @@ interface CustomerFormProps {
 // ============================================================
 
 const NONE_VALUE = "__none__";
-
-const EXCHANGE_NAMES: Record<string, string> = {
-  tse: "東京証券取引所",
-  nse: "名古屋証券取引所",
-  fse: "福岡証券取引所",
-  sse: "札幌証券取引所",
-};
 
 // ============================================================
 // ヘルパー
@@ -712,22 +705,21 @@ export function CustomerForm({
                 <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100">----</SelectItem>
                 {/* グループなし（未上場・その他） */}
                 {listingCategories
-                  .filter((lc) => lc.code === "")
+                  .filter((lc) => lc.stockExchangeName === "")
                   .map((lc) => (
                     <SelectItem key={lc.id} value={String(lc.id)} className="bg-white hover:bg-gray-100">
-                      {lc.name}
+                      {lc.marketName}
                     </SelectItem>
                   ))}
                 {/* 取引所別グループ */}
-                {Object.entries(EXCHANGE_NAMES).map(([code, exchangeName]) => {
-                  const items = listingCategories.filter((lc) => lc.code === code);
-                  if (items.length === 0) return null;
+                {[...new Set(listingCategories.map((lc) => lc.stockExchangeName).filter(Boolean))].map((exchangeName) => {
+                  const items = listingCategories.filter((lc) => lc.stockExchangeName === exchangeName);
                   return (
-                    <SelectGroup key={code}>
+                    <SelectGroup key={exchangeName}>
                       <SelectLabel className="bg-gray-100">{exchangeName}</SelectLabel>
                       {items.map((lc) => (
                         <SelectItem key={lc.id} value={String(lc.id)} className="bg-white hover:bg-gray-100">
-                          {lc.name}
+                          {lc.marketName}
                         </SelectItem>
                       ))}
                     </SelectGroup>

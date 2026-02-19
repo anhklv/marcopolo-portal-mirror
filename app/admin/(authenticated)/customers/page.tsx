@@ -48,7 +48,7 @@ export default async function CustomersPage() {
     return {
     ...c,
     prefecture: c.prefecture?.name ?? null,
-    listingCategory: c.listingCategory?.name ?? null,
+    listingCategory: c.listingCategory?.marketName ?? null,
     originIndustry: auditCC?.originIndustry?.name ?? null,
     membershipQualification: auditCC?.membershipQualification?.name ?? null,
     registeredAt: c.registeredAt.toISOString(),

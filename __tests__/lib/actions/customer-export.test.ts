@@ -56,7 +56,7 @@ const makeExportCustomer = (overrides: Record<string, unknown> = {}) => ({
   memberCategory: "member",
   registeredAt: new Date("2024-01-15"),
   prefecture: { name: "東京都" },
-  listingCategory: { name: "プライム" },
+  listingCategory: { marketName: "プライム" },
   customerCommunities: [
     {
       community: { code: "venture_auditor", name: "ベンチャー監査役の会" },
