@@ -7,6 +7,7 @@ vi.mock("@/lib/auth/auth", () => ({
 }));
 
 import { auth } from "@/lib/auth/auth";
+import type { Session } from "next-auth";
 import {
   getScopedCommunityIds,
   canAccessCustomer,
@@ -18,7 +19,7 @@ import {
   type AdminForPermission,
 } from "@/lib/auth/permissions";
 
-const mockAuth = vi.mocked(auth);
+const mockAuth = auth as unknown as ReturnType<typeof vi.fn<() => Promise<Session | null>>>;
 
 // テスト用の管理者データ
 const superAdmin: AdminForPermission = {
