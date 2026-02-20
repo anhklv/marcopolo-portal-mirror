@@ -24,12 +24,12 @@ interface AuditCommunityFieldsProps {
   setMembershipQualificationId: (v: number | undefined) => void;
   originIndustryId: number | undefined;
   setOriginIndustryId: (v: number | undefined) => void;
-  auditJoinedAt: Date | undefined;
-  setAuditJoinedAt: (v: Date | undefined) => void;
-  auditResignedAt: Date | undefined;
-  setAuditResignedAt: (v: Date | undefined) => void;
-  onJoinedAtError?: (error: string | null) => void;
-  onResignedAtError?: (error: string | null) => void;
+  auditJoinedAt: string;
+  setAuditJoinedAt: (v: string) => void;
+  auditResignedAt: string;
+  setAuditResignedAt: (v: string) => void;
+  joinedAtError?: string;
+  resignedAtError?: string;
   membershipQualifications: MasterData[];
   originIndustries: MasterData[];
 }
@@ -48,8 +48,8 @@ export function AuditCommunityFields({
   setAuditJoinedAt,
   auditResignedAt,
   setAuditResignedAt,
-  onJoinedAtError,
-  onResignedAtError,
+  joinedAtError,
+  resignedAtError,
   membershipQualifications,
   originIndustries,
 }: AuditCommunityFieldsProps) {
@@ -124,10 +124,10 @@ export function AuditCommunityFields({
 
       <div className="grid grid-cols-2 items-start gap-4">
         <FormField label="入会日">
-          <DatePickerWithInput date={auditJoinedAt} setDate={setAuditJoinedAt} onError={onJoinedAtError} />
+          <DatePickerWithInput value={auditJoinedAt} onChange={setAuditJoinedAt} error={joinedAtError} />
         </FormField>
         <FormField label="脱退日">
-          <DatePickerWithInput date={auditResignedAt} setDate={setAuditResignedAt} onError={onResignedAtError} />
+          <DatePickerWithInput value={auditResignedAt} onChange={setAuditResignedAt} error={resignedAtError} />
         </FormField>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import * as React from "react"
 import { CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { validateDateInput } from "@/lib/validations/customer"
 
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -13,82 +14,60 @@ import {
 
 interface DatePickerWithInputProps {
   id?: string;
-  date: Date | undefined;
-  setDate: (date: Date | undefined) => void;
-  onError?: (error: string | null) => void;
+  value: string;
+  onChange: (value: string) => void;
+  error?: string;
   className?: string;
 }
 
-function formatInputDate(d: Date | undefined) {
-  if (!d) return ""
+function formatDateFromObj(d: Date): string {
   const year = d.getFullYear()
   const month = String(d.getMonth() + 1).padStart(2, "0")
   const day = String(d.getDate()).padStart(2, "0")
   return `${year}/${month}/${day}`
 }
 
-function validateDateInput(value: string): string | null {
-  if (value === "") return null
+function parseDisplayDate(value: string): Date | undefined {
+  if (!value) return undefined
   const match = value.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/)
-  if (!match) return "YYYY/MM/DD形式で入力してください"
+  if (!match) return undefined
   const year = parseInt(match[1])
   const month = parseInt(match[2]) - 1
   const day = parseInt(match[3])
   const d = new Date(year, month, day)
   if (isNaN(d.getTime()) || d.getFullYear() !== year || d.getMonth() !== month || d.getDate() !== day) {
-    return "存在しない日付です"
+    return undefined
   }
-  return null
+  return d
 }
 
 export function DatePickerWithInput({
   id,
-  date,
-  setDate,
-  onError,
+  value,
+  onChange,
+  error,
   className,
 }: DatePickerWithInputProps) {
   const [open, setOpen] = React.useState(false)
-  const [month, setMonth] = React.useState<Date | undefined>(date)
-  const [inputValue, setInputValue] = React.useState(formatInputDate(date))
   const [inputError, setInputError] = React.useState<string | null>(null)
 
+  const parsedDate = parseDisplayDate(value)
+  const [month, setMonth] = React.useState<Date | undefined>(parsedDate)
+
+  // カレンダーの表示月を同期
   React.useEffect(() => {
-    setInputValue(formatInputDate(date))
-    setInputError(null)
-    onError?.(null)
-    if (date) {
-      setMonth(date)
+    if (parsedDate) {
+      setMonth(parsedDate)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date])
+  }, [value]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setInputValue(value)
+    onChange(e.target.value)
     setInputError(null)
-    onError?.(null)
-
-    const match = value.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/)
-    if (match) {
-      const year = parseInt(match[1])
-      const m = parseInt(match[2]) - 1
-      const day = parseInt(match[3])
-      const newDate = new Date(year, m, day)
-
-      if (!isNaN(newDate.getTime()) && newDate.getFullYear() === year && newDate.getMonth() === m && newDate.getDate() === day) {
-        setDate(newDate)
-        setMonth(newDate)
-      }
-    } else if (value === "") {
-      setDate(undefined)
-    }
   }
 
   const handleBlur = () => {
-    const error = validateDateInput(inputValue)
-    setInputError(error)
-    onError?.(error)
+    setInputError(validateDateInput(value))
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -98,15 +77,17 @@ export function DatePickerWithInput({
     }
   }
 
+  const displayError = error || inputError
+
   return (
     <div className={className}>
       <div className="relative flex gap-2">
         <Input
           id={id}
           type="text"
-          value={inputValue}
+          value={value}
           placeholder="YYYY/MM/DD"
-          className={cn("bg-white pr-10", inputError && "border-destructive")}
+          className={cn("bg-white pr-10", displayError && "border-destructive")}
           onChange={handleInputChange}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
@@ -129,20 +110,23 @@ export function DatePickerWithInput({
           >
             <Calendar
               mode="single"
-              selected={date}
+              selected={parsedDate}
               captionLayout="dropdown"
               month={month}
               onMonthChange={setMonth}
               onSelect={(newDate) => {
-                setDate(newDate)
+                if (newDate) {
+                  onChange(formatDateFromObj(newDate))
+                  setInputError(null)
+                }
                 setOpen(false)
               }}
             />
           </PopoverContent>
         </Popover>
       </div>
-      {inputError && (
-        <p className="mt-1 text-xs text-destructive">{inputError}</p>
+      {displayError && (
+        <p className="mt-1 text-xs text-destructive">{displayError}</p>
       )}
     </div>
   )

@@ -16,12 +16,12 @@ interface SimpleCommunityFieldsProps {
   label: string;
   affiliationId: number | undefined;
   setAffiliationId: (v: number | undefined) => void;
-  joinedAt: Date | undefined;
-  setJoinedAt: (v: Date | undefined) => void;
-  resignedAt: Date | undefined;
-  setResignedAt: (v: Date | undefined) => void;
-  onJoinedAtError?: (error: string | null) => void;
-  onResignedAtError?: (error: string | null) => void;
+  joinedAt: string;
+  setJoinedAt: (v: string) => void;
+  resignedAt: string;
+  setResignedAt: (v: string) => void;
+  joinedAtError?: string;
+  resignedAtError?: string;
   affiliations: MasterData[];
 }
 
@@ -33,8 +33,8 @@ export function SimpleCommunityFields({
   setJoinedAt,
   resignedAt,
   setResignedAt,
-  onJoinedAtError,
-  onResignedAtError,
+  joinedAtError,
+  resignedAtError,
   affiliations,
 }: SimpleCommunityFieldsProps) {
   return (
@@ -64,10 +64,10 @@ export function SimpleCommunityFields({
 
       <div className="grid grid-cols-2 items-start gap-4">
         <FormField label="入会日">
-          <DatePickerWithInput date={joinedAt} setDate={setJoinedAt} onError={onJoinedAtError} />
+          <DatePickerWithInput value={joinedAt} onChange={setJoinedAt} error={joinedAtError} />
         </FormField>
         <FormField label="脱退日">
-          <DatePickerWithInput date={resignedAt} setDate={setResignedAt} onError={onResignedAtError} />
+          <DatePickerWithInput value={resignedAt} onChange={setResignedAt} error={resignedAtError} />
         </FormField>
       </div>
     </div>

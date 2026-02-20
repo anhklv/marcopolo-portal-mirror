@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   createCustomerAction,
@@ -9,6 +9,8 @@ import {
 import type { ActionResult } from "@/lib/actions/customer.actions";
 import type { CommunityOption } from "@/lib/types/serialized";
 import {
+  customerFormSchema,
+  validateDateInput,
   validateKatakana,
   validatePhone,
   validatePostalCode,
@@ -74,17 +76,20 @@ function getInitialCommunityData(
   return initialData?.communities.find((c) => c.communityId === communityId);
 }
 
-function parseDateStr(dateStr: string | null | undefined): Date | undefined {
-  if (!dateStr) return undefined;
-  const d = new Date(dateStr);
-  return isNaN(d.getTime()) ? undefined : d;
+/** ISO形式(YYYY-MM-DDまたはYYYY-MM-DDTHH:mm:ss.sssZ) → 表示形式(YYYY/MM/DD) */
+function isoToDisplay(dateStr: string | null | undefined): string {
+  if (!dateStr) return "";
+  return dateStr.slice(0, 10).replace(/-/g, "/");
 }
 
-function dateToIsoString(date: Date | undefined): string | null {
-  if (!date) return null;
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
+/** 表示形式(YYYY/M/DまたはYYYY/MM/DD) → ISO形式(YYYY-MM-DD)、空文字はnull */
+function displayToIso(value: string): string | null {
+  if (!value) return null;
+  const match = value.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+  if (!match) return null;
+  const y = match[1];
+  const m = match[2].padStart(2, "0");
+  const d = match[3].padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
 
@@ -101,14 +106,14 @@ interface CommunityEntry {
 
 function buildCommunityEntry(
   communityId: number,
-  joinedAt: Date | undefined,
-  resignedAt: Date | undefined,
+  joinedAt: string,
+  resignedAt: string,
   overrides?: Partial<Pick<CommunityEntry, "auditMemberType" | "auditMemberPremium" | "affiliationId" | "originIndustryId" | "membershipQualificationId">>,
 ): CommunityEntry {
   return {
     communityId,
-    joinedAt: dateToIsoString(joinedAt),
-    resignedAt: dateToIsoString(resignedAt),
+    joinedAt: displayToIso(joinedAt),
+    resignedAt: displayToIso(resignedAt),
     auditMemberType: null,
     auditMemberPremium: null,
     affiliationId: null,
@@ -147,9 +152,9 @@ export function useCustomerForm({
   const aiInitial = aiCommunity ? getInitialCommunityData(initialData, aiCommunity.id) : undefined;
 
   // コミュニティ選択状態
-  const [auditChecked, setAuditCheckedRaw] = useState(!!auditInitial);
-  const [naikanChecked, setNaikanCheckedRaw] = useState(!!naikanInitial);
-  const [aiChecked, setAiCheckedRaw] = useState(!!aiInitial);
+  const [auditChecked, setAuditChecked] = useState(!!auditInitial);
+  const [naikanChecked, setNaikanChecked] = useState(!!naikanInitial);
+  const [aiChecked, setAiChecked] = useState(!!aiInitial);
 
   const anyCommunityChecked = auditChecked || naikanChecked || aiChecked;
 
@@ -164,20 +169,20 @@ export function useCustomerForm({
   // ベンチャー監査役の会
   const [auditMemberType, setAuditMemberType] = useState(auditInitial?.auditMemberType || "regular");
   const [auditMemberPremium, setAuditMemberPremium] = useState(auditInitial?.auditMemberPremium ?? false);
-  const [auditJoinedAt, setAuditJoinedAt] = useState<Date | undefined>(parseDateStr(auditInitial?.joinedAt));
-  const [auditResignedAt, setAuditResignedAt] = useState<Date | undefined>(parseDateStr(auditInitial?.resignedAt));
+  const [auditJoinedAt, setAuditJoinedAt] = useState(isoToDisplay(auditInitial?.joinedAt));
+  const [auditResignedAt, setAuditResignedAt] = useState(isoToDisplay(auditInitial?.resignedAt));
   const [originIndustryId, setOriginIndustryId] = useState<number | undefined>(auditInitial?.originIndustryId ?? undefined);
   const [membershipQualificationId, setMembershipQualificationId] = useState<number | undefined>(auditInitial?.membershipQualificationId ?? undefined);
 
   // ないかんMeetup
   const [naikanAffiliationId, setNaikanAffiliationId] = useState<number | undefined>(naikanInitial?.affiliationId ?? undefined);
-  const [naikanJoinedAt, setNaikanJoinedAt] = useState<Date | undefined>(parseDateStr(naikanInitial?.joinedAt));
-  const [naikanResignedAt, setNaikanResignedAt] = useState<Date | undefined>(parseDateStr(naikanInitial?.resignedAt));
+  const [naikanJoinedAt, setNaikanJoinedAt] = useState(isoToDisplay(naikanInitial?.joinedAt));
+  const [naikanResignedAt, setNaikanResignedAt] = useState(isoToDisplay(naikanInitial?.resignedAt));
 
   // AI部会
   const [aiAffiliationId, setAiAffiliationId] = useState<number | undefined>(aiInitial?.affiliationId ?? undefined);
-  const [aiJoinedAt, setAiJoinedAt] = useState<Date | undefined>(parseDateStr(aiInitial?.joinedAt));
-  const [aiResignedAt, setAiResignedAt] = useState<Date | undefined>(parseDateStr(aiInitial?.resignedAt));
+  const [aiJoinedAt, setAiJoinedAt] = useState(isoToDisplay(aiInitial?.joinedAt));
+  const [aiResignedAt, setAiResignedAt] = useState(isoToDisplay(aiInitial?.resignedAt));
 
   // プロフィール
   const [firstName, setFirstName] = useState(initialData?.firstName ?? "");
@@ -200,39 +205,14 @@ export function useCustomerForm({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
 
-  // 日付エラー追跡（DatePickerWithInput内部のエラーをrefで保持）
-  const dateErrors = useRef<Record<string, string>>({});
-  const handleDateError = useCallback((field: string, error: string | null) => {
-    if (error) {
-      dateErrors.current[field] = error;
-    } else {
-      delete dateErrors.current[field];
-    }
-  }, []);
-
-  // コミュニティチェック切り替え（OFF時に日付エラーをクリア）
-  const setAuditChecked = (checked: boolean) => {
-    if (!checked) {
-      delete dateErrors.current["auditJoinedAt"];
-      delete dateErrors.current["auditResignedAt"];
-    }
-    setAuditCheckedRaw(checked);
-  };
-
-  const setNaikanChecked = (checked: boolean) => {
-    if (!checked) {
-      delete dateErrors.current["naikanJoinedAt"];
-      delete dateErrors.current["naikanResignedAt"];
-    }
-    setNaikanCheckedRaw(checked);
-  };
-
-  const setAiChecked = (checked: boolean) => {
-    if (!checked) {
-      delete dateErrors.current["aiJoinedAt"];
-      delete dateErrors.current["aiResignedAt"];
-    }
-    setAiCheckedRaw(checked);
+  // フィールドエラーのクリア（onChange時に使用）
+  const clearFieldError = (field: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
   };
 
   // フィールド単位のblurバリデーション
@@ -301,7 +281,6 @@ export function useCustomerForm({
       }
     }
 
-    setFieldErrors({});
     setGeneralError(null);
 
     // ベンチャー監査役の会・会員の場合、会員種別は必須
@@ -310,30 +289,23 @@ export function useCustomerForm({
       return;
     }
 
-    // クライアントサイドバリデーション
+    // 日付フィールドのバリデーション（表示形式のまま検証）
     const clientErrors: Record<string, string[]> = {};
-    const checks: [string, string | null][] = [
-      ["lastNameKana", validateKatakana(lastNameKana)],
-      ["firstNameKana", validateKatakana(firstNameKana)],
-      ["phone", validatePhone(phone)],
-      ["postalCode", validatePostalCode(postalCode)],
+    const dateFields: { key: string; value: string; checked: boolean }[] = [
+      { key: "auditJoinedAt", value: auditJoinedAt, checked: auditChecked },
+      { key: "auditResignedAt", value: auditResignedAt, checked: auditChecked },
+      { key: "naikanJoinedAt", value: naikanJoinedAt, checked: naikanChecked },
+      { key: "naikanResignedAt", value: naikanResignedAt, checked: naikanChecked },
+      { key: "aiJoinedAt", value: aiJoinedAt, checked: aiChecked },
+      { key: "aiResignedAt", value: aiResignedAt, checked: aiChecked },
     ];
-    for (const [field, error] of checks) {
-      if (error) clientErrors[field] = [error];
+    for (const { key, value, checked } of dateFields) {
+      if (!checked) continue;
+      const error = validateDateInput(value);
+      if (error) clientErrors[key] = [error];
     }
 
-    // 日付フィールドのエラーチェック
-    for (const [field, error] of Object.entries(dateErrors.current)) {
-      clientErrors[field] = [error];
-    }
-
-    if (Object.keys(clientErrors).length > 0) {
-      setFieldErrors(clientErrors);
-      toast.error("入力内容に誤りがあります");
-      return;
-    }
-
-    // コミュニティデータ構築
+    // コミュニティデータ構築（日付は表示形式→ISO形式に変換）
     const communitiesData: CommunityEntry[] = [];
 
     if (auditChecked && auditCommunity) {
@@ -378,6 +350,23 @@ export function useCustomerForm({
       communities: communitiesData,
     };
 
+    // Zodスキーマで全フィールドを一括チェック
+    const parsed = customerFormSchema.safeParse(formData);
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) {
+        const path = issue.path.join(".");
+        if (!clientErrors[path]) clientErrors[path] = [];
+        clientErrors[path].push(issue.message);
+      }
+    }
+
+    if (Object.keys(clientErrors).length > 0) {
+      setFieldErrors(clientErrors);
+      toast.error("入力内容に誤りがあります");
+      return;
+    }
+
+    setFieldErrors({});
     startTransition(async () => {
       try {
         let result: ActionResult | void;
@@ -463,6 +452,7 @@ export function useCustomerForm({
     // エラー
     fieldErrors,
     generalError,
+    clearFieldError,
 
     // ハンドラ
     handleAddSubEmail,
@@ -472,7 +462,6 @@ export function useCustomerForm({
     handleFirstNameKanaBlur,
     handlePhoneBlur,
     handlePostalCodeBlur,
-    handleDateError,
     handleSubmit,
   };
 }

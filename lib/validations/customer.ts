@@ -30,6 +30,20 @@ export function validatePostalCode(value: string): string | null {
   return null;
 }
 
+export function validateDateInput(value: string): string | null {
+  if (!value) return null;
+  const match = value.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+  if (!match) return "YYYY/MM/DD形式で入力してください";
+  const year = parseInt(match[1]);
+  const month = parseInt(match[2]) - 1;
+  const day = parseInt(match[3]);
+  const d = new Date(year, month, day);
+  if (isNaN(d.getTime()) || d.getFullYear() !== year || d.getMonth() !== month || d.getDate() !== day) {
+    return "存在しない日付です";
+  }
+  return null;
+}
+
 function refineWithValidator(validate: (v: string) => string | null) {
   return (v: string, ctx: z.RefinementCtx) => {
     const error = validate(v);

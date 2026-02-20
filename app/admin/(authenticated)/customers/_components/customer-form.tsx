@@ -173,11 +173,11 @@ export function CustomerForm({
                   originIndustryId={form.originIndustryId}
                   setOriginIndustryId={form.setOriginIndustryId}
                   auditJoinedAt={form.auditJoinedAt}
-                  setAuditJoinedAt={form.setAuditJoinedAt}
+                  setAuditJoinedAt={(v) => { form.setAuditJoinedAt(v); form.clearFieldError("auditJoinedAt"); }}
                   auditResignedAt={form.auditResignedAt}
-                  setAuditResignedAt={form.setAuditResignedAt}
-                  onJoinedAtError={(e) => form.handleDateError("auditJoinedAt", e)}
-                  onResignedAtError={(e) => form.handleDateError("auditResignedAt", e)}
+                  setAuditResignedAt={(v) => { form.setAuditResignedAt(v); form.clearFieldError("auditResignedAt"); }}
+                  joinedAtError={form.fieldErrors["auditJoinedAt"]?.[0]}
+                  resignedAtError={form.fieldErrors["auditResignedAt"]?.[0]}
                   membershipQualifications={membershipQualifications}
                   originIndustries={originIndustries}
                 />
@@ -190,11 +190,11 @@ export function CustomerForm({
                   affiliationId={form.naikanAffiliationId}
                   setAffiliationId={form.setNaikanAffiliationId}
                   joinedAt={form.naikanJoinedAt}
-                  setJoinedAt={form.setNaikanJoinedAt}
+                  setJoinedAt={(v) => { form.setNaikanJoinedAt(v); form.clearFieldError("naikanJoinedAt"); }}
                   resignedAt={form.naikanResignedAt}
-                  setResignedAt={form.setNaikanResignedAt}
-                  onJoinedAtError={(e) => form.handleDateError("naikanJoinedAt", e)}
-                  onResignedAtError={(e) => form.handleDateError("naikanResignedAt", e)}
+                  setResignedAt={(v) => { form.setNaikanResignedAt(v); form.clearFieldError("naikanResignedAt"); }}
+                  joinedAtError={form.fieldErrors["naikanJoinedAt"]?.[0]}
+                  resignedAtError={form.fieldErrors["naikanResignedAt"]?.[0]}
                   affiliations={affiliations}
                 />
               )}
@@ -206,11 +206,11 @@ export function CustomerForm({
                   affiliationId={form.aiAffiliationId}
                   setAffiliationId={form.setAiAffiliationId}
                   joinedAt={form.aiJoinedAt}
-                  setJoinedAt={form.setAiJoinedAt}
+                  setJoinedAt={(v) => { form.setAiJoinedAt(v); form.clearFieldError("aiJoinedAt"); }}
                   resignedAt={form.aiResignedAt}
-                  setResignedAt={form.setAiResignedAt}
-                  onJoinedAtError={(e) => form.handleDateError("aiJoinedAt", e)}
-                  onResignedAtError={(e) => form.handleDateError("aiResignedAt", e)}
+                  setResignedAt={(v) => { form.setAiResignedAt(v); form.clearFieldError("aiResignedAt"); }}
+                  joinedAtError={form.fieldErrors["aiJoinedAt"]?.[0]}
+                  resignedAtError={form.fieldErrors["aiResignedAt"]?.[0]}
                   affiliations={affiliations}
                 />
               )}
@@ -225,14 +225,14 @@ export function CustomerForm({
               <Input
                 placeholder="例: 山田"
                 value={form.lastName}
-                onChange={(e) => form.setLastName(e.target.value)}
+                onChange={(e) => { form.setLastName(e.target.value); form.clearFieldError("lastName"); }}
               />
             </FormField>
             <FormField label="名" required id="firstName" error={form.fieldErrors["firstName"]?.[0]}>
               <Input
                 placeholder="例: 太郎"
                 value={form.firstName}
-                onChange={(e) => form.setFirstName(e.target.value)}
+                onChange={(e) => { form.setFirstName(e.target.value); form.clearFieldError("firstName"); }}
               />
             </FormField>
           </div>
@@ -266,8 +266,9 @@ export function CustomerForm({
                 type="email"
                 placeholder="name@example.com"
                 className="flex-1"
+                aria-invalid={!!form.fieldErrors["email"]}
                 value={form.email}
-                onChange={(e) => form.setEmail(e.target.value)}
+                onChange={(e) => { form.setEmail(e.target.value); form.clearFieldError("email"); }}
               />
               {form.subEmails.length < 3 && (
                 <Button
