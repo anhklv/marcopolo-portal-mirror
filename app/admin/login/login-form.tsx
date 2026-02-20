@@ -30,7 +30,7 @@ export function LoginForm() {
 
       if (result.success) {
         toast.success("ログインしました");
-        router.push("/admin");
+        router.push("/admin/customers");
       } else {
         toast.error(result.error ?? "ログインに失敗しました");
       }

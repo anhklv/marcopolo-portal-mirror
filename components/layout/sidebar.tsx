@@ -98,7 +98,7 @@ export function AppSidebar({ admin, debugMode }: AppSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild size="lg">
-              <Link href="/admin">
+              <Link href="/admin/customers">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <span className="text-lg font-bold">M</span>
                 </div>

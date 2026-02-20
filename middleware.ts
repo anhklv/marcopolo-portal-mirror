@@ -9,10 +9,15 @@ export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const role = req.auth?.user?.role;
 
-  // /admin/login: 認証済みなら /admin にリダイレクト
+  // /admin: 常に /admin/login へリダイレクト（ページは置かない）
+  if (pathname === "/admin") {
+    return NextResponse.redirect(new URL("/admin/login", req.url));
+  }
+
+  // /admin/login: 認証済みなら /admin/customers にリダイレクト
   if (pathname === "/admin/login") {
     if (isLoggedIn) {
-      return NextResponse.redirect(new URL("/admin", req.url));
+      return NextResponse.redirect(new URL("/admin/customers", req.url));
     }
     return NextResponse.next();
   }
