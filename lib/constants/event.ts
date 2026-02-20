@@ -1,4 +1,5 @@
 import type { RsvpStatus } from "@/lib/generated/prisma";
+import type { BadgeVariant } from "@/components/ui/badge";
 
 // RSVPステータスの選択肢
 export const RSVP_STATUSES: readonly { value: RsvpStatus; label: string }[] = [
@@ -9,7 +10,7 @@ export const RSVP_STATUSES: readonly { value: RsvpStatus; label: string }[] = [
 ] as const;
 
 // RSVPステータスの表示設定（Badge用）
-export const RSVP_STATUS_CONFIG: Record<RsvpStatus, { label: string; variant: string; description: string }> = {
+export const RSVP_STATUS_CONFIG: Record<RsvpStatus, { label: string; variant: BadgeVariant; description: string }> = {
   attending: { label: "参加", variant: "default", description: "通常参加" },
   online: { label: "オンライン参加", variant: "online", description: "オンライン参加（専用バリアント）" },
   absent: { label: "不参加", variant: "destructive-outline", description: "不参加" },
@@ -26,7 +27,7 @@ export const RSVP_STATUS_CONFIG: Record<RsvpStatus, { label: string; variant: st
 export type EventDisplayStatus = "receiving" | "paused" | "waiting" | "closed";
 
 // イベントステータスの表示設定（Badge用）
-export const EVENT_STATUS_CONFIG: Record<EventDisplayStatus, { label: string; variant: string; description: string }> = {
+export const EVENT_STATUS_CONFIG: Record<EventDisplayStatus, { label: string; variant: BadgeVariant; description: string }> = {
   receiving: { label: "受付中", variant: "default", description: "受付中（期間内）" },
   paused: { label: "一時停止中", variant: "destructive-outline", description: "受付期間中だが手動停止中" },
   waiting: { label: "受付終了", variant: "outline", description: "受付終了（開催前）" },

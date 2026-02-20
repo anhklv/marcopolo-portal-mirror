@@ -297,7 +297,7 @@ export function CustomerList({
     const hasPremium = customer.customerCommunities.some((cc) => cc.auditMemberPremium);
     if (hasPremium) {
       badges.push(
-        <Badge key="premium" variant={USER_ROLE_CONFIG.premium.variant as any}>
+        <Badge key="premium" variant={USER_ROLE_CONFIG.premium.variant}>
           {USER_ROLE_CONFIG.premium.label}
         </Badge>
       );

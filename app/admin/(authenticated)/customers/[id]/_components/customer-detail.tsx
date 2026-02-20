@@ -175,7 +175,7 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
               <DataItem label="コミュニティ">
                 <div className="flex gap-2 flex-wrap items-center">
                   {badges.map((badge, i) => (
-                    <Badge key={i} variant={badge.variant as any}>
+                    <Badge key={i} variant={badge.variant}>
                       {badge.label}
                     </Badge>
                   ))}
@@ -195,15 +195,15 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
                 <div className="flex items-center justify-between">
                   <Label className="font-semibold text-base">ベンチャー監査役の会</Label>
                   {customer.memberCategory === "member" && auditCommunity.auditMemberType && (
-                    <Badge variant={USER_ROLE_CONFIG.member.variant as any}>
+                    <Badge variant={USER_ROLE_CONFIG.member.variant}>
                       {AUDIT_MEMBER_TYPES.find((t) => t.value === auditCommunity.auditMemberType)?.label}
                     </Badge>
                   )}
                   {customer.memberCategory === "sponsor" && (
-                    <Badge variant={USER_ROLE_CONFIG.sponsor.variant as any}>{USER_ROLE_CONFIG.sponsor.label}</Badge>
+                    <Badge variant={USER_ROLE_CONFIG.sponsor.variant}>{USER_ROLE_CONFIG.sponsor.label}</Badge>
                   )}
                   {customer.memberCategory === "observer" && (
-                    <Badge variant={USER_ROLE_CONFIG.observer.variant as any}>{USER_ROLE_CONFIG.observer.label}</Badge>
+                    <Badge variant={USER_ROLE_CONFIG.observer.variant}>{USER_ROLE_CONFIG.observer.label}</Badge>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-6">
@@ -229,7 +229,7 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
                 <div className="flex items-center justify-between">
                   <Label className="font-semibold text-base">ないかんMeetup</Label>
                   {customer.memberCategory && (
-                    <Badge variant={USER_ROLE_CONFIG[customer.memberCategory as keyof typeof USER_ROLE_CONFIG]?.variant as any}>
+                    <Badge variant={USER_ROLE_CONFIG[customer.memberCategory as keyof typeof USER_ROLE_CONFIG]?.variant}>
                       {USER_ROLE_CONFIG[customer.memberCategory as keyof typeof USER_ROLE_CONFIG]?.label}
                     </Badge>
                   )}
@@ -254,7 +254,7 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
                 <div className="flex items-center justify-between">
                   <Label className="font-semibold text-base">AI部会</Label>
                   {customer.memberCategory && (
-                    <Badge variant={USER_ROLE_CONFIG[customer.memberCategory as keyof typeof USER_ROLE_CONFIG]?.variant as any}>
+                    <Badge variant={USER_ROLE_CONFIG[customer.memberCategory as keyof typeof USER_ROLE_CONFIG]?.variant}>
                       {USER_ROLE_CONFIG[customer.memberCategory as keyof typeof USER_ROLE_CONFIG]?.label}
                     </Badge>
                   )}
@@ -349,7 +349,7 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
                               <Badge
                                 variant={
                                   RSVP_STATUS_CONFIG[event.status as keyof typeof RSVP_STATUS_CONFIG]
-                                    ? (RSVP_STATUS_CONFIG[event.status as keyof typeof RSVP_STATUS_CONFIG].variant as any)
+                                    ? RSVP_STATUS_CONFIG[event.status as keyof typeof RSVP_STATUS_CONFIG].variant
                                     : "outline"
                                 }
                               >
@@ -389,7 +389,7 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
                               <Badge
                                 variant={
                                   RSVP_STATUS_CONFIG[event.status as keyof typeof RSVP_STATUS_CONFIG]
-                                    ? (RSVP_STATUS_CONFIG[event.status as keyof typeof RSVP_STATUS_CONFIG].variant as any)
+                                    ? RSVP_STATUS_CONFIG[event.status as keyof typeof RSVP_STATUS_CONFIG].variant
                                     : "outline"
                                 }
                               >
