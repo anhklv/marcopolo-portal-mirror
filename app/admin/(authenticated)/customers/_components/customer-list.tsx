@@ -27,6 +27,7 @@ import { formatDate } from "@/lib/utils";
 import { Search, Users, ChevronDown, Download, Plus } from "lucide-react";
 import { getCustomerBadges } from "@/lib/helpers/customer-detail";
 import type { SerializedCustomer, CommunityOption } from "@/lib/types/serialized";
+import type { MemberCategory, AuditMemberType } from "@/lib/generated/prisma";
 import {
   Pagination,
   PaginationContent,
@@ -68,8 +69,8 @@ export function CustomerList({
   // フィルタ状態
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedCommunityIds, setSelectedCommunityIds] = useState<number[]>([]);
-  const [memberCategories, setMemberCategories] = useState<string[]>([]);
-  const [auditMemberTypes, setAuditMemberTypes] = useState<string[]>([]);
+  const [memberCategories, setMemberCategories] = useState<MemberCategory[]>([]);
+  const [auditMemberTypes, setAuditMemberTypes] = useState<AuditMemberType[]>([]);
   const [premiumOnly, setPremiumOnly] = useState(false);
   const [includeFormerMembers, setIncludeFormerMembers] = useState(false);
   const [includeNonMemberFilter, setIncludeNonMemberFilter] = useState(false);
@@ -119,7 +120,7 @@ export function CustomerList({
     );
   };
 
-  const handleMemberCategoryChange = (category: string, checked: boolean) => {
+  const handleMemberCategoryChange = (category: MemberCategory, checked: boolean) => {
     setMemberCategories((prev) =>
       checked ? [...prev, category] : prev.filter((c) => c !== category)
     );
@@ -129,7 +130,7 @@ export function CustomerList({
     }
   };
 
-  const handleAuditMemberTypeChange = (type: string, checked: boolean) => {
+  const handleAuditMemberTypeChange = (type: AuditMemberType, checked: boolean) => {
     setAuditMemberTypes((prev) =>
       checked ? [...prev, type] : prev.filter((t) => t !== type)
     );

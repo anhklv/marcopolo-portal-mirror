@@ -283,15 +283,14 @@ export async function exportCustomersAction(
   const helperFilters = {
     keyword: filters?.keyword ?? "",
     communityIds: filters?.communityIds ?? [],
-    memberCategories: filters?.memberCategories ?? [], // string[]型互換性注意（anyキャスト等必要かも）
+    memberCategories: filters?.memberCategories ?? [],
     auditMemberTypes: filters?.auditMemberTypes ?? [],
     premiumOnly: filters?.premiumOnly ?? false,
     includeFormerMembers: filters?.includeFormerMembers ?? false,
     includeNonMemberFilter: isSuper ? (filters?.includeNonMember ?? false) : false,
   };
 
-  // 型アサーションで回避（memberCategoriesなどがstring[]と厳密なunion型で不一致の可能性）
-  const filteredResult = filterCustomers(filterableCustomers as any, helperFilters as any);
+  const filteredResult = filterCustomers(filterableCustomers as any, helperFilters);
   const filteredIds = new Set(filteredResult.map((c) => c.id));
   const targetCustomers = customers.filter((c) => filteredIds.has(c.id));
 

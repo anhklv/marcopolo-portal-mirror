@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import type { Prisma, Customer, CustomerCommunity, Community, Rsvp, Event, Prefecture, ListingCategory, OriginIndustry, MembershipQualification, Affiliation } from "@/lib/generated/prisma";
+import type { Prisma, Customer, CustomerCommunity, Community, Rsvp, Event, Prefecture, ListingCategory, OriginIndustry, MembershipQualification, Affiliation, MemberCategory, AuditMemberType } from "@/lib/generated/prisma";
 
 
 // ============================================================
@@ -30,8 +30,8 @@ export type CustomerDetail = Omit<CustomerWithCommunities, "customerCommunities"
 export interface CustomerListFilters {
   keyword?: string;
   communityIds?: number[];
-  memberCategories?: string[];
-  auditMemberTypes?: string[];
+  memberCategories?: MemberCategory[];
+  auditMemberTypes?: AuditMemberType[];
   premiumOnly?: boolean;
   includeFormerMembers?: boolean;
   includeNonMember?: boolean;
@@ -136,7 +136,7 @@ export async function findAll(
   // 会員区分フィルタ
   if (filters?.memberCategories && filters.memberCategories.length > 0) {
     conditions.push({
-      memberCategory: { in: filters.memberCategories as any },
+      memberCategory: { in: filters.memberCategories },
     });
   }
 
@@ -145,7 +145,7 @@ export async function findAll(
     conditions.push({
       customerCommunities: {
         some: {
-          auditMemberType: { in: filters.auditMemberTypes as any },
+          auditMemberType: { in: filters.auditMemberTypes },
         },
       },
     });
