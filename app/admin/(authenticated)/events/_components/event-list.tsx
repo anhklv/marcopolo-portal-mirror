@@ -220,6 +220,7 @@ export function EventList({
                     onCheckedChange={(checked) =>
                       toggleEventType(community.name, !!checked)
                     }
+                    labelClassName="text-sm"
                   />
                 ))}
             </div>
@@ -266,6 +267,7 @@ export function EventList({
                     onCheckedChange={(checked) =>
                       toggleStatus(status, !!checked)
                     }
+                    labelClassName="text-sm"
                   />
                 ))}
             </div>

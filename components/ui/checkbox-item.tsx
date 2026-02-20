@@ -11,6 +11,7 @@ interface CheckboxItemProps {
   onCheckedChange?: (checked: boolean) => void
   disabled?: boolean
   className?: string
+  labelClassName?: string
 }
 
 function CheckboxItem({
@@ -20,6 +21,7 @@ function CheckboxItem({
   onCheckedChange,
   disabled,
   className,
+  labelClassName,
 }: CheckboxItemProps) {
   return (
     <div className={cn("flex items-center space-x-2", className)}>
@@ -29,7 +31,7 @@ function CheckboxItem({
         onCheckedChange={(c) => onCheckedChange?.(c === true)}
         disabled={disabled}
       />
-      <label htmlFor={id} className="cursor-pointer text-base">
+      <label htmlFor={id} className={cn("cursor-pointer text-base", labelClassName)}>
         {label}
       </label>
     </div>

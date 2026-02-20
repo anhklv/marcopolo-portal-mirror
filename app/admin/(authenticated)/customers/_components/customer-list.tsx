@@ -222,6 +222,7 @@ export function CustomerList({
                         label={c.name}
                         checked={selectedCommunityIds.includes(c.id)}
                         onCheckedChange={(checked) => toggleCommunityId(c.id, checked)}
+                        labelClassName="text-sm"
                       />
                     ))}
                   {/* 非会員（特権管理者のみ） */}
@@ -231,6 +232,7 @@ export function CustomerList({
                       label="非会員"
                       checked={includeNonMemberFilter}
                       onCheckedChange={setIncludeNonMemberFilter}
+                      labelClassName="text-sm"
                     />
                   )}
                 </div>
@@ -246,18 +248,21 @@ export function CustomerList({
                       label="会員"
                       checked={memberCategories.includes("member")}
                       onCheckedChange={(checked) => handleMemberCategoryChange("member", checked)}
+                      labelClassName="text-sm"
                     />
                     <CheckboxItem
                       id="member-sponsor"
                       label="スポンサー"
                       checked={memberCategories.includes("sponsor")}
                       onCheckedChange={(checked) => handleMemberCategoryChange("sponsor", checked)}
+                      labelClassName="text-sm"
                     />
                     <CheckboxItem
                       id="member-observer"
                       label="オブザーバー"
                       checked={memberCategories.includes("observer")}
                       onCheckedChange={(checked) => handleMemberCategoryChange("observer", checked)}
+                      labelClassName="text-sm"
                     />
                   </div>
                 </div>
@@ -273,12 +278,14 @@ export function CustomerList({
                       label="正会員"
                       checked={auditMemberTypes.includes("regular")}
                       onCheckedChange={(checked) => toggleAuditMemberType("regular", checked)}
+                      labelClassName="text-sm"
                     />
                     <CheckboxItem
                       id="audit-online"
                       label="オンライン会員"
                       checked={auditMemberTypes.includes("online")}
                       onCheckedChange={(checked) => toggleAuditMemberType("online", checked)}
+                      labelClassName="text-sm"
                     />
                   </div>
                 </div>
@@ -292,6 +299,7 @@ export function CustomerList({
                     label="プレミアム会員のみ"
                     checked={premiumOnly}
                     onCheckedChange={setPremiumOnly}
+                    labelClassName="text-sm"
                   />
                 </div>
               )}
@@ -305,6 +313,7 @@ export function CustomerList({
             label="元会員を含む"
             checked={includeFormerMembers}
             onCheckedChange={setIncludeFormerMembers}
+            labelClassName="text-sm"
           />
         </div>
       </div>
