@@ -82,7 +82,7 @@ describe("getCustomerBadges", () => {
     ]);
   });
 
-  it("脱退済み + auditMemberTypeあり → 元会員表示が優先", () => {
+  it("脱退済み + auditMemberTypeあり → 退会表示が優先", () => {
     const communities: CustomerCommunityForBadge[] = [
       {
         communityId: 1,
@@ -93,10 +93,10 @@ describe("getCustomerBadges", () => {
       },
     ];
     const result = getCustomerBadges(communities, "member");
-    expect(result[0].label).toBe("ベンチャー監査役の会(元会員)");
+    expect(result[0]).toEqual({ label: "ベンチャー監査役の会(退会)", variant: "destructive-outline" });
   });
 
-  it("脱退済みコミュニティ → 元会員表示", () => {
+  it("脱退済みコミュニティ → 退会表示", () => {
     const communities: CustomerCommunityForBadge[] = [
       {
         communityId: 1,
@@ -107,7 +107,7 @@ describe("getCustomerBadges", () => {
       },
     ];
     const result = getCustomerBadges(communities, "member");
-    expect(result[0].label).toBe("ベンチャー監査役の会(元会員)");
+    expect(result[0]).toEqual({ label: "ベンチャー監査役の会(退会)", variant: "destructive-outline" });
   });
 });
 

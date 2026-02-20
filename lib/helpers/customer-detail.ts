@@ -37,17 +37,20 @@ export function getCustomerBadges(
     : "";
 
   for (const cc of customerCommunities) {
+    if (cc.resignedAt) {
+      badges.push({
+        label: `${cc.community.name}(退会)`,
+        variant: "destructive-outline",
+      });
+      continue;
+    }
+
     let variant: BadgeVariant = "default";
     if (cc.community.code === "venture_auditor") variant = "audit";
     else if (cc.community.code === "naikan_meetup") variant = "naikan";
     else if (cc.community.code === "ai_club") variant = "ai";
 
-    if (cc.resignedAt) {
-      badges.push({
-        label: `${cc.community.name}(元${categoryLabel})`,
-        variant,
-      });
-    } else if (memberCategory === "member" && cc.auditMemberType) {
+    if (memberCategory === "member" && cc.auditMemberType) {
       const typeLabel = AUDIT_MEMBER_TYPES.find((t) => t.value === cc.auditMemberType)?.label ?? "";
       badges.push({
         label: `${cc.community.name}(${typeLabel})`,

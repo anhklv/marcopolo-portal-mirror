@@ -9,6 +9,7 @@ import {
   getScopedCommunityIds,
 } from "@/lib/auth/permissions";
 import type { AdminForPermission } from "@/lib/auth/permissions";
+import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/customer";
 import { customerFormSchema } from "@/lib/validations/customer";
 import type { CustomerFormInput } from "@/lib/validations/customer";
 import * as customerRepo from "@/lib/repositories/customer.repository";
@@ -318,7 +319,7 @@ export async function exportCustomersAction(
       .map((cc) => cc.community.name)
       .join("・");
     const memberCategoryLabel = c.memberCategory
-      ? { member: "会員", sponsor: "スポンサー", observer: "オブザーバー" }[c.memberCategory]
+      ? MEMBER_CATEGORY_LABELS[c.memberCategory as keyof typeof MEMBER_CATEGORY_LABELS] ?? ""
       : "";
     const registeredAt = formatDateForCsv(c.registeredAt);
     // originIndustry/membershipQualification は CustomerCommunity（ベンチャー監査役の会）に紐づく
