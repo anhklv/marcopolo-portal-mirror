@@ -131,19 +131,13 @@ export const customerSchema = z.object({
 
 const optionalDateString = z
   .string()
-  .refine(
-    (v) => /^\d{4}-\d{2}-\d{2}$/.test(v),
-    "有効な日付を入力してください"
-  )
-  .refine(
-    (v) => {
-      const d = new Date(v + "T00:00:00");
-      if (isNaN(d.getTime())) return false;
-      const [y, m, day] = v.split("-").map(Number);
-      return d.getFullYear() === y && d.getMonth() + 1 === m && d.getDate() === day;
-    },
-    "存在しない日付です"
-  )
+  .superRefine(refineWithValidator(validateDateInput))
+  .transform((v) => {
+    if (!v) return null;
+    const match = v.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+    if (!match) return null;
+    return `${match[1]}-${match[2].padStart(2, "0")}-${match[3].padStart(2, "0")}`;
+  })
   .nullable()
   .optional();
 

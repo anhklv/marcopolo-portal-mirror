@@ -10,7 +10,6 @@ import type { ActionResult } from "@/lib/actions/customer.actions";
 import type { CommunityOption } from "@/lib/types/serialized";
 import {
   customerFormSchema,
-  validateDateInput,
   validateKatakana,
   validatePhone,
   validatePostalCode,
@@ -82,17 +81,6 @@ function isoToDisplay(dateStr: string | null | undefined): string {
   return dateStr.slice(0, 10).replace(/-/g, "/");
 }
 
-/** 表示形式(YYYY/M/DまたはYYYY/MM/DD) → ISO形式(YYYY-MM-DD)、空文字はnull */
-function displayToIso(value: string): string | null {
-  if (!value) return null;
-  const match = value.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
-  if (!match) return null;
-  const y = match[1];
-  const m = match[2].padStart(2, "0");
-  const d = match[3].padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
 interface CommunityEntry {
   communityId: number;
   joinedAt: string | null;
@@ -112,8 +100,8 @@ function buildCommunityEntry(
 ): CommunityEntry {
   return {
     communityId,
-    joinedAt: displayToIso(joinedAt),
-    resignedAt: displayToIso(resignedAt),
+    joinedAt: joinedAt || null,
+    resignedAt: resignedAt || null,
     auditMemberType: null,
     auditMemberPremium: null,
     affiliationId: null,
@@ -289,23 +277,7 @@ export function useCustomerForm({
       return;
     }
 
-    // 日付フィールドのバリデーション（表示形式のまま検証）
-    const clientErrors: Record<string, string[]> = {};
-    const dateFields: { key: string; value: string; checked: boolean }[] = [
-      { key: "auditJoinedAt", value: auditJoinedAt, checked: auditChecked },
-      { key: "auditResignedAt", value: auditResignedAt, checked: auditChecked },
-      { key: "naikanJoinedAt", value: naikanJoinedAt, checked: naikanChecked },
-      { key: "naikanResignedAt", value: naikanResignedAt, checked: naikanChecked },
-      { key: "aiJoinedAt", value: aiJoinedAt, checked: aiChecked },
-      { key: "aiResignedAt", value: aiResignedAt, checked: aiChecked },
-    ];
-    for (const { key, value, checked } of dateFields) {
-      if (!checked) continue;
-      const error = validateDateInput(value);
-      if (error) clientErrors[key] = [error];
-    }
-
-    // コミュニティデータ構築（日付は表示形式→ISO形式に変換）
+    // コミュニティデータ構築（日付は表示形式のままZodで検証・変換）
     const communitiesData: CommunityEntry[] = [];
 
     if (auditChecked && auditCommunity) {
@@ -350,13 +322,27 @@ export function useCustomerForm({
       communities: communitiesData,
     };
 
-    // Zodスキーマで全フィールドを一括チェック
+    // Zodスキーマで全フィールドを一括チェック（日付のYYYY/MM/DD→YYYY-MM-DD変換も含む）
+    const clientErrors: Record<string, string[]> = {};
     const parsed = customerFormSchema.safeParse(formData);
     if (!parsed.success) {
       for (const issue of parsed.error.issues) {
-        const path = issue.path.join(".");
-        if (!clientErrors[path]) clientErrors[path] = [];
-        clientErrors[path].push(issue.message);
+        const path = issue.path;
+        let key = path.join(".");
+
+        // communities.N.joinedAt/resignedAt → {prefix}JoinedAt/ResignedAt にマッピング
+        if (path[0] === "communities" && typeof path[1] === "number") {
+          const community = communitiesData[path[1]];
+          const prefix = community?.communityId === auditCommunity?.id ? "audit"
+            : community?.communityId === naikanCommunity?.id ? "naikan"
+            : community?.communityId === aiCommunity?.id ? "ai" : null;
+          if (prefix && (path[2] === "joinedAt" || path[2] === "resignedAt")) {
+            key = `${prefix}${path[2] === "joinedAt" ? "JoinedAt" : "ResignedAt"}`;
+          }
+        }
+
+        if (!clientErrors[key]) clientErrors[key] = [];
+        clientErrors[key].push(issue.message);
       }
     }
 

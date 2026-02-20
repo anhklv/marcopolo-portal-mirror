@@ -226,7 +226,7 @@ describe("customerFormSchema", () => {
       communities: [
         {
           communityId: 1,
-          joinedAt: "2024-04-01",
+          joinedAt: "2024/04/01",
           auditMemberType: "regular",
           auditMemberPremium: true,
           affiliation: null,
@@ -263,7 +263,7 @@ describe("customerFormSchema", () => {
       communities: [
         {
           communityId: 2,
-          joinedAt: "2024-06-01",
+          joinedAt: "2024/06/01",
           resignedAt: null,
           auditMemberType: null,
           auditMemberPremium: null,
@@ -286,5 +286,49 @@ describe("customerFormSchema", () => {
       ],
     });
     expect(result.success).toBe(true);
+  });
+
+  it("正常系: 日付がYYYY/MM/DD形式でISO形式に変換される", () => {
+    const result = customerFormSchema.safeParse({
+      ...validBase,
+      communities: [
+        {
+          communityId: 1,
+          joinedAt: "2024/3/15",
+          resignedAt: "2024/12/1",
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.communities![0].joinedAt).toBe("2024-03-15");
+      expect(result.data.communities![0].resignedAt).toBe("2024-12-01");
+    }
+  });
+
+  it("異常系: 日付がYYYY-MM-DD形式（スラッシュではない）", () => {
+    const result = customerFormSchema.safeParse({
+      ...validBase,
+      communities: [
+        {
+          communityId: 1,
+          joinedAt: "2024-04-01",
+        },
+      ],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("異常系: 存在しない日付", () => {
+    const result = customerFormSchema.safeParse({
+      ...validBase,
+      communities: [
+        {
+          communityId: 1,
+          joinedAt: "2024/02/30",
+        },
+      ],
+    });
+    expect(result.success).toBe(false);
   });
 });
