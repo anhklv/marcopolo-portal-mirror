@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useArrayToggle } from "@/hooks/use-array-toggle";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -58,13 +59,13 @@ export function InviteForm({ event, customers, currentUserRole, communities }: I
   const [emailTitle, setEmailTitle] = useState(`【イベント案内】${event.title}`);
   const [emailBody, setEmailBody] = useState(""); // 初期値は空、必要ならテンプレート展開
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [memberCategories, setMemberCategories] = useState<string[]>([]);
-  const [selectedCommunityIds, setSelectedCommunityIds] = useState<number[]>([]);
-  const [auditMemberTypes, setAuditMemberTypes] = useState<string[]>([]);
+  const [memberCategories, toggleMemberCategory] = useArrayToggle<string>();
+  const [selectedCommunityIds, toggleCommunityId] = useArrayToggle<number>();
+  const [auditMemberTypes, toggleAuditMemberType] = useArrayToggle<string>();
   const [premiumOnly, setPremiumOnly] = useState(false);
   const [includeFormerMembers, setIncludeFormerMembers] = useState(false);
   const [includeNonMemberFilter, setIncludeNonMemberFilter] = useState(false);
-  const [inviteStatuses, setInviteStatuses] = useState<string[]>([]);
+  const [inviteStatuses, toggleInviteStatus] = useArrayToggle<string>();
   const [inviteStatusSearch, setInviteStatusSearch] = useState("");
 
   // 招待済みIDのセット
@@ -161,32 +162,6 @@ export function InviteForm({ event, customers, currentUserRole, communities }: I
       setSelectedCustomerIds([]);
     } else {
       setSelectedCustomerIds(filteredCustomers.map((c) => c.id));
-    }
-  };
-
-  // フィルタハンドラー
-  const handleCommunityChange = (communityId: number, checked: boolean) => {
-    if (checked) {
-      setSelectedCommunityIds([...selectedCommunityIds, communityId]);
-    } else {
-      setSelectedCommunityIds(selectedCommunityIds.filter(id => id !== communityId));
-      // コミュニティ選択解除時の連動リセットなどは必要に応じて
-    }
-  };
-
-  const handleMemberCategoryChange = (category: string, checked: boolean) => {
-    if (checked) {
-      setMemberCategories([...memberCategories, category]);
-    } else {
-      setMemberCategories(memberCategories.filter(c => c !== category));
-    }
-  };
-
-  const handleInviteStatusChange = (status: string, checked: boolean) => {
-    if (checked) {
-      setInviteStatuses([...inviteStatuses, status]);
-    } else {
-      setInviteStatuses(inviteStatuses.filter((s) => s !== status));
     }
   };
 
@@ -322,7 +297,7 @@ export function InviteForm({ event, customers, currentUserRole, communities }: I
                             id={`org-${community.code}`}
                             label={community.name}
                             checked={selectedCommunityIds.includes(community.id)}
-                            onCheckedChange={(c) => handleCommunityChange(community.id, c)}
+                            onCheckedChange={(c) => toggleCommunityId(community.id, c)}
                           />
                         ))}
                         {/* 特権管理者のみ非会員表示 */}
@@ -367,7 +342,7 @@ export function InviteForm({ event, customers, currentUserRole, communities }: I
                          id={`status-${status}`}
                          label={status}
                          checked={inviteStatuses.includes(status)}
-                         onCheckedChange={(c) => handleInviteStatusChange(status, c)}
+                         onCheckedChange={(c) => toggleInviteStatus(status, c)}
                        />
                      ))}
                    </div>
