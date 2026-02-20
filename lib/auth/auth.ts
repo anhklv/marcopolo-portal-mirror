@@ -5,6 +5,10 @@ import { prisma } from "@/lib/prisma";
 import { authConfig } from "./auth.config";
 import "@/lib/auth/types";
 
+// タイミング攻撃対策: ユーザー未存在時もbcrypt.compareを実行し、
+// レスポンス時間からメールアドレスの存在有無を推測できないようにする
+const DUMMY_HASH = bcrypt.hashSync("dummy-password-for-timing", 10);
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   session: {
@@ -32,13 +36,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { email },
         });
 
-        if (!admin) {
-          return null;
-        }
+        const hash = admin?.passwordHash ?? DUMMY_HASH;
+        const isValid = await bcrypt.compare(password, hash);
 
-        const isValid = await bcrypt.compare(password, admin.passwordHash);
-
-        if (!isValid) {
+        if (!admin || !isValid) {
           return null;
         }
 

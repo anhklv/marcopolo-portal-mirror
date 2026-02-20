@@ -1,7 +1,6 @@
 import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import type { EventDisplayStatus } from "@/lib/constants/event";
 
 /**
  * 権限チェックで使用する管理者情報
@@ -190,33 +189,4 @@ export async function canManageSurvey(
 
   const scopedIds = await getScopedCommunityIds(admin);
   return scopedIds.includes(event.communityId);
-}
-
-/**
- * イベント状態の前提条件確認
- * - receiving: 回答期限前 + 未停止
- * - waiting: 回答期限後〜開催日前
- * - closed: 開催日後
- * - paused: isPaused=true
- */
-export function checkEventStatus(event: {
-  date: Date;
-  responseDeadline: Date | null;
-  isPaused: boolean;
-}): EventDisplayStatus {
-  const now = new Date();
-
-  if (event.isPaused) {
-    return "paused";
-  }
-
-  if (event.date <= now) {
-    return "closed";
-  }
-
-  if (event.responseDeadline && event.responseDeadline <= now) {
-    return "waiting";
-  }
-
-  return "receiving";
 }

@@ -4,7 +4,14 @@ import { signIn, signOut } from "@/lib/auth/auth";
 import { AuthError } from "next-auth";
 import { loginSchema } from "@/lib/validations/login";
 
-export async function loginAction(email: string, password: string) {
+type ActionResult =
+  | { success: true; error: null }
+  | { success: false; error: string };
+
+export async function loginAction(
+  email: string,
+  password: string
+): Promise<ActionResult> {
   const parsed = loginSchema.safeParse({ email, password });
   if (!parsed.success) {
     return {

@@ -13,7 +13,6 @@ import {
   canAccessCustomer,
   canAccessEvent,
   canManageSurvey,
-  checkEventStatus,
   requireAuth,
   requireSuper,
   type AdminForPermission,
@@ -173,53 +172,6 @@ describe("canManageSurvey", () => {
 
     const result = await canManageSurvey(superAdmin, 999);
     expect(result).toBe(false);
-  });
-});
-
-describe("checkEventStatus", () => {
-  it("回答期限前 + 未停止 → receiving", () => {
-    const event = {
-      date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1週間後
-      responseDeadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3日後
-      isPaused: false,
-    };
-    expect(checkEventStatus(event)).toBe("receiving");
-  });
-
-  it("回答期限後〜開催日前 → waiting", () => {
-    const event = {
-      date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1週間後
-      responseDeadline: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1日前（期限切れ）
-      isPaused: false,
-    };
-    expect(checkEventStatus(event)).toBe("waiting");
-  });
-
-  it("開催日後 → closed", () => {
-    const event = {
-      date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1日前
-      responseDeadline: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      isPaused: false,
-    };
-    expect(checkEventStatus(event)).toBe("closed");
-  });
-
-  it("停止中 → paused", () => {
-    const event = {
-      date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      responseDeadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-      isPaused: true,
-    };
-    expect(checkEventStatus(event)).toBe("paused");
-  });
-
-  it("回答期限なし + 開催日前 → receiving", () => {
-    const event = {
-      date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      responseDeadline: null,
-      isPaused: false,
-    };
-    expect(checkEventStatus(event)).toBe("receiving");
   });
 });
 
