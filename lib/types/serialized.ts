@@ -16,6 +16,12 @@ export interface CommunityOption {
   name: string;
 }
 
+export interface ListingCategoryOption {
+  id: number;
+  marketName: string;
+  stockExchangeName: string;
+}
+
 // ============================================================
 // 顧客一覧用（customer-list.tsx）
 // ============================================================

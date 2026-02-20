@@ -34,7 +34,7 @@ import {
   updateCustomerAction,
 } from "@/lib/actions/customer.actions";
 import type { ActionResult } from "@/lib/actions/customer.actions";
-import type { MasterData, CommunityOption } from "@/lib/types/serialized";
+import type { MasterData, CommunityOption, ListingCategoryOption } from "@/lib/types/serialized";
 
 // ============================================================
 // 型定義
@@ -73,18 +73,12 @@ interface InitialData {
   communities: InitialCommunityData[];
 }
 
-interface ListingCategoryData {
-  id: number;
-  marketName: string;
-  stockExchangeName: string;
-}
-
 interface CustomerFormProps {
   mode: "create" | "edit";
   initialData?: InitialData;
   communities: CommunityOption[];
   prefectures: MasterData[];
-  listingCategories: ListingCategoryData[];
+  listingCategories: ListingCategoryOption[];
   originIndustries: MasterData[];
   membershipQualifications: MasterData[];
   affiliations: MasterData[];
