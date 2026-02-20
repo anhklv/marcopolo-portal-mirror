@@ -6,6 +6,41 @@ const optionalId = z.preprocess(
   z.number().int().positive().nullable().optional()
 );
 
+// ============================================================
+// 共通バリデーション関数（クライアント・サーバー両方で使用）
+// ============================================================
+
+export function validateKatakana(value: string): string | null {
+  if (!value) return null;
+  if (!/^[ァ-ヺー・\s　]*$/.test(value)) return "カタカナで入力してください";
+  return null;
+}
+
+export function validatePhone(value: string): string | null {
+  if (!value) return null;
+  if (!/^[0-9]*$/.test(value)) return "数字のみで入力してください";
+  if (value.length < 10 || value.length > 11) return "電話番号は数字10桁または11桁で入力してください";
+  return null;
+}
+
+export function validatePostalCode(value: string): string | null {
+  if (!value) return null;
+  if (!/^[0-9]*$/.test(value)) return "数字のみで入力してください";
+  if (value.length !== 7) return "郵便番号は数字7桁で入力してください";
+  return null;
+}
+
+function refineWithValidator(validate: (v: string) => string | null) {
+  return (v: string, ctx: z.RefinementCtx) => {
+    const error = validate(v);
+    if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
+  };
+}
+
+// ============================================================
+// Zodスキーマ
+// ============================================================
+
 export const customerSchema = z.object({
   firstName: z
     .string()
@@ -18,11 +53,13 @@ export const customerSchema = z.object({
   firstNameKana: z
     .string()
     .max(100, "メイは100文字以内で入力してください")
+    .superRefine(refineWithValidator(validateKatakana))
     .optional()
     .or(z.literal("")),
   lastNameKana: z
     .string()
     .max(100, "セイは100文字以内で入力してください")
+    .superRefine(refineWithValidator(validateKatakana))
     .optional()
     .or(z.literal("")),
   email: z
@@ -41,12 +78,12 @@ export const customerSchema = z.object({
     .or(z.literal("")),
   phone: z
     .string()
-    .max(20, "電話番号は20文字以内で入力してください")
+    .superRefine(refineWithValidator(validatePhone))
     .optional()
     .or(z.literal("")),
   postalCode: z
     .string()
-    .max(10, "郵便番号は10文字以内で入力してください")
+    .superRefine(refineWithValidator(validatePostalCode))
     .optional()
     .or(z.literal("")),
   prefectureId: optionalId,
@@ -78,10 +115,28 @@ export const customerSchema = z.object({
     .or(z.literal("")),
 });
 
+const optionalDateString = z
+  .string()
+  .refine(
+    (v) => /^\d{4}-\d{2}-\d{2}$/.test(v),
+    "有効な日付を入力してください"
+  )
+  .refine(
+    (v) => {
+      const d = new Date(v + "T00:00:00");
+      if (isNaN(d.getTime())) return false;
+      const [y, m, day] = v.split("-").map(Number);
+      return d.getFullYear() === y && d.getMonth() + 1 === m && d.getDate() === day;
+    },
+    "存在しない日付です"
+  )
+  .nullable()
+  .optional();
+
 export const customerCommunitySchema = z.object({
   communityId: z.coerce.number().int().positive("コミュニティIDは正の整数を指定してください"),
-  joinedAt: z.string().nullable().optional(),
-  resignedAt: z.string().nullable().optional(),
+  joinedAt: optionalDateString,
+  resignedAt: optionalDateString,
   auditMemberType: z
     .enum(["regular", "online"])
     .nullable()

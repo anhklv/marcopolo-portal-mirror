@@ -176,6 +176,8 @@ export function CustomerForm({
                   setAuditJoinedAt={form.setAuditJoinedAt}
                   auditResignedAt={form.auditResignedAt}
                   setAuditResignedAt={form.setAuditResignedAt}
+                  onJoinedAtError={(e) => form.handleDateError("auditJoinedAt", e)}
+                  onResignedAtError={(e) => form.handleDateError("auditResignedAt", e)}
                   membershipQualifications={membershipQualifications}
                   originIndustries={originIndustries}
                 />
@@ -191,6 +193,8 @@ export function CustomerForm({
                   setJoinedAt={form.setNaikanJoinedAt}
                   resignedAt={form.naikanResignedAt}
                   setResignedAt={form.setNaikanResignedAt}
+                  onJoinedAtError={(e) => form.handleDateError("naikanJoinedAt", e)}
+                  onResignedAtError={(e) => form.handleDateError("naikanResignedAt", e)}
                   affiliations={affiliations}
                 />
               )}
@@ -205,6 +209,8 @@ export function CustomerForm({
                   setJoinedAt={form.setAiJoinedAt}
                   resignedAt={form.aiResignedAt}
                   setResignedAt={form.setAiResignedAt}
+                  onJoinedAtError={(e) => form.handleDateError("aiJoinedAt", e)}
+                  onResignedAtError={(e) => form.handleDateError("aiResignedAt", e)}
                   affiliations={affiliations}
                 />
               )}
@@ -214,7 +220,7 @@ export function CustomerForm({
           {/* プロフィール */}
           <SectionHeading>プロフィール</SectionHeading>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 items-start gap-6">
             <FormField label="姓" required id="lastName" error={form.fieldErrors["lastName"]?.[0]}>
               <Input
                 placeholder="例: 山田"
@@ -231,19 +237,21 @@ export function CustomerForm({
             </FormField>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
-            <FormField label="セイ">
+          <div className="grid grid-cols-2 items-start gap-6">
+            <FormField label="セイ" error={form.fieldErrors["lastNameKana"]?.[0]}>
               <Input
                 placeholder="例: ヤマダ"
                 value={form.lastNameKana}
                 onChange={(e) => form.setLastNameKana(e.target.value)}
+                onBlur={form.handleLastNameKanaBlur}
               />
             </FormField>
-            <FormField label="メイ">
+            <FormField label="メイ" error={form.fieldErrors["firstNameKana"]?.[0]}>
               <Input
                 placeholder="例: タロウ"
                 value={form.firstNameKana}
                 onChange={(e) => form.setFirstNameKana(e.target.value)}
+                onBlur={form.handleFirstNameKanaBlur}
               />
             </FormField>
           </div>
@@ -342,21 +350,23 @@ export function CustomerForm({
             </Select>
           </FormField>
 
-          <FormField label="電話番号">
+          <FormField label="電話番号" error={form.fieldErrors["phone"]?.[0]}>
             <Input
               type="tel"
               placeholder="例: 0312345678"
               value={form.phone}
               onChange={(e) => form.setPhone(e.target.value)}
+              onBlur={form.handlePhoneBlur}
             />
           </FormField>
 
-          <FormField label="郵便番号">
+          <FormField label="郵便番号" error={form.fieldErrors["postalCode"]?.[0]}>
             <Input
               type="text"
               placeholder="例: 1234567"
               value={form.postalCode}
               onChange={(e) => form.setPostalCode(e.target.value)}
+              onBlur={form.handlePostalCodeBlur}
             />
           </FormField>
 

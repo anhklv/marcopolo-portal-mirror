@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useCallback, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   createCustomerAction,
@@ -8,6 +8,11 @@ import {
 } from "@/lib/actions/customer.actions";
 import type { ActionResult } from "@/lib/actions/customer.actions";
 import type { CommunityOption } from "@/lib/types/serialized";
+import {
+  validateKatakana,
+  validatePhone,
+  validatePostalCode,
+} from "@/lib/validations/customer";
 
 // ============================================================
 // 型定義
@@ -142,9 +147,9 @@ export function useCustomerForm({
   const aiInitial = aiCommunity ? getInitialCommunityData(initialData, aiCommunity.id) : undefined;
 
   // コミュニティ選択状態
-  const [auditChecked, setAuditChecked] = useState(!!auditInitial);
-  const [naikanChecked, setNaikanChecked] = useState(!!naikanInitial);
-  const [aiChecked, setAiChecked] = useState(!!aiInitial);
+  const [auditChecked, setAuditCheckedRaw] = useState(!!auditInitial);
+  const [naikanChecked, setNaikanCheckedRaw] = useState(!!naikanInitial);
+  const [aiChecked, setAiCheckedRaw] = useState(!!aiInitial);
 
   const anyCommunityChecked = auditChecked || naikanChecked || aiChecked;
 
@@ -195,6 +200,71 @@ export function useCustomerForm({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
 
+  // 日付エラー追跡（DatePickerWithInput内部のエラーをrefで保持）
+  const dateErrors = useRef<Record<string, string>>({});
+  const handleDateError = useCallback((field: string, error: string | null) => {
+    if (error) {
+      dateErrors.current[field] = error;
+    } else {
+      delete dateErrors.current[field];
+    }
+  }, []);
+
+  // コミュニティチェック切り替え（OFF時に日付エラーをクリア）
+  const setAuditChecked = (checked: boolean) => {
+    if (!checked) {
+      delete dateErrors.current["auditJoinedAt"];
+      delete dateErrors.current["auditResignedAt"];
+    }
+    setAuditCheckedRaw(checked);
+  };
+
+  const setNaikanChecked = (checked: boolean) => {
+    if (!checked) {
+      delete dateErrors.current["naikanJoinedAt"];
+      delete dateErrors.current["naikanResignedAt"];
+    }
+    setNaikanCheckedRaw(checked);
+  };
+
+  const setAiChecked = (checked: boolean) => {
+    if (!checked) {
+      delete dateErrors.current["aiJoinedAt"];
+      delete dateErrors.current["aiResignedAt"];
+    }
+    setAiCheckedRaw(checked);
+  };
+
+  // フィールド単位のblurバリデーション
+  const validateFieldOnBlur = (field: string, value: string, validate: (v: string) => string | null) => {
+    const error = validate(value);
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      if (error) {
+        next[field] = [error];
+      } else {
+        delete next[field];
+      }
+      return next;
+    });
+  };
+
+  const handleLastNameKanaBlur = () => {
+    validateFieldOnBlur("lastNameKana", lastNameKana, validateKatakana);
+  };
+
+  const handleFirstNameKanaBlur = () => {
+    validateFieldOnBlur("firstNameKana", firstNameKana, validateKatakana);
+  };
+
+  const handlePhoneBlur = () => {
+    validateFieldOnBlur("phone", phone, validatePhone);
+  };
+
+  const handlePostalCodeBlur = () => {
+    validateFieldOnBlur("postalCode", postalCode, validatePostalCode);
+  };
+
   // サブメール操作
   const handleAddSubEmail = () => {
     if (subEmails.length < 3) {
@@ -215,12 +285,51 @@ export function useCustomerForm({
   // フォーム送信
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 編集時：元々所属していたコミュニティのチェックが外された場合、確認ダイアログを表示
+    if (mode === "edit") {
+      const removedCommunities: string[] = [];
+      if (auditInitial && !auditChecked) removedCommunities.push("ベンチャー監査役の会");
+      if (naikanInitial && !naikanChecked) removedCommunities.push("ないかんMeetup");
+      if (aiInitial && !aiChecked) removedCommunities.push("AI部会");
+
+      if (removedCommunities.length > 0) {
+        const confirmed = window.confirm(
+          `${removedCommunities.join("、")}の登録情報が削除されます。よろしいですか？`
+        );
+        if (!confirmed) return;
+      }
+    }
+
     setFieldErrors({});
     setGeneralError(null);
 
     // ベンチャー監査役の会・会員の場合、会員種別は必須
     if (auditChecked && memberCategory === "member" && !auditMemberType) {
       toast.error("会員種別を選択してください");
+      return;
+    }
+
+    // クライアントサイドバリデーション
+    const clientErrors: Record<string, string[]> = {};
+    const checks: [string, string | null][] = [
+      ["lastNameKana", validateKatakana(lastNameKana)],
+      ["firstNameKana", validateKatakana(firstNameKana)],
+      ["phone", validatePhone(phone)],
+      ["postalCode", validatePostalCode(postalCode)],
+    ];
+    for (const [field, error] of checks) {
+      if (error) clientErrors[field] = [error];
+    }
+
+    // 日付フィールドのエラーチェック
+    for (const [field, error] of Object.entries(dateErrors.current)) {
+      clientErrors[field] = [error];
+    }
+
+    if (Object.keys(clientErrors).length > 0) {
+      setFieldErrors(clientErrors);
+      toast.error("入力内容に誤りがあります");
       return;
     }
 
@@ -359,6 +468,11 @@ export function useCustomerForm({
     handleAddSubEmail,
     handleRemoveSubEmail,
     handleSubEmailChange,
+    handleLastNameKanaBlur,
+    handleFirstNameKanaBlur,
+    handlePhoneBlur,
+    handlePostalCodeBlur,
+    handleDateError,
     handleSubmit,
   };
 }
