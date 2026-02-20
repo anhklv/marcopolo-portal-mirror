@@ -34,6 +34,7 @@
 * ドキュメント類はdocs/以下にあります
 * 通常の改修時はnpm run tscとnpm run lintをすること
 * commitを指示したら上記に加えてnpm run test:runとnpm run buildを通してからcommitすること
+* 但しtest修正時はnpm run test:runも実行すること
 * 仕様はdocs/要件定義書.md、docs/画面設計書.mdがありますが実際のコードが優先です
 * コードを優先しそこからドキュメントを更新しています。大きな変更などがあれば更新するか訪ねてください
 
