@@ -1,10 +1,8 @@
-import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
-import { canAccessCustomer, getScopedCommunityIds } from "@/lib/auth/permissions";
-import type { AdminForPermission } from "@/lib/auth/permissions";
+import { getAuthenticatedAdmin, canAccessCustomer } from "@/lib/auth/permissions";
 import { findById } from "@/lib/repositories/customer.repository";
 import { CustomerForm } from "../../_components/customer-form";
-import { redirect, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 
 export default async function EditCustomerPage({
   params,
@@ -18,28 +16,9 @@ export default async function EditCustomerPage({
     notFound();
   }
 
-  const session = await auth();
-  if (!session?.user) {
-    redirect("/admin/login");
-  }
+  const { admin, isSuper, scopedCommunityIds } = await getAuthenticatedAdmin();
 
-  const adminId = Number(session.user.id);
-  const admin = await prisma.admin.findUnique({
-    where: { id: adminId },
-    include: { adminCommunities: { select: { communityId: true } } },
-  });
-
-  if (!admin) {
-    redirect("/admin/login");
-  }
-
-  const adminForPermission: AdminForPermission = {
-    id: admin.id,
-    role: admin.role,
-    adminCommunities: admin.adminCommunities,
-  };
-
-  const hasAccess = await canAccessCustomer(adminForPermission, customerId);
+  const hasAccess = await canAccessCustomer(admin, customerId);
   if (!hasAccess) {
     notFound();
   }
@@ -48,9 +27,6 @@ export default async function EditCustomerPage({
   if (!customer) {
     notFound();
   }
-
-  const isSuper = admin.role === "super";
-  const scopedCommunityIds = await getScopedCommunityIds(adminForPermission);
 
   const [communities, prefectures, listingCategories, originIndustries, membershipQualifications, affiliations] =
     await Promise.all([

@@ -27,21 +27,29 @@ export type ActionResult = {
 // ヘルパー
 // ============================================================
 
-async function getAdminForPermission(adminId: number): Promise<AdminForPermission> {
-  const admin = await prisma.admin.findUnique({
+async function getAdminForPermission(adminId: number): Promise<{
+  admin: AdminForPermission;
+  isSuper: boolean;
+  scopedIds: number[];
+}> {
+  const dbAdmin = await prisma.admin.findUnique({
     where: { id: adminId },
     include: { adminCommunities: { select: { communityId: true } } },
   });
 
-  if (!admin) {
+  if (!dbAdmin) {
     throw new Error("管理者が見つかりません");
   }
 
-  return {
-    id: admin.id,
-    role: admin.role,
-    adminCommunities: admin.adminCommunities,
+  const admin: AdminForPermission = {
+    id: dbAdmin.id,
+    role: dbAdmin.role,
+    adminCommunities: dbAdmin.adminCommunities,
   };
+  const isSuper = dbAdmin.role === "super";
+  const scopedIds = await getScopedCommunityIds(admin);
+
+  return { admin, isSuper, scopedIds };
 }
 
 function validateCommunityScope(
@@ -131,10 +139,7 @@ export async function createCustomerAction(
 ): Promise<ActionResult | void> {
   // 認証
   const session = await requireAuth();
-  const adminId = Number(session.user.id);
-  const admin = await getAdminForPermission(adminId);
-  const isSuper = admin.role === "super";
-  const scopedIds = await getScopedCommunityIds(admin);
+  const { isSuper, scopedIds } = await getAdminForPermission(Number(session.user.id));
 
   // バリデーション
   const { data, errors } = parseFormData(formData);
@@ -181,10 +186,7 @@ export async function updateCustomerAction(
 ): Promise<ActionResult | void> {
   // 認証
   const session = await requireAuth();
-  const adminId = Number(session.user.id);
-  const admin = await getAdminForPermission(adminId);
-  const isSuper = admin.role === "super";
-  const scopedIds = await getScopedCommunityIds(admin);
+  const { admin, isSuper, scopedIds } = await getAdminForPermission(Number(session.user.id));
 
   // アクセス権チェック
   const hasAccess = await canAccessCustomer(admin, id);
@@ -236,8 +238,7 @@ export async function deleteCustomerAction(
 ): Promise<ActionResult | void> {
   // 認証
   const session = await requireAuth();
-  const adminId = Number(session.user.id);
-  const admin = await getAdminForPermission(adminId);
+  const { admin } = await getAdminForPermission(Number(session.user.id));
 
   // アクセス権チェック
   const hasAccess = await canAccessCustomer(admin, id);
@@ -259,10 +260,7 @@ export async function exportCustomersAction(
 ): Promise<{ csv: string } | ActionResult> {
   // 認証
   const session = await requireAuth();
-  const adminId = Number(session.user.id);
-  const admin = await getAdminForPermission(adminId);
-  const isSuper = admin.role === "super";
-  const scopedIds = await getScopedCommunityIds(admin);
+  const { isSuper, scopedIds } = await getAdminForPermission(Number(session.user.id));
 
   const customers = await customerRepo.findAll(scopedIds, isSuper, {
     includeFormerMembers: true,

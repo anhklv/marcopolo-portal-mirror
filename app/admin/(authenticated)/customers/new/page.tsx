@@ -1,34 +1,9 @@
-import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
-import { getScopedCommunityIds } from "@/lib/auth/permissions";
-import type { AdminForPermission } from "@/lib/auth/permissions";
+import { getAuthenticatedAdmin } from "@/lib/auth/permissions";
 import { CustomerForm } from "../_components/customer-form";
-import { redirect } from "next/navigation";
 
 export default async function NewCustomerPage() {
-  const session = await auth();
-  if (!session?.user) {
-    redirect("/admin/login");
-  }
-
-  const adminId = Number(session.user.id);
-  const admin = await prisma.admin.findUnique({
-    where: { id: adminId },
-    include: { adminCommunities: { select: { communityId: true } } },
-  });
-
-  if (!admin) {
-    redirect("/admin/login");
-  }
-
-  const adminForPermission: AdminForPermission = {
-    id: admin.id,
-    role: admin.role,
-    adminCommunities: admin.adminCommunities,
-  };
-
-  const isSuper = admin.role === "super";
-  const scopedCommunityIds = await getScopedCommunityIds(adminForPermission);
+  const { isSuper, scopedCommunityIds } = await getAuthenticatedAdmin();
 
   const [communities, prefectures, listingCategories, originIndustries, membershipQualifications, affiliations] =
     await Promise.all([
