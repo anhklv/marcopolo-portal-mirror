@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, Send, Mail, Check, Search, Users, ChevronDown } from "lucide-react";
+import { Check, Search, Users, ChevronDown } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { FormField } from "@/components/ui/form-field";
 import { ActionButton } from "@/components/ui/action-button";
@@ -39,17 +39,66 @@ import { cn } from "@/lib/utils";
 // 実際にはもっと厳密に定義すべきだが、ここではフィルタに必要なプロパティを重視
 interface SerializedCustomer extends FilterableCustomer {
   isInvited?: boolean; // フロントエンドでの拡張
-  [key: string]: any;
+}
+
+interface InviteEvent {
+  id: number;
+  title: string;
+  rsvps?: { customerId: number }[];
 }
 
 interface InviteFormProps {
-  event: any; // イベント情報の型
+  event: InviteEvent;
   customers: SerializedCustomer[];
   currentUserRole: "super" | "community_admin";
   communities: { id: number; code: string; name: string }[];
 }
 
 type Step = "select" | "customize" | "confirm";
+
+const STEPS = [
+  { key: "select", label: "案内者を選択", number: 1 },
+  { key: "customize", label: "メール文作成", number: 2 },
+  { key: "confirm", label: "確認", number: 3 },
+  { key: "send", label: "送信", number: 4 },
+];
+
+function StepIndicator({ currentStep }: { currentStep: Step }) {
+  const getStepStatus = (stepKey: string) => {
+    const currentIndex = STEPS.findIndex((s) => s.key === currentStep);
+    const stepIndex = STEPS.findIndex((s) => s.key === stepKey);
+
+    if (stepKey === "send") return "upcoming";
+    if (stepIndex < currentIndex) return "completed";
+    if (stepIndex === currentIndex) return "current";
+    return "upcoming";
+  };
+
+  return (
+    <div className="flex items-center justify-between w-full mb-6">
+      {STEPS.map((stepItem) => {
+        const status = getStepStatus(stepItem.key);
+        return (
+          <div key={stepItem.key} className="flex flex-col items-center flex-1">
+            <div
+              className={cn(
+                "flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors mb-2",
+                status === "completed" && "bg-primary text-primary-foreground border-primary",
+                status === "current" && "bg-primary text-primary-foreground border-primary",
+                status === "upcoming" && "bg-background text-muted-foreground border-muted"
+              )}
+            >
+              {status === "completed" ? <Check className="h-5 w-5" /> : <span className="text-sm font-medium">{stepItem.number}</span>}
+            </div>
+            <div className={cn("text-sm font-medium text-center", status === "upcoming" && "text-muted-foreground")}>
+              {stepItem.label}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export function InviteForm({ event, customers, currentUserRole, communities }: InviteFormProps) {
   const router = useRouter();
@@ -59,10 +108,10 @@ export function InviteForm({ event, customers, currentUserRole, communities }: I
   const [emailTitle, setEmailTitle] = useState(`【イベント案内】${event.title}`);
   const [emailBody, setEmailBody] = useState(""); // 初期値は空、必要ならテンプレート展開
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [memberCategories, toggleMemberCategory] = useArrayToggle<string>();
+  const [memberCategories, _toggleMemberCategory] = useArrayToggle<string>();
   const [selectedCommunityIds, toggleCommunityId] = useArrayToggle<number>();
-  const [auditMemberTypes, toggleAuditMemberType] = useArrayToggle<string>();
-  const [premiumOnly, setPremiumOnly] = useState(false);
+  const [auditMemberTypes, _toggleAuditMemberType] = useArrayToggle<string>();
+  const [premiumOnly, _setPremiumOnly] = useState(false);
   const [includeFormerMembers, setIncludeFormerMembers] = useState(false);
   const [includeNonMemberFilter, setIncludeNonMemberFilter] = useState(false);
   const [inviteStatuses, toggleInviteStatus] = useArrayToggle<string>();
@@ -72,7 +121,7 @@ export function InviteForm({ event, customers, currentUserRole, communities }: I
   const invitedCustomerIds = useMemo(() => {
     const ids = new Set<number>();
     if (event.rsvps) {
-      event.rsvps.forEach((r: any) => ids.add(r.customerId));
+      event.rsvps.forEach((r) => ids.add(r.customerId));
     }
     return ids;
   }, [event.rsvps]);
@@ -139,7 +188,7 @@ export function InviteForm({ event, customers, currentUserRole, communities }: I
     setStep("confirm");
   };
 
-  const handleTestSend = () => {
+  const _handleTestSend = () => {
     toast.success("テストメールを送信しました");
   };
 
@@ -199,54 +248,6 @@ export function InviteForm({ event, customers, currentUserRole, communities }: I
     ));
   };
 
-  const StepIndicator = () => {
-     // (省略せずに実装)
-    const steps = [
-      { key: "select", label: "案内者を選択", number: 1 },
-      { key: "customize", label: "メール文作成", number: 2 },
-      { key: "confirm", label: "確認", number: 3 },
-      { key: "send", label: "送信", number: 4 },
-    ];
-
-    const getStepStatus = (stepKey: string) => {
-      const currentIndex = steps.findIndex((s) => s.key === step);
-      const stepIndex = steps.findIndex((s) => s.key === stepKey);
-      
-      if (stepKey === "send") {
-        return "upcoming";
-      }
-      
-      if (stepIndex < currentIndex) return "completed";
-      if (stepIndex === currentIndex) return "current";
-      return "upcoming";
-    };
-
-    return (
-      <div className="flex items-center justify-between w-full mb-6">
-        {steps.map((stepItem) => {
-          const status = getStepStatus(stepItem.key);
-          return (
-            <div key={stepItem.key} className="flex flex-col items-center flex-1">
-              <div
-                className={cn(
-                  "flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors mb-2",
-                  status === "completed" && "bg-primary text-primary-foreground border-primary",
-                  status === "current" && "bg-primary text-primary-foreground border-primary",
-                  status === "upcoming" && "bg-background text-muted-foreground border-muted"
-                )}
-              >
-                {status === "completed" ? <Check className="h-5 w-5" /> : <span className="text-sm font-medium">{stepItem.number}</span>}
-              </div>
-              <div className={cn("text-sm font-medium text-center", status === "upcoming" && "text-muted-foreground")}>
-                {stepItem.label}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
   if (step === "select") {
     return (
       <div className="max-w-4xl space-y-6">
@@ -256,7 +257,7 @@ export function InviteForm({ event, customers, currentUserRole, communities }: I
           description="案内メールを送信する顧客を選択してください。"
         />
         
-        <StepIndicator />
+        <StepIndicator currentStep={step} />
 
         <div className="space-y-4">
           <div className="space-y-2">
@@ -435,7 +436,7 @@ export function InviteForm({ event, customers, currentUserRole, communities }: I
     return (
        <div className="max-w-4xl space-y-6">
          {/* ...ヘッダーなど... */}
-         <StepIndicator />
+         <StepIndicator currentStep={step} />
          <div className="space-y-6">
             <FormField label="メールタイトル">
                <Input value={emailTitle} onChange={(e) => setEmailTitle(e.target.value)} />
@@ -456,7 +457,7 @@ export function InviteForm({ event, customers, currentUserRole, communities }: I
     // 確認画面（簡易実装）
     return (
        <div className="max-w-4xl space-y-6">
-         <StepIndicator />
+         <StepIndicator currentStep={step} />
          <div className="space-y-6">
             <h2 className="text-xl font-bold">確認</h2>
             <p>{selectedCustomerIds.length}名に送信します。</p>

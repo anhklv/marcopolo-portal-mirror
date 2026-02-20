@@ -290,7 +290,7 @@ export async function exportCustomersAction(
     includeNonMemberFilter: isSuper ? (filters?.includeNonMember ?? false) : false,
   };
 
-  const filteredResult = filterCustomers(filterableCustomers as any, helperFilters);
+  const filteredResult = filterCustomers(filterableCustomers, helperFilters);
   const filteredIds = new Set(filteredResult.map((c) => c.id));
   const targetCustomers = customers.filter((c) => filteredIds.has(c.id));
 

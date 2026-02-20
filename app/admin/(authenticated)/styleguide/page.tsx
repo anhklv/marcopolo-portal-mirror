@@ -25,16 +25,7 @@ import { ActionButton } from "@/components/ui/action-button"
 import { RSVP_STATUS_CONFIG, EVENT_STATUS_CONFIG } from "@/lib/constants/event"
 import { USER_ROLE_CONFIG } from "@/lib/constants/customer"
 import { toast } from "sonner"
-import { Palette, LayoutGrid, FormInput, Package, FileCode, Type, Sparkles, Box, Trash2 } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { Palette, LayoutGrid, FormInput, Package, FileCode, Type, Sparkles, Box } from "lucide-react"
 
 // コードブロック表示コンポーネント
 function CodeBlock({ children }: { children: string }) {
@@ -628,9 +619,9 @@ export default function StyleguidePage() {
 
           <h4 className="text-sm font-medium pt-4">Dialogを使った削除ボタン</h4>
           <p className="text-xs text-muted-foreground">
-            DialogTriggerの削除ボタンは<code>variant="outline"</code>に<code>className="border-destructive text-destructive bg-white hover:bg-white hover:text-destructive"</code>を追加します。
+            DialogTriggerの削除ボタンは<code>variant=&quot;outline&quot;</code>に<code>className=&quot;border-destructive text-destructive bg-white hover:bg-white hover:text-destructive&quot;</code>を追加します。
             <br />
-            モーダル内の実際の削除ボタンは<code>variant="destructive"</code>を使用します。
+            モーダル内の実際の削除ボタンは<code>variant=&quot;destructive&quot;</code>を使用します。
           </p>
           <Example
             code={`<Dialog>

@@ -267,7 +267,8 @@ async function main() {
       const listingCategoryId = customerFields.listingCategory ? listingCategoryMap.get(customerFields.listingCategory) : undefined;
 
       // Clean up fields that are now IDs (remove string versions)
-      const { prefecture, listingCategory, ...baseFields } = customerFields as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- seedスクリプト: 動的キー除外のためany使用
+      const { prefecture: _prefecture, listingCategory: _listingCategory, ...baseFields } = customerFields as any;
 
       const createData = {
         ...baseFields,
@@ -282,12 +283,13 @@ async function main() {
       });
 
       for (const comm of communityData) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- seedスクリプト: 動的キー除外のためany使用
         const commAny = comm as any;
         const affiliationId = commAny.affiliation ? affiliationMap.get(commAny.affiliation) : undefined;
         const commOriginIndustryId = commAny.originIndustry ? originIndustryMap.get(commAny.originIndustry) : undefined;
         const commMembershipQualificationId = commAny.membershipQualification ? membershipQualificationMap.get(commAny.membershipQualification) : undefined;
         // Clean up string lookup fields
-        const { affiliation, originIndustry, membershipQualification, ...commBase } = commAny;
+        const { affiliation: _affiliation, originIndustry: _originIndustry, membershipQualification: _membershipQualification, ...commBase } = commAny;
 
         await prisma.customerCommunity.upsert({
           where: {

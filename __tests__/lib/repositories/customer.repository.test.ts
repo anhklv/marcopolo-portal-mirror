@@ -165,9 +165,10 @@ describe("customer.repository", () => {
       const calledArgs = mockPrisma.customer.findMany.mock.calls[0][0];
       // AND条件が存在しないか、customerCommunities関連が含まれていないことを確認
       if (calledArgs.where.AND) {
-        const hasCommunityCondition = calledArgs.where.AND.some((cond: any) => 
-          cond.customerCommunities && cond.customerCommunities.some && Object.keys(cond.customerCommunities.some).length === 0
-        );
+        const hasCommunityCondition = calledArgs.where.AND.some((cond: Record<string, unknown>) => {
+          const cc = cond.customerCommunities as Record<string, unknown> | undefined;
+          return cc && cc.some && Object.keys(cc.some as object).length === 0;
+        });
         expect(hasCommunityCondition).toBe(false);
       }
     });
