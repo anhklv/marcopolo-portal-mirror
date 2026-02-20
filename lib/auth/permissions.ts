@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 import type { EventDisplayStatus } from "@/lib/constants/event";
 
 /**
@@ -9,6 +10,50 @@ export interface AdminForPermission {
   id: number;
   role: "super" | "community_admin";
   adminCommunities: { communityId: number }[];
+}
+
+/**
+ * 認証済み管理者情報（共通の戻り値型）
+ */
+export interface AuthenticatedAdmin {
+  admin: AdminForPermission;
+  isSuper: boolean;
+  scopedCommunityIds: number[];
+}
+
+/**
+ * 認証済み管理者の情報を一括取得（Server Component用）
+ * 未認証またはadminが見つからない場合はログインページにリダイレクト
+ */
+export async function getAuthenticatedAdmin(): Promise<AuthenticatedAdmin> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/admin/login");
+  }
+
+  const adminId = Number(session.user.id);
+  if (isNaN(adminId)) {
+    redirect("/admin/login");
+  }
+  const dbAdmin = await prisma.admin.findUnique({
+    where: { id: adminId },
+    include: { adminCommunities: { select: { communityId: true } } },
+  });
+
+  if (!dbAdmin) {
+    redirect("/admin/login");
+  }
+
+  const admin: AdminForPermission = {
+    id: dbAdmin.id,
+    role: dbAdmin.role,
+    adminCommunities: dbAdmin.adminCommunities,
+  };
+
+  const isSuper = dbAdmin.role === "super";
+  const scopedCommunityIds = await getScopedCommunityIds(admin);
+
+  return { admin, isSuper, scopedCommunityIds };
 }
 
 /**

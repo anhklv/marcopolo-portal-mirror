@@ -787,7 +787,7 @@ import { RSVP_STATUS_CONFIG, EVENT_STATUS_CONFIG } from "@/lib/constants/event"
                       {Object.entries(USER_ROLE_CONFIG).map(([key, config]) => (
                         <tr key={key} className="border-b last:border-0">
                           <td className="py-2 px-4">
-                            <Badge variant={config.variant as any}>
+                            <Badge variant={config.variant}>
                               {config.label}
                             </Badge>
                           </td>
@@ -820,7 +820,7 @@ import { RSVP_STATUS_CONFIG, EVENT_STATUS_CONFIG } from "@/lib/constants/event"
                       {Object.entries(RSVP_STATUS_CONFIG).map(([key, config]) => (
                         <tr key={key} className="border-b last:border-0">
                           <td className="py-2 px-4">
-                            <Badge variant={config.variant as any}>
+                            <Badge variant={config.variant}>
                               {config.label}
                             </Badge>
                           </td>
@@ -864,7 +864,7 @@ import { RSVP_STATUS_CONFIG, EVENT_STATUS_CONFIG } from "@/lib/constants/event"
                       {Object.entries(EVENT_STATUS_CONFIG).map(([key, config]) => (
                         <tr key={key} className="border-b last:border-0">
                           <td className="py-2 px-4">
-                            <Badge variant={config.variant as any}>
+                            <Badge variant={config.variant}>
                               {config.label}
                             </Badge>
                           </td>

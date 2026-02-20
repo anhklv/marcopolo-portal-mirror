@@ -9,6 +9,7 @@ import {
   getScopedCommunityIds,
 } from "@/lib/auth/permissions";
 import type { AdminForPermission } from "@/lib/auth/permissions";
+import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/customer";
 import { customerFormSchema } from "@/lib/validations/customer";
 import type { CustomerFormInput } from "@/lib/validations/customer";
 import * as customerRepo from "@/lib/repositories/customer.repository";
@@ -27,21 +28,29 @@ export type ActionResult = {
 // ヘルパー
 // ============================================================
 
-async function getAdminForPermission(adminId: number): Promise<AdminForPermission> {
-  const admin = await prisma.admin.findUnique({
+async function getAdminForPermission(adminId: number): Promise<{
+  admin: AdminForPermission;
+  isSuper: boolean;
+  scopedIds: number[];
+}> {
+  const dbAdmin = await prisma.admin.findUnique({
     where: { id: adminId },
     include: { adminCommunities: { select: { communityId: true } } },
   });
 
-  if (!admin) {
+  if (!dbAdmin) {
     throw new Error("管理者が見つかりません");
   }
 
-  return {
-    id: admin.id,
-    role: admin.role,
-    adminCommunities: admin.adminCommunities,
+  const admin: AdminForPermission = {
+    id: dbAdmin.id,
+    role: dbAdmin.role,
+    adminCommunities: dbAdmin.adminCommunities,
   };
+  const isSuper = dbAdmin.role === "super";
+  const scopedIds = await getScopedCommunityIds(admin);
+
+  return { admin, isSuper, scopedIds };
 }
 
 function validateCommunityScope(
@@ -131,10 +140,7 @@ export async function createCustomerAction(
 ): Promise<ActionResult | void> {
   // 認証
   const session = await requireAuth();
-  const adminId = Number(session.user.id);
-  const admin = await getAdminForPermission(adminId);
-  const isSuper = admin.role === "super";
-  const scopedIds = await getScopedCommunityIds(admin);
+  const { isSuper, scopedIds } = await getAdminForPermission(Number(session.user.id));
 
   // バリデーション
   const { data, errors } = parseFormData(formData);
@@ -181,10 +187,7 @@ export async function updateCustomerAction(
 ): Promise<ActionResult | void> {
   // 認証
   const session = await requireAuth();
-  const adminId = Number(session.user.id);
-  const admin = await getAdminForPermission(adminId);
-  const isSuper = admin.role === "super";
-  const scopedIds = await getScopedCommunityIds(admin);
+  const { admin, isSuper, scopedIds } = await getAdminForPermission(Number(session.user.id));
 
   // アクセス権チェック
   const hasAccess = await canAccessCustomer(admin, id);
@@ -236,8 +239,7 @@ export async function deleteCustomerAction(
 ): Promise<ActionResult | void> {
   // 認証
   const session = await requireAuth();
-  const adminId = Number(session.user.id);
-  const admin = await getAdminForPermission(adminId);
+  const { admin } = await getAdminForPermission(Number(session.user.id));
 
   // アクセス権チェック
   const hasAccess = await canAccessCustomer(admin, id);
@@ -259,10 +261,7 @@ export async function exportCustomersAction(
 ): Promise<{ csv: string } | ActionResult> {
   // 認証
   const session = await requireAuth();
-  const adminId = Number(session.user.id);
-  const admin = await getAdminForPermission(adminId);
-  const isSuper = admin.role === "super";
-  const scopedIds = await getScopedCommunityIds(admin);
+  const { isSuper, scopedIds } = await getAdminForPermission(Number(session.user.id));
 
   const customers = await customerRepo.findAll(scopedIds, isSuper, {
     includeFormerMembers: true,
@@ -284,15 +283,14 @@ export async function exportCustomersAction(
   const helperFilters = {
     keyword: filters?.keyword ?? "",
     communityIds: filters?.communityIds ?? [],
-    memberCategories: filters?.memberCategories ?? [], // string[]型互換性注意（anyキャスト等必要かも）
+    memberCategories: filters?.memberCategories ?? [],
     auditMemberTypes: filters?.auditMemberTypes ?? [],
     premiumOnly: filters?.premiumOnly ?? false,
     includeFormerMembers: filters?.includeFormerMembers ?? false,
     includeNonMemberFilter: isSuper ? (filters?.includeNonMember ?? false) : false,
   };
 
-  // 型アサーションで回避（memberCategoriesなどがstring[]と厳密なunion型で不一致の可能性）
-  const filteredResult = filterCustomers(filterableCustomers as any, helperFilters as any);
+  const filteredResult = filterCustomers(filterableCustomers as any, helperFilters);
   const filteredIds = new Set(filteredResult.map((c) => c.id));
   const targetCustomers = customers.filter((c) => filteredIds.has(c.id));
 
@@ -320,7 +318,7 @@ export async function exportCustomersAction(
       .map((cc) => cc.community.name)
       .join("・");
     const memberCategoryLabel = c.memberCategory
-      ? { member: "会員", sponsor: "スポンサー", observer: "オブザーバー" }[c.memberCategory]
+      ? MEMBER_CATEGORY_LABELS[c.memberCategory as keyof typeof MEMBER_CATEGORY_LABELS] ?? ""
       : "";
     const registeredAt = formatDateForCsv(c.registeredAt);
     // originIndustry/membershipQualification は CustomerCommunity（ベンチャー監査役の会）に紐づく

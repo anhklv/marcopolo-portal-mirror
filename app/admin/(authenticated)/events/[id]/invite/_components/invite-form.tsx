@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useArrayToggle } from "@/hooks/use-array-toggle";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,8 @@ import { ActionButton } from "@/components/ui/action-button";
 import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { filterCustomers, FilterableCustomer } from "@/lib/helpers/customer-filter";
+import { getCustomerBadges } from "@/lib/helpers/customer-detail";
+import type { CustomerCommunityForBadge } from "@/lib/helpers/customer-detail";
 import { cn } from "@/lib/utils";
 
 // 必要な型定義（Prismaの型とDate->string変換後の型）
@@ -48,12 +51,6 @@ interface InviteFormProps {
 
 type Step = "select" | "customize" | "confirm";
 
-const MEMBER_CATEGORY_LABELS: Record<string, string> = {
-  member: "会員",
-  sponsor: "スポンサー",
-  observer: "オブザーバー",
-};
-
 export function InviteForm({ event, customers, currentUserRole, communities }: InviteFormProps) {
   const router = useRouter();
   
@@ -62,13 +59,13 @@ export function InviteForm({ event, customers, currentUserRole, communities }: I
   const [emailTitle, setEmailTitle] = useState(`【イベント案内】${event.title}`);
   const [emailBody, setEmailBody] = useState(""); // 初期値は空、必要ならテンプレート展開
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [memberCategories, setMemberCategories] = useState<string[]>([]);
-  const [selectedCommunityIds, setSelectedCommunityIds] = useState<number[]>([]);
-  const [auditMemberTypes, setAuditMemberTypes] = useState<string[]>([]);
+  const [memberCategories, toggleMemberCategory] = useArrayToggle<string>();
+  const [selectedCommunityIds, toggleCommunityId] = useArrayToggle<number>();
+  const [auditMemberTypes, toggleAuditMemberType] = useArrayToggle<string>();
   const [premiumOnly, setPremiumOnly] = useState(false);
   const [includeFormerMembers, setIncludeFormerMembers] = useState(false);
   const [includeNonMemberFilter, setIncludeNonMemberFilter] = useState(false);
-  const [inviteStatuses, setInviteStatuses] = useState<string[]>([]);
+  const [inviteStatuses, toggleInviteStatus] = useArrayToggle<string>();
   const [inviteStatusSearch, setInviteStatusSearch] = useState("");
 
   // 招待済みIDのセット
@@ -168,32 +165,6 @@ export function InviteForm({ event, customers, currentUserRole, communities }: I
     }
   };
 
-  // フィルタハンドラー
-  const handleCommunityChange = (communityId: number, checked: boolean) => {
-    if (checked) {
-      setSelectedCommunityIds([...selectedCommunityIds, communityId]);
-    } else {
-      setSelectedCommunityIds(selectedCommunityIds.filter(id => id !== communityId));
-      // コミュニティ選択解除時の連動リセットなどは必要に応じて
-    }
-  };
-
-  const handleMemberCategoryChange = (category: string, checked: boolean) => {
-    if (checked) {
-      setMemberCategories([...memberCategories, category]);
-    } else {
-      setMemberCategories(memberCategories.filter(c => c !== category));
-    }
-  };
-
-  const handleInviteStatusChange = (status: string, checked: boolean) => {
-    if (checked) {
-      setInviteStatuses([...inviteStatuses, status]);
-    } else {
-      setInviteStatuses(inviteStatuses.filter((s) => s !== status));
-    }
-  };
-
   // 表示用テキスト生成
   const getFilterDisplayText = () => {
     const totalFilters = selectedCommunityIds.length + (includeNonMemberFilter ? 1 : 0);
@@ -215,71 +186,17 @@ export function InviteForm({ event, customers, currentUserRole, communities }: I
     return `${parts.length}件選択`;
   };
 
-  // バッジレンダリング（customer-list.tsxと同様のロジック）
+  // バッジレンダリング
   const renderBadges = (customer: SerializedCustomer) => {
-    const badges: React.ReactElement[] = [];
-    
-    // コミュニティごとのバッジ
-    for (const cc of customer.customerCommunities) {
-      // コミュニティ名の解決（本来はcc.community.nameだが、ccの中身に依存）
-      // ここではIDから簡易的に名前を引くか、ccにnameが含まれていると仮定
-      const communityName = (cc as any).community?.name || `Community ${cc.communityId}`;
-      let variant: "audit" | "naikan" | "ai" | "default" | "destructive-outline" = "default";
-      
-      // コミュニティコード判定（仮）
-      const code = (cc as any).community?.code;
-
-      if (cc.resignedAt) {
-        variant = "destructive-outline";
-      } else if (code === "venture_auditor") {
-        variant = "audit";
-      } else if (code === "naikan_meetup") {
-        variant = "naikan";
-      } else if (code === "ai_club") {
-        variant = "ai";
-      }
-
-      const keyBase = `${customer.id}-${cc.communityId}`;
-
-      if (cc.resignedAt) {
-        badges.push(
-          <Badge key={`${keyBase}-resigned`} variant="destructive-outline">
-            {communityName}(退会)
-          </Badge>
-        );
-      } else if (customer.memberCategory === "member" && cc.auditMemberType) {
-        const typeLabel = cc.auditMemberType === "regular" ? "正会員" : "オンライン会員";
-        badges.push(
-          <Badge key={`${keyBase}-type`} variant={variant}>
-            {communityName}({typeLabel})
-          </Badge>
-        );
-      } else {
-        const categoryLabel = MEMBER_CATEGORY_LABELS[customer.memberCategory || ""] || customer.memberCategory;
-        badges.push(
-          <Badge key={keyBase} variant={variant}>
-            {communityName}({categoryLabel})
-          </Badge>
-        );
-      }
-    }
-
-    // 非会員バッジ
-    if (customer.customerCommunities.length === 0) {
-      badges.push(
-        <Badge key="non-member" variant="non-member">非会員</Badge>
-      );
-    }
-
-    // プレミアムバッジ（簡易）
-    const hasPremium = customer.customerCommunities.some(cc => cc.auditMemberPremium);
-    if (hasPremium) {
-       badges.push(
-         <Badge key="premium" variant="premium">プレミアム</Badge>
-       );
-    }
-
-    return badges;
+    const badges = getCustomerBadges(
+      customer.customerCommunities as CustomerCommunityForBadge[],
+      customer.memberCategory
+    );
+    return badges.map((badge, i) => (
+      <Badge key={i} variant={badge.variant}>
+        {badge.label}
+      </Badge>
+    ));
   };
 
   const StepIndicator = () => {
@@ -380,7 +297,7 @@ export function InviteForm({ event, customers, currentUserRole, communities }: I
                             id={`org-${community.code}`}
                             label={community.name}
                             checked={selectedCommunityIds.includes(community.id)}
-                            onCheckedChange={(c) => handleCommunityChange(community.id, c)}
+                            onCheckedChange={(c) => toggleCommunityId(community.id, c)}
                           />
                         ))}
                         {/* 特権管理者のみ非会員表示 */}
@@ -425,7 +342,7 @@ export function InviteForm({ event, customers, currentUserRole, communities }: I
                          id={`status-${status}`}
                          label={status}
                          checked={inviteStatuses.includes(status)}
-                         onCheckedChange={(c) => handleInviteStatusChange(status, c)}
+                         onCheckedChange={(c) => toggleInviteStatus(status, c)}
                        />
                      ))}
                    </div>

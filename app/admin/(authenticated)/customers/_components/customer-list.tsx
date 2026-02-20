@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useTransition } from "react";
+import { useState, useMemo, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -25,80 +25,18 @@ import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
 import { Search, Users, ChevronDown, Download, Plus } from "lucide-react";
-import { MEMBER_CATEGORY_LABELS, AUDIT_MEMBER_TYPES } from "@/lib/constants/customer";
-import { USER_ROLE_CONFIG } from "@/lib/constants/customer";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-  PaginationEllipsis,
-} from "@/components/ui/pagination";
+import { getCustomerBadges } from "@/lib/helpers/customer-detail";
+import type { SerializedCustomer, CommunityOption } from "@/lib/types/serialized";
+import type { MemberCategory, AuditMemberType } from "@/lib/generated/prisma";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import { usePagination } from "@/hooks/use-pagination";
+import { useArrayToggle } from "@/hooks/use-array-toggle";
 import { exportCustomersAction } from "@/lib/actions/customer.actions";
 import { filterCustomers } from "@/lib/helpers/customer-filter";
-
-const ITEMS_PER_PAGE = 10;
 
 // ============================================================
 // 型定義
 // ============================================================
-
-interface SerializedCommunity {
-  id: number;
-  code: string;
-  name: string;
-  hasSurvey: boolean;
-  sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface SerializedCustomerCommunity {
-  id: number;
-  customerId: number;
-  communityId: number;
-  joinedAt: string | null;
-  resignedAt: string | null;
-  auditMemberType: string | null;
-  auditMemberPremium: boolean | null;
-  affiliation: string | null;
-  createdAt: string;
-  updatedAt: string;
-  community: SerializedCommunity;
-}
-
-interface SerializedCustomer {
-  id: number;
-  firstName: string;
-  lastName: string;
-  firstNameKana: string | null;
-  lastNameKana: string | null;
-  email: string;
-  subEmails: string[];
-  company: string | null;
-  phone: string | null;
-  postalCode: string | null;
-  prefecture: string | null;
-  city: string | null;
-  gender: string | null;
-  listingCategory: string | null;
-  originIndustry: string | null;
-  membershipQualification: string | null;
-  memberCategory: string | null;
-  contractType: string | null;
-  note: string | null;
-  registeredAt: string;
-  deletedAt: string | null;
-  customerCommunities: SerializedCustomerCommunity[];
-}
-
-interface CommunityOption {
-  id: number;
-  code: string;
-  name: string;
-}
 
 interface CustomerListProps {
   initialCustomers: SerializedCustomer[];
@@ -122,13 +60,12 @@ export function CustomerList({
 
   // フィルタ状態
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [selectedCommunityIds, setSelectedCommunityIds] = useState<number[]>([]);
-  const [memberCategories, setMemberCategories] = useState<string[]>([]);
-  const [auditMemberTypes, setAuditMemberTypes] = useState<string[]>([]);
+  const [selectedCommunityIds, toggleCommunityId] = useArrayToggle<number>();
+  const [memberCategories, toggleMemberCategory] = useArrayToggle<MemberCategory>();
+  const [auditMemberTypes, toggleAuditMemberType, setAuditMemberTypes] = useArrayToggle<AuditMemberType>();
   const [premiumOnly, setPremiumOnly] = useState(false);
   const [includeFormerMembers, setIncludeFormerMembers] = useState(false);
   const [includeNonMemberFilter, setIncludeNonMemberFilter] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
 
   // フィルタリング
   const filteredCustomers = useMemo(
@@ -145,49 +82,22 @@ export function CustomerList({
     [initialCustomers, searchKeyword, selectedCommunityIds, memberCategories, auditMemberTypes, premiumOnly, includeFormerMembers, includeNonMemberFilter]
   );
 
-  const totalPages = Math.ceil(filteredCustomers.length / ITEMS_PER_PAGE);
-  const paginatedCustomers = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredCustomers.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredCustomers, currentPage]);
+  const {
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    paginatedItems: paginatedCustomers,
+    getPageNumbers,
+    itemsPerPage,
+  } = usePagination(filteredCustomers);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchKeyword, selectedCommunityIds, memberCategories, auditMemberTypes, premiumOnly, includeFormerMembers, includeNonMemberFilter]);
-
-  const getPageNumbers = (): (number | "ellipsis")[] => {
-    if (totalPages <= 7) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
-    const pages: (number | "ellipsis")[] = [1];
-    if (currentPage > 3) pages.push("ellipsis");
-    if (currentPage > 1 && currentPage < totalPages) pages.push(currentPage);
-    if (currentPage < totalPages - 2) pages.push("ellipsis");
-    if (totalPages > 1) pages.push(totalPages);
-    return pages;
-  };
-
-  // コミュニティ選択操作
-  const handleCommunityChange = (communityId: number, checked: boolean) => {
-    setSelectedCommunityIds((prev) =>
-      checked ? [...prev, communityId] : prev.filter((id) => id !== communityId)
-    );
-  };
-
-  const handleMemberCategoryChange = (category: string, checked: boolean) => {
-    setMemberCategories((prev) =>
-      checked ? [...prev, category] : prev.filter((c) => c !== category)
-    );
+  // コミュニティ選択操作（handleMemberCategoryChangeは副作用があるため個別定義）
+  const handleMemberCategoryChange = (category: MemberCategory, checked: boolean) => {
+    toggleMemberCategory(category, checked);
     if (!checked && category === "member") {
       setAuditMemberTypes([]);
       setPremiumOnly(false);
     }
-  };
-
-  const handleAuditMemberTypeChange = (type: string, checked: boolean) => {
-    setAuditMemberTypes((prev) =>
-      checked ? [...prev, type] : prev.filter((t) => t !== type)
-    );
   };
 
   // ベンチャー監査役の会が選択されているか
@@ -248,62 +158,15 @@ export function CustomerList({
 
   // バッジ生成
   const renderBadges = (customer: SerializedCustomer) => {
-    if (customer.customerCommunities.length === 0) {
-      return <Badge variant="non-member">非会員</Badge>;
-    }
-
-    const badges: React.ReactElement[] = [];
-    const categoryLabel = customer.memberCategory
-      ? MEMBER_CATEGORY_LABELS[customer.memberCategory as keyof typeof MEMBER_CATEGORY_LABELS]
-      : "";
-
-    for (const cc of customer.customerCommunities) {
-      const communityName = cc.community.name;
-      let variant: "audit" | "naikan" | "ai" | "default" | "destructive-outline" = "default";
-      
-      if (cc.resignedAt) {
-        variant = "destructive-outline";
-      } else if (cc.community.code === "venture_auditor") {
-        variant = "audit";
-      } else if (cc.community.code === "naikan_meetup") {
-        variant = "naikan";
-      } else if (cc.community.code === "ai_club") {
-        variant = "ai";
-      }
-
-      if (cc.resignedAt) {
-        badges.push(
-          <Badge key={`${cc.communityId}-resigned`} variant={variant}>
-            {communityName}(退会)
-          </Badge>
-        );
-      } else if (customer.memberCategory === "member" && cc.auditMemberType) {
-        const typeLabel = AUDIT_MEMBER_TYPES.find((t) => t.value === cc.auditMemberType)?.label ?? "";
-        badges.push(
-          <Badge key={`${cc.communityId}-type`} variant={variant}>
-            {communityName}({typeLabel})
-          </Badge>
-        );
-      } else {
-        badges.push(
-          <Badge key={cc.communityId} variant={variant}>
-            {communityName}({categoryLabel})
-          </Badge>
-        );
-      }
-    }
-
-    // プレミアムバッジ
-    const hasPremium = customer.customerCommunities.some((cc) => cc.auditMemberPremium);
-    if (hasPremium) {
-      badges.push(
-        <Badge key="premium" variant={USER_ROLE_CONFIG.premium.variant as any}>
-          {USER_ROLE_CONFIG.premium.label}
-        </Badge>
-      );
-    }
-
-    return badges;
+    const badges = getCustomerBadges(
+      customer.customerCommunities,
+      customer.memberCategory
+    );
+    return badges.map((badge, i) => (
+      <Badge key={i} variant={badge.variant}>
+        {badge.label}
+      </Badge>
+    ));
   };
 
   return (
@@ -358,7 +221,7 @@ export function CustomerList({
                         id={`community-${c.id}`}
                         label={c.name}
                         checked={selectedCommunityIds.includes(c.id)}
-                        onCheckedChange={(checked) => handleCommunityChange(c.id, checked)}
+                        onCheckedChange={(checked) => toggleCommunityId(c.id, checked)}
                       />
                     ))}
                   {/* 非会員（特権管理者のみ） */}
@@ -409,13 +272,13 @@ export function CustomerList({
                       id="audit-regular"
                       label="正会員"
                       checked={auditMemberTypes.includes("regular")}
-                      onCheckedChange={(checked) => handleAuditMemberTypeChange("regular", checked)}
+                      onCheckedChange={(checked) => toggleAuditMemberType("regular", checked)}
                     />
                     <CheckboxItem
                       id="audit-online"
                       label="オンライン会員"
                       checked={auditMemberTypes.includes("online")}
-                      onCheckedChange={(checked) => handleAuditMemberTypeChange("online", checked)}
+                      onCheckedChange={(checked) => toggleAuditMemberType("online", checked)}
                     />
                   </div>
                 </div>
@@ -451,10 +314,10 @@ export function CustomerList({
         <div className="flex justify-end">
           <div className="text-sm text-muted-foreground">
             <span className="font-semibold text-foreground">{filteredCustomers.length}</span>件
-            {filteredCustomers.length > ITEMS_PER_PAGE && (
+            {filteredCustomers.length > itemsPerPage && (
               <span className="ml-2">
-                （{(currentPage - 1) * ITEMS_PER_PAGE + 1}-
-                {Math.min(currentPage * ITEMS_PER_PAGE, filteredCustomers.length)}件目を表示）
+                （{(currentPage - 1) * itemsPerPage + 1}-
+                {Math.min(currentPage * itemsPerPage, filteredCustomers.length)}件目を表示）
               </span>
             )}
           </div>
@@ -507,40 +370,12 @@ export function CustomerList({
         </div>
       </div>
 
-      {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage <= 1}
-              />
-            </PaginationItem>
-            {getPageNumbers().map((page, i) =>
-              page === "ellipsis" ? (
-                <PaginationItem key={`ellipsis-${i}`}>
-                  <PaginationEllipsis />
-                </PaginationItem>
-              ) : (
-                <PaginationItem key={page}>
-                  <PaginationLink
-                    isActive={currentPage === page}
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-              )
-            )}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage >= totalPages}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        getPageNumbers={getPageNumbers}
+      />
 
       {/* CSVダウンロード */}
       <div className="flex justify-end">

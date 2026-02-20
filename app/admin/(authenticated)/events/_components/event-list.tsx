@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -27,49 +27,20 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
 import { CheckboxItem } from "@/components/ui/checkbox-item";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-  PaginationEllipsis,
-} from "@/components/ui/pagination";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import { usePagination } from "@/hooks/use-pagination";
+import { useArrayToggle } from "@/hooks/use-array-toggle";
 import { formatEventDate, getEventDisplayStatus } from "@/lib/utils/event";
 import {
   EVENT_STATUS_CONFIG,
   type EventDisplayStatus,
 } from "@/lib/constants/event";
 import { Plus, MoreVertical, Edit, Mail, Search, ChevronDown } from "lucide-react";
+import type { SerializedEvent, CommunityOption } from "@/lib/types/serialized";
 
 // ============================================================
 // 型定義
 // ============================================================
-
-interface SerializedRsvp {
-  id: number;
-  status: string;
-}
-
-interface SerializedEvent {
-  id: number;
-  title: string;
-  date: string;
-  location: string | null;
-  description: string | null;
-  note: string | null;
-  isPaused: boolean;
-  responseDeadline: string | null;
-  community: { id: number; code: string; name: string };
-  rsvps: SerializedRsvp[];
-}
-
-interface CommunityOption {
-  id: number;
-  code: string;
-  name: string;
-}
 
 interface EventListProps {
   initialEvents: SerializedEvent[];
@@ -96,7 +67,6 @@ function getStatusLabel(status: EventDisplayStatus): string {
   return EVENT_STATUS_CONFIG[status].label;
 }
 
-const ITEMS_PER_PAGE = 10;
 
 // ============================================================
 // コンポーネント
@@ -109,27 +79,10 @@ export function EventList({
 }: EventListProps) {
   const router = useRouter();
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [statuses, setStatuses] = useState<EventDisplayStatus[]>([]);
+  const [statuses, toggleStatus] = useArrayToggle<EventDisplayStatus>();
   const [statusSearch, setStatusSearch] = useState("");
-  const [eventTypes, setEventTypes] = useState<string[]>([]);
+  const [eventTypes, toggleEventType] = useArrayToggle<string>();
   const [eventTypeSearch, setEventTypeSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const handleStatusChange = (status: EventDisplayStatus, checked: boolean) => {
-    if (checked) {
-      setStatuses([...statuses, status]);
-    } else {
-      setStatuses(statuses.filter((s) => s !== status));
-    }
-  };
-
-  const handleEventTypeChange = (eventType: string, checked: boolean) => {
-    if (checked) {
-      setEventTypes([...eventTypes, eventType]);
-    } else {
-      setEventTypes(eventTypes.filter((t) => t !== eventType));
-    }
-  };
 
   const filteredEvents = useMemo(() => {
     const enriched = initialEvents.map((event) => {
@@ -186,27 +139,14 @@ export function EventList({
     return sorted;
   }, [initialEvents, searchKeyword, statuses, eventTypes]);
 
-  const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
-  const paginatedEvents = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredEvents.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredEvents, currentPage]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchKeyword, statuses, eventTypes]);
-
-  const getPageNumbers = (): (number | "ellipsis")[] => {
-    if (totalPages <= 7) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
-    const pages: (number | "ellipsis")[] = [1];
-    if (currentPage > 3) pages.push("ellipsis");
-    if (currentPage > 1 && currentPage < totalPages) pages.push(currentPage);
-    if (currentPage < totalPages - 2) pages.push("ellipsis");
-    if (totalPages > 1) pages.push(totalPages);
-    return pages;
-  };
+  const {
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    paginatedItems: paginatedEvents,
+    getPageNumbers,
+    itemsPerPage,
+  } = usePagination(filteredEvents);
 
   // イベント種別フィルタに表示するコミュニティ（その他はsuperのみ）
   const filterableCommunities = useMemo(
@@ -278,7 +218,7 @@ export function EventList({
                     label={community.name}
                     checked={eventTypes.includes(community.name)}
                     onCheckedChange={(checked) =>
-                      handleEventTypeChange(community.name, !!checked)
+                      toggleEventType(community.name, !!checked)
                     }
                   />
                 ))}
@@ -324,7 +264,7 @@ export function EventList({
                     label={getStatusLabel(status)}
                     checked={statuses.includes(status)}
                     onCheckedChange={(checked) =>
-                      handleStatusChange(status, !!checked)
+                      toggleStatus(status, !!checked)
                     }
                   />
                 ))}
@@ -340,11 +280,11 @@ export function EventList({
               {filteredEvents.length}
             </span>
             件
-            {filteredEvents.length > ITEMS_PER_PAGE && (
+            {filteredEvents.length > itemsPerPage && (
               <span className="ml-2">
-                （{(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+                （{(currentPage - 1) * itemsPerPage + 1}-
                 {Math.min(
-                  currentPage * ITEMS_PER_PAGE,
+                  currentPage * itemsPerPage,
                   filteredEvents.length
                 )}
                 件目を表示）
@@ -452,42 +392,12 @@ export function EventList({
         </div>
       </div>
 
-      {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage <= 1}
-              />
-            </PaginationItem>
-            {getPageNumbers().map((page, i) =>
-              page === "ellipsis" ? (
-                <PaginationItem key={`ellipsis-${i}`}>
-                  <PaginationEllipsis />
-                </PaginationItem>
-              ) : (
-                <PaginationItem key={page}>
-                  <PaginationLink
-                    isActive={currentPage === page}
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-              )
-            )}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={currentPage >= totalPages}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        getPageNumbers={getPageNumbers}
+      />
     </div>
   );
 }

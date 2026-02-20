@@ -1,9 +1,9 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import * as CustomerRepository from "@/lib/repositories/customer.repository";
+import { serializeCustomerForInvite } from "@/lib/serializers/customer";
 import { InviteForm } from "./_components/invite-form";
-import { auth } from "@/lib/auth/auth";
-import { getScopedCommunityIds } from "@/lib/auth/permissions";
+import { getAuthenticatedAdmin } from "@/lib/auth/permissions";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -12,25 +12,12 @@ interface PageProps {
 export default async function InvitePage({ params }: PageProps) {
   const { id } = await params;
   const eventId = parseInt(id, 10);
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    redirect("/admin/login");
-  }
 
   if (isNaN(eventId)) {
     notFound();
   }
 
-  // 管理者情報取得（権限チェック用）
-  const admin = await prisma.admin.findUnique({
-    where: { id: parseInt(session.user.id, 10) },
-    include: { adminCommunities: true },
-  });
-
-  if (!admin) {
-    redirect("/admin/login");
-  }
+  const { admin, isSuper, scopedCommunityIds } = await getAuthenticatedAdmin();
 
   // イベント情報取得
   const event = await prisma.event.findUnique({
@@ -45,17 +32,9 @@ export default async function InvitePage({ params }: PageProps) {
     notFound();
   }
 
-  // 権限チェック
-  const isSuper = admin.role === "super";
-  const scopedCommunityIds = await getScopedCommunityIds({
-    id: admin.id,
-    role: admin.role,
-    adminCommunities: admin.adminCommunities,
-  });
-
   // イベントへのアクセス権チェック（community_adminの場合）
   if (!isSuper && !scopedCommunityIds.includes(event.communityId)) {
-    notFound(); // または権限エラーページ
+    notFound();
   }
 
   // 顧客一覧取得
@@ -71,20 +50,7 @@ export default async function InvitePage({ params }: PageProps) {
     orderBy: { sortOrder: "asc" },
   });
 
-  // シリアライズ可能な形式に変換
-  const serializedCustomers = customers.map((c) => ({
-    ...c,
-    registeredAt: c.registeredAt.toISOString(),
-    deletedAt: c.deletedAt?.toISOString() ?? null,
-    customerCommunities: c.customerCommunities.map((cc) => ({
-      ...cc,
-      joinedAt: cc.joinedAt?.toISOString() ?? null,
-      resignedAt: cc.resignedAt?.toISOString() ?? null,
-      createdAt: cc.createdAt.toISOString(),
-      updatedAt: cc.updatedAt.toISOString(),
-    })),
-  }));
-
+  // イベントのシリアライズ（invite-form は event: any のため簡易変換）
   const serializedEvent = {
     ...event,
     date: event.date.toISOString(),
@@ -105,7 +71,7 @@ export default async function InvitePage({ params }: PageProps) {
   return (
     <InviteForm
       event={serializedEvent}
-      customers={serializedCustomers}
+      customers={customers.map(serializeCustomerForInvite)}
       currentUserRole={admin.role}
       communities={communities.map(c => ({
         id: c.id,
