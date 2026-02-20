@@ -32,8 +32,8 @@
 * 実装前に確認が必要な場合は確認を取ること
 * 質問と依頼を明確に区別すること
 * ドキュメント類はdocs/以下にあります
-* commitを指示したらbuildを通してからcommitすること
-* 通常の改修時はnpx tsc --noEmitをすること
+* 通常の改修時はnpm run tscとnpm run lintをすること
+* commitを指示したら上記に加えてnpm run test:runとnpm run buildを通してからcommitすること
 * 仕様はdocs/要件定義書.md、docs/画面設計書.mdがありますが実際のコードが優先です
 * コードを優先しそこからドキュメントを更新しています。大きな変更などがあれば更新するか訪ねてください
 
