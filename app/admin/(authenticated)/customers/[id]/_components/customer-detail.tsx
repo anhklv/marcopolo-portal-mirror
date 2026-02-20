@@ -36,65 +36,11 @@ import { deleteCustomerAction } from "@/lib/actions/customer.actions";
 import { toast } from "sonner";
 import { getCustomerBadges, classifyEvents } from "@/lib/helpers/customer-detail";
 import type { RsvpEvent } from "@/lib/helpers/customer-detail";
+import type { SerializedCustomerDetail } from "@/lib/types/serialized";
 
 // ============================================================
 // 型定義
 // ============================================================
-
-interface MasterData {
-  id: number;
-  name: string;
-}
-
-interface SerializedCustomerDetail {
-  id: number;
-  firstName: string;
-  lastName: string;
-  firstNameKana: string | null;
-  lastNameKana: string | null;
-  email: string;
-  subEmails: string[];
-  company: string | null;
-  phone: string | null;
-  postalCode: string | null;
-  prefecture: MasterData | null;
-  city: string | null;
-  gender: string | null;
-  listingCategory: MasterData | null;
-  memberCategory: string | null;
-  contractType: string | null;
-  jobChangeIntent: string | null;
-  note: string | null;
-  registeredAt: string;
-  deletedAt: string | null;
-  customerCommunities: {
-    id: number;
-    communityId: number;
-    joinedAt: string | null;
-    resignedAt: string | null;
-    auditMemberType: string | null;
-    auditMemberPremium: boolean | null;
-    affiliation: MasterData | null;
-    originIndustry: MasterData | null;
-    membershipQualification: MasterData | null;
-    community: {
-      id: number;
-      code: string;
-      name: string;
-    };
-  }[];
-  rsvps: {
-    id: number;
-    status: string;
-    respondedAt: string | null;
-    event: {
-      id: number;
-      title: string;
-      date: string;
-      communityId: number;
-    };
-  }[];
-}
 
 interface CustomerDetailProps {
   customer: SerializedCustomerDetail;

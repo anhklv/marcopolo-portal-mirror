@@ -42,34 +42,11 @@ import {
   type EventDisplayStatus,
 } from "@/lib/constants/event";
 import { Plus, MoreVertical, Edit, Mail, Search, ChevronDown } from "lucide-react";
+import type { SerializedEvent, CommunityOption } from "@/lib/types/serialized";
 
 // ============================================================
 // 型定義
 // ============================================================
-
-interface SerializedRsvp {
-  id: number;
-  status: string;
-}
-
-interface SerializedEvent {
-  id: number;
-  title: string;
-  date: string;
-  location: string | null;
-  description: string | null;
-  note: string | null;
-  isPaused: boolean;
-  responseDeadline: string | null;
-  community: { id: number; code: string; name: string };
-  rsvps: SerializedRsvp[];
-}
-
-interface CommunityOption {
-  id: number;
-  code: string;
-  name: string;
-}
 
 interface EventListProps {
   initialEvents: SerializedEvent[];

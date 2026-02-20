@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
 import { Search, Users, ChevronDown, Download, Plus } from "lucide-react";
 import { getCustomerBadges } from "@/lib/helpers/customer-detail";
+import type { SerializedCustomer, CommunityOption } from "@/lib/types/serialized";
 import {
   Pagination,
   PaginationContent,
@@ -43,61 +44,6 @@ const ITEMS_PER_PAGE = 10;
 // ============================================================
 // 型定義
 // ============================================================
-
-interface SerializedCommunity {
-  id: number;
-  code: string;
-  name: string;
-  hasSurvey: boolean;
-  sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface SerializedCustomerCommunity {
-  id: number;
-  customerId: number;
-  communityId: number;
-  joinedAt: string | null;
-  resignedAt: string | null;
-  auditMemberType: string | null;
-  auditMemberPremium: boolean | null;
-  affiliation: string | null;
-  createdAt: string;
-  updatedAt: string;
-  community: SerializedCommunity;
-}
-
-interface SerializedCustomer {
-  id: number;
-  firstName: string;
-  lastName: string;
-  firstNameKana: string | null;
-  lastNameKana: string | null;
-  email: string;
-  subEmails: string[];
-  company: string | null;
-  phone: string | null;
-  postalCode: string | null;
-  prefecture: string | null;
-  city: string | null;
-  gender: string | null;
-  listingCategory: string | null;
-  originIndustry: string | null;
-  membershipQualification: string | null;
-  memberCategory: string | null;
-  contractType: string | null;
-  note: string | null;
-  registeredAt: string;
-  deletedAt: string | null;
-  customerCommunities: SerializedCustomerCommunity[];
-}
-
-interface CommunityOption {
-  id: number;
-  code: string;
-  name: string;
-}
 
 interface CustomerListProps {
   initialCustomers: SerializedCustomer[];

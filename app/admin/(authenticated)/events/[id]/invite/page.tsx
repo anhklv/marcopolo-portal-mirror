@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import * as CustomerRepository from "@/lib/repositories/customer.repository";
+import { serializeCustomerForInvite } from "@/lib/serializers/customer";
 import { InviteForm } from "./_components/invite-form";
 import { getAuthenticatedAdmin } from "@/lib/auth/permissions";
 
@@ -49,20 +50,7 @@ export default async function InvitePage({ params }: PageProps) {
     orderBy: { sortOrder: "asc" },
   });
 
-  // シリアライズ可能な形式に変換
-  const serializedCustomers = customers.map((c) => ({
-    ...c,
-    registeredAt: c.registeredAt.toISOString(),
-    deletedAt: c.deletedAt?.toISOString() ?? null,
-    customerCommunities: c.customerCommunities.map((cc) => ({
-      ...cc,
-      joinedAt: cc.joinedAt?.toISOString() ?? null,
-      resignedAt: cc.resignedAt?.toISOString() ?? null,
-      createdAt: cc.createdAt.toISOString(),
-      updatedAt: cc.updatedAt.toISOString(),
-    })),
-  }));
-
+  // イベントのシリアライズ（invite-form は event: any のため簡易変換）
   const serializedEvent = {
     ...event,
     date: event.date.toISOString(),
@@ -83,7 +71,7 @@ export default async function InvitePage({ params }: PageProps) {
   return (
     <InviteForm
       event={serializedEvent}
-      customers={serializedCustomers}
+      customers={customers.map(serializeCustomerForInvite)}
       currentUserRole={admin.role}
       communities={communities.map(c => ({
         id: c.id,

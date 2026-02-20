@@ -34,21 +34,11 @@ import {
   updateCustomerAction,
 } from "@/lib/actions/customer.actions";
 import type { ActionResult } from "@/lib/actions/customer.actions";
+import type { MasterData, CommunityOption } from "@/lib/types/serialized";
 
 // ============================================================
 // 型定義
 // ============================================================
-
-interface MasterData {
-  id: number;
-  name: string;
-}
-
-interface CommunityData {
-  id: number;
-  code: string;
-  name: string;
-}
 
 interface InitialCommunityData {
   communityId: number;
@@ -92,7 +82,7 @@ interface ListingCategoryData {
 interface CustomerFormProps {
   mode: "create" | "edit";
   initialData?: InitialData;
-  communities: CommunityData[];
+  communities: CommunityOption[];
   prefectures: MasterData[];
   listingCategories: ListingCategoryData[];
   originIndustries: MasterData[];
@@ -112,7 +102,7 @@ const NONE_VALUE = "__none__";
 // ヘルパー
 // ============================================================
 
-function findCommunityByCode(communities: CommunityData[], code: string): CommunityData | undefined {
+function findCommunityByCode(communities: CommunityOption[], code: string): CommunityOption | undefined {
   return communities.find((c) => c.code === code);
 }
 
