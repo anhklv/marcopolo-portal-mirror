@@ -34,7 +34,7 @@ import { USER_ROLE_CONFIG, AUDIT_MEMBER_TYPES } from "@/lib/constants/customer";
 import { RSVP_STATUS_CONFIG } from "@/lib/constants/event";
 import { deleteCustomerAction } from "@/lib/actions/customer.actions";
 import { toast } from "sonner";
-import { getCustomerBadges, classifyEvents } from "@/lib/helpers/customer-detail";
+import { classifyEvents } from "@/lib/helpers/customer-detail";
 import { COMMUNITY_CODE } from "@/lib/constants/community";
 import type { RsvpEvent } from "@/lib/helpers/customer-detail";
 import type { SerializedCustomerDetail } from "@/lib/types/serialized";
@@ -54,11 +54,6 @@ interface CustomerDetailProps {
 export function CustomerDetail({ customer }: CustomerDetailProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
-
-  const badges = getCustomerBadges(
-    customer.customerCommunities,
-    customer.memberCategory
-  );
 
   // イベント参加履歴
   const rsvpEvents: RsvpEvent[] = customer.rsvps.map((r) => ({
@@ -119,15 +114,6 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
           <Stack gap="lg">
             <SectionHeading>会員情報</SectionHeading>
             <div className="grid grid-cols-2 gap-6">
-              <DataItem label="コミュニティ">
-                <div className="flex gap-2 flex-wrap items-center">
-                  {badges.map((badge, i) => (
-                    <Badge key={i} variant={badge.variant}>
-                      {badge.label}
-                    </Badge>
-                  ))}
-                </div>
-              </DataItem>
               {customer.contractType && (
                 <DataItem label="契約主体">
                   {CONTRACT_TYPE_LABELS[customer.contractType as keyof typeof CONTRACT_TYPE_LABELS]}
@@ -140,18 +126,32 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
             {auditCommunity && (
               <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
                 <div className="flex items-center justify-between">
-                  <Label className="font-semibold text-base">ベンチャー監査役の会</Label>
-                  {customer.memberCategory === "member" && auditCommunity.auditMemberType && (
-                    <Badge variant={USER_ROLE_CONFIG.member.variant}>
-                      {AUDIT_MEMBER_TYPES.find((t) => t.value === auditCommunity.auditMemberType)?.label}
-                    </Badge>
-                  )}
-                  {customer.memberCategory === "sponsor" && (
-                    <Badge variant={USER_ROLE_CONFIG.sponsor.variant}>{USER_ROLE_CONFIG.sponsor.label}</Badge>
-                  )}
-                  {customer.memberCategory === "observer" && (
-                    <Badge variant={USER_ROLE_CONFIG.observer.variant}>{USER_ROLE_CONFIG.observer.label}</Badge>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <Label className="font-semibold text-base">ベンチャー監査役の会</Label>
+                    {auditCommunity.resignedAt && (
+                       <Badge variant="destructive-outline">
+                        退会
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    {customer.memberCategory === "member" && auditCommunity.auditMemberType && (
+                      <Badge variant={USER_ROLE_CONFIG.member.variant}>
+                        {AUDIT_MEMBER_TYPES.find((t) => t.value === auditCommunity.auditMemberType)?.label}
+                      </Badge>
+                    )}
+                    {auditCommunity.auditMemberPremium && (
+                      <Badge variant="premium">
+                        プレミアム
+                      </Badge>
+                    )}
+                    {customer.memberCategory === "sponsor" && (
+                      <Badge variant={USER_ROLE_CONFIG.sponsor.variant}>{USER_ROLE_CONFIG.sponsor.label}</Badge>
+                    )}
+                    {customer.memberCategory === "observer" && (
+                      <Badge variant={USER_ROLE_CONFIG.observer.variant}>{USER_ROLE_CONFIG.observer.label}</Badge>
+                    )}
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-6">
                   {auditCommunity?.membershipQualification && (
@@ -174,7 +174,14 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
             {naikanCommunity && (
               <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
                 <div className="flex items-center justify-between">
-                  <Label className="font-semibold text-base">ないかんMeetup</Label>
+                  <div className="flex items-center gap-2">
+                    <Label className="font-semibold text-base">ないかんMeetup</Label>
+                    {naikanCommunity.resignedAt && (
+                       <Badge variant="destructive-outline">
+                        退会
+                      </Badge>
+                    )}
+                  </div>
                   {customer.memberCategory && (
                     <Badge variant={USER_ROLE_CONFIG[customer.memberCategory as keyof typeof USER_ROLE_CONFIG]?.variant}>
                       {USER_ROLE_CONFIG[customer.memberCategory as keyof typeof USER_ROLE_CONFIG]?.label}
@@ -199,7 +206,14 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
             {aiCommunity && (
               <div className="rounded-lg border p-4 space-y-4 bg-slate-50">
                 <div className="flex items-center justify-between">
-                  <Label className="font-semibold text-base">AI部会</Label>
+                  <div className="flex items-center gap-2">
+                    <Label className="font-semibold text-base">AI部会</Label>
+                    {aiCommunity.resignedAt && (
+                       <Badge variant="destructive-outline">
+                        退会
+                      </Badge>
+                    )}
+                  </div>
                   {customer.memberCategory && (
                     <Badge variant={USER_ROLE_CONFIG[customer.memberCategory as keyof typeof USER_ROLE_CONFIG]?.variant}>
                       {USER_ROLE_CONFIG[customer.memberCategory as keyof typeof USER_ROLE_CONFIG]?.label}

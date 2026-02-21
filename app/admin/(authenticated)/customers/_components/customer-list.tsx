@@ -62,11 +62,38 @@ export function CustomerList({
   // フィルタ状態
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedCommunityIds, toggleCommunityId] = useArrayToggle<number>();
-  const [memberCategories, toggleMemberCategory] = useArrayToggle<MemberCategory>();
+  const [memberCategories, toggleMemberCategory, setMemberCategories] = useArrayToggle<MemberCategory>();
   const [auditMemberTypes, toggleAuditMemberType, setAuditMemberTypes] = useArrayToggle<AuditMemberType>();
   const [premiumOnly, setPremiumOnly] = useState(false);
   const [includeFormerMembers, setIncludeFormerMembers] = useState(false);
   const [includeNonMemberFilter, setIncludeNonMemberFilter] = useState(false);
+
+  // ベンチャー監査役の会（定数判定用）
+  const ventureAuditorCommunity = communities.find((c) => c.code === COMMUNITY_CODE.VENTURE_AUDITOR);
+
+  // コミュニティ選択操作（依存フィルタのリセット処理含む）
+  const handleCommunityChange = (communityId: number, checked: boolean) => {
+    toggleCommunityId(communityId, checked);
+
+    // 状態更新前の値を使って次の状態を計算
+    const nextSelectedIds = checked
+      ? [...selectedCommunityIds, communityId]
+      : selectedCommunityIds.filter((id) => id !== communityId);
+
+    // コミュニティが1つも選択されていない場合、会員区分をリセット
+    if (nextSelectedIds.length === 0) {
+      setMemberCategories([]);
+    }
+
+    // ベンチャー監査役の会が選択されていない場合、関連フィルタをリセット
+    if (ventureAuditorCommunity) {
+      const isAuditIncluded = nextSelectedIds.includes(ventureAuditorCommunity.id);
+      if (!isAuditIncluded) {
+        setAuditMemberTypes([]);
+        setPremiumOnly(false);
+      }
+    }
+  };
 
   // フィルタリング
   const filteredCustomers = useMemo(
@@ -102,7 +129,6 @@ export function CustomerList({
   };
 
   // ベンチャー監査役の会が選択されているか
-  const ventureAuditorCommunity = communities.find((c) => c.code === COMMUNITY_CODE.VENTURE_AUDITOR);
   const isAuditSelected = ventureAuditorCommunity
     ? selectedCommunityIds.includes(ventureAuditorCommunity.id)
     : false;
@@ -222,7 +248,7 @@ export function CustomerList({
                         id={`community-${c.id}`}
                         label={c.name}
                         checked={selectedCommunityIds.includes(c.id)}
-                        onCheckedChange={(checked) => toggleCommunityId(c.id, checked)}
+                        onCheckedChange={(checked) => handleCommunityChange(c.id, checked)}
                         labelClassName="text-sm"
                       />
                     ))}
