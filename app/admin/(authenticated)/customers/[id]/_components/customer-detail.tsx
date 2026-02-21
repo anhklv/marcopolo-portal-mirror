@@ -35,6 +35,7 @@ import { RSVP_STATUS_CONFIG } from "@/lib/constants/event";
 import { deleteCustomerAction } from "@/lib/actions/customer.actions";
 import { toast } from "sonner";
 import { getCustomerBadges, classifyEvents } from "@/lib/helpers/customer-detail";
+import { COMMUNITY_CODE } from "@/lib/constants/community";
 import type { RsvpEvent } from "@/lib/helpers/customer-detail";
 import type { SerializedCustomerDetail } from "@/lib/types/serialized";
 
@@ -87,13 +88,13 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
 
   // コミュニティ別詳細
   const auditCommunity = customer.customerCommunities.find(
-    (cc) => cc.community.code === "venture_auditor"
+    (cc) => cc.community.code === COMMUNITY_CODE.VENTURE_AUDITOR
   );
   const naikanCommunity = customer.customerCommunities.find(
-    (cc) => cc.community.code === "naikan_meetup"
+    (cc) => cc.community.code === COMMUNITY_CODE.NAIKAN_MEETUP
   );
   const aiCommunity = customer.customerCommunities.find(
-    (cc) => cc.community.code === "ai_club"
+    (cc) => cc.community.code === COMMUNITY_CODE.AI_CLUB
   );
 
   return (

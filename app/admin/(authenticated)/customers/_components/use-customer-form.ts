@@ -7,6 +7,7 @@ import {
   updateCustomerAction,
 } from "@/lib/actions/customer.actions";
 import type { ActionResult } from "@/lib/actions/customer.actions";
+import { COMMUNITY_CODE, COMMUNITY_NAME } from "@/lib/constants/community";
 import type { CommunityOption } from "@/lib/types/serialized";
 import {
   customerFormSchema,
@@ -125,9 +126,9 @@ export function useCustomerForm({
   const [isPending, startTransition] = useTransition();
 
   // コミュニティ情報
-  const auditCommunity = findCommunityByCode(communities, "venture_auditor");
-  const naikanCommunity = findCommunityByCode(communities, "naikan_meetup");
-  const aiCommunity = findCommunityByCode(communities, "ai_club");
+  const auditCommunity = findCommunityByCode(communities, COMMUNITY_CODE.VENTURE_AUDITOR);
+  const naikanCommunity = findCommunityByCode(communities, COMMUNITY_CODE.NAIKAN_MEETUP);
+  const aiCommunity = findCommunityByCode(communities, COMMUNITY_CODE.AI_CLUB);
 
   // コミュニティのスコープ内チェック
   const canAccessAudit = isSuper || (auditCommunity && scopedCommunityIds.includes(auditCommunity.id));
@@ -257,9 +258,9 @@ export function useCustomerForm({
     // 編集時：元々所属していたコミュニティのチェックが外された場合、確認ダイアログを表示
     if (mode === "edit") {
       const removedCommunities: string[] = [];
-      if (auditInitial && !auditChecked) removedCommunities.push("ベンチャー監査役の会");
-      if (naikanInitial && !naikanChecked) removedCommunities.push("ないかんMeetup");
-      if (aiInitial && !aiChecked) removedCommunities.push("AI部会");
+      if (auditInitial && !auditChecked) removedCommunities.push(COMMUNITY_NAME[COMMUNITY_CODE.VENTURE_AUDITOR]);
+      if (naikanInitial && !naikanChecked) removedCommunities.push(COMMUNITY_NAME[COMMUNITY_CODE.NAIKAN_MEETUP]);
+      if (aiInitial && !aiChecked) removedCommunities.push(COMMUNITY_NAME[COMMUNITY_CODE.AI_CLUB]);
 
       if (removedCommunities.length > 0) {
         const confirmed = window.confirm(

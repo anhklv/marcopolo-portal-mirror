@@ -1,6 +1,7 @@
 // 顧客詳細画面のヘルパー関数（純粋関数、テスト対象）
 
 import { AUDIT_MEMBER_TYPES, MEMBER_CATEGORY_LABELS } from "@/lib/constants/customer";
+import { getCommunityBadgeVariant } from "@/lib/constants/community";
 import type { BadgeVariant } from "@/components/ui/badge";
 
 // ============================================================
@@ -45,10 +46,7 @@ export function getCustomerBadges(
       continue;
     }
 
-    let variant: BadgeVariant = "default";
-    if (cc.community.code === "venture_auditor") variant = "audit";
-    else if (cc.community.code === "naikan_meetup") variant = "naikan";
-    else if (cc.community.code === "ai_club") variant = "ai";
+    const variant: BadgeVariant = getCommunityBadgeVariant(cc.community.code);
 
     if (memberCategory === "member" && cc.auditMemberType) {
       const typeLabel = AUDIT_MEMBER_TYPES.find((t) => t.value === cc.auditMemberType)?.label ?? "";

@@ -10,6 +10,7 @@ import {
 } from "@/lib/auth/permissions";
 import type { AdminForPermission } from "@/lib/auth/permissions";
 import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/customer";
+import { COMMUNITY_CODE } from "@/lib/constants/community";
 import { customerFormSchema } from "@/lib/validations/customer";
 import type { CustomerFormInput } from "@/lib/validations/customer";
 import * as customerRepo from "@/lib/repositories/customer.repository";
@@ -111,7 +112,7 @@ async function validateAuditMemberType(
   data: CustomerFormInput
 ): Promise<{ error?: string }> {
   const ventureAuditor = await prisma.community.findUnique({
-    where: { code: "venture_auditor" },
+    where: { code: COMMUNITY_CODE.VENTURE_AUDITOR },
   });
   if (!ventureAuditor) return {};
 
@@ -322,7 +323,7 @@ export async function exportCustomersAction(
       : "";
     const registeredAt = formatDateForCsv(c.registeredAt);
     // originIndustry/membershipQualification は CustomerCommunity（ベンチャー監査役の会）に紐づく
-    const auditCC = c.customerCommunities.find((cc) => cc.community.code === "venture_auditor");
+    const auditCC = c.customerCommunities.find((cc) => cc.community.code === COMMUNITY_CODE.VENTURE_AUDITOR);
 
     return [
       String(c.id),

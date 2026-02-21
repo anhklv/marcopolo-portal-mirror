@@ -3,6 +3,7 @@
 
 import type { CustomerWithCommunities, CustomerDetail } from "@/lib/repositories/customer.repository";
 import type { SerializedCustomer, SerializedCustomerDetail } from "@/lib/types/serialized";
+import { COMMUNITY_CODE } from "@/lib/constants/community";
 
 /**
  * 顧客一覧用シリアライズ
@@ -10,7 +11,7 @@ import type { SerializedCustomer, SerializedCustomerDetail } from "@/lib/types/s
  */
 export function serializeCustomerForList(c: CustomerWithCommunities): SerializedCustomer {
   const auditCC = c.customerCommunities.find(
-    (cc) => cc.community.code === "venture_auditor"
+    (cc) => cc.community.code === COMMUNITY_CODE.VENTURE_AUDITOR
   );
   return {
     id: c.id,

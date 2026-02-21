@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { COMMUNITY_CODE } from "@/lib/constants/community";
 import { getAuthenticatedAdmin } from "@/lib/auth/permissions";
 import { findAll } from "@/lib/repositories/customer.repository";
 import { serializeCustomerForList } from "@/lib/serializers/customer";
@@ -14,7 +15,7 @@ export default async function CustomersPage() {
   });
 
   const communities = await prisma.community.findMany({
-    where: { code: { not: "other" } },
+    where: { code: { not: COMMUNITY_CODE.OTHER } },
     orderBy: { sortOrder: "asc" },
   });
 

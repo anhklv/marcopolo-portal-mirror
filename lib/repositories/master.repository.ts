@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { COMMUNITY_CODE } from "@/lib/constants/community";
 import type { MasterData, CommunityOption, ListingCategoryOption } from "@/lib/types/serialized";
 
 // ============================================================
@@ -24,7 +25,7 @@ export interface CustomerFormMasterData {
 export async function fetchCustomerFormMasterData(): Promise<CustomerFormMasterData> {
   const [communities, prefectures, listingCategories, originIndustries, membershipQualifications, affiliations] =
     await Promise.all([
-      prisma.community.findMany({ where: { code: { not: "other" } }, orderBy: { sortOrder: "asc" } }),
+      prisma.community.findMany({ where: { code: { not: COMMUNITY_CODE.OTHER } }, orderBy: { sortOrder: "asc" } }),
       prisma.prefecture.findMany({ orderBy: { sortOrder: "asc" } }),
       prisma.listingCategory.findMany({ orderBy: { sortOrder: "asc" } }),
       prisma.originIndustry.findMany({ orderBy: { sortOrder: "asc" } }),

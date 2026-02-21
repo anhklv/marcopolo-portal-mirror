@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
 import { Search, Users, ChevronDown, Download, Plus } from "lucide-react";
 import { getCustomerBadges } from "@/lib/helpers/customer-detail";
+import { COMMUNITY_CODE } from "@/lib/constants/community";
 import type { SerializedCustomer, CommunityOption } from "@/lib/types/serialized";
 import type { MemberCategory, AuditMemberType } from "@/lib/generated/prisma";
 import { PaginationControls } from "@/components/ui/pagination-controls";
@@ -101,7 +102,7 @@ export function CustomerList({
   };
 
   // ベンチャー監査役の会が選択されているか
-  const ventureAuditorCommunity = communities.find((c) => c.code === "venture_auditor");
+  const ventureAuditorCommunity = communities.find((c) => c.code === COMMUNITY_CODE.VENTURE_AUDITOR);
   const isAuditSelected = ventureAuditorCommunity
     ? selectedCommunityIds.includes(ventureAuditorCommunity.id)
     : false;

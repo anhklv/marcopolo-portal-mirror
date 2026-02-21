@@ -24,7 +24,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
 import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { PaginationControls } from "@/components/ui/pagination-controls";
@@ -36,6 +36,7 @@ import {
   type EventDisplayStatus,
 } from "@/lib/constants/event";
 import { Plus, MoreVertical, Edit, Mail, Search, ChevronDown } from "lucide-react";
+import { COMMUNITY_CODE, getCommunityBadgeVariant } from "@/lib/constants/community";
 import type { SerializedEvent, CommunityOption } from "@/lib/types/serialized";
 
 // ============================================================
@@ -49,17 +50,8 @@ interface EventListProps {
 }
 
 // イベント種別のバッジvariantを取得
-function getEventTypeVariant(eventTypeName: string): "audit" | "naikan" | "ai" | "outline" {
-  switch (eventTypeName) {
-    case "ベンチャー監査役の会":
-      return "audit";
-    case "ないかんMeetup":
-      return "naikan";
-    case "AI部会":
-      return "ai";
-    default:
-      return "outline";
-  }
+function getEventTypeVariant(communityCode: string): BadgeVariant {
+  return getCommunityBadgeVariant(communityCode, "outline");
 }
 
 // ステータス表示ラベル
@@ -151,7 +143,7 @@ export function EventList({
   // イベント種別フィルタに表示するコミュニティ（その他はsuperのみ）
   const filterableCommunities = useMemo(
     () =>
-      communities.filter((c) => isSuper || c.code !== "other"),
+      communities.filter((c) => isSuper || c.code !== COMMUNITY_CODE.OTHER),
     [communities, isSuper]
   );
 
@@ -334,7 +326,7 @@ export function EventList({
                   >
                     <TableCell>
                       <Badge
-                        variant={getEventTypeVariant(event.community.name)}
+                        variant={getEventTypeVariant(event.community.code)}
                       >
                         {event.community.name}
                       </Badge>
