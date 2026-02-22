@@ -172,6 +172,7 @@ export function CustomerList({
           link.style.visibility = "hidden";
           document.body.appendChild(link);
           link.click();
+          URL.revokeObjectURL(link.href);
           document.body.removeChild(link);
           toast.success("CSVファイルをダウンロードしました");
         } else {

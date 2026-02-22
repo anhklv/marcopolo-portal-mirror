@@ -190,8 +190,8 @@ async function main() {
     const customers = [
       {
         firstName: "太郎", lastName: "田中", firstNameKana: "タロウ", lastNameKana: "タナカ",
-        email: "tanaka@example.com", company: "株式会社テスト", phone: "03-1234-5678",
-        postalCode: "100-0001", city: "千代田区丸の内1-1-1",
+        email: "tanaka@example.com", company: "株式会社テスト", phone: "0312345678",
+        postalCode: "1000001", city: "千代田区丸の内1-1-1",
         prefecture: "東京都",
         listingCategory: "プライム:東京証券取引所",
         gender: "male" as const,
