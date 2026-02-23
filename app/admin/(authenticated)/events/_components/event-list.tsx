@@ -30,7 +30,8 @@ import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { usePagination } from "@/hooks/use-pagination";
 import { useArrayToggle } from "@/hooks/use-array-toggle";
-import { formatEventDate, getEventDisplayStatus } from "@/lib/utils/event";
+import { formatEventDate } from "@/lib/utils/event";
+import { filterAndSortEvents } from "@/lib/helpers/event-filter";
 import {
   EVENT_STATUS_CONFIG,
   type EventDisplayStatus,
@@ -76,60 +77,15 @@ export function EventList({
   const [eventTypes, toggleEventType] = useArrayToggle<string>();
   const [eventTypeSearch, setEventTypeSearch] = useState("");
 
-  const filteredEvents = useMemo(() => {
-    const enriched = initialEvents.map((event) => {
-      const displayStatus = getEventDisplayStatus({
-        date: event.date,
-        responseDeadline: event.responseDeadline,
-        isPaused: event.isPaused,
-      });
-      const actualAttendeesCount = event.rsvps.filter(
-        (r) => r.status === "attending" || r.status === "online"
-      ).length;
-      return {
-        ...event,
-        displayStatus,
-        actualAttendeesCount,
-      };
-    });
-
-    const filtered = enriched.filter((event) => {
-      const matchesKeyword =
-        searchKeyword === "" ||
-        event.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-        (event.location ?? "").toLowerCase().includes(searchKeyword.toLowerCase()) ||
-        (event.description ?? "").toLowerCase().includes(searchKeyword.toLowerCase()) ||
-        (event.note ?? "").toLowerCase().includes(searchKeyword.toLowerCase());
-
-      const matchesStatus =
-        statuses.length === 0 || statuses.includes(event.displayStatus);
-
-      const matchesEventType =
-        eventTypes.length === 0 ||
-        eventTypes.includes(event.community.name);
-
-      return matchesKeyword && matchesStatus && matchesEventType;
-    });
-
-    const sorted = [...filtered].sort((a, b) => {
-      const aIsClosed = a.displayStatus === "closed";
-      const bIsClosed = b.displayStatus === "closed";
-
-      if (aIsClosed !== bIsClosed) {
-        return aIsClosed ? 1 : -1;
-      }
-
-      const dateA = new Date(a.date).getTime();
-      const dateB = new Date(b.date).getTime();
-
-      if (aIsClosed) {
-        return dateB - dateA;
-      }
-      return dateA - dateB;
-    });
-
-    return sorted;
-  }, [initialEvents, searchKeyword, statuses, eventTypes]);
+  const filteredEvents = useMemo(
+    () =>
+      filterAndSortEvents(initialEvents, {
+        keyword: searchKeyword,
+        statuses,
+        eventTypeCodes: eventTypes,
+      }),
+    [initialEvents, searchKeyword, statuses, eventTypes]
+  );
 
   const {
     currentPage,
@@ -180,7 +136,7 @@ export function EventList({
                 {eventTypes.length === 0
                   ? "イベント種別"
                   : eventTypes.length === 1
-                    ? eventTypes[0]
+                    ? communities.find((c) => c.code === eventTypes[0])?.name ?? eventTypes[0]
                     : `${eventTypes.length}件選択`}
               </span>
               <ChevronDown className="h-4 w-4 opacity-50" />
@@ -208,9 +164,9 @@ export function EventList({
                     key={community.id}
                     id={`event-type-${community.code}`}
                     label={community.name}
-                    checked={eventTypes.includes(community.name)}
+                    checked={eventTypes.includes(community.code)}
                     onCheckedChange={(checked) =>
-                      toggleEventType(community.name, !!checked)
+                      toggleEventType(community.code, !!checked)
                     }
                     labelClassName="text-sm"
                   />
@@ -343,10 +299,11 @@ export function EventList({
                         {EVENT_STATUS_CONFIG[event.displayStatus].label}
                       </Badge>
                     </TableCell>
-                    <TableCell>{event.actualAttendeesCount}名</TableCell>
+                    <TableCell>{event.attendeesCount}名</TableCell>
                     <TableCell
                       className="text-right"
                       onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
                     >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

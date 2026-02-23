@@ -37,12 +37,13 @@ export function getEventDisplayStatus(event: {
   const now = new Date();
   const eventDate = new Date(event.date);
 
-  if (event.isPaused) {
-    return "paused";
-  }
-
+  // 終了判定を最優先: 開催日を過ぎたイベントは isPaused に関係なく closed
   if (eventDate <= now) {
     return "closed";
+  }
+
+  if (event.isPaused) {
+    return "paused";
   }
 
   const deadline = event.responseDeadline

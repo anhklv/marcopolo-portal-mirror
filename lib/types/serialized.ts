@@ -139,5 +139,5 @@ export interface SerializedEvent {
   isPaused: boolean;
   responseDeadline: string | null;
   community: CommunityOption;
-  rsvps: { id: number; status: string }[];
+  attendeesCount: number;
 }

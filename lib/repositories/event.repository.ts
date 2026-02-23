@@ -1,13 +1,13 @@
 import { prisma } from "@/lib/prisma";
-import type { Community, Event, Rsvp } from "@/lib/generated/prisma";
+import type { Community, Event } from "@/lib/generated/prisma";
 
 // ============================================================
 // 型定義
 // ============================================================
 
-export type EventWithCommunityAndRsvps = Event & {
+export type EventForList = Event & {
   community: Community;
-  rsvps: Rsvp[];
+  _count: { rsvps: number };
 };
 
 // ============================================================
@@ -18,11 +18,12 @@ export type EventWithCommunityAndRsvps = Event & {
  * イベント一覧取得（スコープに基づくフィルタ、deletedAt=null）
  * - super: 全イベント
  * - community_admin: スコープ内コミュニティのイベントのみ
+ * - _count.rsvps: attending/online のみカウント
  */
 export async function findAllEvents(
   scopedCommunityIds: number[],
   isSuper: boolean
-): Promise<EventWithCommunityAndRsvps[]> {
+): Promise<EventForList[]> {
   const where: { deletedAt: null; communityId?: { in: number[] } } = {
     deletedAt: null,
   };
@@ -38,7 +39,13 @@ export async function findAllEvents(
     where,
     include: {
       community: true,
-      rsvps: true,
+      _count: {
+        select: {
+          rsvps: {
+            where: { status: { in: ["attending", "online"] } },
+          },
+        },
+      },
     },
     orderBy: { date: "asc" },
   });
