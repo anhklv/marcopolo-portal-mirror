@@ -52,3 +52,54 @@ export async function findAllEvents(
 
   return events;
 }
+
+/**
+ * イベント新規作成
+ */
+export async function createEvent(data: {
+  communityId: number;
+  title: string;
+  date: Date;
+  location: string | null;
+  description: string | null;
+  timetable: string | null;
+  note: string | null;
+  responseDeadline: Date | null;
+  allowsOnline: boolean;
+  hasAfterParty: boolean;
+}): Promise<Event> {
+  return prisma.event.create({ data });
+}
+
+/**
+ * イベント単体取得（編集画面用）
+ */
+export async function findEventById(eventId: number): Promise<Event | null> {
+  return prisma.event.findFirst({
+    where: { id: eventId, deletedAt: null },
+  });
+}
+
+/**
+ * イベント更新
+ */
+export async function updateEvent(
+  eventId: number,
+  data: {
+    communityId: number;
+    title: string;
+    date: Date;
+    location: string | null;
+    description: string | null;
+    timetable: string | null;
+    note: string | null;
+    responseDeadline: Date | null;
+    allowsOnline: boolean;
+    hasAfterParty: boolean;
+  }
+): Promise<Event> {
+  return prisma.event.update({
+    where: { id: eventId },
+    data,
+  });
+}

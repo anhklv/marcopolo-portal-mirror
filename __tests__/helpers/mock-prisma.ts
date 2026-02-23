@@ -23,6 +23,8 @@ export const mockPrisma = {
   event: {
     findFirst: vi.fn(),
     findUnique: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
   },
   admin: {
     findUnique: vi.fn(),

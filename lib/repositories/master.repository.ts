@@ -15,6 +15,10 @@ export interface CustomerFormMasterData {
   affiliations: MasterData[];
 }
 
+export interface EventFormMasterData {
+  communities: CommunityOption[];
+}
+
 // ============================================================
 // Repository 関数
 // ============================================================
@@ -44,5 +48,18 @@ export async function fetchCustomerFormMasterData(): Promise<CustomerFormMasterD
     originIndustries,
     membershipQualifications,
     affiliations,
+  };
+}
+
+/**
+ * イベントフォーム（新規作成・編集）で使用するマスタデータを一括取得
+ */
+export async function fetchEventFormMasterData(): Promise<EventFormMasterData> {
+  const communities = await prisma.community.findMany({
+    orderBy: { sortOrder: "asc" },
+  });
+
+  return {
+    communities: communities.map((c) => ({ id: c.id, code: c.code, name: c.name })),
   };
 }
