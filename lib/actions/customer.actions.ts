@@ -15,15 +15,9 @@ import type { CustomerFormInput } from "@/lib/validations/customer";
 import { formatZodFieldErrors } from "@/lib/validations/utils";
 import * as customerRepo from "@/lib/repositories/customer.repository";
 import { filterCustomers } from "@/lib/helpers/customer-filter";
+import type { ActionResult } from "@/lib/types/action";
 
-// ============================================================
-// 型定義
-// ============================================================
-
-export type ActionResult = {
-  error?: string;
-  fieldErrors?: Record<string, string[]>;
-};
+export type { ActionResult };
 
 // ============================================================
 // ヘルパー

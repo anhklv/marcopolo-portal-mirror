@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import { createEventAction, updateEventAction } from "@/lib/actions/event.actions";
 import type { EventActionResult } from "@/lib/actions/event.actions";
 import type { CommunityOption } from "@/lib/types/serialized";
-import { isoToDisplay } from "@/lib/utils";
+import { useFieldErrors } from "@/lib/hooks/use-field-errors";
+import { isoToDisplay, isRedirectError } from "@/lib/utils";
 import { eventSchema } from "@/lib/validations/event";
 import { formatZodFieldErrors } from "@/lib/validations/utils";
 
@@ -116,18 +117,7 @@ export function useEventForm({
   const [hasAfterParty, setHasAfterParty] = useState(initialData?.hasAfterParty ?? false);
 
   // エラー状態
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
-  const [generalError, setGeneralError] = useState<string | null>(null);
-
-  // フィールドエラーのクリア（onChange時に使用）
-  const clearFieldError = (field: string) => {
-    setFieldErrors((prev) => {
-      if (!prev[field]) return prev;
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
-  };
+  const { fieldErrors, setFieldErrors, generalError, setGeneralError, clearFieldError } = useFieldErrors();
 
   // フォーム送信
   const handleSubmit = (e: React.FormEvent) => {
@@ -210,7 +200,7 @@ export function useEventForm({
         }
       } catch (err) {
         // redirect() は例外を投げるので、NEXT_REDIRECT は正常動作
-        if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) {
+        if (isRedirectError(err)) {
           toast.success("イベント情報を更新しました");
           return;
         }

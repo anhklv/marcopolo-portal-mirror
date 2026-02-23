@@ -66,6 +66,7 @@ import {
   AFTER_PARTY_STATUS_CONFIG,
 } from "@/lib/constants/event";
 import { getCommunityBadgeVariant } from "@/lib/constants/community";
+import { isRedirectError } from "@/lib/utils";
 import { formatEventDate, formatDateTime, getEventDisplayStatus } from "@/lib/utils/event";
 import {
   toAttendeeRows,
@@ -132,7 +133,7 @@ export function EventDetail({ event }: EventDetailProps) {
           toast.error(result.error);
         }
       } catch (err) {
-        if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) {
+        if (isRedirectError(err)) {
           return;
         }
         toast.error("削除に失敗しました");

@@ -11,6 +11,11 @@ export function isoToDisplay(dateStr: string | null | undefined): string {
   return dateStr.slice(0, 10).replace(/-/g, "/");
 }
 
+/** Next.js の redirect() が投げるエラーかどうか判定する */
+export function isRedirectError(err: unknown): boolean {
+  return err instanceof Error && err.message.includes("NEXT_REDIRECT");
+}
+
 export function formatDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   const y = d.getFullYear();

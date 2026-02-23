@@ -28,7 +28,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Edit, Trash2 } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { formatDate, isRedirectError } from "@/lib/utils";
 import { CONTRACT_TYPE_LABELS, GENDER_LABELS, JOB_CHANGE_INTENT_LABELS } from "@/lib/constants/customer";
 import { USER_ROLE_CONFIG, AUDIT_MEMBER_TYPES } from "@/lib/constants/customer";
 import { RSVP_STATUS_CONFIG } from "@/lib/constants/event";
@@ -73,7 +73,7 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
           toast.error(result.error);
         }
       } catch (err) {
-        if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) {
+        if (isRedirectError(err)) {
           return;
         }
         toast.error("削除に失敗しました");

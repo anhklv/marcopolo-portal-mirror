@@ -8,8 +8,9 @@ import {
 } from "@/lib/actions/customer.actions";
 import type { ActionResult } from "@/lib/actions/customer.actions";
 import { COMMUNITY_CODE, COMMUNITY_NAME } from "@/lib/constants/community";
+import { useFieldErrors } from "@/lib/hooks/use-field-errors";
 import type { CommunityOption } from "@/lib/types/serialized";
-import { isoToDisplay } from "@/lib/utils";
+import { isoToDisplay, isRedirectError } from "@/lib/utils";
 import {
   customerFormSchema,
   validateKatakana,
@@ -186,18 +187,7 @@ export function useCustomerForm({
   const [note, setNote] = useState(initialData?.note ?? "");
 
   // エラー状態
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
-  const [generalError, setGeneralError] = useState<string | null>(null);
-
-  // フィールドエラーのクリア（onChange時に使用）
-  const clearFieldError = (field: string) => {
-    setFieldErrors((prev) => {
-      if (!prev[field]) return prev;
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
-  };
+  const { fieldErrors, setFieldErrors, generalError, setGeneralError, clearFieldError } = useFieldErrors();
 
   // フィールド単位のblurバリデーション
   const validateFieldOnBlur = (field: string, value: string, validate: (v: string) => string | null) => {
@@ -368,7 +358,7 @@ export function useCustomerForm({
         }
       } catch (err) {
         // redirect() は例外を投げるので、NEXT_REDIRECT は正常動作
-        if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) {
+        if (isRedirectError(err)) {
           toast.success(mode === "create" ? "顧客情報を登録しました" : "顧客情報を更新しました");
           return;
         }

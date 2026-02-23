@@ -9,18 +9,7 @@ import {
 import { eventSchema } from "@/lib/validations/event";
 import { formatZodFieldErrors } from "@/lib/validations/utils";
 import * as eventRepo from "@/lib/repositories/event.repository";
-
-// ============================================================
-// 追加の型定義
-// ============================================================
-
-export type DeleteEventResult =
-  | { success: true }
-  | { success: false; error: string };
-
-export type TogglePauseEventResult =
-  | { success: true; isPaused: boolean }
-  | { success: false; error: string };
+import type { ActionResult } from "@/lib/types/action";
 
 // ============================================================
 // 型定義
@@ -28,7 +17,15 @@ export type TogglePauseEventResult =
 
 export type EventActionResult =
   | { success: true; eventId: number }
-  | { success: false; error?: string; fieldErrors?: Record<string, string[]> };
+  | ({ success: false } & ActionResult);
+
+type DeleteEventResult =
+  | { success: true }
+  | { success: false; error: string };
+
+type TogglePauseEventResult =
+  | { success: true; isPaused: boolean }
+  | { success: false; error: string };
 
 // ============================================================
 // Actions

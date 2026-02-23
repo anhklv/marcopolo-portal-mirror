@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, isoToDisplay } from "@/lib/utils";
+import { formatDate, isoToDisplay, isRedirectError } from "@/lib/utils";
 
 describe("formatDate", () => {
   it("Dateオブジェクトを YYYY/MM/DD 形式に変換する", () => {
@@ -26,5 +26,19 @@ describe("isoToDisplay", () => {
     expect(isoToDisplay(null)).toBe("");
     expect(isoToDisplay(undefined)).toBe("");
     expect(isoToDisplay("")).toBe("");
+  });
+});
+
+describe("isRedirectError", () => {
+  it("NEXT_REDIRECT を含むErrorの場合にtrueを返す", () => {
+    expect(isRedirectError(new Error("NEXT_REDIRECT"))).toBe(true);
+    expect(isRedirectError(new Error("something NEXT_REDIRECT something"))).toBe(true);
+  });
+
+  it("それ以外の場合にfalseを返す", () => {
+    expect(isRedirectError(new Error("other error"))).toBe(false);
+    expect(isRedirectError(null)).toBe(false);
+    expect(isRedirectError(undefined)).toBe(false);
+    expect(isRedirectError("NEXT_REDIRECT")).toBe(false);
   });
 });
