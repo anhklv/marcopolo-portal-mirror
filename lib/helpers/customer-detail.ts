@@ -8,7 +8,7 @@ import type { BadgeVariant } from "@/components/ui/badge";
 // バッジ表示ロジック
 // ============================================================
 
-export interface BadgeInfo {
+interface BadgeInfo {
   label: string;
   variant: BadgeVariant;
 }

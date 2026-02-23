@@ -22,7 +22,7 @@ export interface FilterableEvent {
   community: { code: string };
 }
 
-export type EnrichedEvent<T extends FilterableEvent> = T & {
+type EnrichedEvent<T extends FilterableEvent> = T & {
   displayStatus: EventDisplayStatus;
 };
 

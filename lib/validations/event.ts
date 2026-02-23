@@ -50,18 +50,3 @@ export const eventSchema = z.object({
   }
 });
 
-export type EventInput = z.infer<typeof eventSchema>;
-
-/** フォームから送信される生データの型（Server Action引数） */
-export type EventFormInput = {
-  title: string;
-  communityId: number;
-  date: string | Date;
-  location?: string;
-  description?: string;
-  timetable?: string;
-  note?: string;
-  responseDeadline?: string | Date | null;
-  allowsOnline?: boolean;
-  hasAfterParty?: boolean;
-};

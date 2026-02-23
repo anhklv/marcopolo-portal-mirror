@@ -10,7 +10,7 @@ export const COMMUNITY_CODE = {
   OTHER: "other",
 } as const;
 
-export type CommunityCode = (typeof COMMUNITY_CODE)[keyof typeof COMMUNITY_CODE];
+type CommunityCode = (typeof COMMUNITY_CODE)[keyof typeof COMMUNITY_CODE];
 
 // 主要3コミュニティのコード（OTHER を除く）
 type MainCommunityCode = Exclude<CommunityCode, typeof COMMUNITY_CODE.OTHER>;

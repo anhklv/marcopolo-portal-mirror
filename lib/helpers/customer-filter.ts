@@ -11,7 +11,7 @@ export interface CustomerListFilters {
   includeNonMemberFilter: boolean;
 }
 
-export interface FilterableCustomerCommunity {
+interface FilterableCustomerCommunity {
   communityId: number;
   resignedAt: string | null;
   auditMemberType: string | null;

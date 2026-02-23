@@ -15,11 +15,11 @@ import { generateRsvpToken, buildRsvpUrl, replacePlaceholders } from "@/lib/help
 // 型定義
 // ============================================================
 
-export type SendInviteResult =
+type SendInviteResult =
   | { success: true; sentCount: number; failedCount: number; failedNames: string[] }
   | { success: false; error: string };
 
-export type SendTestInviteResult =
+type SendTestInviteResult =
   | { success: true }
   | { success: false; error: string };
 

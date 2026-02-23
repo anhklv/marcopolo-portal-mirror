@@ -19,7 +19,7 @@ export interface AttendeeRow {
   respondedAt: string | null;
 }
 
-export interface EventSummary {
+interface EventSummary {
   onsiteCount: number;
   onlineCount: number;
   afterPartyCount: number;

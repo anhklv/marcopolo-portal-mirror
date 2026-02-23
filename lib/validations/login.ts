@@ -9,5 +9,3 @@ export const loginSchema = z.object({
     .string()
     .min(1, "パスワードを入力してください"),
 });
-
-export type LoginInput = z.infer<typeof loginSchema>;

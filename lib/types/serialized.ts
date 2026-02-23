@@ -26,7 +26,7 @@ export interface ListingCategoryOption {
 // 顧客一覧用（customer-list.tsx）
 // ============================================================
 
-export interface SerializedCommunity {
+interface SerializedCommunity {
   id: number;
   code: string;
   name: string;
@@ -36,7 +36,7 @@ export interface SerializedCommunity {
   updatedAt: string;
 }
 
-export interface SerializedCustomerCommunity {
+interface SerializedCustomerCommunity {
   id: number;
   customerId: number;
   communityId: number;

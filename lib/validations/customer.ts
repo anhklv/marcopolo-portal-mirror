@@ -141,7 +141,7 @@ const optionalDateString = z
   .nullable()
   .optional();
 
-export const customerCommunitySchema = z.object({
+const customerCommunitySchema = z.object({
   communityId: z.coerce.number().int().positive("コミュニティIDは正の整数を指定してください"),
   joinedAt: optionalDateString,
   resignedAt: optionalDateString,
@@ -159,6 +159,4 @@ export const customerFormSchema = customerSchema.extend({
   communities: z.array(customerCommunitySchema).optional(),
 });
 
-export type CustomerInput = z.infer<typeof customerSchema>;
-export type CustomerCommunityInput = z.infer<typeof customerCommunitySchema>;
 export type CustomerFormInput = z.infer<typeof customerFormSchema>;

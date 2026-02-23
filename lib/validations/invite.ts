@@ -20,8 +20,6 @@ export const inviteSchema = z.object({
     .max(50000, "メール本文は50000文字以内で入力してください"),
 });
 
-export type InviteInput = z.infer<typeof inviteSchema>;
-
 /**
  * テスト送信バリデーション
  */
@@ -38,5 +36,3 @@ export const testInviteSchema = z.object({
     .min(1, "メール本文を入力してください")
     .max(50000, "メール本文は50000文字以内で入力してください"),
 });
-
-export type TestInviteInput = z.infer<typeof testInviteSchema>;

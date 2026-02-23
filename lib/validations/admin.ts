@@ -37,8 +37,6 @@ export const adminCreateSchema = z.object({
   path: ["communityIds"],
 });
 
-export type AdminCreateInput = z.infer<typeof adminCreateSchema>;
-
 export const adminUpdateSchema = z.object({
   firstName: z
     .string()
@@ -67,8 +65,6 @@ export const adminUpdateSchema = z.object({
   path: ["communityIds"],
 });
 
-export type AdminUpdateInput = z.infer<typeof adminUpdateSchema>;
-
 export const passwordChangeSchema = z.object({
   currentPassword: z
     .string()
@@ -83,5 +79,3 @@ export const passwordChangeSchema = z.object({
   message: "パスワードが一致しません",
   path: ["newPasswordConfirm"],
 });
-
-export type PasswordChangeInput = z.infer<typeof passwordChangeSchema>;

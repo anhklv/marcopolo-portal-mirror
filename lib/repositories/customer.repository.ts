@@ -37,7 +37,7 @@ export interface CustomerListFilters {
   includeNonMember?: boolean;
 }
 
-export interface CustomerCreateData {
+interface CustomerCreateData {
   firstName: string;
   lastName: string;
   firstNameKana?: string | null;
@@ -58,7 +58,7 @@ export interface CustomerCreateData {
   communities?: CommunityCreateData[];
 }
 
-export interface CommunityCreateData {
+interface CommunityCreateData {
   communityId: number;
   joinedAt?: Date | null;
   resignedAt?: Date | null;
