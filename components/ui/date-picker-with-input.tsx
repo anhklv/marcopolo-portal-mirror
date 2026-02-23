@@ -1,6 +1,6 @@
 import * as React from "react"
 import { CalendarIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, formatDate } from "@/lib/utils"
 import { validateDateInput } from "@/lib/validations/customer"
 
 import { Button } from "@/components/ui/button"
@@ -18,13 +18,6 @@ interface DatePickerWithInputProps {
   onChange: (value: string) => void;
   error?: string;
   className?: string;
-}
-
-function formatDateFromObj(d: Date): string {
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, "0")
-  const day = String(d.getDate()).padStart(2, "0")
-  return `${year}/${month}/${day}`
 }
 
 function parseDisplayDate(value: string): Date | undefined {
@@ -116,7 +109,7 @@ export function DatePickerWithInput({
               onMonthChange={setMonth}
               onSelect={(newDate) => {
                 if (newDate) {
-                  onChange(formatDateFromObj(newDate))
+                  onChange(formatDate(newDate))
                   setInputError(null)
                 }
                 setOpen(false)

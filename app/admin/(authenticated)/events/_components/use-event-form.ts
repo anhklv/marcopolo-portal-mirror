@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { createEventAction, updateEventAction } from "@/lib/actions/event.actions";
 import type { EventActionResult } from "@/lib/actions/event.actions";
 import type { CommunityOption } from "@/lib/types/serialized";
+import { isoToDisplay } from "@/lib/utils";
 import { eventSchema } from "@/lib/validations/event";
 import { formatZodFieldErrors } from "@/lib/validations/utils";
 
@@ -55,12 +56,6 @@ function combineDateAndTime(dateStr: string, timeStr: string, defaultTime?: stri
   if (!match) return "";
   const [, year, month, day] = match;
   return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${time}:00`;
-}
-
-/** ISO形式(YYYY-MM-DDまたはYYYY-MM-DDTHH:mm:ss.sssZ) → 表示形式(YYYY/MM/DD) */
-function isoToDisplay(dateStr: string | null | undefined): string {
-  if (!dateStr) return "";
-  return dateStr.slice(0, 10).replace(/-/g, "/");
 }
 
 /** ISO形式 → 時刻文字列(HH:mm) */

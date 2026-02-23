@@ -7,6 +7,7 @@ import {
   requireAuthenticatedAdmin,
   canAccessCustomer,
 } from "@/lib/auth/permissions";
+import { formatDate } from "@/lib/utils";
 import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/customer";
 import { COMMUNITY_CODE } from "@/lib/constants/community";
 import { customerFormSchema } from "@/lib/validations/customer";
@@ -283,7 +284,7 @@ export async function exportCustomersAction(
     const memberCategoryLabel = c.memberCategory
       ? MEMBER_CATEGORY_LABELS[c.memberCategory as keyof typeof MEMBER_CATEGORY_LABELS] ?? ""
       : "";
-    const registeredAt = formatDateForCsv(c.registeredAt);
+    const registeredAt = formatDate(c.registeredAt);
     // originIndustry/membershipQualification は CustomerCommunity（ベンチャー監査役の会）に紐づく
     const auditCC = c.customerCommunities.find((cc) => cc.community.code === COMMUNITY_CODE.VENTURE_AUDITOR);
 
@@ -333,13 +334,6 @@ function escapeCsvField(value: string): string {
     return '"' + sanitized.replace(/"/g, '""') + '"';
   }
   return sanitized;
-}
-
-function formatDateForCsv(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}/${m}/${d}`;
 }
 
 function isPrismaUniqueError(err: unknown): boolean {

@@ -9,6 +9,7 @@ import {
 import type { ActionResult } from "@/lib/actions/customer.actions";
 import { COMMUNITY_CODE, COMMUNITY_NAME } from "@/lib/constants/community";
 import type { CommunityOption } from "@/lib/types/serialized";
+import { isoToDisplay } from "@/lib/utils";
 import {
   customerFormSchema,
   validateKatakana,
@@ -74,12 +75,6 @@ function getInitialCommunityData(
   communityId: number
 ): InitialCommunityData | undefined {
   return initialData?.communities.find((c) => c.communityId === communityId);
-}
-
-/** ISO形式(YYYY-MM-DDまたはYYYY-MM-DDTHH:mm:ss.sssZ) → 表示形式(YYYY/MM/DD) */
-function isoToDisplay(dateStr: string | null | undefined): string {
-  if (!dateStr) return "";
-  return dateStr.slice(0, 10).replace(/-/g, "/");
 }
 
 interface CommunityEntry {
