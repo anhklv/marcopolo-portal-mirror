@@ -2,14 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import {
-  requireAuth,
+  requireAuthenticatedAdmin,
   canAccessEvent,
-  getScopedCommunityIds,
 } from "@/lib/auth/permissions";
-import type { AdminForPermission } from "@/lib/auth/permissions";
 import { eventSchema } from "@/lib/validations/event";
+import { formatZodFieldErrors } from "@/lib/validations/utils";
 import * as eventRepo from "@/lib/repositories/event.repository";
 
 // ============================================================
@@ -33,36 +31,6 @@ export type EventActionResult =
   | { success: false; error?: string; fieldErrors?: Record<string, string[]> };
 
 // ============================================================
-// ヘルパー
-// ============================================================
-
-// TODO: customer.actions.ts と共通化
-async function getAdminForPermission(adminId: number): Promise<{
-  admin: AdminForPermission;
-  isSuper: boolean;
-  scopedIds: number[];
-}> {
-  const dbAdmin = await prisma.admin.findUnique({
-    where: { id: adminId },
-    include: { adminCommunities: { select: { communityId: true } } },
-  });
-
-  if (!dbAdmin) {
-    throw new Error("管理者が見つかりません");
-  }
-
-  const admin: AdminForPermission = {
-    id: dbAdmin.id,
-    role: dbAdmin.role,
-    adminCommunities: dbAdmin.adminCommunities,
-  };
-  const isSuper = dbAdmin.role === "super";
-  const scopedIds = await getScopedCommunityIds(admin);
-
-  return { admin, isSuper, scopedIds };
-}
-
-// ============================================================
 // Actions
 // ============================================================
 
@@ -73,28 +41,19 @@ export async function createEventAction(
   formData: unknown
 ): Promise<EventActionResult> {
   // 認証
-  const session = await requireAuth();
-  const { isSuper, scopedIds } = await getAdminForPermission(Number(session.user.id));
+  const { isSuper, scopedCommunityIds } = await requireAuthenticatedAdmin();
 
   // バリデーション
   const parsed = eventSchema.safeParse(formData);
   if (!parsed.success) {
-    const fieldErrors: Record<string, string[]> = {};
-    for (const issue of parsed.error.issues) {
-      const path = issue.path.join(".");
-      if (!fieldErrors[path]) {
-        fieldErrors[path] = [];
-      }
-      fieldErrors[path].push(issue.message);
-    }
-    return { success: false, fieldErrors };
+    return { success: false, fieldErrors: formatZodFieldErrors(parsed.error) };
   }
 
   const data = parsed.data;
 
   // スコープ検証
   if (!isSuper) {
-    if (!scopedIds.includes(data.communityId)) {
+    if (!scopedCommunityIds.includes(data.communityId)) {
       return { success: false, error: "権限のないコミュニティが指定されています" };
     }
   }
@@ -129,8 +88,7 @@ export async function updateEventAction(
   formData: unknown
 ): Promise<EventActionResult | void> {
   // 認証
-  const session = await requireAuth();
-  const { admin, isSuper, scopedIds } = await getAdminForPermission(Number(session.user.id));
+  const { admin, isSuper, scopedCommunityIds } = await requireAuthenticatedAdmin();
 
   // アクセス権チェック
   const hasAccess = await canAccessEvent(admin, eventId);
@@ -141,22 +99,14 @@ export async function updateEventAction(
   // バリデーション
   const parsed = eventSchema.safeParse(formData);
   if (!parsed.success) {
-    const fieldErrors: Record<string, string[]> = {};
-    for (const issue of parsed.error.issues) {
-      const path = issue.path.join(".");
-      if (!fieldErrors[path]) {
-        fieldErrors[path] = [];
-      }
-      fieldErrors[path].push(issue.message);
-    }
-    return { success: false, fieldErrors };
+    return { success: false, fieldErrors: formatZodFieldErrors(parsed.error) };
   }
 
   const data = parsed.data;
 
   // スコープ検証（変更先コミュニティも検証）
   if (!isSuper) {
-    if (!scopedIds.includes(data.communityId)) {
+    if (!scopedCommunityIds.includes(data.communityId)) {
       return { success: false, error: "権限のないコミュニティが指定されています" };
     }
   }
@@ -190,8 +140,7 @@ export async function deleteEventAction(
   eventId: number
 ): Promise<DeleteEventResult | void> {
   // 認証
-  const session = await requireAuth();
-  const { admin } = await getAdminForPermission(Number(session.user.id));
+  const { admin } = await requireAuthenticatedAdmin();
 
   // アクセス権チェック
   const hasAccess = await canAccessEvent(admin, eventId);
@@ -217,8 +166,7 @@ export async function togglePauseEventAction(
   eventId: number
 ): Promise<TogglePauseEventResult> {
   // 認証
-  const session = await requireAuth();
-  const { admin } = await getAdminForPermission(Number(session.user.id));
+  const { admin } = await requireAuthenticatedAdmin();
 
   // アクセス権チェック
   const hasAccess = await canAccessEvent(admin, eventId);

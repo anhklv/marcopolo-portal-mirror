@@ -4,10 +4,9 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import {
   requireAuth,
+  requireAuthenticatedAdmin,
   canAccessEvent,
-  getScopedCommunityIds,
 } from "@/lib/auth/permissions";
-import type { AdminForPermission } from "@/lib/auth/permissions";
 import { inviteSchema, testInviteSchema } from "@/lib/validations/invite";
 import { sendMail } from "@/lib/mail/send";
 import { generateRsvpToken, buildRsvpUrl, replacePlaceholders } from "@/lib/helpers/invite";
@@ -25,35 +24,6 @@ export type SendTestInviteResult =
   | { success: false; error: string };
 
 // ============================================================
-// ヘルパー
-// ============================================================
-
-async function getAdminForPermission(adminId: number): Promise<{
-  admin: AdminForPermission;
-  isSuper: boolean;
-  scopedIds: number[];
-}> {
-  const dbAdmin = await prisma.admin.findUnique({
-    where: { id: adminId },
-    include: { adminCommunities: { select: { communityId: true } } },
-  });
-
-  if (!dbAdmin) {
-    throw new Error("管理者が見つかりません");
-  }
-
-  const admin: AdminForPermission = {
-    id: dbAdmin.id,
-    role: dbAdmin.role,
-    adminCommunities: dbAdmin.adminCommunities,
-  };
-  const isSuper = dbAdmin.role === "super";
-  const scopedIds = await getScopedCommunityIds(admin);
-
-  return { admin, isSuper, scopedIds };
-}
-
-// ============================================================
 // Actions
 // ============================================================
 
@@ -64,8 +34,7 @@ export async function sendInviteAction(
   formData: unknown
 ): Promise<SendInviteResult> {
   // 認証
-  const session = await requireAuth();
-  const { admin, scopedIds } = await getAdminForPermission(Number(session.user.id));
+  const { admin, scopedCommunityIds } = await requireAuthenticatedAdmin();
 
   // バリデーション
   const parsed = inviteSchema.safeParse(formData);
@@ -95,7 +64,7 @@ export async function sendInviteAction(
     const scopedCustomers = await prisma.customerCommunity.findMany({
       where: {
         customerId: { in: customerIds },
-        communityId: { in: scopedIds },
+        communityId: { in: scopedCommunityIds },
       },
       select: { customerId: true },
       distinct: ["customerId"],

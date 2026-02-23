@@ -9,12 +9,12 @@ vi.mock("next/cache", () => ({
 
 // auth/permissions のモック
 const mockRequireAuth = vi.fn();
-const mockGetScopedCommunityIds = vi.fn();
+const mockRequireAuthenticatedAdmin = vi.fn();
 const mockCanAccessEvent = vi.fn();
 
 vi.mock("@/lib/auth/permissions", () => ({
   requireAuth: (...args: unknown[]) => mockRequireAuth(...args),
-  getScopedCommunityIds: (...args: unknown[]) => mockGetScopedCommunityIds(...args),
+  requireAuthenticatedAdmin: (...args: unknown[]) => mockRequireAuthenticatedAdmin(...args),
   canAccessEvent: (...args: unknown[]) => mockCanAccessEvent(...args),
 }));
 
@@ -49,13 +49,17 @@ const validTestInviteData = {
 
 function setupSuperAdmin() {
   mockRequireAuth.mockResolvedValue(superSession);
+  mockRequireAuthenticatedAdmin.mockResolvedValue({
+    admin: { id: 1, role: "super", adminCommunities: [] },
+    isSuper: true,
+    scopedCommunityIds: [1, 2, 3],
+  });
   mockPrisma.admin.findUnique.mockResolvedValue({
     id: 1,
     role: "super",
     email: "admin@example.com",
     adminCommunities: [],
   });
-  mockGetScopedCommunityIds.mockResolvedValue([1, 2, 3]);
   mockCanAccessEvent.mockResolvedValue(true);
   mockPrisma.event.findFirst.mockResolvedValue({ id: 1 });
 }
@@ -142,7 +146,7 @@ describe("sendInviteAction", () => {
   });
 
   it("異常系: 未認証", async () => {
-    mockRequireAuth.mockRejectedValue(new Error("認証が必要です"));
+    mockRequireAuthenticatedAdmin.mockRejectedValue(new Error("認証が必要です"));
 
     await expect(sendInviteAction(validInviteData)).rejects.toThrow("認証が必要です");
   });
@@ -172,17 +176,11 @@ describe("sendInviteAction", () => {
   });
 
   it("異常系: community_adminでスコープ外顧客が含まれる場合", async () => {
-    const communityAdminSession = {
-      user: { id: "2", role: "community_admin", firstName: "地域", lastName: "管理" },
-    };
-    mockRequireAuth.mockResolvedValue(communityAdminSession);
-    mockPrisma.admin.findUnique.mockResolvedValue({
-      id: 2,
-      role: "community_admin",
-      email: "local@example.com",
-      adminCommunities: [{ communityId: 1 }],
+    mockRequireAuthenticatedAdmin.mockResolvedValue({
+      admin: { id: 2, role: "community_admin", adminCommunities: [{ communityId: 1 }] },
+      isSuper: false,
+      scopedCommunityIds: [1],
     });
-    mockGetScopedCommunityIds.mockResolvedValue([1]);
     mockCanAccessEvent.mockResolvedValue(true);
     mockPrisma.event.findFirst.mockResolvedValue({ id: 1 });
     // customerId: 10 はスコープ内、customerId: 20 はスコープ外

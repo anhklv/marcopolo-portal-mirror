@@ -7,6 +7,7 @@ import { createEventAction, updateEventAction } from "@/lib/actions/event.action
 import type { EventActionResult } from "@/lib/actions/event.actions";
 import type { CommunityOption } from "@/lib/types/serialized";
 import { eventSchema } from "@/lib/validations/event";
+import { formatZodFieldErrors } from "@/lib/validations/utils";
 
 // ============================================================
 // 型定義
@@ -158,12 +159,7 @@ export function useEventForm({
     // クライアント側Zodバリデーション
     const parsed = eventSchema.safeParse(formData);
     if (!parsed.success) {
-      const errors: Record<string, string[]> = {};
-      for (const issue of parsed.error.issues) {
-        const key = issue.path.join(".");
-        if (!errors[key]) errors[key] = [];
-        errors[key].push(issue.message);
-      }
+      const errors = formatZodFieldErrors(parsed.error);
       // 日付・時刻のエラーを適切なフィールドに振り分け
       if (errors["date"]) {
         if (eventDate && !eventTime) {

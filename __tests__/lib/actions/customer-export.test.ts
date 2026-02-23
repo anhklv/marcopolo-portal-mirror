@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { mockPrisma } from "@/__tests__/helpers/mock-prisma";
+import "@/__tests__/helpers/mock-prisma";
 
 // next/cache, next/navigation のモック
 vi.mock("next/cache", () => ({
@@ -11,13 +11,11 @@ vi.mock("next/navigation", () => ({
 }));
 
 // auth関連のモック
-const mockRequireAuth = vi.fn();
-const mockGetScopedCommunityIds = vi.fn();
+const mockRequireAuthenticatedAdmin = vi.fn();
 
 vi.mock("@/lib/auth/permissions", () => ({
-  requireAuth: (...args: unknown[]) => mockRequireAuth(...args),
+  requireAuthenticatedAdmin: (...args: unknown[]) => mockRequireAuthenticatedAdmin(...args),
   canAccessCustomer: vi.fn(),
-  getScopedCommunityIds: (...args: unknown[]) => mockGetScopedCommunityIds(...args),
 }));
 
 // repository のモック
@@ -34,15 +32,11 @@ vi.mock("@/lib/repositories/customer.repository", () => ({
 import { exportCustomersAction } from "@/lib/actions/customer.actions";
 
 function setupSuperAdmin() {
-  mockRequireAuth.mockResolvedValue({
-    user: { id: "1", role: "super", firstName: "管理", lastName: "太郎", email: "admin@example.com" },
+  mockRequireAuthenticatedAdmin.mockResolvedValue({
+    admin: { id: 1, role: "super", adminCommunities: [] },
+    isSuper: true,
+    scopedCommunityIds: [1, 2, 3],
   });
-  mockPrisma.admin.findUnique.mockResolvedValue({
-    id: 1,
-    role: "super",
-    adminCommunities: [],
-  });
-  mockGetScopedCommunityIds.mockResolvedValue([1, 2, 3]);
 }
 
 const makeExportCustomer = (overrides: Record<string, unknown> = {}) => ({

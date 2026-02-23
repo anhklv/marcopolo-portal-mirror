@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { mockPrisma } from "@/__tests__/helpers/mock-prisma";
+import "@/__tests__/helpers/mock-prisma";
 
 // next/cache のモック
 const mockRevalidatePath = vi.fn();
@@ -15,14 +15,12 @@ vi.mock("next/navigation", () => ({
   redirect: (...args: unknown[]) => mockRedirect(...args),
 }));
 
-// requireAuth, getScopedCommunityIds, canAccessEvent のモック
-const mockRequireAuth = vi.fn();
-const mockGetScopedCommunityIds = vi.fn();
+// requireAuthenticatedAdmin, canAccessEvent のモック
+const mockRequireAuthenticatedAdmin = vi.fn();
 const mockCanAccessEvent = vi.fn();
 
 vi.mock("@/lib/auth/permissions", () => ({
-  requireAuth: (...args: unknown[]) => mockRequireAuth(...args),
-  getScopedCommunityIds: (...args: unknown[]) => mockGetScopedCommunityIds(...args),
+  requireAuthenticatedAdmin: (...args: unknown[]) => mockRequireAuthenticatedAdmin(...args),
   canAccessEvent: (...args: unknown[]) => mockCanAccessEvent(...args),
 }));
 
@@ -53,32 +51,24 @@ const validFormData = {
   date: "2026-03-01T18:00:00",
 };
 
-const superSession = {
-  user: { id: "1", role: "super", firstName: "管理", lastName: "太郎", email: "admin@example.com" },
-};
-
-const communityAdminSession = {
-  user: { id: "2", role: "community_admin", firstName: "監査", lastName: "一郎", email: "kansa@example.com" },
-};
-
 function setupSuperAdmin() {
-  mockRequireAuth.mockResolvedValue(superSession);
-  mockPrisma.admin.findUnique.mockResolvedValue({
-    id: 1,
-    role: "super",
-    adminCommunities: [],
+  mockRequireAuthenticatedAdmin.mockResolvedValue({
+    admin: { id: 1, role: "super", adminCommunities: [] },
+    isSuper: true,
+    scopedCommunityIds: [1, 2, 3],
   });
-  mockGetScopedCommunityIds.mockResolvedValue([1, 2, 3]);
 }
 
 function setupCommunityAdmin(scopedIds: number[] = [1]) {
-  mockRequireAuth.mockResolvedValue(communityAdminSession);
-  mockPrisma.admin.findUnique.mockResolvedValue({
-    id: 2,
-    role: "community_admin",
-    adminCommunities: scopedIds.map((id) => ({ communityId: id })),
+  mockRequireAuthenticatedAdmin.mockResolvedValue({
+    admin: {
+      id: 2,
+      role: "community_admin",
+      adminCommunities: scopedIds.map((id) => ({ communityId: id })),
+    },
+    isSuper: false,
+    scopedCommunityIds: scopedIds,
   });
-  mockGetScopedCommunityIds.mockResolvedValue(scopedIds);
 }
 
 describe("createEventAction", () => {
@@ -102,7 +92,7 @@ describe("createEventAction", () => {
   });
 
   it("異常系: 未認証 → エラー", async () => {
-    mockRequireAuth.mockRejectedValue(new Error("認証が必要です"));
+    mockRequireAuthenticatedAdmin.mockRejectedValue(new Error("認証が必要です"));
 
     await expect(createEventAction(validFormData)).rejects.toThrow("認証が必要です");
   });
@@ -272,7 +262,7 @@ describe("updateEventAction", () => {
   });
 
   it("異常系: 未認証 → エラー", async () => {
-    mockRequireAuth.mockRejectedValue(new Error("認証が必要です"));
+    mockRequireAuthenticatedAdmin.mockRejectedValue(new Error("認証が必要です"));
 
     await expect(updateEventAction(1, validFormData)).rejects.toThrow("認証が必要です");
   });
@@ -403,7 +393,7 @@ describe("deleteEventAction", () => {
   });
 
   it("異常系: 未認証 → エラー", async () => {
-    mockRequireAuth.mockRejectedValue(new Error("認証が必要です"));
+    mockRequireAuthenticatedAdmin.mockRejectedValue(new Error("認証が必要です"));
 
     await expect(deleteEventAction(1)).rejects.toThrow("認証が必要です");
   });
@@ -463,7 +453,7 @@ describe("togglePauseEventAction", () => {
   });
 
   it("異常系: 未認証 → エラー", async () => {
-    mockRequireAuth.mockRejectedValue(new Error("認証が必要です"));
+    mockRequireAuthenticatedAdmin.mockRejectedValue(new Error("認証が必要です"));
 
     await expect(togglePauseEventAction(1)).rejects.toThrow("認証が必要です");
   });
