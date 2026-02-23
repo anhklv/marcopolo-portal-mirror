@@ -17,6 +17,11 @@ export type EventForDetail = Event & {
   })[];
 };
 
+export type EventForInvite = Event & {
+  community: Community;
+  rsvps: Pick<Rsvp, "customerId">[];
+};
+
 // ============================================================
 // Repository 関数
 // ============================================================
@@ -128,6 +133,23 @@ export async function findEventByIdForDetail(
           },
         },
         orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+}
+
+/**
+ * イベント案内用取得（community + rsvps[customerId] 含む）
+ */
+export async function findEventByIdForInvite(
+  eventId: number
+): Promise<EventForInvite | null> {
+  return prisma.event.findFirst({
+    where: { id: eventId, deletedAt: null },
+    include: {
+      community: true,
+      rsvps: {
+        select: { customerId: true },
       },
     },
   });

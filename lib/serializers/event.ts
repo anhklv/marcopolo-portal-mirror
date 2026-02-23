@@ -1,7 +1,7 @@
 // イベントデータのシリアライズ関数
 
-import type { EventForDetail, EventForList } from "@/lib/repositories/event.repository";
-import type { SerializedEvent, SerializedEventDetail } from "@/lib/types/serialized";
+import type { EventForDetail, EventForInvite, EventForList } from "@/lib/repositories/event.repository";
+import type { SerializedEvent, SerializedEventDetail, SerializedEventForInvite } from "@/lib/types/serialized";
 
 /**
  * イベント一覧用シリアライズ
@@ -45,6 +45,7 @@ export function serializeEventForDetail(e: EventForDetail): SerializedEventDetai
       id: e.community.id,
       code: e.community.code,
       name: e.community.name,
+      hasSurvey: e.community.hasSurvey,
     },
     rsvps: e.rsvps.map((r) => ({
       id: r.id,
@@ -59,5 +60,26 @@ export function serializeEventForDetail(e: EventForDetail): SerializedEventDetai
         company: r.customer.company,
       },
     })),
+  };
+}
+
+/**
+ * イベント案内用シリアライズ
+ */
+export function serializeEventForInvite(e: EventForInvite): SerializedEventForInvite {
+  return {
+    id: e.id,
+    title: e.title,
+    date: e.date.toISOString(),
+    location: e.location,
+    description: e.description,
+    timetable: e.timetable,
+    note: e.note,
+    community: {
+      id: e.community.id,
+      code: e.community.code,
+      name: e.community.name,
+    },
+    rsvpCustomerIds: e.rsvps.map((r) => r.customerId),
   };
 }

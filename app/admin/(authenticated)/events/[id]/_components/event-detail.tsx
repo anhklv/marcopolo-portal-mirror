@@ -55,6 +55,8 @@ import {
   Play,
   Search,
   ChevronDown,
+  Send,
+  FileText,
   Trash2,
 } from "lucide-react";
 import {
@@ -193,6 +195,28 @@ export function EventDetail({ event }: EventDetailProps) {
                 >
                   <Mail className="h-4 w-4" />
                   案内
+                </Link>
+              </DropdownMenuItem>
+            )}
+            {isReceiving && summary.pendingCount > 0 && (
+              <DropdownMenuItem asChild className="bg-card hover:bg-accent">
+                <Link
+                  href={`/admin/events/${event.id}/remind`}
+                  className="flex items-center gap-2"
+                >
+                  <Send className="h-4 w-4" />
+                  未回答者に再送 ({summary.pendingCount}名)
+                </Link>
+              </DropdownMenuItem>
+            )}
+            {event.community.hasSurvey && (
+              <DropdownMenuItem asChild className="bg-card hover:bg-accent">
+                <Link
+                  href={`/admin/events/${event.id}/survey/create`}
+                  className="flex items-center gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  アンケート管理
                 </Link>
               </DropdownMenuItem>
             )}

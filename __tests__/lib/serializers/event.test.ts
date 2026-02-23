@@ -83,6 +83,7 @@ describe("serializeEventForDetail", () => {
       id: 1,
       code: "venture_auditor",
       name: "ベンチャー監査役の会",
+      hasSurvey: true,
     });
   });
 

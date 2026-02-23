@@ -1,17 +1,20 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import * as CustomerRepository from "@/lib/repositories/customer.repository";
+import { getAuthenticatedAdmin, canAccessEvent } from "@/lib/auth/permissions";
+import { findEventByIdForInvite } from "@/lib/repositories/event.repository";
+import { serializeEventForInvite } from "@/lib/serializers/event";
 import { serializeCustomerForInvite } from "@/lib/serializers/customer";
+import { generateInviteSubject, generateInviteBody } from "@/lib/mail/templates/invite";
+import * as customerRepo from "@/lib/repositories/customer.repository";
+import { prisma } from "@/lib/prisma";
 import { InviteForm } from "./_components/invite-form";
-import { getAuthenticatedAdmin } from "@/lib/auth/permissions";
 
-interface PageProps {
+export default async function EventInvitePage({
+  params,
+}: {
   params: Promise<{ id: string }>;
-}
-
-export default async function InvitePage({ params }: PageProps) {
+}) {
   const { id } = await params;
-  const eventId = parseInt(id, 10);
+  const eventId = Number(id);
 
   if (isNaN(eventId)) {
     notFound();
@@ -19,53 +22,44 @@ export default async function InvitePage({ params }: PageProps) {
 
   const { admin, isSuper, scopedCommunityIds } = await getAuthenticatedAdmin();
 
-  // イベント情報取得
-  const event = await prisma.event.findUnique({
-    where: { id: eventId },
-    include: {
-      rsvps: true,
-      community: true,
-    },
-  });
+  const hasAccess = await canAccessEvent(admin, eventId);
+  if (!hasAccess) {
+    notFound();
+  }
 
+  const event = await findEventByIdForInvite(eventId);
   if (!event) {
     notFound();
   }
 
-  // イベントへのアクセス権チェック（community_adminの場合）
-  if (!isSuper && !scopedCommunityIds.includes(event.communityId)) {
-    notFound();
-  }
-
-  // 顧客一覧取得
-  // inviteページでは、元会員や非会員も含めて検索・招待できるようにする
-  const customers = await CustomerRepository.findAll(scopedCommunityIds, isSuper, {
+  // 顧客一覧取得（元会員・非会員を含む）
+  const customers = await customerRepo.findAll(scopedCommunityIds, isSuper, {
     includeFormerMembers: true,
     includeNonMember: true,
   });
 
-  // コミュニティ一覧取得（フィルタ用）
+  // 管理者メール取得（テスト送信先用）
+  const adminRecord = await prisma.admin.findUnique({
+    where: { id: admin.id },
+    select: { email: true },
+  });
+
+  // コミュニティ一覧（フィルタ用）
   const communities = await prisma.community.findMany({
     where: isSuper ? undefined : { id: { in: scopedCommunityIds } },
+    select: { id: true, code: true, name: true },
     orderBy: { sortOrder: "asc" },
   });
 
-  // イベントのシリアライズ（invite-form は event: any のため簡易変換）
-  const serializedEvent = {
-    ...event,
-    date: event.date.toISOString(),
-    createdAt: event.createdAt.toISOString(),
-    updatedAt: event.updatedAt.toISOString(),
-    community: {
-      ...event.community,
-      createdAt: event.community.createdAt.toISOString(),
-      updatedAt: event.community.updatedAt.toISOString(),
-    },
-    rsvps: event.rsvps.map((r) => ({
-      ...r,
-      createdAt: r.createdAt.toISOString(),
-      updatedAt: r.updatedAt.toISOString(),
-    })),
+  // テンプレート初期値生成
+  const serializedEvent = serializeEventForInvite(event);
+  const templateParams = {
+    eventTitle: event.title,
+    eventDate: serializedEvent.date,
+    eventLocation: event.location,
+    eventDescription: event.description,
+    eventTimetable: event.timetable,
+    eventNote: event.note,
   };
 
   return (
@@ -73,11 +67,10 @@ export default async function InvitePage({ params }: PageProps) {
       event={serializedEvent}
       customers={customers.map(serializeCustomerForInvite)}
       currentUserRole={admin.role}
-      communities={communities.map(c => ({
-        id: c.id,
-        code: c.code,
-        name: c.name,
-      }))}
+      communities={communities}
+      adminEmail={adminRecord?.email ?? ""}
+      defaultEmailTitle={generateInviteSubject(templateParams)}
+      defaultEmailBody={generateInviteBody(templateParams)}
     />
   );
 }

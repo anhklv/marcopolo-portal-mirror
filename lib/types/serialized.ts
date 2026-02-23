@@ -155,8 +155,43 @@ export interface SerializedEventDetail {
   allowsOnline: boolean;
   hasAfterParty: boolean;
   responseDeadline: string | null;
-  community: CommunityOption;
+  community: CommunityOption & { hasSurvey: boolean };
   rsvps: SerializedRsvpForEventDetail[];
+}
+
+// ============================================================
+// イベント案内用（invite-form.tsx）
+// ============================================================
+
+export interface SerializedEventForInvite {
+  id: number;
+  title: string;
+  date: string;
+  location: string | null;
+  description: string | null;
+  timetable: string | null;
+  note: string | null;
+  community: CommunityOption;
+  rsvpCustomerIds: number[];
+}
+
+export interface SerializedCustomerForInvite {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  company: string | null;
+  memberCategory: string | null;
+  customerCommunities: {
+    communityId: number;
+    resignedAt: string | null;
+    auditMemberType: string | null;
+    auditMemberPremium: boolean | null;
+    community: {
+      code: string;
+      name: string;
+    };
+  }[];
 }
 
 // ============================================================

@@ -2,7 +2,7 @@
 // Prisma の Date オブジェクトを string に変換し、型安全にクライアントへ渡す
 
 import type { CustomerWithCommunities, CustomerDetail } from "@/lib/repositories/customer.repository";
-import type { SerializedCustomer, SerializedCustomerDetail } from "@/lib/types/serialized";
+import type { SerializedCustomer, SerializedCustomerDetail, SerializedCustomerForInvite } from "@/lib/types/serialized";
 import { COMMUNITY_CODE } from "@/lib/constants/community";
 
 /**
@@ -131,33 +131,22 @@ export function serializeCustomerForDetail(c: CustomerDetail): SerializedCustome
 }
 
 /**
- * イベント招待用シリアライズ（簡易版）
- * invite-form は型が緩い（any）ため、spread ベースで Date 変換のみ行う
+ * イベント招待用シリアライズ
  */
-export function serializeCustomerForInvite(c: CustomerWithCommunities) {
+export function serializeCustomerForInvite(c: CustomerWithCommunities): SerializedCustomerForInvite {
   return {
     id: c.id,
     firstName: c.firstName,
     lastName: c.lastName,
-    firstNameKana: c.firstNameKana,
-    lastNameKana: c.lastNameKana,
     email: c.email,
-    subEmails: c.subEmails,
     company: c.company,
-    phone: c.phone,
     memberCategory: c.memberCategory,
-    registeredAt: c.registeredAt.toISOString(),
-    deletedAt: c.deletedAt?.toISOString() ?? null,
     customerCommunities: c.customerCommunities.map((cc) => ({
       communityId: cc.communityId,
-      joinedAt: cc.joinedAt?.toISOString() ?? null,
       resignedAt: cc.resignedAt?.toISOString() ?? null,
       auditMemberType: cc.auditMemberType,
       auditMemberPremium: cc.auditMemberPremium,
-      createdAt: cc.createdAt.toISOString(),
-      updatedAt: cc.updatedAt.toISOString(),
       community: {
-        id: cc.community.id,
         code: cc.community.code,
         name: cc.community.name,
       },
