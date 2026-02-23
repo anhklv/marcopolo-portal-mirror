@@ -29,17 +29,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { CustomerBadges } from "@/components/ui/customer-badges";
 import { Check, Search, Users, ChevronDown, Send, Mail } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { FormField } from "@/components/ui/form-field";
 import { ActionButton } from "@/components/ui/action-button";
 import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { getCustomerBadges } from "@/lib/helpers/customer-detail";
-import type { CustomerCommunityForBadge } from "@/lib/helpers/customer-detail";
 import type { SerializedEventForInvite, SerializedCustomerForInvite } from "@/lib/types/serialized";
 import type { CommunityOption } from "@/lib/types/serialized";
 import { cn } from "@/lib/utils";
+import { getFilterDisplayText } from "@/lib/helpers/filter-display";
 import { useInviteForm } from "./use-invite-form";
 import type { Step } from "./use-invite-form";
 
@@ -122,30 +122,6 @@ export function InviteForm({
     defaultEmailBody,
   });
 
-  const renderBadges = (customer: SerializedCustomerForInvite) => {
-    const badges = getCustomerBadges(
-      customer.customerCommunities as CustomerCommunityForBadge[],
-      customer.memberCategory
-    );
-    return badges.map((badge, i) => (
-      <Badge key={i} variant={badge.variant}>
-        {badge.label}
-      </Badge>
-    ));
-  };
-
-  const getFilterDisplayText = () => {
-    const totalFilters = form.selectedCommunityIds.length + (form.includeNonMemberFilter ? 1 : 0);
-    if (totalFilters === 0) return "コミュニティ";
-
-    const parts: string[] = [];
-    communities.filter((c) => form.selectedCommunityIds.includes(c.id)).forEach((c) => parts.push(c.name));
-    if (form.includeNonMemberFilter) parts.push("非会員");
-
-    if (parts.length === 1) return parts[0];
-    return `${parts.length}件選択`;
-  };
-
   // ステップ1: 案内者選択
   if (form.step === "select") {
     return (
@@ -183,7 +159,7 @@ export function InviteForm({
                 <Button variant="outline" className="w-[280px] justify-between h-9 text-sm">
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm truncate">{getFilterDisplayText()}</span>
+                    <span className="text-sm truncate">{getFilterDisplayText(communities, form.selectedCommunityIds, form.includeNonMemberFilter)}</span>
                   </div>
                   <ChevronDown className="h-4 w-4 opacity-50" />
                 </Button>
@@ -312,7 +288,9 @@ export function InviteForm({
                       </TableCell>
                       <TableCell>{customer.company}</TableCell>
                       <TableCell>
-                        <div className="flex gap-1 flex-wrap items-center">{renderBadges(customer)}</div>
+                        <div className="flex gap-1 flex-wrap items-center">
+                          <CustomerBadges customerCommunities={customer.customerCommunities} memberCategory={customer.memberCategory} />
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant={customer.isInvited ? "default" : "outline"}>

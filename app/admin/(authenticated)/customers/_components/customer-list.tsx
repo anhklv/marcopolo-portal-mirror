@@ -19,13 +19,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
+import { CustomerBadges } from "@/components/ui/customer-badges";
 import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
 import { Search, Users, ChevronDown, Download, Plus } from "lucide-react";
-import { getCustomerBadges } from "@/lib/helpers/customer-detail";
 import { COMMUNITY_CODE } from "@/lib/constants/community";
 import type { SerializedCustomer, CommunityOption } from "@/lib/types/serialized";
 import type { MemberCategory, AuditMemberType } from "@/lib/generated/prisma";
@@ -34,6 +33,7 @@ import { usePagination } from "@/hooks/use-pagination";
 import { useArrayToggle } from "@/hooks/use-array-toggle";
 import { exportCustomersAction } from "@/lib/actions/customer.actions";
 import { filterCustomers } from "@/lib/helpers/customer-filter";
+import { getFilterDisplayText } from "@/lib/helpers/filter-display";
 
 // ============================================================
 // 型定義
@@ -134,22 +134,6 @@ export function CustomerList({
     : false;
   const anyCommunitySelected = selectedCommunityIds.length > 0;
 
-  // フィルタ表示テキスト
-  const getFilterDisplayText = () => {
-    if (selectedCommunityIds.length === 0 && !includeNonMemberFilter) return "コミュニティ";
-    
-    const names = communities
-      .filter((c) => selectedCommunityIds.includes(c.id))
-      .map((c) => c.name);
-      
-    if (includeNonMemberFilter) {
-      names.push("非会員");
-    }
-
-    if (names.length === 1) return names[0];
-    return `${names.length}件選択`;
-  };
-
   // CSVダウンロード
   const handleDownloadCSV = () => {
     startTransition(async () => {
@@ -182,19 +166,6 @@ export function CustomerList({
         toast.error("CSVダウンロードに失敗しました");
       }
     });
-  };
-
-  // バッジ生成
-  const renderBadges = (customer: SerializedCustomer) => {
-    const badges = getCustomerBadges(
-      customer.customerCommunities,
-      customer.memberCategory
-    );
-    return badges.map((badge, i) => (
-      <Badge key={i} variant={badge.variant}>
-        {badge.label}
-      </Badge>
-    ));
   };
 
   return (
@@ -230,7 +201,7 @@ export function CustomerList({
             <Button variant="outline" className="w-[280px] justify-between h-9">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm truncate">{getFilterDisplayText()}</span>
+                <span className="text-sm truncate">{getFilterDisplayText(communities, selectedCommunityIds, includeNonMemberFilter)}</span>
               </div>
               <ChevronDown className="h-4 w-4 opacity-50" />
             </Button>
@@ -390,7 +361,7 @@ export function CustomerList({
                   <TableCell>{customer.company}</TableCell>
                   <TableCell>
                     <div className="flex gap-1 flex-wrap items-center">
-                      {renderBadges(customer)}
+                      <CustomerBadges customerCommunities={customer.customerCommunities} memberCategory={customer.memberCategory} />
                     </div>
                   </TableCell>
                   <TableCell>{formatDate(customer.registeredAt)}</TableCell>

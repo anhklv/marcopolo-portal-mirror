@@ -10,9 +10,8 @@ import {
 import { FormField } from "@/components/ui/form-field";
 import { DatePickerWithInput } from "@/components/ui/date-picker-with-input";
 import { AUDIT_MEMBER_TYPES } from "@/lib/constants/customer";
+import { NONE_VALUE } from "@/lib/constants/form";
 import type { MasterData } from "@/lib/types/serialized";
-
-const NONE_VALUE = "__none__";
 
 interface AuditCommunityFieldsProps {
   memberCategory: string;

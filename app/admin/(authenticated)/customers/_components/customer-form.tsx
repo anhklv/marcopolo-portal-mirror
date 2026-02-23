@@ -28,12 +28,7 @@ import { useCustomerForm } from "./use-customer-form";
 import type { InitialData } from "./use-customer-form";
 import { AuditCommunityFields } from "./audit-community-fields";
 import { SimpleCommunityFields } from "./simple-community-fields";
-
-// ============================================================
-// 型定義
-// ============================================================
-
-const NONE_VALUE = "__none__";
+import { NONE_VALUE } from "@/lib/constants/form";
 
 interface CustomerFormProps {
   mode: "create" | "edit";
