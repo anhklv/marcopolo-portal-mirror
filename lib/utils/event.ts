@@ -23,6 +23,28 @@ export function formatEventDate(dateStr: string | Date): string {
 }
 
 /**
+ * 日時フォーマット: ISO8601形式 → "2024年12月1日 23:59"形式（曜日なし）
+ * 回答日時の表示用
+ */
+export function formatDateTime(dateStr: string | Date): string {
+  try {
+    const date = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
+    if (isNaN(date.getTime())) {
+      return String(dateStr);
+    }
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+
+    return `${year}年${month}月${day}日 ${hours}:${minutes}`;
+  } catch {
+    return String(dateStr);
+  }
+}
+
+/**
  * イベントの表示ステータスを判定する
  * - receiving: 受付中（回答期限前 + 未停止）
  * - waiting: 開催待ち（回答期限後〜開催日前）

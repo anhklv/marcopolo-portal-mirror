@@ -126,6 +126,40 @@ export interface SerializedCustomerDetail {
 }
 
 // ============================================================
+// イベント詳細用（event-detail.tsx）
+// ============================================================
+
+export interface SerializedRsvpForEventDetail {
+  id: number;
+  status: string;
+  afterPartyStatus: string | null;
+  comment: string | null;
+  respondedAt: string | null;
+  customer: {
+    id: number;
+    lastName: string;
+    firstName: string;
+    company: string | null;
+  };
+}
+
+export interface SerializedEventDetail {
+  id: number;
+  title: string;
+  date: string;
+  location: string | null;
+  description: string | null;
+  timetable: string | null;
+  note: string | null;
+  isPaused: boolean;
+  allowsOnline: boolean;
+  hasAfterParty: boolean;
+  responseDeadline: string | null;
+  community: CommunityOption;
+  rsvps: SerializedRsvpForEventDetail[];
+}
+
+// ============================================================
 // イベント一覧用（event-list.tsx）
 // ============================================================
 

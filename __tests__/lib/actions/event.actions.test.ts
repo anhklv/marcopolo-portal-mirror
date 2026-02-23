@@ -29,13 +29,22 @@ vi.mock("@/lib/auth/permissions", () => ({
 // repository のモック
 const mockCreateEvent = vi.fn();
 const mockUpdateEvent = vi.fn();
+const mockSoftDeleteEvent = vi.fn();
+const mockToggleEventPause = vi.fn();
 
 vi.mock("@/lib/repositories/event.repository", () => ({
   createEvent: (...args: unknown[]) => mockCreateEvent(...args),
   updateEvent: (...args: unknown[]) => mockUpdateEvent(...args),
+  softDeleteEvent: (...args: unknown[]) => mockSoftDeleteEvent(...args),
+  toggleEventPause: (...args: unknown[]) => mockToggleEventPause(...args),
 }));
 
-import { createEventAction, updateEventAction } from "@/lib/actions/event.actions";
+import {
+  createEventAction,
+  updateEventAction,
+  deleteEventAction,
+  togglePauseEventAction,
+} from "@/lib/actions/event.actions";
 
 // テストデータ
 const validFormData = {
@@ -373,5 +382,114 @@ describe("updateEventAction", () => {
     await expect(updateEventAction(1, validFormData)).rejects.toThrow("NEXT_REDIRECT");
 
     expect(mockRevalidatePath).toHaveBeenCalledWith("/admin/events");
+  });
+});
+
+describe("deleteEventAction", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("正常系: 論理削除 → redirect", async () => {
+    setupSuperAdmin();
+    mockCanAccessEvent.mockResolvedValue(true);
+    mockSoftDeleteEvent.mockResolvedValue({ id: 1, deletedAt: new Date() });
+
+    await expect(deleteEventAction(1)).rejects.toThrow("NEXT_REDIRECT");
+
+    expect(mockSoftDeleteEvent).toHaveBeenCalledWith(1);
+    expect(mockRevalidatePath).toHaveBeenCalledWith("/admin/events");
+    expect(mockRedirect).toHaveBeenCalledWith("/admin/events");
+  });
+
+  it("異常系: 未認証 → エラー", async () => {
+    mockRequireAuth.mockRejectedValue(new Error("認証が必要です"));
+
+    await expect(deleteEventAction(1)).rejects.toThrow("認証が必要です");
+  });
+
+  it("異常系: アクセス権なし → エラー", async () => {
+    setupSuperAdmin();
+    mockCanAccessEvent.mockResolvedValue(false);
+
+    const result = await deleteEventAction(1);
+
+    expect(result).toEqual({
+      success: false,
+      error: "このイベントへのアクセス権がありません",
+    });
+  });
+
+  it("異常系: DB削除失敗 → エラー返却", async () => {
+    setupSuperAdmin();
+    mockCanAccessEvent.mockResolvedValue(true);
+    mockSoftDeleteEvent.mockRejectedValue(new Error("DB error"));
+
+    const result = await deleteEventAction(1);
+
+    expect(result).toEqual({
+      success: false,
+      error: "イベントの削除に失敗しました",
+    });
+  });
+});
+
+describe("togglePauseEventAction", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("正常系: false → true（一時停止）", async () => {
+    setupSuperAdmin();
+    mockCanAccessEvent.mockResolvedValue(true);
+    mockToggleEventPause.mockResolvedValue({ id: 1, isPaused: true });
+
+    const result = await togglePauseEventAction(1);
+
+    expect(result).toEqual({ success: true, isPaused: true });
+    expect(mockToggleEventPause).toHaveBeenCalledWith(1);
+    expect(mockRevalidatePath).toHaveBeenCalledWith("/admin/events/1");
+    expect(mockRevalidatePath).toHaveBeenCalledWith("/admin/events");
+  });
+
+  it("正常系: true → false（再開）", async () => {
+    setupSuperAdmin();
+    mockCanAccessEvent.mockResolvedValue(true);
+    mockToggleEventPause.mockResolvedValue({ id: 1, isPaused: false });
+
+    const result = await togglePauseEventAction(1);
+
+    expect(result).toEqual({ success: true, isPaused: false });
+  });
+
+  it("異常系: 未認証 → エラー", async () => {
+    mockRequireAuth.mockRejectedValue(new Error("認証が必要です"));
+
+    await expect(togglePauseEventAction(1)).rejects.toThrow("認証が必要です");
+  });
+
+  it("異常系: アクセス権なし → エラー", async () => {
+    setupSuperAdmin();
+    mockCanAccessEvent.mockResolvedValue(false);
+
+    const result = await togglePauseEventAction(1);
+
+    expect(result).toEqual({
+      success: false,
+      error: "このイベントへのアクセス権がありません",
+    });
+  });
+
+  it("異常系: DB更新失敗 → エラー返却", async () => {
+    setupSuperAdmin();
+    mockCanAccessEvent.mockResolvedValue(true);
+    mockToggleEventPause.mockRejectedValue(new Error("DB error"));
+
+    const result = await togglePauseEventAction(1);
+
+    expect(result).toEqual({
+      success: false,
+      error: "イベントのステータス変更に失敗しました",
+    });
   });
 });

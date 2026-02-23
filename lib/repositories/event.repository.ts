@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import type { Community, Event } from "@/lib/generated/prisma";
+import type { Community, Customer, Event, Rsvp } from "@/lib/generated/prisma";
 
 // ============================================================
 // 型定義
@@ -8,6 +8,13 @@ import type { Community, Event } from "@/lib/generated/prisma";
 export type EventForList = Event & {
   community: Community;
   _count: { rsvps: number };
+};
+
+export type EventForDetail = Event & {
+  community: Community;
+  rsvps: (Rsvp & {
+    customer: Pick<Customer, "id" | "lastName" | "firstName" | "company">;
+  })[];
 };
 
 // ============================================================
@@ -101,5 +108,54 @@ export async function updateEvent(
   return prisma.event.update({
     where: { id: eventId },
     data,
+  });
+}
+
+/**
+ * イベント詳細取得（community + rsvps + customer 含む）
+ */
+export async function findEventByIdForDetail(
+  eventId: number
+): Promise<EventForDetail | null> {
+  return prisma.event.findFirst({
+    where: { id: eventId, deletedAt: null },
+    include: {
+      community: true,
+      rsvps: {
+        include: {
+          customer: {
+            select: { id: true, lastName: true, firstName: true, company: true },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+}
+
+/**
+ * イベント論理削除（未削除のイベントのみ対象）
+ */
+export async function softDeleteEvent(eventId: number): Promise<Event> {
+  // 未削除であることを確認
+  await prisma.event.findFirstOrThrow({
+    where: { id: eventId, deletedAt: null },
+  });
+  return prisma.event.update({
+    where: { id: eventId },
+    data: { deletedAt: new Date() },
+  });
+}
+
+/**
+ * イベントの一時停止/再開トグル
+ */
+export async function toggleEventPause(eventId: number): Promise<Event> {
+  const event = await prisma.event.findFirstOrThrow({
+    where: { id: eventId, deletedAt: null },
+  });
+  return prisma.event.update({
+    where: { id: eventId },
+    data: { isPaused: !event.isPaused },
   });
 }

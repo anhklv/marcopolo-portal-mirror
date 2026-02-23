@@ -13,6 +13,18 @@ import { eventSchema } from "@/lib/validations/event";
 import * as eventRepo from "@/lib/repositories/event.repository";
 
 // ============================================================
+// 追加の型定義
+// ============================================================
+
+export type DeleteEventResult =
+  | { success: true }
+  | { success: false; error: string };
+
+export type TogglePauseEventResult =
+  | { success: true; isPaused: boolean }
+  | { success: false; error: string };
+
+// ============================================================
 // 型定義
 // ============================================================
 
@@ -169,4 +181,58 @@ export async function updateEventAction(
 
   revalidatePath("/admin/events");
   redirect("/admin/events");
+}
+
+/**
+ * イベント削除（論理削除）
+ */
+export async function deleteEventAction(
+  eventId: number
+): Promise<DeleteEventResult | void> {
+  // 認証
+  const session = await requireAuth();
+  const { admin } = await getAdminForPermission(Number(session.user.id));
+
+  // アクセス権チェック
+  const hasAccess = await canAccessEvent(admin, eventId);
+  if (!hasAccess) {
+    return { success: false, error: "このイベントへのアクセス権がありません" };
+  }
+
+  // 論理削除
+  try {
+    await eventRepo.softDeleteEvent(eventId);
+  } catch {
+    return { success: false, error: "イベントの削除に失敗しました" };
+  }
+
+  revalidatePath("/admin/events");
+  redirect("/admin/events");
+}
+
+/**
+ * イベント一時停止/再開トグル
+ */
+export async function togglePauseEventAction(
+  eventId: number
+): Promise<TogglePauseEventResult> {
+  // 認証
+  const session = await requireAuth();
+  const { admin } = await getAdminForPermission(Number(session.user.id));
+
+  // アクセス権チェック
+  const hasAccess = await canAccessEvent(admin, eventId);
+  if (!hasAccess) {
+    return { success: false, error: "このイベントへのアクセス権がありません" };
+  }
+
+  // トグル
+  try {
+    const updated = await eventRepo.toggleEventPause(eventId);
+    revalidatePath(`/admin/events/${eventId}`);
+    revalidatePath("/admin/events");
+    return { success: true, isPaused: updated.isPaused };
+  } catch {
+    return { success: false, error: "イベントのステータス変更に失敗しました" };
+  }
 }

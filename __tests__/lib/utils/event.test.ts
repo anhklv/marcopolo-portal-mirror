@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getEventDisplayStatus } from "@/lib/utils/event";
+import { formatDateTime, getEventDisplayStatus } from "@/lib/utils/event";
 
 describe("getEventDisplayStatus", () => {
   it("回答期限前 + 未停止 → receiving", () => {
@@ -75,5 +75,31 @@ describe("getEventDisplayStatus", () => {
       isPaused: false,
     };
     expect(getEventDisplayStatus(event)).toBe("receiving");
+  });
+});
+
+describe("formatDateTime", () => {
+  it("ISO文字列を「YYYY年M月D日 HH:mm」形式にフォーマットする", () => {
+    // ローカルタイムゾーンに依存するため、Dateで構築
+    const date = new Date(2024, 11, 1, 23, 59); // 2024年12月1日 23:59
+    const result = formatDateTime(date);
+    expect(result).toBe("2024年12月1日 23:59");
+  });
+
+  it("Date型の引数を受け付ける", () => {
+    const date = new Date(2026, 0, 15, 9, 0); // 2026年1月15日 09:00
+    const result = formatDateTime(date);
+    expect(result).toBe("2026年1月15日 09:00");
+  });
+
+  it("時刻が0埋めされる", () => {
+    const date = new Date(2026, 5, 3, 8, 5); // 2026年6月3日 08:05
+    const result = formatDateTime(date);
+    expect(result).toBe("2026年6月3日 08:05");
+  });
+
+  it("不正な文字列はそのまま返す", () => {
+    const result = formatDateTime("invalid-date");
+    expect(result).toBe("invalid-date");
   });
 });

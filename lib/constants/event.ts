@@ -1,4 +1,4 @@
-import type { RsvpStatus } from "@/lib/generated/prisma";
+import type { AfterPartyStatus, RsvpStatus } from "@/lib/generated/prisma";
 import type { BadgeVariant } from "@/components/ui/badge";
 
 // RSVPステータスの選択肢
@@ -32,4 +32,10 @@ export const EVENT_STATUS_CONFIG: Record<EventDisplayStatus, { label: string; va
   paused: { label: "一時停止中", variant: "destructive-outline", description: "受付期間中だが手動停止中" },
   waiting: { label: "受付終了", variant: "outline", description: "受付終了（開催前）" },
   closed: { label: "終了", variant: "secondary", description: "イベント終了" },
+} as const;
+
+// 懇親会ステータスの表示設定
+export const AFTER_PARTY_STATUS_CONFIG: Record<AfterPartyStatus, { label: string }> = {
+  attending: { label: "参加" },
+  not_attending: { label: "不参加" },
 } as const;

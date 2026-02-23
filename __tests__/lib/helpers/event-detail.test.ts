@@ -1,0 +1,205 @@
+import { describe, it, expect, beforeAll } from "vitest";
+import {
+  toAttendeeRows,
+  filterAttendees,
+  computeEventSummary,
+} from "@/lib/helpers/event-detail";
+import type { SerializedRsvpForEventDetail } from "@/lib/types/serialized";
+import type { AttendeeRow } from "@/lib/helpers/event-detail";
+
+// テストデータ
+const makeRsvp = (
+  overrides: Partial<SerializedRsvpForEventDetail> & { id: number }
+): SerializedRsvpForEventDetail => ({
+  status: "pending",
+  afterPartyStatus: null,
+  comment: null,
+  respondedAt: null,
+  customer: {
+    id: overrides.id,
+    lastName: "田中",
+    firstName: "太郎",
+    company: "テスト株式会社",
+  },
+  ...overrides,
+});
+
+const sampleRsvps: SerializedRsvpForEventDetail[] = [
+  makeRsvp({
+    id: 1,
+    status: "attending",
+    afterPartyStatus: "attending",
+    comment: "楽しみです",
+    respondedAt: "2026-01-10T10:00:00.000Z",
+    customer: { id: 1, lastName: "田中", firstName: "太郎", company: "A社" },
+  }),
+  makeRsvp({
+    id: 2,
+    status: "online",
+    afterPartyStatus: null,
+    respondedAt: "2026-01-11T10:00:00.000Z",
+    customer: { id: 2, lastName: "佐藤", firstName: "花子", company: "B社" },
+  }),
+  makeRsvp({
+    id: 3,
+    status: "absent",
+    respondedAt: "2026-01-12T10:00:00.000Z",
+    customer: { id: 3, lastName: "鈴木", firstName: "一郎", company: null },
+  }),
+  makeRsvp({
+    id: 4,
+    status: "pending",
+    customer: { id: 4, lastName: "高橋", firstName: "次郎", company: "A社" },
+  }),
+  makeRsvp({
+    id: 5,
+    status: "attending",
+    afterPartyStatus: "not_attending",
+    respondedAt: "2026-01-13T10:00:00.000Z",
+    customer: { id: 5, lastName: "渡辺", firstName: "三郎", company: "C社" },
+  }),
+];
+
+describe("toAttendeeRows", () => {
+  it("RSVPデータを正しく行データに変換する", () => {
+    const rows = toAttendeeRows(sampleRsvps);
+
+    expect(rows).toHaveLength(5);
+    expect(rows[0]).toEqual({
+      rsvpId: 1,
+      customerId: 1,
+      lastName: "田中",
+      firstName: "太郎",
+      company: "A社",
+      status: "attending",
+      afterPartyStatus: "attending",
+      comment: "楽しみです",
+      respondedAt: "2026-01-10T10:00:00.000Z",
+    });
+  });
+
+  it("空配列を渡した場合は空配列を返す", () => {
+    expect(toAttendeeRows([])).toEqual([]);
+  });
+
+  it("customer.companyがnullの場合もそのまま保持する", () => {
+    const rows = toAttendeeRows(sampleRsvps);
+    expect(rows[2].company).toBeNull();
+  });
+});
+
+describe("filterAttendees", () => {
+  let rows: AttendeeRow[];
+
+  beforeAll(() => {
+    rows = toAttendeeRows(sampleRsvps);
+  });
+
+  it("キーワード空・ステータス空 → 全件返す", () => {
+    expect(filterAttendees(rows, "", [])).toHaveLength(5);
+  });
+
+  it("氏名でキーワード検索", () => {
+    const result = filterAttendees(rows, "田中", []);
+    expect(result).toHaveLength(1);
+    expect(result[0].lastName).toBe("田中");
+  });
+
+  it("姓名結合で検索（例: '田中太'）", () => {
+    const result = filterAttendees(rows, "田中太", []);
+    expect(result).toHaveLength(1);
+  });
+
+  it("会社名でキーワード検索", () => {
+    const result = filterAttendees(rows, "A社", []);
+    expect(result).toHaveLength(2); // 田中太郎(A社)、高橋次郎(A社)
+  });
+
+  it("大文字小文字を区別しない", () => {
+    const result = filterAttendees(rows, "a社", []);
+    expect(result).toHaveLength(2);
+  });
+
+  it("ステータスフィルタ（attending）", () => {
+    const result = filterAttendees(rows, "", ["attending"]);
+    expect(result).toHaveLength(2);
+    expect(result.every((r) => r.status === "attending")).toBe(true);
+  });
+
+  it("ステータスフィルタ（複数）", () => {
+    const result = filterAttendees(rows, "", ["attending", "online"]);
+    expect(result).toHaveLength(3);
+  });
+
+  it("キーワード + ステータスの組み合わせ", () => {
+    const result = filterAttendees(rows, "田中", ["attending"]);
+    expect(result).toHaveLength(1);
+    expect(result[0].lastName).toBe("田中");
+    expect(result[0].status).toBe("attending");
+  });
+
+  it("一致なしの場合は空配列を返す", () => {
+    const result = filterAttendees(rows, "存在しない名前", []);
+    expect(result).toHaveLength(0);
+  });
+
+  it("会社名がnullの行はキーワード検索でスキップされる", () => {
+    const result = filterAttendees(rows, "B社", []);
+    // 鈴木一郎(company=null)は含まれない
+    expect(result).toHaveLength(1);
+    expect(result[0].lastName).toBe("佐藤");
+  });
+});
+
+describe("computeEventSummary", () => {
+  it("各ステータスのカウントが正しい", () => {
+    const rows = toAttendeeRows(sampleRsvps);
+    const summary = computeEventSummary(rows);
+
+    expect(summary).toEqual({
+      onsiteCount: 2,
+      onlineCount: 1,
+      afterPartyCount: 1, // afterPartyStatus === "attending" のみ
+      absentCount: 1,
+      pendingCount: 1,
+    });
+  });
+
+  it("空配列の場合は全て0", () => {
+    const summary = computeEventSummary([]);
+    expect(summary).toEqual({
+      onsiteCount: 0,
+      onlineCount: 0,
+      afterPartyCount: 0,
+      absentCount: 0,
+      pendingCount: 0,
+    });
+  });
+
+  it("全員未回答の場合", () => {
+    const pendingOnly = toAttendeeRows([
+      makeRsvp({ id: 1, status: "pending" }),
+      makeRsvp({ id: 2, status: "pending" }),
+    ]);
+    const summary = computeEventSummary(pendingOnly);
+    expect(summary.pendingCount).toBe(2);
+    expect(summary.onsiteCount).toBe(0);
+    expect(summary.onlineCount).toBe(0);
+    expect(summary.absentCount).toBe(0);
+    expect(summary.afterPartyCount).toBe(0);
+  });
+
+  it("懇親会カウントはafterPartyStatus=attendingのみ", () => {
+    const mixed = toAttendeeRows([
+      makeRsvp({ id: 1, status: "attending", afterPartyStatus: "attending" }),
+      makeRsvp({
+        id: 2,
+        status: "attending",
+        afterPartyStatus: "not_attending",
+      }),
+      makeRsvp({ id: 3, status: "attending", afterPartyStatus: null }),
+    ]);
+    const summary = computeEventSummary(mixed);
+    expect(summary.afterPartyCount).toBe(1);
+  });
+});
