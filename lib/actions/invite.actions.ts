@@ -141,22 +141,29 @@ export async function sendInviteAction(
       tokenMap.set(c.id, generateRsvpToken());
     }
 
-    // メール送信（Promise.allSettled で全件試行）
-    const sendResults = await Promise.allSettled(
-      customers.map((customer) => {
-        const token = tokenMap.get(customer.id) ?? "";
-        const rsvpUrl = buildRsvpUrl(baseUrl, eventId, token);
-        const customerName = `${customer.lastName} ${customer.firstName}`;
-        const text = replacePlaceholders(emailBody, { rsvpUrl, customerName });
+    // メール送信（バッチ処理で段階的に送信）
+    const BATCH_SIZE = 10;
+    const sendResults: PromiseSettledResult<Awaited<ReturnType<typeof sendMail>>>[] = [];
 
-        return sendMail({
-          from,
-          to: customer.email,
-          subject: emailTitle,
-          text,
-        });
-      })
-    );
+    for (let i = 0; i < customers.length; i += BATCH_SIZE) {
+      const batch = customers.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.allSettled(
+        batch.map((customer) => {
+          const token = tokenMap.get(customer.id) ?? "";
+          const rsvpUrl = buildRsvpUrl(baseUrl, eventId, token);
+          const customerName = `${customer.lastName} ${customer.firstName}`;
+          const text = replacePlaceholders(emailBody, { rsvpUrl, customerName });
+
+          return sendMail({
+            from,
+            to: customer.email,
+            subject: emailTitle,
+            text,
+          });
+        })
+      );
+      sendResults.push(...batchResults);
+    }
 
     // 結果集計 + 成功分のみRSVP作成データを収集
     const failedNames: string[] = [];
@@ -181,7 +188,7 @@ export async function sendInviteAction(
 
     // 送信成功分のみRSVPレコード作成
     if (successRsvpData.length > 0) {
-      await prisma.rsvp.createMany({ data: successRsvpData });
+      await prisma.rsvp.createMany({ data: successRsvpData, skipDuplicates: true });
     }
 
     revalidatePath(`/admin/events/${eventId}`);

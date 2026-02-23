@@ -90,6 +90,7 @@ describe("sendInviteAction", () => {
         expect.objectContaining({ eventId: 1, customerId: 10 }),
         expect.objectContaining({ eventId: 1, customerId: 20 }),
       ]),
+      skipDuplicates: true,
     });
     expect(mockRevalidatePath).toHaveBeenCalledWith("/admin/events/1");
   });
@@ -221,7 +222,38 @@ describe("sendInviteAction", () => {
     // 成功分(customerId: 10)のみRSVP作成
     expect(mockPrisma.rsvp.createMany).toHaveBeenCalledWith({
       data: [expect.objectContaining({ eventId: 1, customerId: 10 })],
+      skipDuplicates: true,
     });
+  });
+
+  it("正常系: 11名以上で複数バッチに分かれて送信される", async () => {
+    setupSuperAdmin();
+    mockPrisma.rsvp.findMany.mockResolvedValueOnce([]);
+
+    // 12名の顧客を生成
+    const customerIds = Array.from({ length: 12 }, (_, i) => i + 1);
+    const customers = customerIds.map((id) => ({
+      id,
+      lastName: `姓${id}`,
+      firstName: `名${id}`,
+      email: `user${id}@example.com`,
+    }));
+    mockPrisma.customer.findMany.mockResolvedValue(customers);
+    mockPrisma.rsvp.createMany.mockResolvedValue({ count: 12 });
+    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+
+    const result = await sendInviteAction({
+      ...validInviteData,
+      customerIds,
+    });
+
+    expect(result).toEqual({
+      success: true,
+      sentCount: 12,
+      failedCount: 0,
+      failedNames: [],
+    });
+    expect(mockSendMail).toHaveBeenCalledTimes(12);
   });
 
   it("異常系: DB操作エラー時にエラーメッセージを返す", async () => {

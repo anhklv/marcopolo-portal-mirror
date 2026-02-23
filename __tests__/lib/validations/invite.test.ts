@@ -85,6 +85,22 @@ describe("inviteSchema", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("正常系: emailBody が50000文字ちょうど", () => {
+    const result = inviteSchema.safeParse({
+      ...validData,
+      emailBody: "あ".repeat(50000),
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("異常系: emailBody が50000文字超", () => {
+    const result = inviteSchema.safeParse({
+      ...validData,
+      emailBody: "あ".repeat(50001),
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("testInviteSchema", () => {

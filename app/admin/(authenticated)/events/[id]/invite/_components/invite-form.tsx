@@ -1,8 +1,5 @@
 "use client";
 
-import { useState, useMemo, useTransition } from "react";
-import { useArrayToggle } from "@/hooks/use-array-toggle";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -32,36 +29,23 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
 import { Check, Search, Users, ChevronDown, Send, Mail } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { FormField } from "@/components/ui/form-field";
 import { ActionButton } from "@/components/ui/action-button";
 import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { filterCustomers } from "@/lib/helpers/customer-filter";
 import { getCustomerBadges } from "@/lib/helpers/customer-detail";
 import type { CustomerCommunityForBadge } from "@/lib/helpers/customer-detail";
 import type { SerializedEventForInvite, SerializedCustomerForInvite } from "@/lib/types/serialized";
 import type { CommunityOption } from "@/lib/types/serialized";
-import { sendInviteAction, sendTestInviteAction } from "@/lib/actions/invite.actions";
 import { cn } from "@/lib/utils";
+import { useInviteForm } from "./use-invite-form";
+import type { Step } from "./use-invite-form";
 
-interface InviteCustomer extends SerializedCustomerForInvite {
-  isInvited?: boolean;
-}
-
-interface InviteFormProps {
-  event: SerializedEventForInvite;
-  customers: SerializedCustomerForInvite[];
-  currentUserRole: "super" | "community_admin";
-  communities: CommunityOption[];
-  adminEmail: string;
-  defaultEmailTitle: string;
-  defaultEmailBody: string;
-}
-
-type Step = "select" | "customize" | "confirm";
+// ============================================================
+// StepIndicator
+// ============================================================
 
 const STEPS = [
   { key: "select", label: "案内者を選択", number: 1 },
@@ -75,6 +59,7 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
     const currentIndex = STEPS.findIndex((s) => s.key === currentStep);
     const stepIndex = STEPS.findIndex((s) => s.key === stepKey);
 
+    // "send" はインジケータ表示専用で、実際のstep状態としては使わない
     if (stepKey === "send") return "upcoming";
     if (stepIndex <= currentIndex) return "completed";
     return "upcoming";
@@ -105,6 +90,20 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
   );
 }
 
+// ============================================================
+// InviteForm
+// ============================================================
+
+interface InviteFormProps {
+  event: SerializedEventForInvite;
+  customers: SerializedCustomerForInvite[];
+  currentUserRole: "super" | "community_admin";
+  communities: CommunityOption[];
+  adminEmail: string;
+  defaultEmailTitle: string;
+  defaultEmailBody: string;
+}
+
 export function InviteForm({
   event,
   customers,
@@ -114,167 +113,14 @@ export function InviteForm({
   defaultEmailTitle,
   defaultEmailBody,
 }: InviteFormProps) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-
-  const [step, setStep] = useState<Step>("select");
-  const [selectedCustomerIds, setSelectedCustomerIds] = useState<number[]>([]);
-  const [emailTitle, setEmailTitle] = useState(defaultEmailTitle);
-  const [emailBody, setEmailBody] = useState(defaultEmailBody);
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const [memberCategories, _toggleMemberCategory] = useArrayToggle<string>();
-  const [selectedCommunityIds, toggleCommunityId] = useArrayToggle<number>();
-  const [auditMemberTypes, _toggleAuditMemberType] = useArrayToggle<string>();
-  const [premiumOnly, _setPremiumOnly] = useState(false);
-  const [includeFormerMembers, setIncludeFormerMembers] = useState(false);
-  const [includeNonMemberFilter, setIncludeNonMemberFilter] = useState(false);
-  const [inviteStatuses, toggleInviteStatus] = useArrayToggle<string>();
-  const [inviteStatusSearch, setInviteStatusSearch] = useState("");
-  const [confirmOpen, setConfirmOpen] = useState(false);
-
-  // 招待済みIDのセット
-  const invitedCustomerIds = useMemo(() => {
-    return new Set(event.rsvpCustomerIds);
-  }, [event.rsvpCustomerIds]);
-
-  // 顧客リストに招待済み情報を付与
-  const customersWithStatus: InviteCustomer[] = useMemo(() => {
-    return customers.map((c) => ({
-      ...c,
-      isInvited: invitedCustomerIds.has(c.id),
-    }));
-  }, [customers, invitedCustomerIds]);
-
-  // フィルタリング実行
-  const filteredCustomers = useMemo(() => {
-    const baseFiltered = filterCustomers(customersWithStatus, {
-      keyword: searchKeyword,
-      communityIds: selectedCommunityIds,
-      memberCategories,
-      auditMemberTypes,
-      premiumOnly,
-      includeFormerMembers,
-      includeNonMemberFilter,
-    });
-
-    return baseFiltered.filter((customer) => {
-      if (inviteStatuses.length > 0) {
-        const matchesStatus = inviteStatuses.some((status) => {
-          if (status === "案内済み") return customer.isInvited;
-          if (status === "未案内") return !customer.isInvited;
-          return true;
-        });
-        if (!matchesStatus) return false;
-      }
-      return true;
-    });
-  }, [
-    customersWithStatus,
-    searchKeyword,
-    selectedCommunityIds,
-    memberCategories,
-    auditMemberTypes,
-    premiumOnly,
-    includeFormerMembers,
-    includeNonMemberFilter,
-    inviteStatuses,
-  ]);
-
-  // 確認画面用: 選択済み顧客情報
-  const selectedCustomers = useMemo(() => {
-    return customers.filter((c) => selectedCustomerIds.includes(c.id));
-  }, [customers, selectedCustomerIds]);
-
-  const handleSelectNext = () => {
-    if (selectedCustomerIds.length === 0) {
-      toast.error("案内する顧客を選択してください");
-      return;
-    }
-    setStep("customize");
-  };
-
-  const handleCustomizeNext = () => {
-    if (!emailTitle.trim()) {
-      toast.error("メールタイトルを入力してください");
-      return;
-    }
-    if (!emailBody.trim()) {
-      toast.error("メール本文を入力してください");
-      return;
-    }
-    setStep("confirm");
-  };
-
-  const handleTestSend = () => {
-    startTransition(async () => {
-      try {
-        const result = await sendTestInviteAction({
-          eventId: event.id,
-          emailTitle,
-          emailBody,
-        });
-        if (result.success) {
-          toast.success(`テストメールを ${adminEmail} に送信しました`);
-        } else {
-          toast.error(result.error);
-        }
-      } catch {
-        toast.error("テスト送信中にエラーが発生しました");
-      }
-    });
-  };
-
-  const handleSend = () => {
-    setConfirmOpen(false);
-    startTransition(async () => {
-      try {
-        const result = await sendInviteAction({
-          eventId: event.id,
-          customerIds: selectedCustomerIds,
-          emailTitle,
-          emailBody,
-        });
-        if (result.success) {
-          const msg =
-            result.failedCount > 0
-              ? `${result.sentCount}名に送信しました（${result.failedCount}名失敗: ${result.failedNames.join(", ")}）`
-              : `${result.sentCount}名に案内メールを送信しました`;
-          toast.success(msg);
-          router.push(`/admin/events/${event.id}`);
-        } else {
-          toast.error(result.error);
-        }
-      } catch {
-        toast.error("案内メールの送信中にエラーが発生しました");
-      }
-    });
-  };
-
-  const toggleCustomer = (customerId: number) => {
-    setSelectedCustomerIds((prev) =>
-      prev.includes(customerId) ? prev.filter((id) => id !== customerId) : [...prev, customerId]
-    );
-  };
-
-  const toggleAllCustomers = () => {
-    if (selectedCustomerIds.length === filteredCustomers.length && filteredCustomers.length > 0) {
-      setSelectedCustomerIds([]);
-    } else {
-      setSelectedCustomerIds(filteredCustomers.map((c) => c.id));
-    }
-  };
-
-  const getFilterDisplayText = () => {
-    const totalFilters = selectedCommunityIds.length + (includeNonMemberFilter ? 1 : 0);
-    if (totalFilters === 0) return "コミュニティ";
-
-    const parts: string[] = [];
-    communities.filter((c) => selectedCommunityIds.includes(c.id)).forEach((c) => parts.push(c.name));
-    if (includeNonMemberFilter) parts.push("非会員");
-
-    if (parts.length === 1) return parts[0];
-    return `${parts.length}件選択`;
-  };
+  const form = useInviteForm({
+    event,
+    customers,
+    communities,
+    adminEmail,
+    defaultEmailTitle,
+    defaultEmailBody,
+  });
 
   const renderBadges = (customer: SerializedCustomerForInvite) => {
     const badges = getCustomerBadges(
@@ -288,8 +134,20 @@ export function InviteForm({
     ));
   };
 
+  const getFilterDisplayText = () => {
+    const totalFilters = form.selectedCommunityIds.length + (form.includeNonMemberFilter ? 1 : 0);
+    if (totalFilters === 0) return "コミュニティ";
+
+    const parts: string[] = [];
+    communities.filter((c) => form.selectedCommunityIds.includes(c.id)).forEach((c) => parts.push(c.name));
+    if (form.includeNonMemberFilter) parts.push("非会員");
+
+    if (parts.length === 1) return parts[0];
+    return `${parts.length}件選択`;
+  };
+
   // ステップ1: 案内者選択
-  if (step === "select") {
+  if (form.step === "select") {
     return (
       <div className="max-w-4xl space-y-6">
         <PageHeader
@@ -298,7 +156,7 @@ export function InviteForm({
           description="案内メールを送信する顧客を選択してください。"
         />
 
-        <StepIndicator currentStep={step} />
+        <StepIndicator currentStep={form.step} />
 
         <div className="space-y-4">
           <div className="space-y-2">
@@ -316,8 +174,8 @@ export function InviteForm({
                 type="search"
                 placeholder="名前、会社名、メールアドレスで検索..."
                 className="pl-9 h-9 text-sm"
-                value={searchKeyword}
-                onChange={(e) => setSearchKeyword(e.target.value)}
+                value={form.searchKeyword}
+                onChange={(e) => form.setSearchKeyword(e.target.value)}
               />
             </div>
             <Popover>
@@ -340,16 +198,16 @@ export function InviteForm({
                           key={community.id}
                           id={`org-${community.code}`}
                           label={community.name}
-                          checked={selectedCommunityIds.includes(community.id)}
-                          onCheckedChange={(c) => toggleCommunityId(community.id, c)}
+                          checked={form.selectedCommunityIds.includes(community.id)}
+                          onCheckedChange={(c) => form.toggleCommunityId(community.id, c)}
                         />
                       ))}
                       {currentUserRole === "super" && (
                         <CheckboxItem
                           id="org-nonmember"
                           label="非会員"
-                          checked={includeNonMemberFilter}
-                          onCheckedChange={setIncludeNonMemberFilter}
+                          checked={form.includeNonMemberFilter}
+                          onCheckedChange={form.setIncludeNonMemberFilter}
                         />
                       )}
                     </div>
@@ -362,11 +220,11 @@ export function InviteForm({
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-[200px] justify-between h-9 text-sm">
                   <span>
-                    {inviteStatuses.length === 0
+                    {form.inviteStatuses.length === 0
                       ? "案内状況"
-                      : inviteStatuses.length === 1
-                        ? inviteStatuses[0]
-                        : `${inviteStatuses.length}件選択`}
+                      : form.inviteStatuses.length === 1
+                        ? form.inviteStatuses[0]
+                        : `${form.inviteStatuses.length}件選択`}
                   </span>
                   <ChevronDown className="h-4 w-4 opacity-50" />
                 </Button>
@@ -375,21 +233,21 @@ export function InviteForm({
                 <div className="p-3 border-b">
                   <Input
                     placeholder="案内状況を検索"
-                    value={inviteStatusSearch}
-                    onChange={(e) => setInviteStatusSearch(e.target.value)}
+                    value={form.inviteStatusSearch}
+                    onChange={(e) => form.setInviteStatusSearch(e.target.value)}
                     className="h-8 text-sm"
                   />
                 </div>
                 <div className="p-2">
                   {["案内済み", "未案内"]
-                    .filter((s) => s.includes(inviteStatusSearch))
+                    .filter((s) => s.includes(form.inviteStatusSearch))
                     .map((status) => (
                       <CheckboxItem
                         key={status}
                         id={`status-${status}`}
                         label={status}
-                        checked={inviteStatuses.includes(status)}
-                        onCheckedChange={(c) => toggleInviteStatus(status, c)}
+                        checked={form.inviteStatuses.includes(status)}
+                        onCheckedChange={(c) => form.toggleInviteStatus(status, c)}
                       />
                     ))}
                 </div>
@@ -400,23 +258,23 @@ export function InviteForm({
               <CheckboxItem
                 id="include-former-members"
                 label="元会員を含む"
-                checked={includeFormerMembers}
-                onCheckedChange={setIncludeFormerMembers}
+                checked={form.includeFormerMembers}
+                onCheckedChange={form.setIncludeFormerMembers}
               />
             </div>
           </div>
 
           <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
             <div>
-              <span className="font-medium">{selectedCustomerIds.length}名</span> 選択中
+              <span className="font-medium">{form.selectedCustomerIds.length}名</span> 選択中
             </div>
             <Button
               variant="outline"
               size="sm"
-              onClick={toggleAllCustomers}
-              disabled={filteredCustomers.length === 0}
+              onClick={form.toggleAllCustomers}
+              disabled={form.filteredCustomers.length === 0}
             >
-              {selectedCustomerIds.length === filteredCustomers.length && filteredCustomers.length > 0
+              {form.selectedCustomerIds.length === form.filteredCustomers.length && form.filteredCustomers.length > 0
                 ? "すべて解除"
                 : "すべて選択"}
             </Button>
@@ -434,19 +292,19 @@ export function InviteForm({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredCustomers.length === 0 ? (
+                {form.filteredCustomers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-muted-foreground">
                       検索条件に一致する顧客が見つかりませんでした。
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredCustomers.map((customer) => (
+                  form.filteredCustomers.map((customer) => (
                     <TableRow key={customer.id}>
                       <TableCell>
                         <Checkbox
-                          checked={selectedCustomerIds.includes(customer.id)}
-                          onCheckedChange={() => toggleCustomer(customer.id)}
+                          checked={form.selectedCustomerIds.includes(customer.id)}
+                          onCheckedChange={() => form.toggleCustomer(customer.id)}
                         />
                       </TableCell>
                       <TableCell>
@@ -472,7 +330,7 @@ export function InviteForm({
             <ActionButton variant="outline" asChild>
               <Link href={`/admin/events/${event.id}`}>キャンセル</Link>
             </ActionButton>
-            <ActionButton onClick={handleSelectNext}>次へ</ActionButton>
+            <ActionButton onClick={form.handleSelectNext}>次へ</ActionButton>
           </div>
         </div>
       </div>
@@ -480,16 +338,16 @@ export function InviteForm({
   }
 
   // ステップ2: メール文作成
-  if (step === "customize") {
+  if (form.step === "customize") {
     return (
       <div className="max-w-4xl space-y-6">
         <PageHeader
-          backAction={() => setStep("select")}
+          backAction={() => form.setStep("select")}
           title="案内メール送信"
           description="案内メールのタイトルと本文を編集できます。"
         />
 
-        <StepIndicator currentStep={step} />
+        <StepIndicator currentStep={form.step} />
 
         <div className="space-y-6">
           <div className="space-y-2">
@@ -498,7 +356,7 @@ export function InviteForm({
           </div>
 
           <FormField label="メールタイトル">
-            <Input value={emailTitle} onChange={(e) => setEmailTitle(e.target.value)} placeholder="メールタイトルを入力" />
+            <Input value={form.emailTitle} onChange={(e) => form.setEmailTitle(e.target.value)} placeholder="メールタイトルを入力" />
           </FormField>
 
           <FormField
@@ -506,8 +364,8 @@ export function InviteForm({
             description="{RSVP_URL} は送信時に顧客ごとの回答URLに自動置換されます。"
           >
             <Textarea
-              value={emailBody}
-              onChange={(e) => setEmailBody(e.target.value)}
+              value={form.emailBody}
+              onChange={(e) => form.setEmailBody(e.target.value)}
               placeholder="メール本文を入力"
               rows={30}
               className="min-h-[480px]"
@@ -515,10 +373,10 @@ export function InviteForm({
           </FormField>
 
           <div className="flex justify-center gap-4 pt-4">
-            <ActionButton variant="outline" onClick={() => setStep("select")}>
+            <ActionButton variant="outline" onClick={() => form.setStep("select")}>
               戻る
             </ActionButton>
-            <ActionButton onClick={handleCustomizeNext}>次へ</ActionButton>
+            <ActionButton onClick={form.handleCustomizeNext}>次へ</ActionButton>
           </div>
         </div>
       </div>
@@ -526,23 +384,23 @@ export function InviteForm({
   }
 
   // ステップ3: 確認
-  if (step === "confirm") {
+  if (form.step === "confirm") {
     return (
       <div className="max-w-4xl space-y-6">
         <PageHeader
-          backAction={() => setStep("customize")}
+          backAction={() => form.setStep("customize")}
           title="案内メール送信"
           description="送信内容を確認して、テスト送信または送信を実行してください。"
         />
 
-        <StepIndicator currentStep={step} />
+        <StepIndicator currentStep={form.step} />
 
         <div className="space-y-6">
           <div className="space-y-4">
             <SectionHeading>送信先</SectionHeading>
-            <p className="text-sm text-muted-foreground">{selectedCustomers.length}名に送信します</p>
+            <p className="text-sm text-muted-foreground">{form.selectedCustomers.length}名に送信します</p>
             <div className="space-y-2 text-sm">
-              {selectedCustomers.map((customer) => (
+              {form.selectedCustomers.map((customer) => (
                 <div key={customer.id}>
                   {customer.lastName} {customer.firstName} ({customer.email})
                 </div>
@@ -555,26 +413,26 @@ export function InviteForm({
             <div className="space-y-4">
               <div>
                 <div className="font-medium mb-2">タイトル:</div>
-                <div className="text-sm bg-muted p-3 rounded">{emailTitle}</div>
+                <div className="text-sm bg-muted p-3 rounded">{form.emailTitle}</div>
               </div>
               <div>
                 <div className="font-medium mb-2">本文:</div>
-                <div className="text-sm bg-muted p-3 rounded whitespace-pre-wrap">{emailBody}</div>
+                <div className="text-sm bg-muted p-3 rounded whitespace-pre-wrap">{form.emailBody}</div>
               </div>
             </div>
           </div>
 
           <div className="flex justify-center gap-4 pt-4">
-            <ActionButton variant="outline" onClick={() => setStep("customize")}>
+            <ActionButton variant="outline" onClick={() => form.setStep("customize")}>
               戻る
             </ActionButton>
-            <ActionButton variant="outline" onClick={handleTestSend} disabled={isPending}>
+            <ActionButton variant="outline" onClick={form.handleTestSend} disabled={form.isPending}>
               <Mail className="h-4 w-4" />
               テスト送信
             </ActionButton>
-            <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <Dialog open={form.confirmOpen} onOpenChange={form.setConfirmOpen}>
               <DialogTrigger asChild>
-                <ActionButton disabled={isPending}>
+                <ActionButton disabled={form.isPending}>
                   <Send className="h-4 w-4" />
                   送信
                 </ActionButton>
@@ -583,15 +441,15 @@ export function InviteForm({
                 <DialogHeader>
                   <DialogTitle>案内メールを送信しますか？</DialogTitle>
                   <DialogDescription>
-                    {selectedCustomers.length}名に案内メールを送信します。この操作は取り消せません。
+                    {form.selectedCustomers.length}名に案内メールを送信します。この操作は取り消せません。
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setConfirmOpen(false)}>
+                  <Button variant="outline" onClick={() => form.setConfirmOpen(false)}>
                     キャンセル
                   </Button>
-                  <Button onClick={handleSend} disabled={isPending}>
-                    {isPending ? "送信中..." : "送信する"}
+                  <Button onClick={form.handleSend} disabled={form.isPending}>
+                    {form.isPending ? "送信中..." : "送信する"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
