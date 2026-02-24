@@ -138,7 +138,7 @@ export function InviteForm({
           <div className="space-y-2">
             <SectionHeading>案内者を選択</SectionHeading>
             <p className="text-sm text-muted-foreground">
-              未案内の顧客を選択して案内メールを送信します。
+              未案内・未回答の顧客を選択して案内メールを送信します。未回答の顧客には新しいURLで再送されます。
               <br />
               ※送信時に自動で個別ID付きURLが生成されます。
             </p>
@@ -215,7 +215,7 @@ export function InviteForm({
                   />
                 </div>
                 <div className="p-2">
-                  {["案内済み", "未案内"]
+                  {["未案内", "未回答"]
                     .filter((s) => s.includes(form.inviteStatusSearch))
                     .map((status) => (
                       <CheckboxItem
@@ -293,8 +293,8 @@ export function InviteForm({
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={customer.isInvited ? "default" : "outline"}>
-                          {customer.isInvited ? "案内済み" : "未案内"}
+                        <Badge variant={customer.rsvpStatus === "pending" ? "default" : "outline"}>
+                          {customer.rsvpStatus === "pending" ? "未回答" : "未案内"}
                         </Badge>
                       </TableCell>
                     </TableRow>

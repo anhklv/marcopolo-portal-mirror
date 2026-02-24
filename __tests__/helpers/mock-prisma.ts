@@ -30,6 +30,7 @@ export const mockPrisma = {
   rsvp: {
     findMany: vi.fn(),
     createMany: vi.fn(),
+    update: vi.fn(),
   },
   admin: {
     findUnique: vi.fn(),

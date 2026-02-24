@@ -88,7 +88,7 @@ describe("sendInviteAction", () => {
       failedNames: [],
     });
     expect(mockSendMail).toHaveBeenCalledTimes(2);
-    // メール送信後にRSVP作成
+    // メール送信後にRSVP作成（新規のみcreateMany）
     expect(mockPrisma.rsvp.createMany).toHaveBeenCalledWith({
       data: expect.arrayContaining([
         expect.objectContaining({ eventId: 1, customerId: 10 }),
@@ -99,10 +99,10 @@ describe("sendInviteAction", () => {
     expect(mockRevalidatePath).toHaveBeenCalledWith("/admin/events/1");
   });
 
-  it("正常系: 既存RSVP分はスキップする", async () => {
+  it("正常系: 回答済み（attending）の顧客はスキップする", async () => {
     setupSuperAdmin();
-    // customerId: 10 は既存RSVP
-    mockPrisma.rsvp.findMany.mockResolvedValueOnce([{ customerId: 10 }]);
+    // customerId: 10 は attending（回答済み）
+    mockPrisma.rsvp.findMany.mockResolvedValueOnce([{ customerId: 10, status: "attending" }]);
     mockPrisma.customer.findMany.mockResolvedValue([
       { id: 20, lastName: "佐藤", firstName: "花子", email: "sato@example.com" },
     ]);
@@ -119,18 +119,18 @@ describe("sendInviteAction", () => {
     });
   });
 
-  it("異常系: 全員が案内済みの場合", async () => {
+  it("異常系: 全員が回答済みの場合", async () => {
     setupSuperAdmin();
     mockPrisma.rsvp.findMany.mockResolvedValueOnce([
-      { customerId: 10 },
-      { customerId: 20 },
+      { customerId: 10, status: "attending" },
+      { customerId: 20, status: "absent" },
     ]);
 
     const result = await sendInviteAction(validInviteData);
 
     expect(result).toEqual({
       success: false,
-      error: "選択された顧客は全て案内済みです",
+      error: "選択された顧客は全て回答済みです",
     });
   });
 
@@ -252,6 +252,105 @@ describe("sendInviteAction", () => {
       failedNames: [],
     });
     expect(mockSendMail).toHaveBeenCalledTimes(12);
+  });
+
+  it("正常系: pending顧客への再送でトークンが更新される", async () => {
+    setupSuperAdmin();
+    // customerId: 10 は pending（未回答）
+    mockPrisma.rsvp.findMany.mockResolvedValueOnce([{ customerId: 10, status: "pending" }]);
+    mockPrisma.customer.findMany.mockResolvedValue([
+      { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com" },
+    ]);
+    mockPrisma.rsvp.update.mockResolvedValue({});
+    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+
+    const result = await sendInviteAction({
+      ...validInviteData,
+      customerIds: [10],
+    });
+
+    expect(result).toEqual({
+      success: true,
+      sentCount: 1,
+      failedCount: 0,
+      failedNames: [],
+    });
+    // createManyは呼ばれない（新規がないため）
+    expect(mockPrisma.rsvp.createMany).not.toHaveBeenCalled();
+    // updateでトークン更新
+    expect(mockPrisma.rsvp.update).toHaveBeenCalledWith({
+      where: { eventId_customerId: { eventId: 1, customerId: 10 } },
+      data: { token: expect.any(String) },
+    });
+  });
+
+  it("正常系: pending + 新規の混在ケース", async () => {
+    setupSuperAdmin();
+    // customerId: 10 は pending、customerId: 20 は新規
+    mockPrisma.rsvp.findMany.mockResolvedValueOnce([{ customerId: 10, status: "pending" }]);
+    mockPrisma.customer.findMany.mockResolvedValue([
+      { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com" },
+      { id: 20, lastName: "佐藤", firstName: "花子", email: "sato@example.com" },
+    ]);
+    mockPrisma.rsvp.createMany.mockResolvedValue({ count: 1 });
+    mockPrisma.rsvp.update.mockResolvedValue({});
+    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+
+    const result = await sendInviteAction(validInviteData);
+
+    expect(result).toEqual({
+      success: true,
+      sentCount: 2,
+      failedCount: 0,
+      failedNames: [],
+    });
+    // 新規分はcreateMany
+    expect(mockPrisma.rsvp.createMany).toHaveBeenCalledWith({
+      data: [expect.objectContaining({ eventId: 1, customerId: 20 })],
+      skipDuplicates: true,
+    });
+    // pending分はupdate
+    expect(mockPrisma.rsvp.update).toHaveBeenCalledWith({
+      where: { eventId_customerId: { eventId: 1, customerId: 10 } },
+      data: { token: expect.any(String) },
+    });
+  });
+
+  it("異常系: pending再送のDB更新失敗時はfailedとして集計される", async () => {
+    setupSuperAdmin();
+    mockPrisma.rsvp.findMany.mockResolvedValueOnce([{ customerId: 10, status: "pending" }]);
+    mockPrisma.customer.findMany.mockResolvedValue([
+      { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com" },
+    ]);
+    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+    mockPrisma.rsvp.update.mockRejectedValue(new Error("DB error"));
+
+    const result = await sendInviteAction({
+      ...validInviteData,
+      customerIds: [10],
+    });
+
+    expect(result).toEqual({
+      success: true,
+      sentCount: 0,
+      failedCount: 1,
+      failedNames: ["田中 太郎"],
+    });
+  });
+
+  it("正常系: online/absent の回答済み顧客も除外される", async () => {
+    setupSuperAdmin();
+    mockPrisma.rsvp.findMany.mockResolvedValueOnce([
+      { customerId: 10, status: "online" },
+      { customerId: 20, status: "absent" },
+    ]);
+
+    const result = await sendInviteAction(validInviteData);
+
+    expect(result).toEqual({
+      success: false,
+      error: "選択された顧客は全て回答済みです",
+    });
   });
 
   it("異常系: DB操作エラー時にエラーメッセージを返す", async () => {

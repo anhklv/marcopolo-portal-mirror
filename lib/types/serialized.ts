@@ -172,7 +172,7 @@ export interface SerializedEventForInvite {
   timetable: string | null;
   note: string | null;
   community: CommunityOption;
-  rsvpCustomerIds: number[];
+  rsvps: { customerId: number; status: string }[];
 }
 
 export interface SerializedCustomerForInvite {

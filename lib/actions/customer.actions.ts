@@ -176,10 +176,11 @@ export async function updateCustomerAction(
 
   // 更新
   try {
-    await customerRepo.update(id, {
+    const updateData = {
       ...data,
       communities: buildCommunityData(data.communities),
-    });
+    };
+    await customerRepo.update(id, updateData);
   } catch (err: unknown) {
     if (isPrismaUniqueError(err)) {
       return { error: "このメールアドレスは既に登録されています" };

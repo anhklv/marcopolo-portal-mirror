@@ -311,6 +311,211 @@ async function main() {
 
       console.log(`顧客を作成: ${customer.lastName} ${customer.firstName} (${customer.email})`);
     }
+
+    // === 100人の顧客を一括生成 ===
+    console.log("100人の顧客データを生成中...");
+
+    const lastNames = [
+      "山田", "中村", "小林", "加藤", "吉田", "山口", "松本", "井上", "木村", "林",
+      "清水", "山崎", "池田", "橋本", "阿部", "石川", "前田", "藤田", "小川", "岡田",
+      "後藤", "長谷川", "石井", "村上", "近藤", "坂本", "遠藤", "青木", "藤井", "西村",
+      "福田", "太田", "三浦", "岡本", "松田", "中川", "中野", "原田", "小野", "田村",
+      "竹内", "金子", "和田", "中山", "石田", "上田", "森田", "原", "柴田", "酒井",
+    ];
+    const firstNamesMale = [
+      "健太", "大輔", "翔太", "拓也", "直人", "達也", "雄太", "浩二", "哲也", "誠",
+      "和也", "隆", "洋平", "秀樹", "剛", "慎一", "正志", "勝", "博", "修",
+      "敏夫", "義之", "信一", "幸一", "広志", "裕一", "昌弘", "和彦", "康之", "宏",
+    ];
+    const firstNamesFemale = [
+      "美咲", "さくら", "陽子", "恵美", "裕子", "明美", "久美子", "由美", "智子", "真理子",
+      "直子", "幸子", "洋子", "京子", "典子", "和子", "節子", "正美", "千恵", "麻衣",
+    ];
+    const lastNameKanaMap: Record<string, string> = {
+      "山田": "ヤマダ", "中村": "ナカムラ", "小林": "コバヤシ", "加藤": "カトウ", "吉田": "ヨシダ",
+      "山口": "ヤマグチ", "松本": "マツモト", "井上": "イノウエ", "木村": "キムラ", "林": "ハヤシ",
+      "清水": "シミズ", "山崎": "ヤマザキ", "池田": "イケダ", "橋本": "ハシモト", "阿部": "アベ",
+      "石川": "イシカワ", "前田": "マエダ", "藤田": "フジタ", "小川": "オガワ", "岡田": "オカダ",
+      "後藤": "ゴトウ", "長谷川": "ハセガワ", "石井": "イシイ", "村上": "ムラカミ", "近藤": "コンドウ",
+      "坂本": "サカモト", "遠藤": "エンドウ", "青木": "アオキ", "藤井": "フジイ", "西村": "ニシムラ",
+      "福田": "フクダ", "太田": "オオタ", "三浦": "ミウラ", "岡本": "オカモト", "松田": "マツダ",
+      "中川": "ナカガワ", "中野": "ナカノ", "原田": "ハラダ", "小野": "オノ", "田村": "タムラ",
+      "竹内": "タケウチ", "金子": "カネコ", "和田": "ワダ", "中山": "ナカヤマ", "石田": "イシダ",
+      "上田": "ウエダ", "森田": "モリタ", "原": "ハラ", "柴田": "シバタ", "酒井": "サカイ",
+    };
+    const firstNameKanaMaleMap: Record<string, string> = {
+      "健太": "ケンタ", "大輔": "ダイスケ", "翔太": "ショウタ", "拓也": "タクヤ", "直人": "ナオト",
+      "達也": "タツヤ", "雄太": "ユウタ", "浩二": "コウジ", "哲也": "テツヤ", "誠": "マコト",
+      "和也": "カズヤ", "隆": "タカシ", "洋平": "ヨウヘイ", "秀樹": "ヒデキ", "剛": "ツヨシ",
+      "慎一": "シンイチ", "正志": "マサシ", "勝": "マサル", "博": "ヒロシ", "修": "オサム",
+      "敏夫": "トシオ", "義之": "ヨシユキ", "信一": "シンイチ", "幸一": "コウイチ", "広志": "ヒロシ",
+      "裕一": "ユウイチ", "昌弘": "マサヒロ", "和彦": "カズヒコ", "康之": "ヤスユキ", "宏": "ヒロシ",
+    };
+    const firstNameKanaFemaleMap: Record<string, string> = {
+      "美咲": "ミサキ", "さくら": "サクラ", "陽子": "ヨウコ", "恵美": "エミ", "裕子": "ユウコ",
+      "明美": "アケミ", "久美子": "クミコ", "由美": "ユミ", "智子": "トモコ", "真理子": "マリコ",
+      "直子": "ナオコ", "幸子": "サチコ", "洋子": "ヨウコ", "京子": "キョウコ", "典子": "ノリコ",
+      "和子": "カズコ", "節子": "セツコ", "正美": "マサミ", "千恵": "チエ", "麻衣": "マイ",
+    };
+
+    const companyNames = [
+      "株式会社テクノロジーズ", "グローバル株式会社", "フューチャー株式会社", "株式会社イノベーション",
+      "ネクスト株式会社", "株式会社アドバンス", "プライム株式会社", "株式会社ソリューションズ",
+      "スマート株式会社", "クリエイト株式会社", "株式会社パートナーズ", "デジタル株式会社",
+      "サポート株式会社", "株式会社コンサルティング", "エンタープライズ株式会社",
+      "株式会社リンク", "ファースト株式会社", "ブリッジ株式会社", "株式会社ワークス",
+      "アクセル株式会社", "株式会社ホールディングス", "トラスト株式会社",
+      "株式会社マネジメント", "ビジョン株式会社", "株式会社リサーチ",
+    ];
+
+    const cities = [
+      "千代田区大手町1-1-1", "港区六本木3-2-1", "渋谷区渋谷2-5-1", "新宿区西新宿1-1-1",
+      "中央区日本橋1-3-2", "品川区北品川5-1-1", "豊島区東池袋3-1-1", "文京区本郷3-1-1",
+      "横浜市西区みなとみらい2-1-1", "大阪市北区梅田1-1-1", "名古屋市中区栄3-1-1",
+      "福岡市中央区天神1-1-1", "札幌市中央区大通西1-1", "神戸市中央区三宮町1-1-1",
+    ];
+
+    const genders: ("male" | "female")[] = ["male", "female"];
+    const memberCategories: ("member" | "sponsor" | "observer")[] = ["member", "sponsor", "observer"];
+    const contractTypes: ("corporate" | "individual")[] = ["corporate", "individual"];
+    const jobChangeIntents: ("active" | "considering" | "if_good" | "not_thinking")[] = ["active", "considering", "if_good", "not_thinking"];
+    const auditMemberTypes: ("regular" | "online")[] = ["regular", "online"];
+
+    // 簡易的な疑似乱数（seedを固定して再現可能にする）
+    let seedRng = 42;
+    function nextRng() {
+      seedRng = (seedRng * 1103515245 + 12345) & 0x7fffffff;
+      return seedRng;
+    }
+    function pick<T>(arr: T[]): T {
+      return arr[nextRng() % arr.length];
+    }
+    function randomDate(startYear: number, endYear: number): Date {
+      const year = startYear + (nextRng() % (endYear - startYear + 1));
+      const month = nextRng() % 12;
+      const day = 1 + (nextRng() % 28);
+      return new Date(year, month, day);
+    }
+
+    for (let i = 1; i <= 100; i++) {
+      const gender = pick(genders);
+      const lastName = pick(lastNames);
+      const firstName = gender === "male" ? pick(firstNamesMale) : pick(firstNamesFemale);
+      const lastNameKana = lastNameKanaMap[lastName];
+      const firstNameKana = gender === "male" ? firstNameKanaMaleMap[firstName] : firstNameKanaFemaleMap[firstName];
+      const email = `seed-customer-${String(i).padStart(3, "0")}@example.com`;
+      const company = nextRng() % 10 > 1 ? pick(companyNames) : undefined; // 80%は会社あり
+      const phone = nextRng() % 3 === 0 ? `03${String(nextRng() % 100000000).padStart(8, "0")}` : undefined;
+      const postalCode = nextRng() % 3 === 0 ? `${String(100 + nextRng() % 900).padStart(3, "0")}${String(nextRng() % 10000).padStart(4, "0")}` : undefined;
+      const prefectureName = nextRng() % 3 === 0 ? pick(PREFECTURES) : undefined;
+      const city = prefectureName ? pick(cities) : undefined;
+      const jobChangeIntent = nextRng() % 3 === 0 ? pick(jobChangeIntents) : undefined;
+      const listingCategoryKey = nextRng() % 4 === 0 ? pick(LISTING_CATEGORIES) : undefined;
+      const note = nextRng() % 10 === 0 ? "seedで自動生成されたテストデータ" : undefined;
+
+      const prefId = prefectureName ? prefectureMap.get(prefectureName) : undefined;
+      const lcId = listingCategoryKey ? listingCategoryMap.get(`${listingCategoryKey.marketName}:${listingCategoryKey.stockExchangeName}`) : undefined;
+
+      // コミュニティの割り当てを先に決定（memberCategoryの判定に必要）
+      const communityAssignments: { communityId: number; community: typeof ventureAuditor }[] = [];
+      const r = nextRng() % 10;
+      if (r < 2) {
+        // 20%: コミュニティなし（非会員）
+      } else if (r < 5) {
+        // 30%: 1コミュニティ
+        const c = pick([ventureAuditor, naikanMeetup, aiClub]);
+        communityAssignments.push({ communityId: c.id, community: c });
+      } else if (r < 8) {
+        // 30%: 2コミュニティ（Fisher-Yatesシャッフル）
+        const arr = [ventureAuditor, naikanMeetup, aiClub];
+        for (let j = arr.length - 1; j > 0; j--) {
+          const k = nextRng() % (j + 1);
+          [arr[j], arr[k]] = [arr[k], arr[j]];
+        }
+        communityAssignments.push({ communityId: arr[0].id, community: arr[0] });
+        communityAssignments.push({ communityId: arr[1].id, community: arr[1] });
+      } else {
+        // 20%: 3コミュニティ
+        communityAssignments.push({ communityId: ventureAuditor.id, community: ventureAuditor });
+        communityAssignments.push({ communityId: naikanMeetup.id, community: naikanMeetup });
+        communityAssignments.push({ communityId: aiClub.id, community: aiClub });
+      }
+
+      // コミュニティ所属者には必ず会員区分を付与、非所属者はundefined固定
+      const hasCommunity = communityAssignments.length > 0;
+      const memberCategory = hasCommunity ? pick(memberCategories) : undefined;
+      const contractType = memberCategory ? pick(contractTypes) : undefined;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- seedスクリプト: 動的フィールド構築のためany使用
+      const createData: any = {
+        lastName,
+        firstName,
+        lastNameKana,
+        firstNameKana,
+        email,
+        gender,
+        prefectureId: prefId,
+        listingCategoryId: lcId,
+      };
+      if (company) createData.company = company;
+      if (phone) createData.phone = phone;
+      if (postalCode) createData.postalCode = postalCode;
+      if (city) createData.city = city;
+      createData.memberCategory = memberCategory ?? null;
+      createData.contractType = contractType ?? null;
+      if (jobChangeIntent) createData.jobChangeIntent = jobChangeIntent;
+      if (note) createData.note = note;
+
+      const customer = await prisma.customer.upsert({
+        where: { email },
+        update: createData,
+        create: createData,
+      });
+
+      // 前回seed実行時の古いコミュニティレコードをクリーンアップ
+      await prisma.customerCommunity.deleteMany({
+        where: { customerId: customer.id },
+      });
+
+      for (const { communityId, community } of communityAssignments) {
+        const joinedAt = randomDate(2023, 2025);
+        const isResigned = nextRng() % 10 === 0; // 10%は脱退
+        const resignedAt = isResigned ? randomDate(2025, 2026) : undefined;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- seedスクリプト: 動的フィールド構築のためany使用
+        const commData: any = {
+          customerId: customer.id,
+          communityId,
+          joinedAt,
+          resignedAt,
+        };
+
+        if (community.code === "venture_auditor") {
+          commData.auditMemberType = pick(auditMemberTypes);
+          commData.auditMemberPremium = nextRng() % 3 === 0; // 33%はプレミアム
+          commData.originIndustryId = originIndustryMap.get(pick(ORIGIN_INDUSTRIES));
+          commData.membershipQualificationId = membershipQualificationMap.get(pick(MEMBERSHIP_QUALIFICATIONS));
+        } else {
+          commData.affiliationId = affiliationMap.get(pick(AFFILIATIONS));
+        }
+
+        await prisma.customerCommunity.upsert({
+          where: {
+            customerId_communityId: {
+              customerId: customer.id,
+              communityId,
+            },
+          },
+          update: commData,
+          create: commData,
+        });
+      }
+
+      if (i % 20 === 0) {
+        console.log(`  ${i}/100 顧客を作成...`);
+      }
+    }
+    console.log("100人の顧客データを作成しました");
   }
 
   // テスト用イベントデータの投入

@@ -77,23 +77,31 @@ export async function sendInviteAction(
   }
 
   try {
-    // 既存RSVPのcustomerIdを取得（重複招待防止）
+    // 既存RSVPを取得（status含む）
     const existingRsvps = await prisma.rsvp.findMany({
       where: { eventId },
-      select: { customerId: true },
+      select: { customerId: true, status: true },
     });
-    const existingCustomerIds = new Set(existingRsvps.map((r) => r.customerId));
+    const existingRsvpMap = new Map(existingRsvps.map((r) => [r.customerId, r.status]));
 
-    // 新規送信対象のみ抽出
-    const newCustomerIds = customerIds.filter((id) => !existingCustomerIds.has(id));
+    // 回答済み（attending/online/absent）のIDを除外。pendingは再送対象
+    const answeredStatuses = new Set(["attending", "online", "absent"]);
+    const targetCustomerIds = customerIds.filter((id) => {
+      const status = existingRsvpMap.get(id);
+      return !status || !answeredStatuses.has(status);
+    });
 
-    if (newCustomerIds.length === 0) {
-      return { success: false, error: "選択された顧客は全て案内済みです" };
+    if (targetCustomerIds.length === 0) {
+      return { success: false, error: "選択された顧客は全て回答済みです" };
     }
+
+    // 新規 vs pending再送 を分類
+    const newCustomerIds = targetCustomerIds.filter((id) => !existingRsvpMap.has(id));
+    const pendingCustomerIds = targetCustomerIds.filter((id) => existingRsvpMap.get(id) === "pending");
 
     // 顧客情報取得（メール送信用）
     const customers = await prisma.customer.findMany({
-      where: { id: { in: newCustomerIds }, deletedAt: null },
+      where: { id: { in: targetCustomerIds }, deletedAt: null },
       select: { id: true, lastName: true, firstName: true, email: true },
     });
 
@@ -155,9 +163,30 @@ export async function sendInviteAction(
       }
     });
 
-    // 送信成功分のみRSVPレコード作成
-    if (successRsvpData.length > 0) {
-      await prisma.rsvp.createMany({ data: successRsvpData, skipDuplicates: true });
+    // 送信成功分のみRSVPレコード保存
+    const newRsvpData = successRsvpData.filter((d) => newCustomerIds.includes(d.customerId));
+    const pendingRsvpData = successRsvpData.filter((d) => pendingCustomerIds.includes(d.customerId));
+
+    // 新規顧客 → createMany
+    if (newRsvpData.length > 0) {
+      await prisma.rsvp.createMany({ data: newRsvpData, skipDuplicates: true });
+    }
+
+    // pending再送 → トークン更新（個別に失敗した場合はfailedとして集計）
+    for (const d of pendingRsvpData) {
+      try {
+        await prisma.rsvp.update({
+          where: { eventId_customerId: { eventId: d.eventId, customerId: d.customerId } },
+          data: { token: d.token },
+        });
+      } catch {
+        sentCount--;
+        failedCount++;
+        const customer = customers.find((c) => c.id === d.customerId);
+        if (customer) {
+          failedNames.push(`${customer.lastName} ${customer.firstName}`);
+        }
+      }
     }
 
     revalidatePath(`/admin/events/${eventId}`);

@@ -19,7 +19,7 @@ export type EventForDetail = Event & {
 
 export type EventForInvite = Event & {
   community: Community;
-  rsvps: Pick<Rsvp, "customerId">[];
+  rsvps: Pick<Rsvp, "customerId" | "status">[];
 };
 
 // ============================================================
@@ -149,7 +149,7 @@ export async function findEventByIdForInvite(
     include: {
       community: true,
       rsvps: {
-        select: { customerId: true },
+        select: { customerId: true, status: true },
       },
     },
   });

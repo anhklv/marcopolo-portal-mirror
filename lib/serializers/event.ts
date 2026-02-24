@@ -80,6 +80,6 @@ export function serializeEventForInvite(e: EventForInvite): SerializedEventForIn
       code: e.community.code,
       name: e.community.name,
     },
-    rsvpCustomerIds: e.rsvps.map((r) => r.customerId),
+    rsvps: e.rsvps.map((r) => ({ customerId: r.customerId, status: r.status })),
   };
 }

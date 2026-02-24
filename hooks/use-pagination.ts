@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 
-const DEFAULT_ITEMS_PER_PAGE = 10;
+const DEFAULT_ITEMS_PER_PAGE = 20;
 
 export function usePagination<T>(items: T[], itemsPerPage = DEFAULT_ITEMS_PER_PAGE) {
   const [currentPage, setCurrentPage] = useState(1);

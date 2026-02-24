@@ -14,7 +14,7 @@ import { sendInviteAction, sendTestInviteAction } from "@/lib/actions/invite.act
 // ============================================================
 
 export interface InviteCustomer extends SerializedCustomerForInvite {
-  isInvited?: boolean;
+  rsvpStatus: string | null; // null=未案内, "pending"=未回答
 }
 
 export type Step = "select" | "customize" | "confirm";
@@ -62,18 +62,28 @@ export function useInviteForm({
   const [inviteStatusSearch, setInviteStatusSearch] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  // 招待済みIDのセット
-  const invitedCustomerIds = useMemo(() => {
-    return new Set(event.rsvpCustomerIds);
-  }, [event.rsvpCustomerIds]);
+  // RSVP状態マップ（customerId → status）
+  const rsvpStatusMap = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const r of event.rsvps) {
+      map.set(r.customerId, r.status);
+    }
+    return map;
+  }, [event.rsvps]);
 
-  // 顧客リストに招待済み情報を付与
+  // 回答済み（attending/online/absent）を除外し、未案内/未回答のみ表示
   const customersWithStatus: InviteCustomer[] = useMemo(() => {
-    return customers.map((c) => ({
-      ...c,
-      isInvited: invitedCustomerIds.has(c.id),
-    }));
-  }, [customers, invitedCustomerIds]);
+    const answeredStatuses = new Set(["attending", "online", "absent"]);
+    return customers
+      .filter((c) => {
+        const status = rsvpStatusMap.get(c.id);
+        return !status || !answeredStatuses.has(status);
+      })
+      .map((c) => ({
+        ...c,
+        rsvpStatus: rsvpStatusMap.get(c.id) ?? null,
+      }));
+  }, [customers, rsvpStatusMap]);
 
   // フィルタリング実行
   const filteredCustomers = useMemo(() => {
@@ -90,8 +100,8 @@ export function useInviteForm({
     return baseFiltered.filter((customer) => {
       if (inviteStatuses.length > 0) {
         const matchesStatus = inviteStatuses.some((status) => {
-          if (status === "案内済み") return customer.isInvited;
-          if (status === "未案内") return !customer.isInvited;
+          if (status === "未案内") return customer.rsvpStatus === null;
+          if (status === "未回答") return customer.rsvpStatus === "pending";
           return true;
         });
         if (!matchesStatus) return false;
