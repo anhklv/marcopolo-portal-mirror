@@ -6,7 +6,7 @@ import {
   createCustomerAction,
   updateCustomerAction,
 } from "@/lib/actions/customer.actions";
-import type { ActionResult } from "@/lib/actions/customer.actions";
+import type { ActionResult } from "@/lib/types/action";
 import { COMMUNITY_CODE, COMMUNITY_NAME } from "@/lib/constants/community";
 import { useFieldErrors } from "@/lib/hooks/use-field-errors";
 import type { CommunityOption } from "@/lib/types/serialized";

@@ -17,8 +17,6 @@ import * as customerRepo from "@/lib/repositories/customer.repository";
 import { filterCustomers } from "@/lib/helpers/customer-filter";
 import type { ActionResult } from "@/lib/types/action";
 
-export type { ActionResult };
-
 // ============================================================
 // ヘルパー
 // ============================================================
