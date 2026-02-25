@@ -176,6 +176,7 @@ export function InviteForm({
                           label={community.name}
                           checked={form.selectedCommunityIds.includes(community.id)}
                           onCheckedChange={(c) => form.toggleCommunityId(community.id, c)}
+                          labelClassName="text-sm"
                         />
                       ))}
                       {currentUserRole === "super" && (
@@ -184,6 +185,7 @@ export function InviteForm({
                           label="非会員"
                           checked={form.includeNonMemberFilter}
                           onCheckedChange={form.setIncludeNonMemberFilter}
+                          labelClassName="text-sm"
                         />
                       )}
                     </div>
@@ -206,24 +208,15 @@ export function InviteForm({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[280px] p-0 bg-card" align="start">
-                <div className="p-3 border-b">
-                  <Input
-                    placeholder="案内状況を検索"
-                    value={form.inviteStatusSearch}
-                    onChange={(e) => form.setInviteStatusSearch(e.target.value)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div className="p-2">
-                  {["未案内", "未回答"]
-                    .filter((s) => s.includes(form.inviteStatusSearch))
-                    .map((status) => (
+                <div className="p-4 space-y-2">
+                  {["未案内", "未回答"].map((status) => (
                       <CheckboxItem
                         key={status}
                         id={`status-${status}`}
                         label={status}
                         checked={form.inviteStatuses.includes(status)}
                         onCheckedChange={(c) => form.toggleInviteStatus(status, c)}
+                        labelClassName="text-sm"
                       />
                     ))}
                 </div>
@@ -236,31 +229,37 @@ export function InviteForm({
                 label="元会員を含む"
                 checked={form.includeFormerMembers}
                 onCheckedChange={form.setIncludeFormerMembers}
+                labelClassName="text-sm"
               />
             </div>
           </div>
 
-          <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
-            <div>
-              <span className="font-medium">{form.selectedCustomerIds.length}名</span> 選択中
+          <div className="flex justify-start">
+            <div className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{form.selectedCustomerIds.length}</span>名選択中
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={form.toggleAllCustomers}
-              disabled={form.filteredCustomers.length === 0}
-            >
-              {form.selectedCustomerIds.length === form.filteredCustomers.length && form.filteredCustomers.length > 0
-                ? "すべて解除"
-                : "すべて選択"}
-            </Button>
           </div>
 
           <div className="rounded-lg bg-card">
             <Table className="[&_th]:py-4 [&_td]:py-4">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">選択</TableHead>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      aria-label="すべて選択"
+                      checked={
+                        form.filteredCustomers.length === 0
+                          ? false
+                          : form.selectedCustomerIds.length === form.filteredCustomers.length
+                            ? true
+                            : form.selectedCustomerIds.length > 0
+                              ? "indeterminate"
+                              : false
+                      }
+                      disabled={form.filteredCustomers.length === 0}
+                      onCheckedChange={() => form.toggleAllCustomers()}
+                    />
+                  </TableHead>
                   <TableHead>氏名</TableHead>
                   <TableHead>会社名</TableHead>
                   <TableHead>会員区分</TableHead>
@@ -377,7 +376,7 @@ export function InviteForm({
           <div className="space-y-4">
             <SectionHeading>送信先</SectionHeading>
             <p className="text-sm text-muted-foreground">{form.selectedCustomers.length}名に送信します</p>
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-sm max-h-[300px] overflow-y-auto">
               {form.selectedCustomers.map((customer) => (
                 <div key={customer.id}>
                   {customer.lastName} {customer.firstName} ({customer.email})

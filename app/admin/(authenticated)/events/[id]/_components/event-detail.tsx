@@ -97,7 +97,6 @@ export function EventDetail({ event }: EventDetailProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedStatuses, setSelectedStatuses] = useState<RsvpStatus[]>([]);
-  const [statusSearch, setStatusSearch] = useState("");
   const [localIsPaused, setLocalIsPaused] = useState(event.isPaused);
 
   // 参加者データ
@@ -310,23 +309,8 @@ export function EventDetail({ event }: EventDetailProps) {
                         className="w-[280px] p-0 bg-card"
                         align="start"
                       >
-                        <div className="p-3 border-b">
-                          <div className="relative">
-                            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                              placeholder="ステータスを検索"
-                              value={statusSearch}
-                              onChange={(e) => setStatusSearch(e.target.value)}
-                              className="pl-8 h-9 text-sm"
-                            />
-                          </div>
-                        </div>
-                        <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto">
-                          {RSVP_STATUSES.filter((status) =>
-                            status.label
-                              .toLowerCase()
-                              .includes(statusSearch.toLowerCase())
-                          ).map((status) => (
+                        <div className="p-4 space-y-2">
+                          {RSVP_STATUSES.map((status) => (
                             <CheckboxItem
                               key={status.value}
                               id={`rsvp-status-${status.value}`}
@@ -335,6 +319,7 @@ export function EventDetail({ event }: EventDetailProps) {
                               onCheckedChange={(checked) =>
                                 handleStatusChange(status.value, checked)
                               }
+                              labelClassName="text-sm"
                             />
                           ))}
                         </div>

@@ -59,7 +59,6 @@ export function useInviteForm({
   const [includeFormerMembers, setIncludeFormerMembers] = useState(false);
   const [includeNonMemberFilter, setIncludeNonMemberFilter] = useState(false);
   const [inviteStatuses, toggleInviteStatus] = useArrayToggle<string>();
-  const [inviteStatusSearch, setInviteStatusSearch] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   // RSVP状態マップ（customerId → status）
@@ -233,8 +232,6 @@ export function useInviteForm({
     setIncludeNonMemberFilter,
     inviteStatuses,
     toggleInviteStatus,
-    inviteStatusSearch,
-    setInviteStatusSearch,
     filteredCustomers,
     // ダイアログ
     confirmOpen,

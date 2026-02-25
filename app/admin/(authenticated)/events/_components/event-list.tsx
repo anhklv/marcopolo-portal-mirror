@@ -73,9 +73,7 @@ export function EventList({
   const router = useRouter();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [statuses, toggleStatus] = useArrayToggle<EventDisplayStatus>();
-  const [statusSearch, setStatusSearch] = useState("");
   const [eventTypes, toggleEventType] = useArrayToggle<string>();
-  const [eventTypeSearch, setEventTypeSearch] = useState("");
 
   const filteredEvents = useMemo(
     () =>
@@ -143,23 +141,8 @@ export function EventList({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[280px] p-0 bg-card" align="start">
-            <div className="p-3 border-b">
-              <div className="relative">
-                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="イベント種別を検索"
-                  value={eventTypeSearch}
-                  onChange={(e) => setEventTypeSearch(e.target.value)}
-                  className="pl-8 h-9 text-sm"
-                />
-              </div>
-            </div>
-            <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto">
-              {filterableCommunities
-                .filter((c) =>
-                  c.name.toLowerCase().includes(eventTypeSearch.toLowerCase())
-                )
-                .map((community) => (
+            <div className="p-4 space-y-2">
+              {filterableCommunities.map((community) => (
                   <CheckboxItem
                     key={community.id}
                     id={`event-type-${community.code}`}
@@ -188,25 +171,8 @@ export function EventList({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[280px] p-0 bg-card" align="start">
-            <div className="p-3 border-b">
-              <div className="relative">
-                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="ステータスを検索"
-                  value={statusSearch}
-                  onChange={(e) => setStatusSearch(e.target.value)}
-                  className="pl-8 h-9 text-sm"
-                />
-              </div>
-            </div>
-            <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto">
-              {(["receiving", "paused", "waiting", "closed"] as const)
-                .filter((s) =>
-                  getStatusLabel(s)
-                    .toLowerCase()
-                    .includes(statusSearch.toLowerCase())
-                )
-                .map((status) => (
+            <div className="p-4 space-y-2">
+              {(["receiving", "paused", "waiting", "closed"] as const).map((status) => (
                   <CheckboxItem
                     key={status}
                     id={`status-${status}`}

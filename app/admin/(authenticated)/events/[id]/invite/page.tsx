@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getAuthenticatedAdmin, canAccessEvent } from "@/lib/auth/permissions";
+import { COMMUNITY_CODE } from "@/lib/constants/community";
 import { findEventByIdForInvite } from "@/lib/repositories/event.repository";
 import { serializeEventForInvite } from "@/lib/serializers/event";
 import { serializeCustomerForInvite } from "@/lib/serializers/customer";
@@ -44,9 +45,12 @@ export default async function EventInvitePage({
     select: { email: true },
   });
 
-  // コミュニティ一覧（フィルタ用）
+  // コミュニティ一覧（フィルタ用。顧客の所属は主要3コミュニティのみのため「その他」は除外）
   const communities = await prisma.community.findMany({
-    where: isSuper ? undefined : { id: { in: scopedCommunityIds } },
+    where: {
+      code: { not: COMMUNITY_CODE.OTHER },
+      ...(isSuper ? {} : { id: { in: scopedCommunityIds } }),
+    },
     select: { id: true, code: true, name: true },
     orderBy: { sortOrder: "asc" },
   });
