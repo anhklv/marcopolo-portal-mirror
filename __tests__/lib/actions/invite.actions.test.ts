@@ -353,6 +353,60 @@ describe("sendInviteAction", () => {
     });
   });
 
+  it("正常系: subEmailsがある顧客はメイン+サブの宛先で送信される", async () => {
+    setupSuperAdmin();
+    mockPrisma.rsvp.findMany.mockResolvedValueOnce([]);
+    mockPrisma.customer.findMany.mockResolvedValue([
+      { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com", subEmails: ["tanaka-sub@example.com"] },
+    ]);
+    mockPrisma.rsvp.createMany.mockResolvedValue({ count: 1 });
+    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+
+    const result = await sendInviteAction({
+      ...validInviteData,
+      customerIds: [10],
+    });
+
+    expect(result).toEqual({
+      success: true,
+      sentCount: 1,
+      failedCount: 0,
+      failedNames: [],
+    });
+    expect(mockSendMail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "tanaka@example.com, tanaka-sub@example.com",
+      })
+    );
+  });
+
+  it("正常系: subEmailsが空配列の場合はメインアドレスのみで送信される", async () => {
+    setupSuperAdmin();
+    mockPrisma.rsvp.findMany.mockResolvedValueOnce([]);
+    mockPrisma.customer.findMany.mockResolvedValue([
+      { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com", subEmails: [] },
+    ]);
+    mockPrisma.rsvp.createMany.mockResolvedValue({ count: 1 });
+    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+
+    const result = await sendInviteAction({
+      ...validInviteData,
+      customerIds: [10],
+    });
+
+    expect(result).toEqual({
+      success: true,
+      sentCount: 1,
+      failedCount: 0,
+      failedNames: [],
+    });
+    expect(mockSendMail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "tanaka@example.com",
+      })
+    );
+  });
+
   it("異常系: DB操作エラー時にエラーメッセージを返す", async () => {
     setupSuperAdmin();
     mockPrisma.rsvp.findMany.mockRejectedValue(new Error("DB connection error"));
