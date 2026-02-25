@@ -29,7 +29,7 @@ export default async function DashboardLayout({
           }}
           debugMode={debugMode}
         />
-        <main className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain bg-card h-svh">
+        <main className="flex-1 min-h-svh bg-card">
           <div className="flex h-14 items-center border-b px-4">
             <SidebarTrigger />
           </div>

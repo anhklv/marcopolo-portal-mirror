@@ -97,8 +97,7 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
       <div className="flex items-center justify-between">
         <PageHeader
           backHref="/admin/customers"
-          title="顧客詳細"
-          description={`${customer.lastName} ${customer.firstName}さんの詳細情報`}
+          title={`${customer.lastName} ${customer.firstName}さんの詳細情報`}
         />
         <Button variant="outline" asChild>
           <Link href={`/admin/customers/${customer.id}/edit`}>

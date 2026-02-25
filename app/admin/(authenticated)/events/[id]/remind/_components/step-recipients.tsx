@@ -43,18 +43,16 @@ export function StepRecipients({ event, form }: StepRecipientsProps) {
 
       <StepIndicator currentStep={form.step} steps={REMIND_STEPS} />
 
-      <div className="space-y-4">
-        <div className="space-y-2">
+      <div className="space-y-6">
+        <div className="space-y-2 py-4">
           <SectionHeading>送信先確認</SectionHeading>
-          <p className="text-sm text-muted-foreground">
-            未回答者{event.pendingCustomers.length}名にリマインドメールを送信します。
+          <p className="text-base text-muted-foreground">
+            未回答者
+            <span className="font-bold text-foreground text-lg">
+              {event.pendingCustomers.length}名
+            </span>
+            にリマインドメールを送信します。
           </p>
-        </div>
-
-        <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
-          <div>
-            <span className="font-medium">{event.pendingCustomers.length}名</span> 送信予定
-          </div>
         </div>
 
         <div className="rounded-lg bg-card">
@@ -64,7 +62,6 @@ export function StepRecipients({ event, form }: StepRecipientsProps) {
                 <TableHead>氏名</TableHead>
                 <TableHead>会社名</TableHead>
                 <TableHead>会員区分</TableHead>
-                <TableHead>メールアドレス</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -81,9 +78,6 @@ export function StepRecipients({ event, form }: StepRecipientsProps) {
                         memberCategory={customer.memberCategory}
                       />
                     </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {[customer.email, ...customer.subEmails].filter(Boolean).join(", ")}
                   </TableCell>
                 </TableRow>
               ))}
