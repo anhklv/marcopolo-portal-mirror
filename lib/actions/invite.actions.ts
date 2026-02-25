@@ -99,10 +99,10 @@ export async function sendInviteAction(
     const newCustomerIds = targetCustomerIds.filter((id) => !existingRsvpMap.has(id));
     const pendingCustomerIds = targetCustomerIds.filter((id) => existingRsvpMap.get(id) === "pending");
 
-    // 顧客情報取得（メール送信用）
+    // 顧客情報取得（メール送信用。メイン＋サブメールアドレスへ送信）
     const customers = await prisma.customer.findMany({
       where: { id: { in: targetCustomerIds }, deletedAt: null },
-      select: { id: true, lastName: true, firstName: true, email: true },
+      select: { id: true, lastName: true, firstName: true, email: true, subEmails: true },
     });
 
     if (customers.length === 0) {
@@ -130,10 +130,11 @@ export async function sendInviteAction(
           const rsvpUrl = buildRsvpUrl(baseUrl, eventId, token);
           const customerName = `${customer.lastName} ${customer.firstName}`;
           const text = replacePlaceholders(emailBody, { rsvpUrl, customerName });
+          const recipients = [customer.email, ...(customer.subEmails ?? [])].filter(Boolean).join(", ");
 
           return sendMail({
             from,
-            to: customer.email,
+            to: recipients,
             subject: emailTitle,
             text,
           });

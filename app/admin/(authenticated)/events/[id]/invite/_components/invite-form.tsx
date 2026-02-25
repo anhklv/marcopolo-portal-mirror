@@ -379,7 +379,8 @@ export function InviteForm({
             <div className="space-y-2 text-sm max-h-[300px] overflow-y-auto">
               {form.selectedCustomers.map((customer) => (
                 <div key={customer.id}>
-                  {customer.lastName} {customer.firstName} ({customer.email})
+                  {customer.lastName} {customer.firstName} (
+                  {[customer.email, ...customer.subEmails].filter(Boolean).join(", ")})
                 </div>
               ))}
             </div>

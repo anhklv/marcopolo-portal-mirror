@@ -180,6 +180,7 @@ export interface SerializedCustomerForInvite {
   firstName: string;
   lastName: string;
   email: string;
+  subEmails: string[];
   company: string | null;
   memberCategory: string | null;
   customerCommunities: {

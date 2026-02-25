@@ -139,6 +139,7 @@ export function serializeCustomerForInvite(c: CustomerWithCommunities): Serializ
     firstName: c.firstName,
     lastName: c.lastName,
     email: c.email,
+    subEmails: c.subEmails,
     company: c.company,
     memberCategory: c.memberCategory,
     customerCommunities: c.customerCommunities.map((cc) => ({
