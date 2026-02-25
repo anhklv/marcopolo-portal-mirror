@@ -12,40 +12,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { PageHeader } from "@/components/ui/page-header";
-import { DataItem } from "@/components/ui/data-item";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { Stack } from "@/components/ui/stack";
-import { CheckboxItem } from "@/components/ui/checkbox-item";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   Mail,
@@ -53,29 +26,23 @@ import {
   MoreVertical,
   Pause,
   Play,
-  Search,
-  ChevronDown,
   Send,
   FileText,
-  Trash2,
 } from "lucide-react";
 import {
-  RSVP_STATUS_CONFIG,
-  RSVP_STATUSES,
   EVENT_STATUS_CONFIG,
-  AFTER_PARTY_STATUS_CONFIG,
 } from "@/lib/constants/event";
 import { getCommunityBadgeVariant } from "@/lib/constants/community";
-import { isRedirectError } from "@/lib/utils";
-import { formatEventDate, formatDateTime, getEventDisplayStatus } from "@/lib/utils/event";
+import { formatEventDate, getEventDisplayStatus } from "@/lib/utils/event";
 import {
   toAttendeeRows,
-  filterAttendees,
   computeEventSummary,
 } from "@/lib/helpers/event-detail";
-import { deleteEventAction, togglePauseEventAction } from "@/lib/actions/event.actions";
-import type { RsvpStatus, AfterPartyStatus } from "@/lib/generated/prisma";
+import { togglePauseEventAction } from "@/lib/actions/event.actions";
+import type { RsvpStatus } from "@/lib/generated/prisma";
 import type { SerializedEventDetail } from "@/lib/types/serialized";
+import { TabAttendees } from "./tab-attendees";
+import { TabDetail } from "./tab-detail";
 
 // ============================================================
 // 型定義
@@ -94,17 +61,12 @@ export function EventDetail({ event }: EventDetailProps) {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const tab = searchParams.get("tab") || "attendees";
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [localIsPaused, setLocalIsPaused] = useState(event.isPaused);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedStatuses, setSelectedStatuses] = useState<RsvpStatus[]>([]);
-  const [localIsPaused, setLocalIsPaused] = useState(event.isPaused);
 
   // 参加者データ
   const allRows = useMemo(() => toAttendeeRows(event.rsvps), [event.rsvps]);
-  const filteredRows = useMemo(
-    () => filterAttendees(allRows, searchKeyword, selectedStatuses),
-    [allRows, searchKeyword, selectedStatuses]
-  );
   const summary = useMemo(() => computeEventSummary(allRows), [allRows]);
 
   // イベントステータス（localIsPausedを反映）
@@ -115,30 +77,6 @@ export function EventDetail({ event }: EventDetailProps) {
   });
   const statusConfig = EVENT_STATUS_CONFIG[eventStatus];
   const isReceiving = eventStatus === "receiving";
-
-  const handleStatusChange = (status: RsvpStatus, checked: boolean) => {
-    if (checked) {
-      setSelectedStatuses([...selectedStatuses, status]);
-    } else {
-      setSelectedStatuses(selectedStatuses.filter((s) => s !== status));
-    }
-  };
-
-  const handleDelete = () => {
-    startTransition(async () => {
-      try {
-        const result = await deleteEventAction(event.id);
-        if (result && !result.success) {
-          toast.error(result.error);
-        }
-      } catch (err) {
-        if (isRedirectError(err)) {
-          return;
-        }
-        toast.error("削除に失敗しました");
-      }
-    });
-  };
 
   const handleTogglePause = () => {
     startTransition(async () => {
@@ -275,260 +213,19 @@ export function EventDetail({ event }: EventDetailProps) {
 
             {/* 参加状況タブ */}
             <TabsContent value="attendees" className="space-y-4">
-              <Card className="border-0">
-                <CardContent className="space-y-4 pt-6">
-                  {/* 検索・フィルタ */}
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <div className="relative flex-1 max-w-md">
-                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        type="search"
-                        placeholder="氏名、会社名で検索..."
-                        className="pl-9 h-9 text-sm"
-                        value={searchKeyword}
-                        onChange={(e) => setSearchKeyword(e.target.value)}
-                      />
-                    </div>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-[200px] justify-between h-9"
-                        >
-                          <span className="text-sm">
-                            {selectedStatuses.length === 0
-                              ? "受付ステータス"
-                              : selectedStatuses.length === 1
-                                ? RSVP_STATUS_CONFIG[selectedStatuses[0]].label
-                                : `${selectedStatuses.length}件選択`}
-                          </span>
-                          <ChevronDown className="h-4 w-4 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-[280px] p-0 bg-card"
-                        align="start"
-                      >
-                        <div className="p-4 space-y-2">
-                          {RSVP_STATUSES.map((status) => (
-                            <CheckboxItem
-                              key={status.value}
-                              id={`rsvp-status-${status.value}`}
-                              label={status.label}
-                              checked={selectedStatuses.includes(status.value)}
-                              onCheckedChange={(checked) =>
-                                handleStatusChange(status.value, checked)
-                              }
-                              labelClassName="text-sm"
-                            />
-                          ))}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  {/* 参加者テーブル */}
-                  <div className="rounded-lg bg-card">
-                    <Table className="[&_th]:py-4 [&_td]:py-4">
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>氏名</TableHead>
-                          <TableHead>会社名</TableHead>
-                          <TableHead>ステータス</TableHead>
-                          {event.hasAfterParty && (
-                            <TableHead>懇親会</TableHead>
-                          )}
-                          <TableHead>回答日時</TableHead>
-                          <TableHead>メッセージ</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredRows.length === 0 ? (
-                          <TableRow>
-                            <TableCell
-                              colSpan={event.hasAfterParty ? 6 : 5}
-                              className="text-center text-muted-foreground"
-                            >
-                              {allRows.length === 0
-                                ? "参加者がいません。"
-                                : "検索条件に一致する参加者が見つかりませんでした。"}
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          filteredRows.map((row) => {
-                            const statusConf =
-                              RSVP_STATUS_CONFIG[
-                                row.status as RsvpStatus
-                              ];
-                            return (
-                              <TableRow key={row.rsvpId}>
-                                <TableCell>
-                                  <Link
-                                    href={`/admin/customers/${row.customerId}`}
-                                    className="hover:underline"
-                                  >
-                                    {row.lastName} {row.firstName}
-                                  </Link>
-                                </TableCell>
-                                <TableCell>{row.company ?? "-"}</TableCell>
-                                <TableCell>
-                                  <Badge
-                                    variant={
-                                      statusConf?.variant ?? "outline"
-                                    }
-                                  >
-                                    {statusConf?.label ?? row.status}
-                                  </Badge>
-                                </TableCell>
-                                {event.hasAfterParty && (
-                                  <TableCell>
-                                    {row.afterPartyStatus ? (
-                                      <Badge variant="outline">
-                                        {AFTER_PARTY_STATUS_CONFIG[
-                                          row.afterPartyStatus as AfterPartyStatus
-                                        ]?.label ?? row.afterPartyStatus}
-                                      </Badge>
-                                    ) : (
-                                      <span className="text-muted-foreground">
-                                        -
-                                      </span>
-                                    )}
-                                  </TableCell>
-                                )}
-                                <TableCell>
-                                  {row.respondedAt
-                                    ? formatDateTime(row.respondedAt)
-                                    : "-"}
-                                </TableCell>
-                                <TableCell className="whitespace-normal max-w-md">
-                                  {row.comment ? (
-                                    <div className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
-                                      {row.comment}
-                                    </div>
-                                  ) : (
-                                    <span className="text-muted-foreground">
-                                      -
-                                    </span>
-                                  )}
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
+              <TabAttendees
+                event={event}
+                allRows={allRows}
+                searchKeyword={searchKeyword}
+                onSearchKeywordChange={setSearchKeyword}
+                selectedStatuses={selectedStatuses}
+                onSelectedStatusesChange={setSelectedStatuses}
+              />
             </TabsContent>
 
             {/* 詳細タブ */}
             <TabsContent value="detail" className="space-y-4">
-              <Card className="border-0">
-                <CardContent>
-                  <Stack gap="lg">
-                    <SectionHeading>イベント情報</SectionHeading>
-                    <div className="grid grid-cols-2 gap-6">
-                      <DataItem label="イベント種別">
-                        <Badge
-                          variant={getCommunityBadgeVariant(
-                            event.community.code
-                          )}
-                        >
-                          {event.community.name}
-                        </Badge>
-                      </DataItem>
-                      <DataItem label="開催日時">
-                        {formatEventDate(event.date)}
-                      </DataItem>
-                      {event.location && (
-                        <DataItem label="場所">
-                          <span className="whitespace-pre-wrap">
-                            {event.location}
-                          </span>
-                        </DataItem>
-                      )}
-                      {event.responseDeadline && (
-                        <DataItem label="回答期限">
-                          {formatEventDate(event.responseDeadline)}
-                        </DataItem>
-                      )}
-                      <DataItem label="オンライン参加">
-                        {event.allowsOnline ? "可能" : "不可"}
-                      </DataItem>
-                      <DataItem label="懇親会">
-                        {event.hasAfterParty ? "あり" : "なし"}
-                      </DataItem>
-                    </div>
-                    {event.description && (
-                      <>
-                        <SectionHeading>イベント概要</SectionHeading>
-                        <div className="text-base whitespace-pre-wrap">
-                          {event.description}
-                        </div>
-                      </>
-                    )}
-                    {event.timetable && (
-                      <>
-                        <SectionHeading>タイムテーブル</SectionHeading>
-                        <div className="text-base whitespace-pre-wrap">
-                          {event.timetable}
-                        </div>
-                      </>
-                    )}
-                    {event.note && (
-                      <>
-                        <SectionHeading>備考</SectionHeading>
-                        <div className="text-base whitespace-pre-wrap">
-                          {event.note}
-                        </div>
-                      </>
-                    )}
-                  </Stack>
-                </CardContent>
-              </Card>
-
-              {/* 削除ボタン */}
-              <div className="flex justify-end pt-4 border-t">
-                <Dialog
-                  open={isDeleteDialogOpen}
-                  onOpenChange={setIsDeleteDialogOpen}
-                >
-                  <DialogTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="border-destructive text-destructive bg-white hover:bg-white hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      削除
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="bg-card">
-                    <DialogHeader>
-                      <DialogTitle>イベントを削除</DialogTitle>
-                      <DialogDescription>
-                        このイベントを削除してもよろしいですか？この操作は取り消せません。
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsDeleteDialogOpen(false)}
-                      >
-                        キャンセル
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={handleDelete}
-                        disabled={isPending}
-                      >
-                        {isPending ? "削除中..." : "削除"}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
+              <TabDetail event={event} />
             </TabsContent>
           </Tabs>
         </div>
