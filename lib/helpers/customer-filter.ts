@@ -33,14 +33,11 @@ export function filterCustomers<T extends FilterableCustomer>(
   filters: CustomerListFilters
 ): T[] {
   return customers.filter((customer) => {
-    // フリーワード検索
+    // フリーワード検索（スペース区切りでAND検索）
     if (filters.keyword) {
-      const kw = filters.keyword.toLowerCase();
-      const matches =
-        customer.firstName.toLowerCase().includes(kw) ||
-        customer.lastName.toLowerCase().includes(kw) ||
-        (customer.company?.toLowerCase().includes(kw) ?? false) ||
-        customer.email.toLowerCase().includes(kw);
+      const tokens = filters.keyword.toLowerCase().split(/[\s\u3000]+/).filter(Boolean);
+      const searchTarget = `${customer.lastName} ${customer.firstName} ${customer.company ?? ""} ${customer.email}`.toLowerCase();
+      const matches = tokens.every((token) => searchTarget.includes(token));
       if (!matches) return false;
     }
 

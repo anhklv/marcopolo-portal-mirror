@@ -76,6 +76,40 @@ describe("customer-filter", () => {
     expect(result[0].id).toBe(1);
   });
 
+  it("スペース区切りでAND検索されること（姓名の組み合わせ）", () => {
+    const filters = { ...defaultFilters, keyword: "山田 太郎" };
+    const result = filterCustomers(mockCustomers, filters);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(1);
+  });
+
+  it("全角スペース区切りでもAND検索されること", () => {
+    const filters = { ...defaultFilters, keyword: "山田\u3000太郎" };
+    const result = filterCustomers(mockCustomers, filters);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(1);
+  });
+
+  it("姓名の逆順でもヒットすること", () => {
+    const filters = { ...defaultFilters, keyword: "太郎 山田" };
+    const result = filterCustomers(mockCustomers, filters);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(1);
+  });
+
+  it("姓と会社名の組み合わせでもヒットすること", () => {
+    const filters = { ...defaultFilters, keyword: "太郎 山田商事" };
+    const result = filterCustomers(mockCustomers, filters);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(1);
+  });
+
+  it("AND検索で全トークンが含まれない場合はヒットしないこと", () => {
+    const filters = { ...defaultFilters, keyword: "山田 次郎" };
+    const result = filterCustomers(mockCustomers, filters);
+    expect(result).toHaveLength(0);
+  });
+
   it("コミュニティIDでフィルタリングされること", () => {
     const filters = { ...defaultFilters, communityIds: [1] };
     const result = filterCustomers(mockCustomers, filters);
