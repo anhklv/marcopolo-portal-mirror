@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo, useTransition } from "react";
+import { useState, useMemo, useTransition, useCallback, useEffect } from "react";
 import { useArrayToggle } from "@/hooks/use-array-toggle";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { filterCustomers } from "@/lib/helpers/customer-filter";
 import type { SerializedEventForInvite, SerializedCustomerForInvite } from "@/lib/types/serialized";
@@ -17,7 +17,7 @@ export interface InviteCustomer extends SerializedCustomerForInvite {
   rsvpStatus: string | null; // null=未案内, "pending"=未回答
 }
 
-export type Step = "select" | "customize" | "confirm";
+export type Step = "select" | "email" | "confirm";
 
 export interface UseInviteFormProps {
   event: SerializedEventForInvite;
@@ -40,10 +40,26 @@ export function useInviteForm({
   defaultEmailBody,
 }: UseInviteFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  // ステップ管理
-  const [step, setStep] = useState<Step>("select");
+  // ステップ管理（URLベース: ?step=email, ?step=confirm, デフォルトはselect）
+  const rawStep = searchParams.get("step");
+  const urlStep: Step = (rawStep === "email" || rawStep === "confirm") ? rawStep : "select";
+
+  const buildStepUrl = useCallback((newStep: Step) => {
+    return newStep === "select"
+      ? `/admin/events/${event.id}/invite`
+      : `/admin/events/${event.id}/invite?step=${newStep}`;
+  }, [event.id]);
+
+  const setStep = useCallback((newStep: Step) => {
+    router.push(buildStepUrl(newStep));
+  }, [router, buildStepUrl]);
+
+  const replaceStep = useCallback((newStep: Step) => {
+    router.replace(buildStepUrl(newStep));
+  }, [router, buildStepUrl]);
 
   // 選択・フォーム状態
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<number[]>([]);
@@ -124,6 +140,17 @@ export function useInviteForm({
     return customers.filter((c) => selectedCustomerIds.includes(c.id));
   }, [customers, selectedCustomerIds]);
 
+  // リロード時フォールバック: データがなければselectに戻す
+  const step: Step = useMemo(() => {
+    if (urlStep === "email" && selectedCustomerIds.length === 0) return "select";
+    if (urlStep === "confirm" && (selectedCustomerIds.length === 0 || !emailTitle.trim() || !emailBody.trim())) return "select";
+    return urlStep;
+  }, [urlStep, selectedCustomerIds.length, emailTitle, emailBody]);
+
+  useEffect(() => {
+    if (step !== urlStep) replaceStep(step);
+  }, [step, urlStep, replaceStep]);
+
   // ============================================================
   // ハンドラ
   // ============================================================
@@ -133,7 +160,7 @@ export function useInviteForm({
       toast.error("案内する顧客を選択してください");
       return;
     }
-    setStep("customize");
+    setStep("email");
   };
 
   const handleCustomizeNext = () => {
