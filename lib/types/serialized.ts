@@ -211,3 +211,35 @@ export interface SerializedEvent {
   community: CommunityOption;
   attendeesCount: number;
 }
+
+// ============================================================
+// RSVP回答ページ用（rsvp-form.tsx）
+// ============================================================
+
+export interface SerializedRsvpPageData {
+  event: {
+    id: number;
+    title: string;
+    date: string;
+    location: string | null;
+    description: string | null;
+    timetable: string | null;
+    note: string | null;
+    allowsOnline: boolean;
+    hasAfterParty: boolean;
+    responseDeadline: string | null;
+    community: { name: string };
+  };
+  rsvp: {
+    id: number;
+    token: string;
+    status: string;
+    afterPartyStatus: string | null;
+    comment: string | null;
+    respondedAt: string | null;
+  };
+  customer: {
+    lastName: string;
+    firstName: string;
+  };
+}
