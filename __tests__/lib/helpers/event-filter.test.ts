@@ -108,6 +108,23 @@ describe("event-filter", () => {
     expect(result[0].id).toBe(2);
   });
 
+  it("スペース区切りでAND検索できること", () => {
+    const result = filterAndSortEvents(mockEvents, { ...defaultFilters, keyword: "監査役 第10回" });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(1);
+  });
+
+  it("全角スペース区切りでもAND検索できること", () => {
+    const result = filterAndSortEvents(mockEvents, { ...defaultFilters, keyword: "Meetup\u3000オンライン" });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(2);
+  });
+
+  it("AND検索で全トークンが含まれない場合はヒットしないこと", () => {
+    const result = filterAndSortEvents(mockEvents, { ...defaultFilters, keyword: "監査役 オンライン" });
+    expect(result).toHaveLength(0);
+  });
+
   // ============================================================
   // ステータスフィルタ
   // ============================================================

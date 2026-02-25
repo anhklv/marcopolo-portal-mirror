@@ -46,14 +46,11 @@ export function filterAndSortEvents<T extends FilterableEvent>(
   }));
 
   const filtered = enriched.filter((event) => {
-    // キーワード検索
+    // キーワード検索（スペース区切りでAND検索）
     if (filters.keyword) {
-      const kw = filters.keyword.toLowerCase();
-      const matches =
-        event.title.toLowerCase().includes(kw) ||
-        (event.location ?? "").toLowerCase().includes(kw) ||
-        (event.description ?? "").toLowerCase().includes(kw) ||
-        (event.note ?? "").toLowerCase().includes(kw);
+      const tokens = filters.keyword.toLowerCase().split(/[\s\u3000]+/).filter(Boolean);
+      const searchTarget = `${event.title} ${event.location ?? ""} ${event.description ?? ""} ${event.note ?? ""}`.toLowerCase();
+      const matches = tokens.every((token) => searchTarget.includes(token));
       if (!matches) return false;
     }
 

@@ -105,9 +105,10 @@ describe("filterAttendees", () => {
     expect(result[0].lastName).toBe("田中");
   });
 
-  it("姓名結合で検索（例: '田中太'）", () => {
-    const result = filterAttendees(rows, "田中太", []);
+  it("姓名をスペース区切りで検索できること（例: '田中 太郎'）", () => {
+    const result = filterAttendees(rows, "田中 太郎", []);
     expect(result).toHaveLength(1);
+    expect(result[0].lastName).toBe("田中");
   });
 
   it("会社名でキーワード検索", () => {
@@ -140,6 +141,29 @@ describe("filterAttendees", () => {
 
   it("一致なしの場合は空配列を返す", () => {
     const result = filterAttendees(rows, "存在しない名前", []);
+    expect(result).toHaveLength(0);
+  });
+
+  it("スペース区切りでAND検索できること（姓名の組み合わせ）", () => {
+    const result = filterAttendees(rows, "田中 太郎", []);
+    expect(result).toHaveLength(1);
+    expect(result[0].lastName).toBe("田中");
+  });
+
+  it("全角スペース区切りでもAND検索できること", () => {
+    const result = filterAttendees(rows, "佐藤\u3000花子", []);
+    expect(result).toHaveLength(1);
+    expect(result[0].lastName).toBe("佐藤");
+  });
+
+  it("姓名の逆順でもヒットすること", () => {
+    const result = filterAttendees(rows, "太郎 田中", []);
+    expect(result).toHaveLength(1);
+    expect(result[0].lastName).toBe("田中");
+  });
+
+  it("AND検索で全トークンが含まれない場合はヒットしないこと", () => {
+    const result = filterAttendees(rows, "田中 花子", []);
     expect(result).toHaveLength(0);
   });
 

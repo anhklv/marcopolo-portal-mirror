@@ -59,13 +59,13 @@ export function filterAttendees(
   statuses: RsvpStatus[]
 ): AttendeeRow[] {
   return rows.filter((row) => {
-    // キーワード検索（氏名・会社名）
-    const matchesKeyword =
-      keyword === "" ||
-      `${row.lastName}${row.firstName}`
-        .toLowerCase()
-        .includes(keyword.toLowerCase()) ||
-      (row.company?.toLowerCase().includes(keyword.toLowerCase()) ?? false);
+    // キーワード検索（氏名・会社名、スペース区切りでAND検索）
+    let matchesKeyword = true;
+    if (keyword) {
+      const tokens = keyword.toLowerCase().split(/[\s\u3000]+/).filter(Boolean);
+      const searchTarget = `${row.lastName} ${row.firstName} ${row.company ?? ""}`.toLowerCase();
+      matchesKeyword = tokens.every((token) => searchTarget.includes(token));
+    }
 
     // ステータスフィルタ（空配列 = 全表示）
     const matchesStatus =
