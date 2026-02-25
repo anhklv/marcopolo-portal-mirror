@@ -1,18 +1,29 @@
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
-import type { Step } from "./use-invite-form";
 
-const STEPS = [
+export interface StepConfig {
+  key: string;
+  label: string;
+  number: number;
+}
+
+export const INVITE_STEPS: readonly StepConfig[] = [
   { key: "select", label: "案内者を選択", number: 1 },
   { key: "email", label: "メール文作成", number: 2 },
   { key: "confirm", label: "確認", number: 3 },
   { key: "send", label: "送信", number: 4 },
 ] as const;
 
-export function StepIndicator({ currentStep }: { currentStep: Step }) {
+export function StepIndicator({
+  currentStep,
+  steps = INVITE_STEPS,
+}: {
+  currentStep: string;
+  steps?: readonly StepConfig[];
+}) {
   const getStepStatus = (stepKey: string) => {
-    const currentIndex = STEPS.findIndex((s) => s.key === currentStep);
-    const stepIndex = STEPS.findIndex((s) => s.key === stepKey);
+    const currentIndex = steps.findIndex((s) => s.key === currentStep);
+    const stepIndex = steps.findIndex((s) => s.key === stepKey);
 
     // "send" はインジケータ表示専用で、実際のstep状態としては使わない
     if (stepKey === "send") return "upcoming";
@@ -22,7 +33,7 @@ export function StepIndicator({ currentStep }: { currentStep: Step }) {
 
   return (
     <div className="flex items-center justify-between w-full mb-6">
-      {STEPS.map((stepItem) => {
+      {steps.map((stepItem) => {
         const status = getStepStatus(stepItem.key);
         return (
           <div key={stepItem.key} className="flex flex-col items-center flex-1">

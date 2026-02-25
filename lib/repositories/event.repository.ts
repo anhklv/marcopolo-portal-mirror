@@ -22,6 +22,24 @@ export type EventForInvite = Event & {
   rsvps: Pick<Rsvp, "customerId" | "status">[];
 };
 
+export type EventForRemind = Event & {
+  community: Community;
+  rsvps: (Pick<Rsvp, "customerId" | "status"> & {
+    customer: Pick<
+      Customer,
+      "id" | "lastName" | "firstName" | "email" | "subEmails" | "company" | "memberCategory"
+    > & {
+      customerCommunities: {
+        communityId: number;
+        resignedAt: Date | null;
+        auditMemberType: string | null;
+        auditMemberPremium: boolean | null;
+        community: { code: string; name: string };
+      }[];
+    };
+  })[];
+};
+
 // ============================================================
 // Repository 関数
 // ============================================================
@@ -150,6 +168,48 @@ export async function findEventByIdForInvite(
       community: true,
       rsvps: {
         select: { customerId: true, status: true },
+      },
+    },
+  });
+}
+
+/**
+ * イベントリマインド用取得（community + pending RSVP + customer情報 含む）
+ */
+export async function findEventByIdForRemind(
+  eventId: number
+): Promise<EventForRemind | null> {
+  return prisma.event.findFirst({
+    where: { id: eventId, deletedAt: null },
+    include: {
+      community: true,
+      rsvps: {
+        where: { status: "pending", customer: { deletedAt: null } },
+        include: {
+          customer: {
+            select: {
+              id: true,
+              lastName: true,
+              firstName: true,
+              email: true,
+              subEmails: true,
+              company: true,
+              memberCategory: true,
+              customerCommunities: {
+                select: {
+                  communityId: true,
+                  resignedAt: true,
+                  auditMemberType: true,
+                  auditMemberPremium: true,
+                  community: {
+                    select: { code: true, name: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
       },
     },
   });

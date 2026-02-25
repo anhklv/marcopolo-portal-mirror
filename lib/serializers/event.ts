@@ -1,7 +1,7 @@
 // イベントデータのシリアライズ関数
 
-import type { EventForDetail, EventForInvite, EventForList } from "@/lib/repositories/event.repository";
-import type { SerializedEvent, SerializedEventDetail, SerializedEventForInvite } from "@/lib/types/serialized";
+import type { EventForDetail, EventForInvite, EventForList, EventForRemind } from "@/lib/repositories/event.repository";
+import type { SerializedEvent, SerializedEventDetail, SerializedEventForInvite, SerializedEventForRemind } from "@/lib/types/serialized";
 
 /**
  * イベント一覧用シリアライズ
@@ -81,5 +81,44 @@ export function serializeEventForInvite(e: EventForInvite): SerializedEventForIn
       name: e.community.name,
     },
     rsvps: e.rsvps.map((r) => ({ customerId: r.customerId, status: r.status })),
+  };
+}
+
+/**
+ * イベントリマインド用シリアライズ
+ */
+export function serializeEventForRemind(e: EventForRemind): SerializedEventForRemind {
+  return {
+    id: e.id,
+    title: e.title,
+    date: e.date.toISOString(),
+    location: e.location,
+    description: e.description,
+    timetable: e.timetable,
+    note: e.note,
+    community: {
+      id: e.community.id,
+      code: e.community.code,
+      name: e.community.name,
+    },
+    pendingCustomers: e.rsvps.map((r) => ({
+      id: r.customer.id,
+      firstName: r.customer.firstName,
+      lastName: r.customer.lastName,
+      email: r.customer.email,
+      subEmails: r.customer.subEmails ?? [],
+      company: r.customer.company,
+      memberCategory: r.customer.memberCategory,
+      customerCommunities: r.customer.customerCommunities.map((cc) => ({
+        communityId: cc.communityId,
+        resignedAt: cc.resignedAt?.toISOString() ?? null,
+        auditMemberType: cc.auditMemberType,
+        auditMemberPremium: cc.auditMemberPremium,
+        community: {
+          code: cc.community.code,
+          name: cc.community.name,
+        },
+      })),
+    })),
   };
 }

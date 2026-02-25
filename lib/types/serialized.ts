@@ -196,6 +196,39 @@ export interface SerializedCustomerForInvite {
 }
 
 // ============================================================
+// イベントリマインド用（remind-form.tsx）
+// ============================================================
+
+export interface SerializedPendingCustomer {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  subEmails: string[];
+  company: string | null;
+  memberCategory: string | null;
+  customerCommunities: {
+    communityId: number;
+    resignedAt: string | null;
+    auditMemberType: string | null;
+    auditMemberPremium: boolean | null;
+    community: { code: string; name: string };
+  }[];
+}
+
+export interface SerializedEventForRemind {
+  id: number;
+  title: string;
+  date: string;
+  location: string | null;
+  description: string | null;
+  timetable: string | null;
+  note: string | null;
+  community: CommunityOption;
+  pendingCustomers: SerializedPendingCustomer[];
+}
+
+// ============================================================
 // イベント一覧用（event-list.tsx）
 // ============================================================
 
