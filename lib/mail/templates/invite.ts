@@ -2,6 +2,8 @@
  * イベント案内メールテンプレート
  */
 
+import { formatEventDate } from "@/lib/utils/event";
+
 interface InviteTemplateParams {
   eventTitle: string;
   eventDate: string;
@@ -9,25 +11,6 @@ interface InviteTemplateParams {
   eventDescription: string | null;
   eventTimetable: string | null;
   eventNote: string | null;
-}
-
-/**
- * 日付フォーマット: ISO8601 → "2028年6月15日(月) 18:00"
- */
-function formatEventDate(dateStr: string): string {
-  try {
-    const date = new Date(dateStr);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
-    const weekday = weekdays[date.getDay()];
-    return `${year}年${month}月${day}日(${weekday}) ${hours}:${minutes}`;
-  } catch {
-    return dateStr;
-  }
 }
 
 /**

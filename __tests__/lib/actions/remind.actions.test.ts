@@ -20,8 +20,10 @@ vi.mock("@/lib/auth/permissions", () => ({
 
 // mail/send のモック
 const mockSendMail = vi.fn();
+const mockSendMailBatch = vi.fn();
 vi.mock("@/lib/mail/send", () => ({
   sendMail: (...args: unknown[]) => mockSendMail(...args),
+  sendMailBatch: (...args: unknown[]) => mockSendMailBatch(...args),
 }));
 
 import {
@@ -75,7 +77,7 @@ describe("sendRemindAction", () => {
       { customerId: 20, status: "pending", customer: { id: 20, lastName: "佐藤", firstName: "花子", email: "sato@example.com", subEmails: [] } },
     ]);
     mockPrisma.rsvp.update.mockResolvedValue({});
-    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+    mockSendMailBatch.mockResolvedValue({ sentCount: 2, failedCount: 0, failedNames: [], successCustomerIds: [10, 20] });
 
     const result = await sendRemindAction(validRemindData);
 
@@ -85,7 +87,7 @@ describe("sendRemindAction", () => {
       failedCount: 0,
       failedNames: [],
     });
-    expect(mockSendMail).toHaveBeenCalledTimes(2);
+    expect(mockSendMailBatch).toHaveBeenCalledTimes(1);
     // トークン更新（updateが2回呼ばれる）
     expect(mockPrisma.rsvp.update).toHaveBeenCalledTimes(2);
     expect(mockPrisma.rsvp.update).toHaveBeenCalledWith({
@@ -99,13 +101,16 @@ describe("sendRemindAction", () => {
     expect(mockRevalidatePath).toHaveBeenCalledWith("/admin/events/1");
   });
 
-  it("正常系: subEmailsありの顧客はメイン+サブ宛先で送信される", async () => {
+  it("正常系: subEmailsありの顧客がsendMailBatchに渡される", async () => {
     setupSuperAdmin();
+    const customers = [
+      { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com", subEmails: ["tanaka-sub@example.com"] },
+    ];
     mockPrisma.rsvp.findMany.mockResolvedValueOnce([
-      { customerId: 10, status: "pending", customer: { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com", subEmails: ["tanaka-sub@example.com"] } },
+      { customerId: 10, status: "pending", customer: customers[0] },
     ]);
     mockPrisma.rsvp.update.mockResolvedValue({});
-    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+    mockSendMailBatch.mockResolvedValue({ sentCount: 1, failedCount: 0, failedNames: [], successCustomerIds: [10] });
 
     const result = await sendRemindAction(validRemindData);
 
@@ -115,31 +120,30 @@ describe("sendRemindAction", () => {
       failedCount: 0,
       failedNames: [],
     });
-    expect(mockSendMail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: "tanaka@example.com, tanaka-sub@example.com",
-      })
+    expect(mockSendMailBatch).toHaveBeenCalledWith(
+      expect.objectContaining({ customers })
     );
   });
 
-  it("正常系: 11名以上で複数バッチに分かれて送信される", async () => {
+  it("正常系: 12名の顧客に送信される", async () => {
     setupSuperAdmin();
 
     // 12名のpending RSVPを生成
-    const pendingRsvps = Array.from({ length: 12 }, (_, i) => ({
-      customerId: i + 1,
+    const customerIds = Array.from({ length: 12 }, (_, i) => i + 1);
+    const pendingRsvps = customerIds.map((id) => ({
+      customerId: id,
       status: "pending",
       customer: {
-        id: i + 1,
-        lastName: `姓${i + 1}`,
-        firstName: `名${i + 1}`,
-        email: `user${i + 1}@example.com`,
+        id,
+        lastName: `姓${id}`,
+        firstName: `名${id}`,
+        email: `user${id}@example.com`,
         subEmails: [],
       },
     }));
     mockPrisma.rsvp.findMany.mockResolvedValueOnce(pendingRsvps);
     mockPrisma.rsvp.update.mockResolvedValue({});
-    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+    mockSendMailBatch.mockResolvedValue({ sentCount: 12, failedCount: 0, failedNames: [], successCustomerIds: customerIds });
 
     const result = await sendRemindAction(validRemindData);
 
@@ -149,7 +153,14 @@ describe("sendRemindAction", () => {
       failedCount: 0,
       failedNames: [],
     });
-    expect(mockSendMail).toHaveBeenCalledTimes(12);
+    expect(mockSendMailBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customers: expect.arrayContaining([
+          expect.objectContaining({ id: 1 }),
+          expect.objectContaining({ id: 12 }),
+        ]),
+      })
+    );
   });
 
   it("正常系: メール送信失敗分はトークン未更新", async () => {
@@ -159,9 +170,7 @@ describe("sendRemindAction", () => {
       { customerId: 20, status: "pending", customer: { id: 20, lastName: "佐藤", firstName: "花子", email: "sato@example.com", subEmails: [] } },
     ]);
     // 1通目成功、2通目失敗
-    mockSendMail
-      .mockResolvedValueOnce({ success: true, messageId: "<msg>" })
-      .mockResolvedValueOnce({ success: false, error: "SMTP error" });
+    mockSendMailBatch.mockResolvedValue({ sentCount: 1, failedCount: 1, failedNames: ["佐藤 花子"], successCustomerIds: [10] });
     mockPrisma.rsvp.update.mockResolvedValue({});
 
     const result = await sendRemindAction(validRemindData);
@@ -238,7 +247,7 @@ describe("sendRemindAction", () => {
     mockPrisma.rsvp.findMany.mockResolvedValueOnce([
       { customerId: 10, status: "pending", customer: { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com", subEmails: [] } },
     ]);
-    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+    mockSendMailBatch.mockResolvedValue({ sentCount: 1, failedCount: 0, failedNames: [], successCustomerIds: [10] });
     mockPrisma.rsvp.update.mockRejectedValue(new Error("DB error"));
 
     const result = await sendRemindAction(validRemindData);
@@ -258,7 +267,7 @@ describe("sendRemindAction", () => {
       { customerId: 10, status: "pending", customer: { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com", subEmails: [] } },
     ]);
     mockPrisma.rsvp.update.mockResolvedValue({});
-    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+    mockSendMailBatch.mockResolvedValue({ sentCount: 1, failedCount: 0, failedNames: [], successCustomerIds: [10] });
 
     await sendRemindAction(validRemindData);
 

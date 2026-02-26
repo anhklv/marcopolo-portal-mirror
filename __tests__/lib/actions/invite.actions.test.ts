@@ -20,8 +20,10 @@ vi.mock("@/lib/auth/permissions", () => ({
 
 // mail/send のモック
 const mockSendMail = vi.fn();
+const mockSendMailBatch = vi.fn();
 vi.mock("@/lib/mail/send", () => ({
   sendMail: (...args: unknown[]) => mockSendMail(...args),
+  sendMailBatch: (...args: unknown[]) => mockSendMailBatch(...args),
 }));
 
 import {
@@ -77,7 +79,7 @@ describe("sendInviteAction", () => {
       { id: 20, lastName: "佐藤", firstName: "花子", email: "sato@example.com" },
     ]);
     mockPrisma.rsvp.createMany.mockResolvedValue({ count: 2 });
-    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+    mockSendMailBatch.mockResolvedValue({ sentCount: 2, failedCount: 0, failedNames: [], successCustomerIds: [10, 20] });
 
     const result = await sendInviteAction(validInviteData);
 
@@ -87,7 +89,7 @@ describe("sendInviteAction", () => {
       failedCount: 0,
       failedNames: [],
     });
-    expect(mockSendMail).toHaveBeenCalledTimes(2);
+    expect(mockSendMailBatch).toHaveBeenCalledTimes(1);
     // メール送信後にRSVP作成（新規のみcreateMany）
     expect(mockPrisma.rsvp.createMany).toHaveBeenCalledWith({
       data: expect.arrayContaining([
@@ -107,7 +109,7 @@ describe("sendInviteAction", () => {
       { id: 20, lastName: "佐藤", firstName: "花子", email: "sato@example.com" },
     ]);
     mockPrisma.rsvp.createMany.mockResolvedValue({ count: 1 });
-    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+    mockSendMailBatch.mockResolvedValue({ sentCount: 1, failedCount: 0, failedNames: [], successCustomerIds: [20] });
 
     const result = await sendInviteAction(validInviteData);
 
@@ -205,9 +207,7 @@ describe("sendInviteAction", () => {
     ]);
     mockPrisma.rsvp.createMany.mockResolvedValue({ count: 1 });
     // 1通目成功、2通目失敗
-    mockSendMail
-      .mockResolvedValueOnce({ success: true, messageId: "<msg>" })
-      .mockResolvedValueOnce({ success: false, error: "SMTP error" });
+    mockSendMailBatch.mockResolvedValue({ sentCount: 1, failedCount: 1, failedNames: ["佐藤 花子"], successCustomerIds: [10] });
 
     const result = await sendInviteAction(validInviteData);
 
@@ -224,7 +224,7 @@ describe("sendInviteAction", () => {
     });
   });
 
-  it("正常系: 11名以上で複数バッチに分かれて送信される", async () => {
+  it("正常系: 12名の顧客に送信される", async () => {
     setupSuperAdmin();
     mockPrisma.rsvp.findMany.mockResolvedValueOnce([]);
 
@@ -238,7 +238,7 @@ describe("sendInviteAction", () => {
     }));
     mockPrisma.customer.findMany.mockResolvedValue(customers);
     mockPrisma.rsvp.createMany.mockResolvedValue({ count: 12 });
-    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+    mockSendMailBatch.mockResolvedValue({ sentCount: 12, failedCount: 0, failedNames: [], successCustomerIds: customerIds });
 
     const result = await sendInviteAction({
       ...validInviteData,
@@ -251,7 +251,9 @@ describe("sendInviteAction", () => {
       failedCount: 0,
       failedNames: [],
     });
-    expect(mockSendMail).toHaveBeenCalledTimes(12);
+    expect(mockSendMailBatch).toHaveBeenCalledWith(
+      expect.objectContaining({ customers })
+    );
   });
 
   it("正常系: pending顧客への再送でトークンが更新される", async () => {
@@ -262,7 +264,7 @@ describe("sendInviteAction", () => {
       { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com" },
     ]);
     mockPrisma.rsvp.update.mockResolvedValue({});
-    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+    mockSendMailBatch.mockResolvedValue({ sentCount: 1, failedCount: 0, failedNames: [], successCustomerIds: [10] });
 
     const result = await sendInviteAction({
       ...validInviteData,
@@ -294,7 +296,7 @@ describe("sendInviteAction", () => {
     ]);
     mockPrisma.rsvp.createMany.mockResolvedValue({ count: 1 });
     mockPrisma.rsvp.update.mockResolvedValue({});
-    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+    mockSendMailBatch.mockResolvedValue({ sentCount: 2, failedCount: 0, failedNames: [], successCustomerIds: [10, 20] });
 
     const result = await sendInviteAction(validInviteData);
 
@@ -322,7 +324,7 @@ describe("sendInviteAction", () => {
     mockPrisma.customer.findMany.mockResolvedValue([
       { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com" },
     ]);
-    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+    mockSendMailBatch.mockResolvedValue({ sentCount: 1, failedCount: 0, failedNames: [], successCustomerIds: [10] });
     mockPrisma.rsvp.update.mockRejectedValue(new Error("DB error"));
 
     const result = await sendInviteAction({
@@ -353,14 +355,15 @@ describe("sendInviteAction", () => {
     });
   });
 
-  it("正常系: subEmailsがある顧客はメイン+サブの宛先で送信される", async () => {
+  it("正常系: subEmailsがある顧客がsendMailBatchに渡される", async () => {
     setupSuperAdmin();
     mockPrisma.rsvp.findMany.mockResolvedValueOnce([]);
-    mockPrisma.customer.findMany.mockResolvedValue([
+    const customers = [
       { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com", subEmails: ["tanaka-sub@example.com"] },
-    ]);
+    ];
+    mockPrisma.customer.findMany.mockResolvedValue(customers);
     mockPrisma.rsvp.createMany.mockResolvedValue({ count: 1 });
-    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
+    mockSendMailBatch.mockResolvedValue({ sentCount: 1, failedCount: 0, failedNames: [], successCustomerIds: [10] });
 
     const result = await sendInviteAction({
       ...validInviteData,
@@ -373,37 +376,8 @@ describe("sendInviteAction", () => {
       failedCount: 0,
       failedNames: [],
     });
-    expect(mockSendMail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: "tanaka@example.com, tanaka-sub@example.com",
-      })
-    );
-  });
-
-  it("正常系: subEmailsが空配列の場合はメインアドレスのみで送信される", async () => {
-    setupSuperAdmin();
-    mockPrisma.rsvp.findMany.mockResolvedValueOnce([]);
-    mockPrisma.customer.findMany.mockResolvedValue([
-      { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com", subEmails: [] },
-    ]);
-    mockPrisma.rsvp.createMany.mockResolvedValue({ count: 1 });
-    mockSendMail.mockResolvedValue({ success: true, messageId: "<msg>" });
-
-    const result = await sendInviteAction({
-      ...validInviteData,
-      customerIds: [10],
-    });
-
-    expect(result).toEqual({
-      success: true,
-      sentCount: 1,
-      failedCount: 0,
-      failedNames: [],
-    });
-    expect(mockSendMail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: "tanaka@example.com",
-      })
+    expect(mockSendMailBatch).toHaveBeenCalledWith(
+      expect.objectContaining({ customers })
     );
   });
 
