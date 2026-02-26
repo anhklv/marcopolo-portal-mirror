@@ -62,7 +62,9 @@ export function EventForm({
   const pageTitle = mode === "create" ? "イベント作成" : "イベント編集";
   const pageDescription = mode === "create"
     ? "新しいイベントを作成します。"
-    : "イベント情報を編集・更新します。";
+    : initialData
+      ? `${initialData.title}のイベント情報を編集・更新します。`
+      : "イベント情報を編集・更新します。";
   const submitLabel = mode === "create" ? "作成" : "更新";
   const pendingLabel = mode === "create" ? "作成中..." : "更新中...";
 

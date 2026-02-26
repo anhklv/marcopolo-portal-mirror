@@ -8,18 +8,20 @@ import { FormField } from "@/components/ui/form-field";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StepIndicator } from "../../invite/_components/step-indicator";
 import { REMIND_STEPS } from "./step-recipients";
+import type { SerializedEventForRemind } from "@/lib/types/serialized";
 import type { useRemindForm } from "./use-remind-form";
 
 interface StepEmailProps {
+  event: SerializedEventForRemind;
   form: ReturnType<typeof useRemindForm>;
 }
 
-export function StepEmail({ form }: StepEmailProps) {
+export function StepEmail({ event, form }: StepEmailProps) {
   return (
     <div className="max-w-4xl space-y-6">
       <PageHeader
         backAction={() => form.setStep("recipients")}
-        title="未回答者への再送"
+        title={event.title}
         description="リマインドメールのタイトルと本文を編集できます。"
       />
 

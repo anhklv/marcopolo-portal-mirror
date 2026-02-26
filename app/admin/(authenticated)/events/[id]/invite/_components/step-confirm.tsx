@@ -15,18 +15,20 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ActionButton } from "@/components/ui/action-button";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StepIndicator } from "./step-indicator";
+import type { SerializedEventForInvite } from "@/lib/types/serialized";
 import type { useInviteForm } from "./use-invite-form";
 
 interface StepConfirmProps {
+  event: SerializedEventForInvite;
   form: ReturnType<typeof useInviteForm>;
 }
 
-export function StepConfirm({ form }: StepConfirmProps) {
+export function StepConfirm({ event, form }: StepConfirmProps) {
   return (
     <div className="max-w-4xl space-y-6">
       <PageHeader
         backAction={() => form.setStep("email")}
-        title="案内メール送信"
+        title={event.title}
         description="送信内容を確認して、テスト送信または送信を実行してください。"
       />
 

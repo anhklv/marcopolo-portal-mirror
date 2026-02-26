@@ -37,7 +37,7 @@ export function StepRecipients({ event, form }: StepRecipientsProps) {
     <div className="max-w-4xl space-y-6">
       <PageHeader
         backHref={`/admin/events/${event.id}`}
-        title="未回答者への再送"
+        title={event.title}
         description="未回答者へのリマインドメールを送信します。"
       />
 

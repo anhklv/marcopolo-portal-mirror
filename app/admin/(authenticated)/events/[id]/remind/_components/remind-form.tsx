@@ -27,7 +27,7 @@ export function RemindForm({
   });
 
   if (form.step === "email") {
-    return <StepEmail form={form} />;
+    return <StepEmail event={event} form={form} />;
   }
 
   if (form.step === "confirm") {

@@ -43,7 +43,7 @@ export function StepSelect({ event, communities, currentUserRole, form }: StepSe
     <div className="max-w-4xl space-y-6">
       <PageHeader
         backHref={`/admin/events/${event.id}`}
-        title="案内メール送信"
+        title={event.title}
         description="案内メールを送信する顧客を選択してください。"
       />
 

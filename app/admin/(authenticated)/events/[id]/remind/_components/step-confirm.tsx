@@ -29,7 +29,7 @@ export function StepConfirm({ form, event }: StepConfirmProps) {
     <div className="max-w-4xl space-y-6">
       <PageHeader
         backAction={() => form.setStep("email")}
-        title="未回答者への再送"
+        title={event.title}
         description="送信内容を確認して、テスト送信または送信を実行してください。"
       />
 

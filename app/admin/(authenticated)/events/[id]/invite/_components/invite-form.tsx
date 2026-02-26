@@ -36,11 +36,11 @@ export function InviteForm({
   });
 
   if (form.step === "email") {
-    return <StepEmail form={form} />;
+    return <StepEmail event={event} form={form} />;
   }
 
   if (form.step === "confirm") {
-    return <StepConfirm form={form} />;
+    return <StepConfirm event={event} form={form} />;
   }
 
   return (

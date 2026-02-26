@@ -7,18 +7,20 @@ import { ActionButton } from "@/components/ui/action-button";
 import { FormField } from "@/components/ui/form-field";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StepIndicator } from "./step-indicator";
+import type { SerializedEventForInvite } from "@/lib/types/serialized";
 import type { useInviteForm } from "./use-invite-form";
 
 interface StepEmailProps {
+  event: SerializedEventForInvite;
   form: ReturnType<typeof useInviteForm>;
 }
 
-export function StepEmail({ form }: StepEmailProps) {
+export function StepEmail({ event, form }: StepEmailProps) {
   return (
     <div className="max-w-4xl space-y-6">
       <PageHeader
         backAction={() => form.setStep("select")}
-        title="案内メール送信"
+        title={event.title}
         description="案内メールのタイトルと本文を編集できます。"
       />
 
