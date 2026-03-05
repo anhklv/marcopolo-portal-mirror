@@ -23,11 +23,9 @@ export default auth((req) => {
   }
 
   // 開発用ページ: DEBUG_ADMIN_PANEL !== 'true' なら認証状態に関わらず 404
-  const debugPages = ["/admin/sitemap", "/admin/styleguide"];
-  if (debugPages.some((p) => pathname.startsWith(p))) {
-    if (process.env.DEBUG_ADMIN_PANEL !== "true") {
-      return new NextResponse("Not Found", { status: 404 });
-    }
+  const debugPages = ["/admin/docs/pagelist", "/admin/styleguide"];
+  if (debugPages.some((p) => pathname.startsWith(p)) && process.env.DEBUG_ADMIN_PANEL !== "true") {
+    return new NextResponse("Not Found", { status: 404 });
   }
 
   // /admin/* (login以外): 未認証なら /admin/login にリダイレクト

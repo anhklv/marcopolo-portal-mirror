@@ -81,8 +81,8 @@ export function AppSidebar({ admin, debugMode }: AppSidebarProps) {
       href: "/docs/画面設計書",
     },
     {
-      label: "画面一覧",
-      href: "/admin/sitemap",
+      label: "ページ実装完了リスト",
+      href: "/admin/docs/pagelist",
     },
     {
       label: "スタイルガイド",

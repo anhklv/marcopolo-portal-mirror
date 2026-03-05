@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedAdmin } from "@/lib/auth/permissions";
 import { findAllEvents } from "@/lib/repositories/event.repository";
@@ -5,6 +6,8 @@ import { serializeEventForList } from "@/lib/serializers/event";
 import { EventList } from "./_components/event-list";
 
 export default async function EventsPage() {
+  notFound();
+
   const { isSuper, scopedCommunityIds } = await getAuthenticatedAdmin();
 
   const events = await findAllEvents(scopedCommunityIds, isSuper);
