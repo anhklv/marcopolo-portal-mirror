@@ -26,7 +26,7 @@
 
 # AI遵守事項
 ## 実装ガイドライン
-* 実装時は `docs/実装ガイドライン_20260221.md` に従うこと
+* 実装時は `docs/実装ガイドライン_20260226.md` に従うこと
 
 ## 実装・修正に関するルール
 * 私の質問に対しては実装せず、回答のみを行うこと
@@ -40,6 +40,26 @@
 * 但しtest修正時はnpm run test:runも実行すること
 * 仕様はdocs/要件定義書.md、docs/画面設計書.mdがありますが実際のコードが優先です
 * コードを優先しそこからドキュメントを更新しています。大きな変更などがあれば更新するか訪ねてください
+
+# freee API連携の注意事項
+
+## freee-mcp の請求書API（service: "invoice"）が動かない場合
+- **原因**: freee-mcpは請求書API（`https://api.freee.co.jp/iv/`）へのリクエスト時に `company_id` をクエリパラメータとして自動付与しない。これにより `401 company_not_found` エラーになる
+- **対策**: freee-mcpの `freee_api_get` / `freee_api_post` を使わず、Pythonで直接APIを呼ぶ。トークンは `~/.config/freee-mcp/tokens.json` から取得できる
+- **ポイント**: エラーが出ても権限設定やOAuthスコープの問題ではない。`company_id` をクエリパラメータで渡せば動く
+
+```python
+# 正しい呼び出し例
+url = "https://api.freee.co.jp/iv/invoices?company_id=3406073"
+```
+
+## 請求書作成時のデフォルト値
+- `company_contact_name`: `"青木崇"`（自社担当者）
+
+## freee事業所情報
+- 事業所名: 株式会社Calme
+- 事業所ID: 3406073
+- 会計年度: 10月〜9月
 
 # DB情報
 dockerで立ち上げています。

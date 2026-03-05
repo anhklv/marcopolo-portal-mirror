@@ -9,7 +9,27 @@ const globalForPrisma = globalThis as unknown as {
 function createPrismaClient() {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
   const adapter = new PrismaPg(pool, { disposeExternalPool: true });
-  return new PrismaClient({ adapter });
+  const client = new PrismaClient({
+    adapter,
+    log:
+      process.env.NODE_ENV !== "production"
+        ? [
+            { emit: "event", level: "query" },
+            { emit: "stdout", level: "warn" },
+            { emit: "stdout", level: "error" },
+          ]
+        : [],
+  });
+
+  if (process.env.NODE_ENV !== "production") {
+    client.$on("query", (e) => {
+      console.log(`[Prisma Query] ${e.query}`);
+      console.log(`[Prisma Params] ${e.params}`);
+      console.log(`[Prisma Duration] ${e.duration}ms`);
+    });
+  }
+
+  return client;
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
