@@ -7,7 +7,23 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const connectionString = process.env.DATABASE_URL;
+
+  // URLオブジェクトでパースして確実にパラメータを取得し、pgに渡す
+  const url = new URL(connectionString!);
+  const pool = new Pool({
+    user: url.username,
+    password: url.password,
+    host: url.hostname,
+    port: parseInt(url.port),
+    database: url.pathname.slice(1),
+    ssl:
+      url.searchParams.get("sslmode") === "require" ||
+      url.host.includes("neon.tech")
+        ? true
+        : undefined,
+  });
+
   const adapter = new PrismaPg(pool, { disposeExternalPool: true });
   const client = new PrismaClient({
     adapter,
