@@ -48,7 +48,7 @@ export function LoginForm() {
           <div className="text-center">
             <h1 className="text-2xl font-bold tracking-tight">Marcopolo Admin</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              管理者ログイン3
+              管理者ログイン
             </p>
           </div>
 
