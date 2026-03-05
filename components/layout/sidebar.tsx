@@ -73,16 +73,8 @@ export function AppSidebar({ admin, debugMode }: AppSidebarProps) {
 
   const devMenuItems = [
     {
-      label: "要件定義書",
-      href: "/docs/要件定義書",
-    },
-    {
-      label: "画面設計書",
-      href: "/docs/画面設計書",
-    },
-    {
-      label: "ページ実装完了リスト",
-      href: "/admin/docs/pagelist",
+      label: "ドキュメント",
+      href: "/docs",
     },
     {
       label: "スタイルガイド",
@@ -128,7 +120,7 @@ export function AppSidebar({ admin, debugMode }: AppSidebarProps) {
                 <SidebarMenuItem>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <SidebarMenuButton isActive={devMenuItems.some((item) => pathname === item.href)}>
+                      <SidebarMenuButton isActive={devMenuItems.some((item) => pathname === item.href || (item.href === "/docs" && pathname.startsWith("/docs")))}>
                         <FileText />
                         <span>開発メニュー</span>
                         <ChevronRight className="ml-auto" />
@@ -142,7 +134,7 @@ export function AppSidebar({ admin, debugMode }: AppSidebarProps) {
                             href={item.href}
                             className={cn(
                               "cursor-pointer w-full",
-                              pathname === item.href && "bg-accent"
+                              (pathname === item.href || (item.href === "/docs" && pathname.startsWith("/docs"))) && "bg-accent"
                             )}
                           >
                             {item.label}

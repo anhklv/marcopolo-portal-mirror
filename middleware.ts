@@ -23,7 +23,7 @@ export default auth((req) => {
   }
 
   // 開発用ページ: DEBUG_ADMIN_PANEL !== 'true' なら認証状態に関わらず 404
-  const debugPages = ["/admin/docs/pagelist", "/admin/styleguide"];
+  const debugPages = ["/admin/styleguide"];
   if (debugPages.some((p) => pathname.startsWith(p)) && process.env.DEBUG_ADMIN_PANEL !== "true") {
     return new NextResponse("Not Found", { status: 404 });
   }
