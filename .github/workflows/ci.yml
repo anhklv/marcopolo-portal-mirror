@@ -36,8 +36,4 @@ jobs:
         run: npm run test:run
 
       - name: Build
-        env:
-          AUTH_SECRET: "ci-build-secret-minimum-32-characters-long"
-          AUTH_URL: "http://localhost:3000"
-          AUTH_TRUST_HOST: "true"
-        run: npm run build
+        run: AUTH_SECRET="ci-build-secret-minimum-32-characters-long" AUTH_URL="http://localhost:3000" AUTH_TRUST_HOST="true" npm run build
