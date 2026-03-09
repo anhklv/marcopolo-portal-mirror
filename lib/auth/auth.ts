@@ -11,8 +11,6 @@ const DUMMY_HASH = bcrypt.hashSync("dummy-password-for-timing", 10);
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
-  // ビルド時やリバースプロキシ環境でのホスト信頼設定
-  trustHost: true,
   session: {
     strategy: "jwt",
     // 少人数運用（〜10名）のため短いmaxAgeで対応。
