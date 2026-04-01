@@ -38,7 +38,7 @@ export function StepEmail({ event, form }: StepEmailProps) {
 
         <FormField
           label="メール本文"
-          description="{RSVP_URL} は送信時に顧客ごとの回答URLに自動置換されます。"
+          description="{RSVP_URL} は回答URL、{CUSTOMER_NAME} は姓 名に、送信時に顧客ごとに自動置換されます（例: {CUSTOMER_NAME}様 → 山田 太郎様）。"
         >
           <Textarea
             value={form.emailBody}

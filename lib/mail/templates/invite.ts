@@ -22,11 +22,13 @@ export function generateInviteSubject(params: InviteTemplateParams): string {
 
 /**
  * 案内メールの本文生成
- * {RSVP_URL} プレースホルダを含む
+ * - {CUSTOMER_NAME} … 姓 名（送信時に置換。本文では `{CUSTOMER_NAME}様` と書くと「姓 名様」になる）
+ * - {RSVP_URL} … RSVP回答URL
  */
 export function generateInviteBody(params: InviteTemplateParams): string {
   const sections: string[] = [];
 
+  sections.push(`{CUSTOMER_NAME}様`);
   sections.push(`いつも大変お世話になっております。`);
   sections.push(`${params.eventTitle}のご案内です。`);
 
