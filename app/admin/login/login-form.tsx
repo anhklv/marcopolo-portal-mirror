@@ -31,14 +31,14 @@ export function LoginForm() {
       if (result.success) {
         toast.success("ログインしました");
         router.push("/admin/customers");
-      } else {
-        toast.error(result.error ?? "ログインに失敗しました");
+        // 成功時は遷移完了までローディングを維持（router.push は完了を待たないため）
+        return;
       }
+      toast.error(result.error ?? "ログインに失敗しました");
     } catch {
       toast.error("ログイン中にエラーが発生しました");
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   return (
