@@ -28,21 +28,7 @@ export async function sendMail(params: SendMailParams): Promise<SendMailResult> 
     return { success: true, messageId: info.messageId };
   } catch (err) {
     const message = err instanceof Error ? err.message : "メール送信に失敗しました";
-    const smtpMeta =
-      err && typeof err === "object"
-        ? Object.fromEntries(
-            (["code", "command", "responseCode", "response", "errno", "syscall"] as const)
-              .filter((k) => k in err)
-              .map((k) => [k, (err as Record<string, unknown>)[k]])
-          )
-        : {};
-    console.error("[sendMail] SMTP送信失敗", {
-      to: params.to,
-      subject: params.subject,
-      error: message,
-      ...smtpMeta,
-      ...(err instanceof Error && err.stack ? { stack: err.stack } : {}),
-    });
+    console.error(`[sendMail] SMTP送信失敗: to=${params.to}, error=${message}`);
     return { success: false, error: message };
   }
 }
