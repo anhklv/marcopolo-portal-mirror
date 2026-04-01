@@ -12,6 +12,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
+/** 年ドロップダウンの下限（react-day-picker のデフォルトは約100年前） */
+const CALENDAR_DROPDOWN_YEAR_MIN = 2020;
+
 interface DatePickerWithInputProps {
   id?: string;
   value: string;
@@ -72,6 +75,10 @@ export function DatePickerWithInput({
 
   const displayError = error || inputError
 
+  // 年ドロップダウン: 2020年1月 〜 現在年+1年の12月まで
+  const calendarStartMonth = new Date(CALENDAR_DROPDOWN_YEAR_MIN, 0);
+  const calendarEndMonth = new Date(new Date().getFullYear() + 1, 11);
+
   return (
     <div className={className}>
       <div className="relative flex gap-2">
@@ -105,6 +112,8 @@ export function DatePickerWithInput({
               mode="single"
               selected={parsedDate}
               captionLayout="dropdown"
+              startMonth={calendarStartMonth}
+              endMonth={calendarEndMonth}
               month={month}
               onMonthChange={setMonth}
               onSelect={(newDate) => {
