@@ -2,10 +2,12 @@ import { prisma } from "@/lib/prisma";
 import type {
   Survey,
   SurveyQuestion,
+  SurveyResponse,
   SurveyToken,
   SurveyRating,
   FutureParticipation,
   MembershipInterest,
+  FixedSurveyResponse,
   Event,
   Community,
   Rsvp,
@@ -33,6 +35,22 @@ export type SurveyTokenForAnswerPage = SurveyToken & {
       community: { code: string };
     }[];
   };
+};
+
+type SurveyResultCustomer = Pick<
+  Customer,
+  "id" | "lastName" | "firstName" | "company"
+> & {
+  customerCommunities: {
+    resignedAt: Date | null;
+    community: { code: string };
+  }[];
+};
+
+export type SurveyResultData = {
+  survey: Survey & { questions: SurveyQuestion[] };
+  questionResponses: (SurveyResponse & { customer: SurveyResultCustomer })[];
+  fixedResponses: (FixedSurveyResponse & { customer: SurveyResultCustomer })[];
 };
 
 export type EventForSurveySend = Event & {
@@ -267,4 +285,48 @@ export async function saveSurveyResponses(data: {
       },
     });
   });
+}
+
+// ============================================================
+// アンケート結果用
+// ============================================================
+
+const surveyResultCustomerSelect = {
+  id: true,
+  lastName: true,
+  firstName: true,
+  company: true,
+  customerCommunities: {
+    select: {
+      resignedAt: true,
+      community: { select: { code: true } },
+    },
+  },
+} as const;
+
+/**
+ * イベントIDでアンケート結果データを取得
+ */
+export async function findSurveyResultsByEventId(
+  eventId: number
+): Promise<SurveyResultData | null> {
+  const survey = await prisma.survey.findUnique({
+    where: { eventId },
+    include: { questions: { orderBy: { sortOrder: "asc" } } },
+  });
+
+  if (!survey) return null;
+
+  const [questionResponses, fixedResponses] = await Promise.all([
+    prisma.surveyResponse.findMany({
+      where: { question: { surveyId: survey.id } },
+      include: { customer: { select: surveyResultCustomerSelect } },
+    }),
+    prisma.fixedSurveyResponse.findMany({
+      where: { surveyId: survey.id },
+      include: { customer: { select: surveyResultCustomerSelect } },
+    }),
+  ]);
+
+  return { survey, questionResponses, fixedResponses };
 }

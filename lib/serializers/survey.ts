@@ -1,11 +1,13 @@
 import type {
   EventForSurveySend,
   SurveyTokenForAnswerPage,
+  SurveyResultData,
 } from "@/lib/repositories/survey.repository";
 import type {
   SerializedEventForSurvey,
   SerializedAttendee,
   SerializedSurveyAnswerPageData,
+  SerializedSurveyResult,
 } from "@/lib/types/serialized";
 import { COMMUNITY_CODE } from "@/lib/constants/community";
 
@@ -101,5 +103,64 @@ export function serializeSurveyForAnswerPage(
       id: surveyToken.id,
       token: surveyToken.token,
     },
+  };
+}
+
+/**
+ * アンケート結果シリアライズ
+ */
+export function serializeSurveyResult(
+  data: SurveyResultData
+): SerializedSurveyResult {
+  const isMember = (
+    cc: { resignedAt: Date | null; community: { code: string } }[]
+  ) =>
+    cc.some(
+      (c) =>
+        c.community.code === COMMUNITY_CODE.VENTURE_AUDITOR &&
+        c.resignedAt === null
+    );
+
+  // 回答者リスト（fixedResponses から一意の顧客を抽出）
+  const respondentMap = new Map<
+    number,
+    SurveyResultData["fixedResponses"][number]["customer"]
+  >();
+  for (const fr of data.fixedResponses) {
+    if (!respondentMap.has(fr.customer.id)) {
+      respondentMap.set(fr.customer.id, fr.customer);
+    }
+  }
+
+  return {
+    questions: data.survey.questions.map((q) => ({
+      id: q.id,
+      title: q.title,
+      sortOrder: q.sortOrder,
+    })),
+    questionResponses: data.questionResponses.map((qr) => ({
+      questionId: qr.questionId,
+      customerId: qr.customerId,
+      rating: qr.rating,
+      reason: qr.reason,
+    })),
+    fixedResponses: data.fixedResponses.map((fr) => ({
+      customerId: fr.customerId,
+      afterPartyRating: fr.afterPartyRating,
+      afterPartyReason: fr.afterPartyReason,
+      futureParticipation: fr.futureParticipation,
+      futureParticipationReason: fr.futureParticipationReason,
+      membership: fr.membership,
+      membershipReason: fr.membershipReason,
+      comments: fr.comments,
+      respondedAt: fr.respondedAt?.toISOString() ?? null,
+    })),
+    respondents: Array.from(respondentMap.values()).map((c) => ({
+      id: c.id,
+      lastName: c.lastName,
+      firstName: c.firstName,
+      company: c.company,
+      isMemberOfVentureAuditor: isMember(c.customerCommunities),
+    })),
   };
 }

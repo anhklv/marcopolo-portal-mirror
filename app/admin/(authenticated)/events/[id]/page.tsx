@@ -1,6 +1,8 @@
 import { getAuthenticatedAdmin, canAccessEvent } from "@/lib/auth/permissions";
 import { findEventByIdForDetail } from "@/lib/repositories/event.repository";
+import { findSurveyResultsByEventId } from "@/lib/repositories/survey.repository";
 import { serializeEventForDetail } from "@/lib/serializers/event";
+import { serializeSurveyResult } from "@/lib/serializers/survey";
 import { EventDetail } from "./_components/event-detail";
 import { notFound } from "next/navigation";
 
@@ -28,5 +30,16 @@ export default async function EventDetailPage({
     notFound();
   }
 
-  return <EventDetail event={serializeEventForDetail(event)} />;
+  const serializedEvent = serializeEventForDetail(event);
+
+  // アンケート対応コミュニティの場合のみ結果データを取得
+  let surveyResult = null;
+  if (serializedEvent.community.hasSurvey) {
+    const resultData = await findSurveyResultsByEventId(eventId);
+    if (resultData) {
+      surveyResult = serializeSurveyResult(resultData);
+    }
+  }
+
+  return <EventDetail event={serializedEvent} surveyResult={surveyResult} />;
 }

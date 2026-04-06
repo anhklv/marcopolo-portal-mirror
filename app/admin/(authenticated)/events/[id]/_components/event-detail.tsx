@@ -40,9 +40,13 @@ import {
 } from "@/lib/helpers/event-detail";
 import { togglePauseEventAction } from "@/lib/actions/event.actions";
 import type { RsvpStatus } from "@/lib/generated/prisma";
-import type { SerializedEventDetail } from "@/lib/types/serialized";
+import type {
+  SerializedEventDetail,
+  SerializedSurveyResult,
+} from "@/lib/types/serialized";
 import { TabAttendees } from "./tab-attendees";
 import { TabDetail } from "./tab-detail";
+import { TabSurvey } from "./tab-survey";
 
 // ============================================================
 // 型定義
@@ -50,13 +54,14 @@ import { TabDetail } from "./tab-detail";
 
 interface EventDetailProps {
   event: SerializedEventDetail;
+  surveyResult: SerializedSurveyResult | null;
 }
 
 // ============================================================
 // コンポーネント
 // ============================================================
 
-export function EventDetail({ event }: EventDetailProps) {
+export function EventDetail({ event, surveyResult }: EventDetailProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -209,6 +214,14 @@ export function EventDetail({ event }: EventDetailProps) {
               >
                 詳細
               </TabsTrigger>
+              {event.community.hasSurvey && (
+                <TabsTrigger
+                  value="survey"
+                  className="px-4 py-2.5 text-sm font-medium"
+                >
+                  アンケート結果
+                </TabsTrigger>
+              )}
             </TabsList>
 
             {/* 参加状況タブ */}
@@ -227,6 +240,16 @@ export function EventDetail({ event }: EventDetailProps) {
             <TabsContent value="detail" className="space-y-4">
               <TabDetail event={event} />
             </TabsContent>
+
+            {/* アンケート結果タブ */}
+            {event.community.hasSurvey && (
+              <TabsContent value="survey" className="space-y-4">
+                <TabSurvey
+                  event={event}
+                  surveyResult={surveyResult}
+                />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
 
