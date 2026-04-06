@@ -229,6 +229,36 @@ export interface SerializedEventForRemind {
 }
 
 // ============================================================
+// アンケート送信用（survey-send-form.tsx）
+// ============================================================
+
+export interface SerializedAttendee {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  subEmails: string[];
+  company: string | null;
+  memberCategory: string | null;
+  rsvpStatus: string;
+  customerCommunities: {
+    communityId: number;
+    resignedAt: string | null;
+    auditMemberType: string | null;
+    auditMemberPremium: boolean | null;
+    community: { code: string; name: string };
+  }[];
+}
+
+export interface SerializedEventForSurvey {
+  id: number;
+  title: string;
+  date: string;
+  community: CommunityOption & { hasSurvey: boolean };
+  surveyId: number | null;
+}
+
+// ============================================================
 // イベント一覧用（event-list.tsx）
 // ============================================================
 

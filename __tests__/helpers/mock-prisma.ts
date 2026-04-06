@@ -49,6 +49,11 @@ export const mockPrisma = {
     deleteMany: vi.fn(),
     createMany: vi.fn(),
   },
+  surveyToken: {
+    findMany: vi.fn(),
+    createMany: vi.fn(),
+    update: vi.fn(),
+  },
   $transaction: vi.fn(),
 };
 
