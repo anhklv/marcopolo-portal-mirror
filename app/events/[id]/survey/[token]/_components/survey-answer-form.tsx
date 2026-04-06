@@ -1,7 +1,5 @@
 "use client";
 
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Stack } from "@/components/ui/stack";
 import { FormField } from "@/components/ui/form-field";
@@ -16,6 +14,7 @@ import {
   MEMBERSHIP_INTEREST_OPTIONS,
   MEMBERSHIP_INTEREST_LABELS,
 } from "@/lib/constants/survey";
+import { SurveyRatingField } from "./survey-rating-field";
 import { useSurveyAnswerForm } from "./use-survey-answer-form";
 import type { SerializedSurveyAnswerPageData } from "@/lib/types/serialized";
 
@@ -27,15 +26,6 @@ interface SurveyAnswerFormProps {
   data: SerializedSurveyAnswerPageData;
   isPreview?: boolean;
 }
-
-// ============================================================
-// ヘルパー
-// ============================================================
-
-const getRatingBoxClass = (selected: boolean) =>
-  selected
-    ? "border-blue-500 bg-blue-50 text-blue-900"
-    : "border-muted bg-muted/50 hover:bg-accent hover:text-accent-foreground";
 
 // ============================================================
 // メインコンポーネント
@@ -121,192 +111,71 @@ export function SurveyAnswerForm({
 
               {/* 管理者設問 */}
               {data.survey.questions.map((question) => (
-                <Stack key={question.id} gap="md">
-                  <Label className="text-base font-medium">
-                    {question.title}{" "}
-                    <span className="text-destructive">*</span>
-                  </Label>
-
-                  <RadioGroup
-                    value={questionAnswers[question.id]?.rating || ""}
-                    onValueChange={(value) =>
-                      updateQuestionAnswer(question.id, "rating", value)
-                    }
-                    className="grid grid-cols-4 gap-4"
-                  >
-                    {SURVEY_RATING_OPTIONS.map((rating) => (
-                      <div key={rating}>
-                        <RadioGroupItem
-                          value={rating}
-                          id={`question-${question.id}-${rating}`}
-                          className="peer sr-only"
-                        />
-                        <Label
-                          htmlFor={`question-${question.id}-${rating}`}
-                          className={`flex flex-col items-center justify-center rounded-md border-2 px-4 py-6 cursor-pointer text-center transition-colors ${getRatingBoxClass(questionAnswers[question.id]?.rating === rating)}`}
-                        >
-                          <span className="font-semibold">
-                            {SURVEY_RATING_LABELS[rating]}
-                          </span>
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-
-                  <FormField label="上記を選んだ理由を、具体的に教えて下さい。">
-                    <Textarea
-                      id={`reason-${question.id}`}
-                      value={questionAnswers[question.id]?.reason || ""}
-                      onChange={(e) =>
-                        updateQuestionAnswer(
-                          question.id,
-                          "reason",
-                          e.target.value
-                        )
-                      }
-                      rows={4}
-                    />
-                  </FormField>
-                </Stack>
+                <SurveyRatingField
+                  key={question.id}
+                  label={question.title}
+                  required
+                  options={SURVEY_RATING_OPTIONS}
+                  labels={SURVEY_RATING_LABELS}
+                  value={questionAnswers[question.id]?.rating || null}
+                  onValueChange={(value) =>
+                    updateQuestionAnswer(question.id, "rating", value)
+                  }
+                  reason={questionAnswers[question.id]?.reason || ""}
+                  onReasonChange={(value) =>
+                    updateQuestionAnswer(question.id, "reason", value)
+                  }
+                  idPrefix={`question-${question.id}`}
+                />
               ))}
 
               {/* 懇親会 */}
               {showAfterParty && (
-                <Stack gap="md">
-                  <Label className="text-base font-medium">懇親会</Label>
-
-                  <RadioGroup
-                    value={afterPartyRating || ""}
-                    onValueChange={(value) =>
-                      setAfterPartyRating(
-                        value as typeof afterPartyRating
-                      )
-                    }
-                    className="grid grid-cols-4 gap-4"
-                  >
-                    {SURVEY_RATING_OPTIONS.map((rating) => (
-                      <div key={rating}>
-                        <RadioGroupItem
-                          value={rating}
-                          id={`after-party-${rating}`}
-                          className="peer sr-only"
-                        />
-                        <Label
-                          htmlFor={`after-party-${rating}`}
-                          className={`flex flex-col items-center justify-center rounded-md border-2 px-4 py-6 cursor-pointer text-center transition-colors ${getRatingBoxClass(afterPartyRating === rating)}`}
-                        >
-                          <span className="font-semibold">
-                            {SURVEY_RATING_LABELS[rating]}
-                          </span>
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-
-                  <FormField label="上記を選んだ理由を、具体的に教えて下さい。">
-                    <Textarea
-                      id="after-party-reason"
-                      value={afterPartyReason}
-                      onChange={(e) =>
-                        setAfterPartyReason(e.target.value)
-                      }
-                      rows={4}
-                    />
-                  </FormField>
-                </Stack>
+                <SurveyRatingField
+                  label="懇親会"
+                  options={SURVEY_RATING_OPTIONS}
+                  labels={SURVEY_RATING_LABELS}
+                  value={afterPartyRating}
+                  onValueChange={(value) =>
+                    setAfterPartyRating(value as typeof afterPartyRating)
+                  }
+                  reason={afterPartyReason}
+                  onReasonChange={setAfterPartyReason}
+                  idPrefix="after-party"
+                />
               )}
 
               {/* 今後の参加について（必須） */}
-              <Stack gap="md">
-                <Label className="text-base font-medium">
-                  今後の参加について{" "}
-                  <span className="text-destructive">*</span>
-                </Label>
-
-                <RadioGroup
-                  value={futureParticipation || ""}
-                  onValueChange={(value) =>
-                    setFutureParticipation(
-                      value as typeof futureParticipation
-                    )
-                  }
-                  className="grid grid-cols-3 gap-4"
-                >
-                  {FUTURE_PARTICIPATION_OPTIONS.map((option) => (
-                    <div key={option}>
-                      <RadioGroupItem
-                        value={option}
-                        id={`future-participation-${option}`}
-                        className="peer sr-only"
-                      />
-                      <Label
-                        htmlFor={`future-participation-${option}`}
-                        className={`flex flex-col items-center justify-center rounded-md border-2 px-4 py-6 cursor-pointer text-center transition-colors ${getRatingBoxClass(futureParticipation === option)}`}
-                      >
-                        <span className="font-semibold">
-                          {FUTURE_PARTICIPATION_LABELS[option]}
-                        </span>
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-
-                <FormField label="上記を選んだ理由を、具体的に教えて下さい。">
-                  <Textarea
-                    id="future-participation-reason"
-                    value={futureParticipationReason}
-                    onChange={(e) =>
-                      setFutureParticipationReason(e.target.value)
-                    }
-                    rows={4}
-                  />
-                </FormField>
-              </Stack>
+              <SurveyRatingField
+                label="今後の参加について"
+                required
+                options={FUTURE_PARTICIPATION_OPTIONS}
+                labels={FUTURE_PARTICIPATION_LABELS}
+                value={futureParticipation}
+                onValueChange={(value) =>
+                  setFutureParticipation(value as typeof futureParticipation)
+                }
+                reason={futureParticipationReason}
+                onReasonChange={setFutureParticipationReason}
+                idPrefix="future-participation"
+                cols={3}
+              />
 
               {/* ベンチャー監査役の会への入会について */}
               {showMembership && (
-                <Stack gap="md">
-                  <Label className="text-base font-medium">
-                    ベンチャー監査役の会への入会について
-                  </Label>
-
-                  <RadioGroup
-                    value={membership || ""}
-                    onValueChange={(value) =>
-                      setMembership(value as typeof membership)
-                    }
-                    className="grid grid-cols-3 gap-4"
-                  >
-                    {MEMBERSHIP_INTEREST_OPTIONS.map((option) => (
-                      <div key={option}>
-                        <RadioGroupItem
-                          value={option}
-                          id={`membership-${option}`}
-                          className="peer sr-only"
-                        />
-                        <Label
-                          htmlFor={`membership-${option}`}
-                          className={`flex flex-col items-center justify-center rounded-md border-2 px-4 py-6 cursor-pointer text-center transition-colors ${getRatingBoxClass(membership === option)}`}
-                        >
-                          <span className="font-semibold">
-                            {MEMBERSHIP_INTEREST_LABELS[option]}
-                          </span>
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-
-                  <FormField label="上記を選んだ理由を、具体的に教えて下さい。">
-                    <Textarea
-                      id="membership-reason"
-                      value={membershipReason}
-                      onChange={(e) =>
-                        setMembershipReason(e.target.value)
-                      }
-                      rows={4}
-                    />
-                  </FormField>
-                </Stack>
+                <SurveyRatingField
+                  label="ベンチャー監査役の会への入会について"
+                  options={MEMBERSHIP_INTEREST_OPTIONS}
+                  labels={MEMBERSHIP_INTEREST_LABELS}
+                  value={membership}
+                  onValueChange={(value) =>
+                    setMembership(value as typeof membership)
+                  }
+                  reason={membershipReason}
+                  onReasonChange={setMembershipReason}
+                  idPrefix="membership"
+                  cols={3}
+                />
               )}
 
               {/* ご意見・ご提案・感想等 */}

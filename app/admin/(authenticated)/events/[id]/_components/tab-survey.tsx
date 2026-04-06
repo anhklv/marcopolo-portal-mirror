@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -13,7 +12,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { cn } from "@/lib/utils";
 import { formatDateTime } from "@/lib/utils/event";
 import {
   SURVEY_RATING_LABELS,
@@ -24,9 +22,8 @@ import { COMMUNITY_CODE } from "@/lib/constants/community";
 import {
   computeSurveyAggregation,
   toSurveyResultRows,
-  getSurveyRatingBgClass,
 } from "@/lib/helpers/survey-result";
-import type { RatingCount } from "@/lib/helpers/survey-result";
+import { RatingCell, RatingGrid } from "./survey-rating-display";
 import type {
   SerializedEventDetail,
   SerializedSurveyResult,
@@ -39,76 +36,6 @@ import type {
 interface TabSurveyProps {
   event: SerializedEventDetail;
   surveyResult: SerializedSurveyResult | null;
-}
-
-// ============================================================
-// サブコンポーネント
-// ============================================================
-
-function RatingCell({
-  rating,
-  reason,
-  labels,
-}: {
-  rating: string | null;
-  reason: string | null;
-  labels: Record<string, string>;
-}) {
-  if (!rating) {
-    return <span className="text-muted-foreground">-</span>;
-  }
-  const label = labels[rating] ?? rating;
-  return (
-    <div className="space-y-1">
-      <Badge
-        variant="secondary"
-        className={cn("font-medium", getSurveyRatingBgClass(rating))}
-      >
-        {label}
-      </Badge>
-      {reason && (
-        <div className="text-xs text-muted-foreground max-w-xs truncate">
-          {reason}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function RatingGrid({
-  title,
-  counts,
-  cols,
-}: {
-  title: string;
-  counts: RatingCount[];
-  cols: number;
-}) {
-  const bgClasses = ["bg-gray-50", "bg-gray-100", "bg-gray-200", "bg-gray-300"];
-  return (
-    <div className="space-y-2">
-      <div className="font-medium">{title}</div>
-      <div
-        className={cn(
-          "grid gap-4 text-sm",
-          cols === 3 ? "grid-cols-3" : "grid-cols-4"
-        )}
-      >
-        {counts.map((item, i) => (
-          <div
-            key={item.key}
-            className={cn(
-              "text-center p-3 rounded-lg",
-              bgClasses[i] ?? "bg-gray-50"
-            )}
-          >
-            <div className="text-2xl font-bold text-gray-800">{item.count}</div>
-            <div className="text-xs text-gray-700">{item.label}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 // ============================================================

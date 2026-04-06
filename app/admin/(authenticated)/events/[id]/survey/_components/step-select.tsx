@@ -15,15 +15,9 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ActionButton } from "@/components/ui/action-button";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { StepIndicator } from "@/app/admin/(authenticated)/events/[id]/invite/_components/step-indicator";
+import { SURVEY_STEPS } from "@/lib/constants/survey";
 import type { SerializedEventForSurvey } from "@/lib/types/serialized";
 import type { useSurveySendForm } from "./use-survey-send-form";
-
-const SURVEY_STEPS = [
-  { key: "select", label: "送信先を選択", number: 1 },
-  { key: "email", label: "メール文を作成", number: 2 },
-  { key: "confirm", label: "確認", number: 3 },
-  { key: "send", label: "送信", number: 4 },
-] as const;
 
 interface StepSelectProps {
   event: SerializedEventForSurvey;

@@ -164,6 +164,10 @@ export async function updateSurveyQuestions(
   questions: { title: string; sortOrder: number }[]
 ): Promise<Survey> {
   return prisma.$transaction(async (tx) => {
+    // 既存設問に紐づく回答を先に削除（外部キー制約対策）
+    await tx.surveyResponse.deleteMany({
+      where: { question: { surveyId } },
+    });
     await tx.surveyQuestion.deleteMany({ where: { surveyId } });
     if (questions.length > 0) {
       await tx.surveyQuestion.createMany({

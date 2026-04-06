@@ -3,6 +3,18 @@ import type {
   FutureParticipation,
   MembershipInterest,
 } from "@/lib/generated/prisma";
+import type { StepConfig } from "@/app/admin/(authenticated)/events/[id]/invite/_components/step-indicator";
+
+// ============================================================
+// アンケート送信ステップ
+// ============================================================
+
+export const SURVEY_STEPS: readonly StepConfig[] = [
+  { key: "select", label: "送信先を選択", number: 1 },
+  { key: "email", label: "メール文を作成", number: 2 },
+  { key: "confirm", label: "確認", number: 3 },
+  { key: "send", label: "送信", number: 4 },
+] as const;
 
 // ============================================================
 // アンケート評価（4段階）
