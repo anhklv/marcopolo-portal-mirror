@@ -1,8 +1,13 @@
-import type { EventForSurveySend } from "@/lib/repositories/survey.repository";
+import type {
+  EventForSurveySend,
+  SurveyTokenForAnswerPage,
+} from "@/lib/repositories/survey.repository";
 import type {
   SerializedEventForSurvey,
   SerializedAttendee,
+  SerializedSurveyAnswerPageData,
 } from "@/lib/types/serialized";
+import { COMMUNITY_CODE } from "@/lib/constants/community";
 
 /**
  * アンケート送信画面用イベントシリアライズ
@@ -49,5 +54,52 @@ export function serializeAttendee(
         name: cc.community.name,
       },
     })),
+  };
+}
+
+/**
+ * アンケート回答ページ用シリアライズ
+ */
+export function serializeSurveyForAnswerPage(
+  surveyToken: SurveyTokenForAnswerPage
+): SerializedSurveyAnswerPageData {
+  const { survey, customer } = surveyToken;
+  const event = survey.event;
+
+  const isMemberOfVentureAuditor = customer.customerCommunities.some(
+    (cc) =>
+      cc.community.code === COMMUNITY_CODE.VENTURE_AUDITOR &&
+      cc.resignedAt === null
+  );
+
+  return {
+    event: {
+      id: event.id,
+      title: event.title,
+      date: event.date.toISOString(),
+      hasAfterParty: event.hasAfterParty,
+      community: {
+        code: event.community.code,
+        name: event.community.name,
+      },
+    },
+    survey: {
+      id: survey.id,
+      questions: survey.questions.map((q) => ({
+        id: q.id,
+        title: q.title,
+        sortOrder: q.sortOrder,
+      })),
+    },
+    customer: {
+      id: customer.id,
+      lastName: customer.lastName,
+      firstName: customer.firstName,
+      isMemberOfVentureAuditor,
+    },
+    surveyToken: {
+      id: surveyToken.id,
+      token: surveyToken.token,
+    },
   };
 }

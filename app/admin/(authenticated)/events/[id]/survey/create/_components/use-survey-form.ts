@@ -111,7 +111,7 @@ export function useSurveyForm({ eventId, initialQuestions }: UseSurveyFormProps)
       `survey-preview-${eventId}`,
       JSON.stringify(previewQuestions)
     );
-    window.open(`/events/${eventId}/survey/demo-token-nonmember`, "_blank");
+    window.open(`/events/${eventId}/survey/preview`, "_blank");
   }, [eventId, questions]);
 
   const handleSkip = useCallback(() => {

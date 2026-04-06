@@ -2,6 +2,10 @@ import { prisma } from "@/lib/prisma";
 import type {
   Survey,
   SurveyQuestion,
+  SurveyToken,
+  SurveyRating,
+  FutureParticipation,
+  MembershipInterest,
   Event,
   Community,
   Rsvp,
@@ -14,6 +18,21 @@ import type {
 
 export type SurveyForEdit = Survey & {
   questions: SurveyQuestion[];
+};
+
+export type SurveyTokenForAnswerPage = SurveyToken & {
+  survey: Survey & {
+    questions: SurveyQuestion[];
+    event: Event & {
+      community: Pick<Community, "id" | "code" | "name">;
+    };
+  };
+  customer: Pick<Customer, "id" | "lastName" | "firstName" | "deletedAt"> & {
+    customerCommunities: {
+      resignedAt: Date | null;
+      community: { code: string };
+    }[];
+  };
 };
 
 export type EventForSurveySend = Event & {
@@ -136,6 +155,116 @@ export async function updateSurveyQuestions(
     return tx.survey.update({
       where: { id: surveyId },
       data: { updatedAt: new Date() },
+    });
+  });
+}
+
+// ============================================================
+// アンケート回答ページ用
+// ============================================================
+
+/**
+ * トークンからアンケート回答ページ用データを取得
+ */
+export async function findSurveyTokenByToken(
+  token: string
+): Promise<SurveyTokenForAnswerPage | null> {
+  return prisma.surveyToken.findUnique({
+    where: { token },
+    include: {
+      survey: {
+        include: {
+          questions: { orderBy: { sortOrder: "asc" } },
+          event: {
+            include: {
+              community: { select: { id: true, code: true, name: true } },
+            },
+          },
+        },
+      },
+      customer: {
+        select: {
+          id: true,
+          lastName: true,
+          firstName: true,
+          deletedAt: true,
+          customerCommunities: {
+            select: {
+              resignedAt: true,
+              community: { select: { code: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+/**
+ * 既に回答済みかどうかを確認（FixedSurveyResponse の存在チェック）
+ */
+export async function findExistingResponses(
+  surveyId: number,
+  customerId: number
+): Promise<boolean> {
+  const count = await prisma.fixedSurveyResponse.count({
+    where: { surveyId, customerId },
+  });
+  return count > 0;
+}
+
+/**
+ * アンケート回答を保存（自由設問 + 固定設問をトランザクションで）
+ */
+export async function saveSurveyResponses(data: {
+  surveyTokenId: number;
+  surveyId: number;
+  customerId: number;
+  questionResponses: {
+    questionId: number;
+    rating: SurveyRating;
+    reason: string | null;
+  }[];
+  afterPartyRating: SurveyRating | null;
+  afterPartyReason: string | null;
+  futureParticipation: FutureParticipation;
+  futureParticipationReason: string | null;
+  membership: MembershipInterest | null;
+  membershipReason: string | null;
+  comments: string | null;
+}): Promise<void> {
+  const now = new Date();
+
+  await prisma.$transaction(async (tx) => {
+    // 自由設問回答
+    if (data.questionResponses.length > 0) {
+      await tx.surveyResponse.createMany({
+        data: data.questionResponses.map((qr) => ({
+          questionId: qr.questionId,
+          customerId: data.customerId,
+          surveyTokenId: data.surveyTokenId,
+          rating: qr.rating,
+          reason: qr.reason,
+          respondedAt: now,
+        })),
+      });
+    }
+
+    // 固定設問回答
+    await tx.fixedSurveyResponse.create({
+      data: {
+        surveyId: data.surveyId,
+        customerId: data.customerId,
+        surveyTokenId: data.surveyTokenId,
+        afterPartyRating: data.afterPartyRating,
+        afterPartyReason: data.afterPartyReason,
+        futureParticipation: data.futureParticipation,
+        futureParticipationReason: data.futureParticipationReason,
+        membership: data.membership,
+        membershipReason: data.membershipReason,
+        comments: data.comments,
+        respondedAt: now,
+      },
     });
   });
 }

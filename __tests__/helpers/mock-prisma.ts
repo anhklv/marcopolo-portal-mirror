@@ -51,8 +51,16 @@ export const mockPrisma = {
   },
   surveyToken: {
     findMany: vi.fn(),
+    findUnique: vi.fn(),
     createMany: vi.fn(),
     update: vi.fn(),
+  },
+  surveyResponse: {
+    createMany: vi.fn(),
+  },
+  fixedSurveyResponse: {
+    create: vi.fn(),
+    count: vi.fn(),
   },
   $transaction: vi.fn(),
 };

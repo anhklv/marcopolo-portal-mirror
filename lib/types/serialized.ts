@@ -306,3 +306,31 @@ export interface SerializedRsvpPageData {
     firstName: string;
   };
 }
+
+// ============================================================
+// アンケート回答ページ用（survey-answer-form.tsx）
+// ============================================================
+
+export interface SerializedSurveyAnswerPageData {
+  event: {
+    id: number;
+    title: string;
+    date: string;
+    hasAfterParty: boolean;
+    community: { code: string; name: string };
+  };
+  survey: {
+    id: number;
+    questions: { id: number; title: string; sortOrder: number }[];
+  };
+  customer: {
+    id: number;
+    lastName: string;
+    firstName: string;
+    isMemberOfVentureAuditor: boolean;
+  };
+  surveyToken: {
+    id: number;
+    token: string;
+  };
+}
