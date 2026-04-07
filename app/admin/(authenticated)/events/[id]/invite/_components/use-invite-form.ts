@@ -112,17 +112,25 @@ export function useInviteForm({
       includeNonMemberFilter,
     });
 
-    return baseFiltered.filter((customer) => {
-      if (inviteStatuses.length > 0) {
-        const matchesStatus = inviteStatuses.some((status) => {
-          if (status === "未案内") return customer.rsvpStatus === null;
-          if (status === "未回答") return customer.rsvpStatus === "pending";
-          return true;
-        });
-        if (!matchesStatus) return false;
-      }
-      return true;
-    });
+    return baseFiltered
+      .filter((customer) => {
+        if (inviteStatuses.length > 0) {
+          const matchesStatus = inviteStatuses.some((status) => {
+            if (status === "未案内") return customer.rsvpStatus === null;
+            if (status === "未回答") return customer.rsvpStatus === "pending";
+            return true;
+          });
+          if (!matchesStatus) return false;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        // pending(未回答)=0, null(未案内)=1
+        const orderA = a.rsvpStatus === "pending" ? 0 : 1;
+        const orderB = b.rsvpStatus === "pending" ? 0 : 1;
+        if (orderA !== orderB) return orderA - orderB;
+        return b.id - a.id;
+      });
   }, [
     customersWithStatus,
     searchKeyword,

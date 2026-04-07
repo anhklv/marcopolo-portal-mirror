@@ -209,7 +209,7 @@ export async function findEventByIdForRemind(
             },
           },
         },
-        orderBy: { createdAt: "asc" },
+        orderBy: { customer: { id: "desc" } },
       },
     },
   });

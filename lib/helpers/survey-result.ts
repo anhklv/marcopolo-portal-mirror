@@ -169,6 +169,11 @@ export function toSurveyResultRows(
       comments: fixedResponse?.comments ?? null,
       respondedAt: fixedResponse?.respondedAt ?? null,
     };
+  }).sort((a, b) => {
+    if (!a.respondedAt && !b.respondedAt) return 0;
+    if (!a.respondedAt) return 1;
+    if (!b.respondedAt) return -1;
+    return b.respondedAt.localeCompare(a.respondedAt);
   });
 }
 

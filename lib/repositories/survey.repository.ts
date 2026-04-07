@@ -149,7 +149,7 @@ export async function findEventForSurveySend(
             },
           },
         },
-        orderBy: { createdAt: "asc" },
+        orderBy: [{ status: "asc" }, { customer: { id: "desc" } }],
       },
       survey: { include: { questions: { orderBy: { sortOrder: "asc" } } } },
     },
