@@ -107,7 +107,6 @@ export function useSurveyAnswerForm({
     // プレビューモードは送信しない
     if (isPreview) {
       setSubmitted(true);
-      toast.success("アンケートにご回答いただき、ありがとうございました");
       return;
     }
 
@@ -132,9 +131,6 @@ export function useSurveyAnswerForm({
 
         if (result.success) {
           setSubmitted(true);
-          toast.success(
-            "アンケートにご回答いただき、ありがとうございました"
-          );
         } else {
           toast.error(result.error);
         }

@@ -16,6 +16,7 @@ import { formatZodFieldErrors } from "@/lib/validations/utils";
 import * as customerRepo from "@/lib/repositories/customer.repository";
 import { filterCustomers } from "@/lib/helpers/customer-filter";
 import type { ActionResult } from "@/lib/types/action";
+import { encodeCsvDocument } from "@/lib/utils/csv";
 
 // ============================================================
 // ヘルパー
@@ -251,8 +252,6 @@ export async function exportCustomersAction(
   const filteredIds = new Set(filteredResult.map((c) => c.id));
   const targetCustomers = customers.filter((c) => filteredIds.has(c.id));
 
-  // CSV生成
-  const BOM = "\uFEFF";
   const headers = [
     "ID",
     "姓",
@@ -303,30 +302,7 @@ export async function exportCustomersAction(
     ];
   });
 
-  const csvLines = [
-    headers.map(escapeCsvField).join(","),
-    ...rows.map((row) => row.map(escapeCsvField).join(",")),
-  ];
-
-  return { csv: BOM + csvLines.join("\n") };
-}
-
-// ============================================================
-// CSV ヘルパー
-// ============================================================
-
-function escapeCsvField(value: string): string {
-  // CSVインジェクション対策
-  let sanitized = value;
-  if (/^[=+\-@]/.test(sanitized)) {
-    sanitized = "'" + sanitized;
-  }
-
-  // カンマ、ダブルクォート、改行を含む場合はクォート
-  if (sanitized.includes(",") || sanitized.includes('"') || sanitized.includes("\n")) {
-    return '"' + sanitized.replace(/"/g, '""') + '"';
-  }
-  return sanitized;
+  return { csv: encodeCsvDocument(headers, rows) };
 }
 
 function isPrismaUniqueError(err: unknown): boolean {

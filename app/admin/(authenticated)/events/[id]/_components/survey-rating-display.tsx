@@ -17,7 +17,7 @@ interface RatingCellProps {
 
 export function RatingCell({ rating, reason, labels }: RatingCellProps) {
   if (!rating) {
-    return <span className="text-muted-foreground">-</span>;
+    return null;
   }
   const label = labels[rating] ?? rating;
   return (

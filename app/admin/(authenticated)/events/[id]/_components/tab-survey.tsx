@@ -1,7 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useTransition } from "react";
 import Link from "next/link";
+import { Download } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -23,6 +26,8 @@ import {
   computeSurveyAggregation,
   toSurveyResultRows,
 } from "@/lib/helpers/survey-result";
+import { exportSurveyResultsAction } from "@/lib/actions/survey-result.actions";
+import { downloadUtf8CsvFile } from "@/lib/utils/csv-download";
 import { RatingCell, RatingGrid } from "./survey-rating-display";
 import type {
   SerializedEventDetail,
@@ -43,6 +48,27 @@ interface TabSurveyProps {
 // ============================================================
 
 export function TabSurvey({ event, surveyResult }: TabSurveyProps) {
+  const [isCsvPending, startCsvTransition] = useTransition();
+
+  const handleDownloadCsv = () => {
+    startCsvTransition(async () => {
+      try {
+        const result = await exportSurveyResultsAction(event.id);
+        if ("csv" in result) {
+          downloadUtf8CsvFile(
+            result.csv,
+            `survey_answers_${event.id}_${new Date().toISOString().split("T")[0]}.csv`
+          );
+          toast.success("CSVファイルをダウンロードしました");
+        } else {
+          toast.error(result.error ?? "CSVダウンロードに失敗しました");
+        }
+      } catch {
+        toast.error("CSVダウンロードに失敗しました");
+      }
+    });
+  };
+
   const aggregation = useMemo(
     () =>
       surveyResult
@@ -208,9 +234,7 @@ export function TabSurvey({ event, surveyResult }: TabSurveyProps) {
                             reason={row.futureParticipationReason}
                             labels={FUTURE_PARTICIPATION_LABELS}
                           />
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
+                        ) : null}
                       </TableCell>
                     )}
                     {showMembership && (
@@ -221,9 +245,7 @@ export function TabSurvey({ event, surveyResult }: TabSurveyProps) {
                             reason={row.membershipReason}
                             labels={MEMBERSHIP_INTEREST_LABELS}
                           />
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
+                        ) : null}
                       </TableCell>
                     )}
                     <TableCell>
@@ -231,19 +253,28 @@ export function TabSurvey({ event, surveyResult }: TabSurveyProps) {
                         <div className="text-xs text-muted-foreground max-w-xs truncate">
                           {row.comments}
                         </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
+                      ) : null}
                     </TableCell>
                     <TableCell className="text-sm">
                       {row.respondedAt
                         ? formatDateTime(row.respondedAt)
-                        : "-"}
+                        : null}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+          </div>
+          <div className="flex justify-end pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleDownloadCsv}
+              disabled={isCsvPending}
+            >
+              <Download className="h-4 w-4" />
+              {isCsvPending ? "ダウンロード中..." : "CSVダウンロード"}
+            </Button>
           </div>
         </CardContent>
       </Card>
