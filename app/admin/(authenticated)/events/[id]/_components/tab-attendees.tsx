@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useTransition } from "react";
 import Link from "next/link";
+import { Download } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,6 +31,8 @@ import {
 import { formatDateTime } from "@/lib/utils/event";
 import { filterAttendees } from "@/lib/helpers/event-detail";
 import type { AttendeeRow } from "@/lib/helpers/event-detail";
+import { exportEventAttendeesCsvAction } from "@/lib/actions/event-attendees-export.actions";
+import { downloadUtf8CsvFile } from "@/lib/utils/csv-download";
 import type { RsvpStatus, AfterPartyStatus } from "@/lib/generated/prisma";
 import type { SerializedEventDetail } from "@/lib/types/serialized";
 
@@ -49,10 +53,35 @@ export function TabAttendees({
   selectedStatuses,
   onSelectedStatusesChange,
 }: TabAttendeesProps) {
+  const [isCsvPending, startCsvTransition] = useTransition();
+
   const filteredRows = useMemo(
     () => filterAttendees(allRows, searchKeyword, selectedStatuses),
     [allRows, searchKeyword, selectedStatuses]
   );
+
+  const handleDownloadCsv = () => {
+    startCsvTransition(async () => {
+      try {
+        const result = await exportEventAttendeesCsvAction({
+          eventId: event.id,
+          keyword: searchKeyword,
+          statuses: selectedStatuses,
+        });
+        if ("csv" in result) {
+          downloadUtf8CsvFile(
+            result.csv,
+            `event_attendees_${event.id}_${new Date().toISOString().split("T")[0]}.csv`
+          );
+          toast.success("CSVファイルをダウンロードしました");
+        } else {
+          toast.error(result.error ?? "CSVダウンロードに失敗しました");
+        }
+      } catch {
+        toast.error("CSVダウンロードに失敗しました");
+      }
+    });
+  };
 
   const handleStatusChange = (status: RsvpStatus, checked: boolean) => {
     if (checked) {
@@ -158,7 +187,7 @@ export function TabAttendees({
                           {row.lastName} {row.firstName}
                         </Link>
                       </TableCell>
-                      <TableCell>{row.company ?? "-"}</TableCell>
+                      <TableCell>{row.company}</TableCell>
                       <TableCell>
                         <Badge
                           variant={
@@ -176,28 +205,20 @@ export function TabAttendees({
                                 row.afterPartyStatus as AfterPartyStatus
                               ]?.label ?? row.afterPartyStatus}
                             </Badge>
-                          ) : (
-                            <span className="text-muted-foreground">
-                              -
-                            </span>
-                          )}
+                          ) : null}
                         </TableCell>
                       )}
                       <TableCell>
                         {row.respondedAt
                           ? formatDateTime(row.respondedAt)
-                          : "-"}
+                          : null}
                       </TableCell>
                       <TableCell className="whitespace-normal max-w-md">
                         {row.comment ? (
                           <div className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
                             {row.comment}
                           </div>
-                        ) : (
-                          <span className="text-muted-foreground">
-                            -
-                          </span>
-                        )}
+                        ) : null}
                       </TableCell>
                     </TableRow>
                   );
@@ -205,6 +226,18 @@ export function TabAttendees({
               )}
             </TableBody>
           </Table>
+        </div>
+
+        <div className="flex justify-end pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleDownloadCsv}
+            disabled={isCsvPending}
+          >
+            <Download className="h-4 w-4" />
+            {isCsvPending ? "ダウンロード中..." : "CSVダウンロード"}
+          </Button>
         </div>
       </CardContent>
     </Card>

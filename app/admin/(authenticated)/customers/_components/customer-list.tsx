@@ -32,6 +32,7 @@ import { PaginationControls } from "@/components/ui/pagination-controls";
 import { usePagination } from "@/hooks/use-pagination";
 import { useArrayToggle } from "@/hooks/use-array-toggle";
 import { exportCustomersAction } from "@/lib/actions/customer.actions";
+import { downloadUtf8CsvFile } from "@/lib/utils/csv-download";
 import { filterCustomers } from "@/lib/helpers/customer-filter";
 import { getFilterDisplayText } from "@/lib/helpers/filter-display";
 
@@ -149,15 +150,10 @@ export function CustomerList({
         });
 
         if ("csv" in result) {
-          const blob = new Blob([result.csv], { type: "text/csv;charset=utf-8;" });
-          const link = document.createElement("a");
-          link.href = URL.createObjectURL(blob);
-          link.download = `customers_${new Date().toISOString().split("T")[0]}.csv`;
-          link.style.visibility = "hidden";
-          document.body.appendChild(link);
-          link.click();
-          URL.revokeObjectURL(link.href);
-          document.body.removeChild(link);
+          downloadUtf8CsvFile(
+            result.csv,
+            `customers_${new Date().toISOString().split("T")[0]}.csv`
+          );
           toast.success("CSVファイルをダウンロードしました");
         } else {
           toast.error(result.error ?? "CSVダウンロードに失敗しました");

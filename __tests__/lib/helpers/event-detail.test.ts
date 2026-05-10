@@ -65,16 +65,17 @@ describe("toAttendeeRows", () => {
     const rows = toAttendeeRows(sampleRsvps);
 
     expect(rows).toHaveLength(5);
+    // 同一ステータス内は顧客ID降順なので、customerId=5の渡辺が先
     expect(rows[0]).toEqual({
-      rsvpId: 1,
-      customerId: 1,
-      lastName: "田中",
-      firstName: "太郎",
-      company: "A社",
+      rsvpId: 5,
+      customerId: 5,
+      lastName: "渡辺",
+      firstName: "三郎",
+      company: "C社",
       status: "attending",
-      afterPartyStatus: "attending",
-      comment: "楽しみです",
-      respondedAt: "2026-01-10T10:00:00.000Z",
+      afterPartyStatus: "not_attending",
+      comment: null,
+      respondedAt: "2026-01-13T10:00:00.000Z",
     });
   });
 
@@ -84,7 +85,26 @@ describe("toAttendeeRows", () => {
 
   it("customer.companyがnullの場合もそのまま保持する", () => {
     const rows = toAttendeeRows(sampleRsvps);
-    expect(rows[2].company).toBeNull();
+    const nullCompanyRow = rows.find((r) => r.lastName === "鈴木");
+    expect(nullCompanyRow?.company).toBeNull();
+  });
+
+  it("ステータス順にソートされる（attending → online → absent → pending）", () => {
+    const rows = toAttendeeRows(sampleRsvps);
+    expect(rows.map((r) => r.status)).toEqual([
+      "attending",
+      "attending",
+      "online",
+      "absent",
+      "pending",
+    ]);
+  });
+
+  it("同一ステータス内では顧客ID降順でソートされる", () => {
+    const rows = toAttendeeRows(sampleRsvps);
+    const attendingRows = rows.filter((r) => r.status === "attending");
+    expect(attendingRows[0].customerId).toBe(5); // 渡辺
+    expect(attendingRows[1].customerId).toBe(1); // 田中
   });
 });
 

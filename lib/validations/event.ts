@@ -50,3 +50,17 @@ export const eventSchema = z.object({
   }
 });
 
+/** イベント参加状況 CSV エクスポート（Server Action 入力） */
+export const exportEventAttendeesCsvSchema = z.object({
+  eventId: z.coerce.number().int().positive(),
+  keyword: z.string().optional().default(""),
+  statuses: z
+    .array(z.enum(["pending", "attending", "online", "absent"]))
+    .optional()
+    .default([]),
+});
+
+export type ExportEventAttendeesCsvInput = z.infer<
+  typeof exportEventAttendeesCsvSchema
+>;
+

@@ -229,6 +229,36 @@ export interface SerializedEventForRemind {
 }
 
 // ============================================================
+// アンケート送信用（survey-send-form.tsx）
+// ============================================================
+
+export interface SerializedAttendee {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  subEmails: string[];
+  company: string | null;
+  memberCategory: string | null;
+  rsvpStatus: string;
+  customerCommunities: {
+    communityId: number;
+    resignedAt: string | null;
+    auditMemberType: string | null;
+    auditMemberPremium: boolean | null;
+    community: { code: string; name: string };
+  }[];
+}
+
+export interface SerializedEventForSurvey {
+  id: number;
+  title: string;
+  date: string;
+  community: CommunityOption & { hasSurvey: boolean };
+  surveyId: number | null;
+}
+
+// ============================================================
 // イベント一覧用（event-list.tsx）
 // ============================================================
 
@@ -274,5 +304,71 @@ export interface SerializedRsvpPageData {
   customer: {
     lastName: string;
     firstName: string;
+  };
+}
+
+// ============================================================
+// アンケート結果用（tab-survey.tsx）
+// ============================================================
+
+export interface SerializedSurveyResultCustomer {
+  id: number;
+  lastName: string;
+  firstName: string;
+  company: string | null;
+  isMemberOfVentureAuditor: boolean;
+}
+
+export interface SerializedQuestionResponse {
+  questionId: number;
+  customerId: number;
+  rating: string | null;
+  reason: string | null;
+}
+
+export interface SerializedFixedResponse {
+  customerId: number;
+  afterPartyRating: string | null;
+  afterPartyReason: string | null;
+  futureParticipation: string | null;
+  futureParticipationReason: string | null;
+  membership: string | null;
+  membershipReason: string | null;
+  comments: string | null;
+  respondedAt: string | null;
+}
+
+export interface SerializedSurveyResult {
+  questions: { id: number; title: string; sortOrder: number }[];
+  questionResponses: SerializedQuestionResponse[];
+  fixedResponses: SerializedFixedResponse[];
+  respondents: SerializedSurveyResultCustomer[];
+}
+
+// ============================================================
+// アンケート回答ページ用（survey-answer-form.tsx）
+// ============================================================
+
+export interface SerializedSurveyAnswerPageData {
+  event: {
+    id: number;
+    title: string;
+    date: string;
+    hasAfterParty: boolean;
+    community: { code: string; name: string };
+  };
+  survey: {
+    id: number;
+    questions: { id: number; title: string; sortOrder: number }[];
+  };
+  customer: {
+    id: number;
+    lastName: string;
+    firstName: string;
+    isMemberOfVentureAuditor: boolean;
+  };
+  surveyToken: {
+    id: number;
+    token: string;
   };
 }
