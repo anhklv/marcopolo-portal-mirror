@@ -42,8 +42,8 @@ export function StepConfirm({ form, event }: StepConfirmProps) {
           <div className="space-y-2 text-sm max-h-[300px] overflow-y-auto">
             {event.pendingCustomers.map((customer) => (
               <div key={customer.id}>
-                {customer.lastName} {customer.firstName} (
-                {[customer.email, ...customer.subEmails].filter(Boolean).join(", ")})
+                {customer.lastName} {customer.firstName}
+                {customer.company && ` (${customer.company})`}
               </div>
             ))}
           </div>
