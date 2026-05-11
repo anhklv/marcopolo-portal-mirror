@@ -5,7 +5,7 @@ import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { Stack } from "@/components/ui/stack";
 
 export const metadata = {
-  title: "アンケート回答",
+  title: { absolute: "アンケート回答 - Marcopolo" },
 };
 
 function ErrorPage({ message }: { message: string }) {

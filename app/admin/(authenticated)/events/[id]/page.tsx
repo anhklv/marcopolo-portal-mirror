@@ -6,6 +6,10 @@ import { serializeSurveyResult } from "@/lib/serializers/survey";
 import { EventDetail } from "./_components/event-detail";
 import { notFound } from "next/navigation";
 
+export const metadata = {
+  title: "イベント詳細",
+};
+
 export default async function EventDetailPage({
   params,
 }: {

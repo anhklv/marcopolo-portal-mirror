@@ -6,7 +6,7 @@ import "./globals.css";
 const notoSansJP = Noto_Sans_JP({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Marcopolo Admin",
+  title: { default: "Marcopolo Admin", template: "%s - Marcopolo Admin" },
   description: "マルコポーロ合同会社 管理システム",
 };
 

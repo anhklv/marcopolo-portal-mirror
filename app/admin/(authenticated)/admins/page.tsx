@@ -4,6 +4,10 @@ import { findAll } from "@/lib/repositories/admin.repository";
 import { serializeAdminForList } from "@/lib/serializers/admin";
 import { AdminList } from "./_components/admin-list";
 
+export const metadata = {
+  title: "管理者管理",
+};
+
 export default async function AdminsPage() {
   const { isSuper } = await getAuthenticatedAdmin();
 

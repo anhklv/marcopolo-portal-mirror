@@ -9,7 +9,7 @@ import { Stack } from "@/components/ui/stack";
 // ============================================================
 
 export const metadata = {
-  title: "出欠回答",
+  title: { absolute: "イベント参加回答 - Marcopolo" },
 };
 
 // ============================================================

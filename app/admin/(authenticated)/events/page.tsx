@@ -4,6 +4,10 @@ import { findAllEvents } from "@/lib/repositories/event.repository";
 import { serializeEventForList } from "@/lib/serializers/event";
 import { EventList } from "./_components/event-list";
 
+export const metadata = {
+  title: "イベント管理",
+};
+
 export default async function EventsPage() {
   const { isSuper, scopedCommunityIds } = await getAuthenticatedAdmin();
 

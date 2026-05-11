@@ -9,6 +9,10 @@ import * as customerRepo from "@/lib/repositories/customer.repository";
 import { prisma } from "@/lib/prisma";
 import { InviteForm } from "./_components/invite-form";
 
+export const metadata = {
+  title: "招待メール送信",
+};
+
 export default async function EventInvitePage({
   params,
 }: {

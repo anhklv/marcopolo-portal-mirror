@@ -6,6 +6,10 @@ import { COMMUNITY_CODE } from "@/lib/constants/community";
 import { findById } from "@/lib/repositories/admin.repository";
 import { AdminForm } from "../../_components/admin-form";
 
+export const metadata = {
+  title: "管理者編集",
+};
+
 export default async function EditAdminPage({
   params,
 }: {

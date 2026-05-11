@@ -4,6 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { COMMUNITY_CODE } from "@/lib/constants/community";
 import { AdminForm } from "../_components/admin-form";
 
+export const metadata = {
+  title: "管理者登録",
+};
+
 export default async function NewAdminPage() {
   const { isSuper } = await getAuthenticatedAdmin();
 
