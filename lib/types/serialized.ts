@@ -372,3 +372,22 @@ export interface SerializedSurveyAnswerPageData {
     token: string;
   };
 }
+
+// ============================================================
+// 管理者一覧・編集用（admin-list.tsx, admin-form.tsx）
+// ============================================================
+
+export interface SerializedAdmin {
+  id: number;
+  lastName: string;
+  firstName: string;
+  email: string;
+  role: string;
+  lastLoginAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  adminCommunities: {
+    communityId: number;
+    community: CommunityOption;
+  }[];
+}
