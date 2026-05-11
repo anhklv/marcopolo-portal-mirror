@@ -1,6 +1,12 @@
 import type { AfterPartyStatus, RsvpStatus } from "@/lib/generated/prisma";
 import type { BadgeVariant } from "@/components/ui/badge";
 
+/** イベント開催日時・回答期限の業務タイムゾーン（壁時計） */
+export const EVENT_TIMEZONE = "Asia/Tokyo";
+
+/** フォーム送信用の ISO 8601 オフセット（日本標準時） */
+export const EVENT_TZ_OFFSET = "+09:00";
+
 // RSVPステータスの選択肢
 export const RSVP_STATUSES: readonly { value: RsvpStatus; label: string }[] = [
   { value: "pending", label: "未回答" },
