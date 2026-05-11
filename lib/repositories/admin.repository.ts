@@ -185,6 +185,17 @@ export async function countByRole(role: AdminRole): Promise<number> {
 }
 
 /**
+ * パスワード更新
+ */
+export async function updatePassword(
+  id: number,
+  newPassword: string
+): Promise<void> {
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  await prisma.admin.update({ where: { id }, data: { passwordHash } });
+}
+
+/**
  * メールアドレス重複チェック
  */
 export async function existsByEmail(

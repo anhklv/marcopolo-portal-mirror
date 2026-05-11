@@ -136,6 +136,54 @@ describe("adminCreateSchema", () => {
     });
     expect(result.success).toBe(true);
   });
+
+  it("正常系: パスワードに記号を含む", () => {
+    const result = adminCreateSchema.safeParse({
+      firstName: "太郎",
+      lastName: "管理",
+      email: "admin@example.com",
+      password: "P@ssw0rd!#$%",
+      passwordConfirm: "P@ssw0rd!#$%",
+      role: "super",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("異常系: パスワードにひらがなを含む", () => {
+    const result = adminCreateSchema.safeParse({
+      firstName: "太郎",
+      lastName: "管理",
+      email: "admin@example.com",
+      password: "パスワードてすと12345",
+      passwordConfirm: "パスワードてすと12345",
+      role: "super",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("異常系: パスワードに全角文字を含む", () => {
+    const result = adminCreateSchema.safeParse({
+      firstName: "太郎",
+      lastName: "管理",
+      email: "admin@example.com",
+      password: "ｐａｓｓｗｏｒｄ１２３４５",
+      passwordConfirm: "ｐａｓｓｗｏｒｄ１２３４５",
+      role: "super",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("異常系: パスワードにスペースを含む", () => {
+    const result = adminCreateSchema.safeParse({
+      firstName: "太郎",
+      lastName: "管理",
+      email: "admin@example.com",
+      password: "password 12345",
+      passwordConfirm: "password 12345",
+      role: "super",
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("adminUpdateSchema", () => {
@@ -204,6 +252,15 @@ describe("passwordChangeSchema", () => {
       currentPassword: "",
       newPassword: "newpassword123",
       newPasswordConfirm: "newpassword123",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("異常系: 新パスワードに全角文字を含む", () => {
+    const result = passwordChangeSchema.safeParse({
+      currentPassword: "oldpassword12",
+      newPassword: "あいうえおかきくけこab",
+      newPasswordConfirm: "あいうえおかきくけこab",
     });
     expect(result.success).toBe(false);
   });

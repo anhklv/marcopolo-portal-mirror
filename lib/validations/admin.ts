@@ -16,7 +16,8 @@ export const adminCreateSchema = z.object({
     .max(255, "メールアドレスは255文字以内で入力してください"),
   password: z
     .string()
-    .min(12, "パスワードは12文字以上で入力してください"),
+    .min(12, "パスワードは12文字以上で入力してください")
+    .regex(/^[!-~]+$/, "パスワードは半角英数字記号で入力してください"),
   passwordConfirm: z
     .string()
     .min(1, "パスワード（確認）を入力してください"),
@@ -71,7 +72,8 @@ export const passwordChangeSchema = z.object({
     .min(1, "現在のパスワードを入力してください"),
   newPassword: z
     .string()
-    .min(12, "新しいパスワードは12文字以上で入力してください"),
+    .min(12, "新しいパスワードは12文字以上で入力してください")
+    .regex(/^[!-~]+$/, "パスワードは半角英数字記号で入力してください"),
   newPasswordConfirm: z
     .string()
     .min(1, "新しいパスワード（確認）を入力してください"),

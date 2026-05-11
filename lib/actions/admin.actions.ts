@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAuthenticatedAdmin } from "@/lib/auth/permissions";
-import { adminCreateSchema, adminUpdateSchema } from "@/lib/validations/admin";
+import { adminCreateSchema, adminUpdateSchema, passwordChangeSchema } from "@/lib/validations/admin";
+import bcrypt from "bcryptjs";
 import { formatZodFieldErrors } from "@/lib/validations/utils";
 import * as adminRepo from "@/lib/repositories/admin.repository";
 import { LastSuperAdminError } from "@/lib/repositories/admin.repository";
@@ -154,6 +155,40 @@ export async function deleteAdminAction(
 
   revalidatePath("/admin/admins");
   redirect("/admin/admins");
+}
+
+/**
+ * パスワード変更（全管理者が自身のパスワードを変更可能）
+ */
+export async function changePasswordAction(
+  formData: unknown
+): Promise<ActionResult | void> {
+  // 認証（全管理者OK）
+  const { admin } = await requireAuthenticatedAdmin();
+
+  // バリデーション
+  const parsed = passwordChangeSchema.safeParse(formData);
+  if (!parsed.success) {
+    return { fieldErrors: formatZodFieldErrors(parsed.error) };
+  }
+  const data = parsed.data;
+
+  // 現在のパスワード検証
+  const existing = await adminRepo.findById(admin.id);
+  if (!existing) {
+    return { error: "管理者が見つかりません" };
+  }
+
+  const isValid = await bcrypt.compare(data.currentPassword, existing.passwordHash);
+  if (!isValid) {
+    return { fieldErrors: { currentPassword: ["現在のパスワードが正しくありません"] } };
+  }
+
+  // パスワード更新
+  await adminRepo.updatePassword(admin.id, data.newPassword);
+
+  revalidatePath("/admin/settings/password");
+  redirect("/admin/customers");
 }
 
 // ============================================================
