@@ -7,6 +7,7 @@ import { createEventAction, updateEventAction } from "@/lib/actions/event.action
 import type { EventActionResult } from "@/lib/actions/event.actions";
 import type { CommunityOption } from "@/lib/types/serialized";
 import { useFieldErrors } from "@/lib/hooks/use-field-errors";
+import { EVENT_TZ_OFFSET } from "@/lib/constants/event";
 import { isoToDisplay, isRedirectError } from "@/lib/utils";
 import { eventSchema } from "@/lib/validations/event";
 import { formatZodFieldErrors } from "@/lib/validations/utils";
@@ -56,7 +57,7 @@ function combineDateAndTime(dateStr: string, timeStr: string, defaultTime?: stri
   const match = dateStr.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
   if (!match) return "";
   const [, year, month, day] = match;
-  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${time}:00`;
+  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${time}:00${EVENT_TZ_OFFSET}`;
 }
 
 /** ISO形式 → 時刻文字列(HH:mm) */
