@@ -54,11 +54,12 @@ export async function getDebugAdminList(): Promise<DebugAdmin[]> {
 }
 
 export async function switchDebugAdmin(
-  email: string
+  email: string,
+  password?: string
 ): Promise<{ success: boolean; error: string | null }> {
   if (process.env.DEBUG_ADMIN_PANEL !== "true") {
     return { success: false, error: "DEBUGモードが無効です" };
   }
 
-  return loginAction(email, DEBUG_PASSWORD);
+  return loginAction(email, password ?? DEBUG_PASSWORD);
 }

@@ -72,21 +72,16 @@ export function RsvpForm({ data }: RsvpFormProps) {
                   )}
                 </p>
               </Stack>
-              <Stack gap="sm">
-                <p className="text-sm text-muted-foreground">
-                  この画面を閉じてください
-                </p>
-                {!isDeadlinePassed && (
-                  <div className="flex justify-center">
-                    <ActionButton
-                      variant="outline"
-                      onClick={handleChangeResponse}
-                    >
-                      回答を変更する
-                    </ActionButton>
-                  </div>
-                )}
-              </Stack>
+              {!isDeadlinePassed && (
+                <div className="flex justify-center">
+                  <ActionButton
+                    variant="outline"
+                    onClick={handleChangeResponse}
+                  >
+                    回答を変更する
+                  </ActionButton>
+                </div>
+              )}
             </Stack>
           </div>
         </div>
@@ -109,7 +104,7 @@ export function RsvpForm({ data }: RsvpFormProps) {
                 開催日時: {formatEventDate(event.date)}
               </p>
               {event.location && (
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">
                   場所: {event.location}
                 </p>
               )}
@@ -204,7 +199,7 @@ export function RsvpForm({ data }: RsvpFormProps) {
             <FormField label="メッセージ・連絡事項（任意）">
               <Textarea
                 id="comment"
-                placeholder="アレルギーや遅刻の連絡など..."
+                placeholder="遅刻の連絡など..."
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 className="min-h-[150px]"

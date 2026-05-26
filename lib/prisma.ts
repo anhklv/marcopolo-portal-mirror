@@ -30,7 +30,7 @@ function createPrismaClient() {
     log:
       process.env.NODE_ENV !== "production"
         ? [
-            { emit: "event", level: "query" },
+            // { emit: "event", level: "query" },
             { emit: "stdout", level: "warn" },
             { emit: "stdout", level: "error" },
           ]
@@ -38,11 +38,11 @@ function createPrismaClient() {
   });
 
   if (process.env.NODE_ENV !== "production") {
-    client.$on("query", (e) => {
-      console.log(`[Prisma Query] ${e.query}`);
-      console.log(`[Prisma Params] ${e.params}`);
-      console.log(`[Prisma Duration] ${e.duration}ms`);
-    });
+    // client.$on("query", (e) => {
+    //   console.log(`[Prisma Query] ${e.query}`);
+    //   console.log(`[Prisma Params] ${e.params}`);
+    //   console.log(`[Prisma Duration] ${e.duration}ms`);
+    // });
   }
 
   return client;

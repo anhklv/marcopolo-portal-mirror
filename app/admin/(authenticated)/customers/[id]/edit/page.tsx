@@ -4,6 +4,10 @@ import { fetchCustomerFormMasterData } from "@/lib/repositories/master.repositor
 import { CustomerForm } from "../../_components/customer-form";
 import { notFound } from "next/navigation";
 
+export const metadata = {
+  title: "顧客編集",
+};
+
 export default async function EditCustomerPage({
   params,
 }: {

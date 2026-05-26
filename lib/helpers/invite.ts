@@ -17,7 +17,7 @@ export function buildRsvpUrl(baseUrl: string, eventId: number, token: string): s
 /**
  * メール本文のプレースホルダ置換
  * - {RSVP_URL} → RSVP回答URL
- * - {CUSTOMER_NAME} → 顧客名（任意）
+ * - {CUSTOMER_NAME} → 姓と名をスペース区切り（本文で `{CUSTOMER_NAME}様` とすると「姓 名様」になる）
  */
 export function replacePlaceholders(
   body: string,

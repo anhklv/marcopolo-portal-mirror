@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { formatDateTime, getEventDisplayStatus } from "@/lib/utils/event";
+import {
+  dateToEventFormIsoWithOffset,
+  formatDateTime,
+  formatEventDate,
+  getEventDisplayStatus,
+} from "@/lib/utils/event";
 
 describe("getEventDisplayStatus", () => {
   it("回答期限前 + 未停止 → receiving", () => {
@@ -78,28 +83,36 @@ describe("getEventDisplayStatus", () => {
   });
 });
 
+describe("formatEventDate", () => {
+  it("UTCインスタントを東京の壁時計と曜日で表示する", () => {
+    expect(formatEventDate("2026-04-15T10:00:00.000Z")).toBe(
+      "2026年4月15日(水) 19:00"
+    );
+  });
+});
+
 describe("formatDateTime", () => {
-  it("ISO文字列を「YYYY年M月D日 HH:mm」形式にフォーマットする", () => {
-    // ローカルタイムゾーンに依存するため、Dateで構築
-    const date = new Date(2024, 11, 1, 23, 59); // 2024年12月1日 23:59
-    const result = formatDateTime(date);
-    expect(result).toBe("2024年12月1日 23:59");
+  it("UTCインスタントを東京の壁時計で表示する", () => {
+    expect(formatDateTime("2026-04-15T10:00:00.000Z")).toBe(
+      "2026年4月15日 19:00"
+    );
   });
 
   it("Date型の引数を受け付ける", () => {
-    const date = new Date(2026, 0, 15, 9, 0); // 2026年1月15日 09:00
-    const result = formatDateTime(date);
-    expect(result).toBe("2026年1月15日 09:00");
-  });
-
-  it("時刻が0埋めされる", () => {
-    const date = new Date(2026, 5, 3, 8, 5); // 2026年6月3日 08:05
-    const result = formatDateTime(date);
-    expect(result).toBe("2026年6月3日 08:05");
+    expect(
+      formatDateTime(new Date("2026-01-15T10:00:00.000Z"))
+    ).toBe("2026年1月15日 19:00");
   });
 
   it("不正な文字列はそのまま返す", () => {
-    const result = formatDateTime("invalid-date");
-    expect(result).toBe("invalid-date");
+    expect(formatDateTime("invalid-date")).toBe("invalid-date");
+  });
+});
+
+describe("dateToEventFormIsoWithOffset", () => {
+  it("DBの瞬間を業務TZのISO（+09:00付き）にする", () => {
+    expect(
+      dateToEventFormIsoWithOffset(new Date("2026-04-15T10:00:00.000Z"))
+    ).toBe("2026-04-15T19:00:00+09:00");
   });
 });

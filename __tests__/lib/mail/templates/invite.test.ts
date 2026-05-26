@@ -23,6 +23,7 @@ describe("generateInviteSubject", () => {
 describe("generateInviteBody", () => {
   it("全フィールドを含む本文を生成する", () => {
     const body = generateInviteBody(baseParams);
+    expect(body).toContain("{CUSTOMER_NAME}様");
     expect(body).toContain("お世話になっております");
     expect(body).toContain("第10回ベンチャー監査役の会のご案内です。");
     expect(body).toContain("【イベント概要】");
@@ -54,5 +55,10 @@ describe("generateInviteBody", () => {
   it("{RSVP_URL} プレースホルダを含む", () => {
     const body = generateInviteBody(baseParams);
     expect(body).toContain("{RSVP_URL}");
+  });
+
+  it("{CUSTOMER_NAME} プレースホルダを含む", () => {
+    const body = generateInviteBody(baseParams);
+    expect(body).toContain("{CUSTOMER_NAME}様");
   });
 });

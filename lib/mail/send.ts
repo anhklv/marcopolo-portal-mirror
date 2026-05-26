@@ -28,6 +28,7 @@ export async function sendMail(params: SendMailParams): Promise<SendMailResult> 
     return { success: true, messageId: info.messageId };
   } catch (err) {
     const message = err instanceof Error ? err.message : "メール送信に失敗しました";
+    console.error(`[sendMail] SMTP送信失敗: to=${params.to}, error=${message}`);
     return { success: false, error: message };
   }
 }

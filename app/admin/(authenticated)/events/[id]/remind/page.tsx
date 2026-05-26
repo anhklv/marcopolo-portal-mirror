@@ -6,6 +6,10 @@ import { generateRemindSubject, generateRemindBody } from "@/lib/mail/templates/
 import { prisma } from "@/lib/prisma";
 import { RemindForm } from "./_components/remind-form";
 
+export const metadata = {
+  title: "リマインドメール送信",
+};
+
 export default async function EventRemindPage({
   params,
 }: {

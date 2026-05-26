@@ -34,11 +34,39 @@ export const mockPrisma = {
     update: vi.fn(),
   },
   admin: {
+    findMany: vi.fn(),
     findUnique: vi.fn(),
+    create: vi.fn(),
     update: vi.fn(),
+    delete: vi.fn(),
+    count: vi.fn(),
   },
   adminCommunity: {
     findMany: vi.fn(),
+    createMany: vi.fn(),
+    deleteMany: vi.fn(),
+  },
+  survey: {
+    findUnique: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+  },
+  surveyQuestion: {
+    deleteMany: vi.fn(),
+    createMany: vi.fn(),
+  },
+  surveyToken: {
+    findMany: vi.fn(),
+    findUnique: vi.fn(),
+    createMany: vi.fn(),
+    update: vi.fn(),
+  },
+  surveyResponse: {
+    createMany: vi.fn(),
+  },
+  fixedSurveyResponse: {
+    create: vi.fn(),
+    count: vi.fn(),
   },
   $transaction: vi.fn(),
 };

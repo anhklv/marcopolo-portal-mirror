@@ -15,6 +15,7 @@ env:
 
 jobs:
   deploy:
+    if: false  # 一時無効化
     runs-on: ubuntu-latest
 
     steps:

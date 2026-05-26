@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [main]
+    branches: [staging]
   push:
-    branches: [main]
+    branches: [staging]
 
 jobs:
   check:
@@ -36,4 +36,4 @@ jobs:
         run: npm run test:run
 
       - name: Build
-        run: npm run build
+        run: AUTH_SECRET="ci-build-secret-minimum-32-characters-long" AUTH_URL="http://localhost:3000" AUTH_TRUST_HOST="true" DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npm run build

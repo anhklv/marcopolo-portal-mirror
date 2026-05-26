@@ -5,6 +5,10 @@ import { findAll } from "@/lib/repositories/customer.repository";
 import { serializeCustomerForList } from "@/lib/serializers/customer";
 import { CustomerList } from "./_components/customer-list";
 
+export const metadata = {
+  title: "顧客管理",
+};
+
 export default async function CustomersPage() {
   const { isSuper, scopedCommunityIds } = await getAuthenticatedAdmin();
 

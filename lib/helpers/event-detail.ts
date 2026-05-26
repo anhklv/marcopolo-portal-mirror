@@ -31,23 +31,37 @@ interface EventSummary {
 // ヘルパー関数
 // ============================================================
 
+const RSVP_STATUS_ORDER: Record<string, number> = {
+  attending: 0,
+  online: 1,
+  absent: 2,
+  pending: 3,
+};
+
 /**
- * RSVPデータ → 表示用行への変換
+ * RSVPデータ → 表示用行への変換（ステータス優先、同一ステータス内はcreatedAt昇順）
  */
 export function toAttendeeRows(
   rsvps: SerializedRsvpForEventDetail[]
 ): AttendeeRow[] {
-  return rsvps.map((r) => ({
-    rsvpId: r.id,
-    customerId: r.customer.id,
-    lastName: r.customer.lastName,
-    firstName: r.customer.firstName,
-    company: r.customer.company,
-    status: r.status,
-    afterPartyStatus: r.afterPartyStatus,
-    comment: r.comment,
-    respondedAt: r.respondedAt,
-  }));
+  return rsvps
+    .map((r) => ({
+      rsvpId: r.id,
+      customerId: r.customer.id,
+      lastName: r.customer.lastName,
+      firstName: r.customer.firstName,
+      company: r.customer.company,
+      status: r.status,
+      afterPartyStatus: r.afterPartyStatus,
+      comment: r.comment,
+      respondedAt: r.respondedAt,
+    }))
+    .sort((a, b) => {
+      const orderA = RSVP_STATUS_ORDER[a.status] ?? 99;
+      const orderB = RSVP_STATUS_ORDER[b.status] ?? 99;
+      if (orderA !== orderB) return orderA - orderB;
+      return b.customerId - a.customerId;
+    });
 }
 
 /**

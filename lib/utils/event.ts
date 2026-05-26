@@ -1,29 +1,68 @@
-import type { EventDisplayStatus } from "@/lib/constants/event";
+import {
+  EVENT_TIMEZONE,
+  EVENT_TZ_OFFSET,
+  type EventDisplayStatus,
+} from "@/lib/constants/event";
+
+function partsRecord(date: Date): Record<string, string> {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: EVENT_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  });
+  const rec: Record<string, string> = {};
+  for (const p of dtf.formatToParts(date)) {
+    if (p.type !== "literal") {
+      rec[p.type] = p.value;
+    }
+  }
+  return rec;
+}
+
+/** weekday: short は ja ロケール前提（水 等） */
+function weekdayJaShortFromUtcDate(date: Date): string {
+  const wf = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: EVENT_TIMEZONE,
+    weekday: "short",
+  });
+  return wf.format(date);
+}
 
 /**
- * 日付フォーマット: ISO8601形式 → "2028年6月15日(月) 18:00"形式
+ * DB の Date / ISO 文字列を、業務 TZ（東京）の壁時計で YYYY-MM-DDTHH:mm:ss+09:00 にする。
+ * 編集フォーム initialData 用。
+ */
+export function dateToEventFormIsoWithOffset(date: Date): string {
+  const p = partsRecord(date);
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}${EVENT_TZ_OFFSET}`;
+}
+
+/**
+ * 日付フォーマット: ISO8601形式 → "2028年6月15日(水) 18:00"形式（東京の壁時計）
  */
 export function formatEventDate(dateStr: string | Date): string {
   try {
     const date = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-
-    const dayOfWeek = date.getDay();
-    const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
-    const weekday = weekdays[dayOfWeek];
-
-    return `${year}年${month}月${day}日(${weekday}) ${hours}:${minutes}`;
+    if (isNaN(date.getTime())) {
+      return String(dateStr);
+    }
+    const p = partsRecord(date);
+    const w = weekdayJaShortFromUtcDate(date);
+    const month = String(Number(p.month));
+    const day = String(Number(p.day));
+    return `${p.year}年${month}月${day}日(${w}) ${p.hour}:${p.minute}`;
   } catch {
     return String(dateStr);
   }
 }
 
 /**
- * 日時フォーマット: ISO8601形式 → "2024年12月1日 23:59"形式（曜日なし）
+ * 日時フォーマット: ISO8601形式 → "2024年12月1日 23:59"形式（曜日なし、東京の壁時計）
  * 回答日時の表示用
  */
 export function formatDateTime(dateStr: string | Date): string {
@@ -32,13 +71,10 @@ export function formatDateTime(dateStr: string | Date): string {
     if (isNaN(date.getTime())) {
       return String(dateStr);
     }
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-
-    return `${year}年${month}月${day}日 ${hours}:${minutes}`;
+    const p = partsRecord(date);
+    const month = String(Number(p.month));
+    const day = String(Number(p.day));
+    return `${p.year}年${month}月${day}日 ${p.hour}:${p.minute}`;
   } catch {
     return String(dateStr);
   }
