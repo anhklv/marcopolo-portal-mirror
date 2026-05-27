@@ -13,8 +13,7 @@ function createPrismaClient() {
   const url = new URL(connectionString!);
   const requiresSsl =
     url.searchParams.get("sslmode") === "require" ||
-    url.host.includes("neon.tech") ||
-    url.host.includes("supabase.co");
+    url.host.includes("neon.tech");
 
   const pool = new Pool({
     user: url.username,
