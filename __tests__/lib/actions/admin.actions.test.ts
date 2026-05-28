@@ -154,7 +154,10 @@ describe("createAdminAction", () => {
   it("異常系: Prisma P2002エラーの場合、メール重複エラーを返す", async () => {
     setupSuperAdmin();
     mockRepoExistsByEmail.mockResolvedValue(false);
-    mockRepoCreate.mockRejectedValue({ code: "P2002" });
+    mockRepoCreate.mockRejectedValue({
+      code: "P2002",
+      meta: { target: ["email"] },
+    });
 
     const result = await createAdminAction(validCreateData);
 

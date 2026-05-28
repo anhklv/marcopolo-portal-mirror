@@ -3,6 +3,7 @@
 import { surveyAnswerSchema } from "@/lib/validations/survey-answer";
 import * as surveyRepo from "@/lib/repositories/survey.repository";
 import { COMMUNITY_CODE } from "@/lib/constants/community";
+import { logServerError } from "@/lib/utils/log-error";
 
 type SubmitSurveyAnswerResult =
   | { success: true }
@@ -115,7 +116,7 @@ export async function submitSurveyAnswerAction(
 
     return { success: true };
   } catch (error) {
-    console.error("submitSurveyAnswerAction error:", error);
+    logServerError("submitSurveyAnswerAction", error);
     return { success: false, error: "回答の送信中にエラーが発生しました" };
   }
 }

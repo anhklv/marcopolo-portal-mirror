@@ -9,6 +9,7 @@ import { saveSurveySchema } from "@/lib/validations/survey";
 import { formatZodFieldErrors } from "@/lib/validations/utils";
 import * as surveyRepo from "@/lib/repositories/survey.repository";
 import type { ActionResult } from "@/lib/types/action";
+import { logServerError } from "@/lib/utils/log-error";
 
 // ============================================================
 // 型定義
@@ -69,7 +70,8 @@ export async function saveSurveyAction(
 
     revalidatePath(`/admin/events/${eventId}/survey`);
     return { success: true, surveyId };
-  } catch {
+  } catch (err) {
+    logServerError("saveSurveyAction", err);
     return { success: false, error: "アンケートの保存に失敗しました" };
   }
 }
@@ -102,7 +104,8 @@ export async function skipSurveyAction(
 
     revalidatePath(`/admin/events/${eventId}/survey`);
     return { success: true, surveyId: created.id };
-  } catch {
+  } catch (err) {
+    logServerError("skipSurveyAction", err);
     return { success: false, error: "アンケートの作成に失敗しました" };
   }
 }

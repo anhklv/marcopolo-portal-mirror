@@ -27,14 +27,15 @@ function createPrismaClient() {
   const adapter = new PrismaPg(pool, { disposeExternalPool: true });
   const client = new PrismaClient({
     adapter,
-    log:
-      process.env.NODE_ENV !== "production"
+    log: [
+      ...(process.env.NODE_ENV !== "production"
         ? [
             // { emit: "event", level: "query" },
-            { emit: "stdout", level: "warn" },
-            { emit: "stdout", level: "error" },
+            { emit: "stdout" as const, level: "warn" as const },
           ]
-        : [],
+        : []),
+      { emit: "stdout" as const, level: "error" as const },
+    ],
   });
 
   if (process.env.NODE_ENV !== "production") {
