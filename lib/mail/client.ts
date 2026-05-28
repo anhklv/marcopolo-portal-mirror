@@ -2,20 +2,29 @@ import nodemailer from "nodemailer";
 
 /**
  * nodemailer トランスポート生成
- * 開発環境: MailPit (SMTP_HOST=localhost, SMTP_PORT=1025)
- * 本番環境: Resend SMTP (SMTP_USER/SMTP_PASS)
+ * MAIL_PROVIDER=resend  → Resend SMTP (smtp.resend.com:465)
+ * MAIL_PROVIDER=mailpit → MailPit (localhost:1025) ※デフォルト
  */
 function createTransport() {
-  const host = process.env.SMTP_HOST ?? "localhost";
-  const port = Number(process.env.SMTP_PORT ?? "1025");
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+  const provider = process.env.MAIL_PROVIDER ?? "mailpit";
 
+  if (provider === "resend") {
+    return nodemailer.createTransport({
+      host: "smtp.resend.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: "resend",
+        pass: process.env.RESEND_API_KEY,
+      },
+    });
+  }
+
+  // MailPit（デフォルト）
   return nodemailer.createTransport({
-    host,
-    port,
+    host: process.env.SMTP_HOST ?? "localhost",
+    port: Number(process.env.SMTP_PORT ?? "1025"),
     secure: false,
-    ...(user && pass ? { auth: { user, pass } } : {}),
   });
 }
 
