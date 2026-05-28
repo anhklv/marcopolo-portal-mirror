@@ -13,6 +13,7 @@ import {
 } from "@/lib/validations/survey-send";
 import { sendMail } from "@/lib/mail/send";
 import { sendSurveyMailBatch } from "@/lib/mail/survey-send";
+import { getBaseUrl } from "@/lib/helpers/base-url";
 import {
   generateSurveyToken,
   buildSurveyUrl,
@@ -145,7 +146,7 @@ export async function sendSurveyAction(
       return { success: false, error: "有効な送信先が見つかりません" };
     }
 
-    const baseUrl = process.env.APP_BASE_URL ?? "http://localhost:3000";
+    const baseUrl = await getBaseUrl();
     const from = process.env.SMTP_FROM ?? "noreply@example.com";
 
     // トークン生成（新規のみ。再送は既存トークンを利用）
@@ -249,7 +250,7 @@ export async function sendTestSurveyAction(
     return { success: false, error: "管理者が見つかりません" };
   }
 
-  const baseUrl = process.env.APP_BASE_URL ?? "http://localhost:3000";
+  const baseUrl = await getBaseUrl();
   const from = process.env.SMTP_FROM ?? "noreply@example.com";
   const dummyUrl = buildSurveyUrl(
     baseUrl,

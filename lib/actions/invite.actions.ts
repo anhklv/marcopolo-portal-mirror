@@ -9,6 +9,7 @@ import {
 } from "@/lib/auth/permissions";
 import { inviteSchema, testInviteSchema } from "@/lib/validations/invite";
 import { sendMail, sendMailBatch } from "@/lib/mail/send";
+import { getBaseUrl } from "@/lib/helpers/base-url";
 import { generateRsvpToken, buildRsvpUrl, replacePlaceholders } from "@/lib/helpers/invite";
 
 // ============================================================
@@ -109,7 +110,7 @@ export async function sendInviteAction(
       return { success: false, error: "有効な送信先が見つかりません" };
     }
 
-    const baseUrl = process.env.APP_BASE_URL ?? "http://localhost:3000";
+    const baseUrl = await getBaseUrl();
     const from = process.env.SMTP_FROM ?? "noreply@example.com";
 
     // トークンを事前生成（メモリ上に保持）
@@ -201,7 +202,7 @@ export async function sendTestInviteAction(
     return { success: false, error: "管理者が見つかりません" };
   }
 
-  const baseUrl = process.env.APP_BASE_URL ?? "http://localhost:3000";
+  const baseUrl = await getBaseUrl();
   const from = process.env.SMTP_FROM ?? "noreply@example.com";
   const dummyUrl = buildRsvpUrl(baseUrl, parsed.data.eventId, "test-dummy-token");
   const text = replacePlaceholders(parsed.data.emailBody, {

@@ -4,6 +4,10 @@ import { serializeCustomerForDetail } from "@/lib/serializers/customer";
 import { CustomerDetail } from "./_components/customer-detail";
 import { notFound } from "next/navigation";
 
+export const metadata = {
+  title: "顧客詳細",
+};
+
 export default async function CustomerDetailPage({
   params,
 }: {

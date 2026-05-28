@@ -5,6 +5,10 @@ import { dateToEventFormIsoWithOffset } from "@/lib/utils/event";
 import { EventForm } from "../../_components/event-form";
 import { notFound } from "next/navigation";
 
+export const metadata = {
+  title: "イベント編集",
+};
+
 export default async function EditEventPage({
   params,
 }: {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -21,7 +22,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { logoutAction } from "@/lib/actions/auth";
-import { AdminSwitcher } from "@/components/debug/admin-switcher";
+import {
+  AdminSwitcherMenu,
+  AdminSwitcherPasswordDialog,
+} from "@/components/debug/admin-switcher";
 import { toast } from "sonner";
 import {
   Sidebar,
@@ -49,6 +53,14 @@ interface AppSidebarProps {
 export function AppSidebar({ admin, debugMode }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const [passwordDialogAdmin, setPasswordDialogAdmin] = useState<{
+    id: number;
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+    communities: { code: string; name: string }[];
+  } | null>(null);
 
   const handleLogout = async () => {
     await logoutAction();
@@ -85,6 +97,7 @@ export function AppSidebar({ admin, debugMode }: AppSidebarProps) {
   const adminInitial = admin.lastName.charAt(0);
 
   return (
+    <>
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
@@ -127,7 +140,10 @@ export function AppSidebar({ admin, debugMode }: AppSidebarProps) {
                       </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-56" side="right">
-                      <AdminSwitcher currentEmail={admin.email} />
+                      <AdminSwitcherMenu
+                        currentEmail={admin.email}
+                        onPasswordRequired={setPasswordDialogAdmin}
+                      />
                       {devMenuItems.map((item) => (
                         <DropdownMenuItem key={item.href} asChild>
                           <Link
@@ -201,5 +217,15 @@ export function AppSidebar({ admin, debugMode }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
+    {debugMode && (
+      <AdminSwitcherPasswordDialog
+        admin={passwordDialogAdmin}
+        open={passwordDialogAdmin !== null}
+        onOpenChange={(open) => {
+          if (!open) setPasswordDialogAdmin(null);
+        }}
+      />
+    )}
+    </>
   );
 }

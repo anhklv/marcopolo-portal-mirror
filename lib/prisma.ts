@@ -11,17 +11,17 @@ function createPrismaClient() {
 
   // URLオブジェクトでパースして確実にパラメータを取得し、pgに渡す
   const url = new URL(connectionString!);
+  const requiresSsl =
+    url.searchParams.get("sslmode") === "require" ||
+    url.host.includes("neon.tech");
+
   const pool = new Pool({
     user: url.username,
     password: url.password,
     host: url.hostname,
     port: parseInt(url.port),
     database: url.pathname.slice(1),
-    ssl:
-      url.searchParams.get("sslmode") === "require" ||
-      url.host.includes("neon.tech")
-        ? true
-        : undefined,
+    ssl: requiresSsl ? { rejectUnauthorized: false } : undefined,
   });
 
   const adapter = new PrismaPg(pool, { disposeExternalPool: true });

@@ -3,6 +3,10 @@ import { getAuthenticatedAdmin, canManageSurvey } from "@/lib/auth/permissions";
 import { findSurveyByEventId } from "@/lib/repositories/survey.repository";
 import { SurveyCreateForm } from "./_components/survey-create-form";
 
+export const metadata = {
+  title: "アンケート作成",
+};
+
 export default async function SurveyCreatePage({
   params,
 }: {

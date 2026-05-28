@@ -6,6 +6,11 @@ import {
   canManageSurvey,
 } from "@/lib/auth/permissions";
 import { findEventForSurveySend } from "@/lib/repositories/survey.repository";
+
+export const metadata = {
+  title: "アンケート結果",
+};
+
 import {
   serializeEventForSurvey,
   serializeAttendee,
