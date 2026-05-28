@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { rsvpResponseSchema } from "@/lib/validations/rsvp";
 import * as rsvpRepo from "@/lib/repositories/rsvp.repository";
+import { logServerError } from "@/lib/utils/log-error";
 
 // ============================================================
 // 型定義
@@ -89,7 +90,7 @@ export async function submitRsvpAction(
 
     return { success: true };
   } catch (error) {
-    console.error("submitRsvpAction error:", error);
+    logServerError("submitRsvpAction", error);
     return { success: false, error: "回答の送信中にエラーが発生しました" };
   }
 }

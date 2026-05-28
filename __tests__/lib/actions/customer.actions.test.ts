@@ -117,14 +117,26 @@ describe("createCustomerAction", () => {
     expect(result).toEqual({ error: "このメールアドレスは既に登録されています" });
   });
 
-  it("異常系: メールアドレス重複（Prisma P2002）→ error 返却", async () => {
+  it("異常系: メールアドレス重複（Prisma P2002 on email）→ error 返却", async () => {
     setupSuperAdmin();
     mockRepoExistsByEmail.mockResolvedValue(false);
-    mockRepoCreate.mockRejectedValue({ code: "P2002" });
+    mockRepoCreate.mockRejectedValue({
+      code: "P2002",
+      meta: { target: ["email"] },
+    });
 
     const result = await createCustomerAction(validFormData);
 
     expect(result).toEqual({ error: "このメールアドレスは既に登録されています" });
+  });
+
+  it("異常系: 主キー重複（Prisma P2002 on id）→ throw", async () => {
+    setupSuperAdmin();
+    mockRepoExistsByEmail.mockResolvedValue(false);
+    const dbError = { code: "P2002", meta: { target: ["id"] } };
+    mockRepoCreate.mockRejectedValue(dbError);
+
+    await expect(createCustomerAction(validFormData)).rejects.toEqual(dbError);
   });
 
   it("異常系: community_admin がスコープ外コミュニティIDを指定 → エラー", async () => {
@@ -203,11 +215,14 @@ describe("updateCustomerAction", () => {
     expect(result).toEqual({ error: "このメールアドレスは既に登録されています" });
   });
 
-  it("異常系: Prisma P2002 unique制約違反 → エラー", async () => {
+  it("異常系: Prisma P2002 unique制約違反（email）→ エラー", async () => {
     setupSuperAdmin();
     mockCanAccessCustomer.mockResolvedValue(true);
     mockRepoExistsByEmail.mockResolvedValue(false);
-    mockRepoUpdate.mockRejectedValue({ code: "P2002" });
+    mockRepoUpdate.mockRejectedValue({
+      code: "P2002",
+      meta: { target: ["email"] },
+    });
 
     const result = await updateCustomerAction(1, validFormData);
 

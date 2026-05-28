@@ -11,6 +11,7 @@ import { inviteSchema, testInviteSchema } from "@/lib/validations/invite";
 import { sendMail, sendMailBatch } from "@/lib/mail/send";
 import { getBaseUrl } from "@/lib/helpers/base-url";
 import { generateRsvpToken, buildRsvpUrl, replacePlaceholders } from "@/lib/helpers/invite";
+import { logServerError } from "@/lib/utils/log-error";
 
 // ============================================================
 // 型定義
@@ -156,7 +157,11 @@ export async function sendInviteAction(
           where: { eventId_customerId: { eventId: d.eventId, customerId: d.customerId } },
           data: { token: d.token },
         });
-      } catch {
+      } catch (err) {
+        logServerError(
+          `sendInviteAction:rsvpTokenUpdate eventId=${d.eventId} customerId=${d.customerId}`,
+          err
+        );
         sentCount--;
         failedCount++;
         const customer = customers.find((c) => c.id === d.customerId);
@@ -170,7 +175,7 @@ export async function sendInviteAction(
 
     return { success: true, sentCount, failedCount, failedNames };
   } catch (error) {
-    console.error("sendInviteAction error:", error);
+    logServerError("sendInviteAction", error);
     return { success: false, error: "案内メールの送信中にエラーが発生しました" };
   }
 }

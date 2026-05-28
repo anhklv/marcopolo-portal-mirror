@@ -21,6 +21,7 @@ import {
 } from "@/lib/helpers/survey";
 import { findSurveyByEventId, createSurvey } from "@/lib/repositories/survey.repository";
 import { getEventDisplayStatus } from "@/lib/utils/event";
+import { logServerError } from "@/lib/utils/log-error";
 
 // ============================================================
 // 型定義
@@ -201,7 +202,11 @@ export async function sendSurveyAction(
           },
           data: { sentAt: now },
         });
-      } catch {
+      } catch (err) {
+        logServerError(
+          `sendSurveyAction:surveyTokenUpdate surveyId=${surveyId} customerId=${customerId}`,
+          err
+        );
         sentCount--;
         failedCount++;
         const customer = customers.find((c) => c.id === customerId);
@@ -215,7 +220,7 @@ export async function sendSurveyAction(
 
     return { success: true, sentCount, failedCount, failedNames };
   } catch (error) {
-    console.error("sendSurveyAction error:", error);
+    logServerError("sendSurveyAction", error);
     return {
       success: false,
       error: "アンケートメールの送信中にエラーが発生しました",

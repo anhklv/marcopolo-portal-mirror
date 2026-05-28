@@ -10,6 +10,7 @@ import { eventSchema } from "@/lib/validations/event";
 import { formatZodFieldErrors } from "@/lib/validations/utils";
 import * as eventRepo from "@/lib/repositories/event.repository";
 import type { ActionResult } from "@/lib/types/action";
+import { logServerError } from "@/lib/utils/log-error";
 
 // ============================================================
 // 型定義
@@ -72,7 +73,8 @@ export async function createEventAction(
 
     revalidatePath("/admin/events");
     return { success: true, eventId: event.id };
-  } catch {
+  } catch (err) {
+    logServerError("createEventAction", err);
     return { success: false, error: "イベントの作成に失敗しました" };
   }
 }
@@ -122,7 +124,8 @@ export async function updateEventAction(
       allowsOnline: data.allowsOnline ?? false,
       hasAfterParty: data.hasAfterParty ?? false,
     });
-  } catch {
+  } catch (err) {
+    logServerError("updateEventAction", err);
     return { success: false, error: "イベントの更新に失敗しました" };
   }
 
@@ -148,7 +151,8 @@ export async function deleteEventAction(
   // 論理削除
   try {
     await eventRepo.softDeleteEvent(eventId);
-  } catch {
+  } catch (err) {
+    logServerError("deleteEventAction", err);
     return { success: false, error: "イベントの削除に失敗しました" };
   }
 
@@ -177,7 +181,8 @@ export async function togglePauseEventAction(
     revalidatePath(`/admin/events/${eventId}`);
     revalidatePath("/admin/events");
     return { success: true, isPaused: updated.isPaused };
-  } catch {
+  } catch (err) {
+    logServerError("togglePauseEventAction", err);
     return { success: false, error: "イベントのステータス変更に失敗しました" };
   }
 }

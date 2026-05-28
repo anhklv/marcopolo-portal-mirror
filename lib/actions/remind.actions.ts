@@ -11,6 +11,7 @@ import { remindSchema, testRemindSchema } from "@/lib/validations/remind";
 import { sendMail, sendMailBatch } from "@/lib/mail/send";
 import { getBaseUrl } from "@/lib/helpers/base-url";
 import { generateRsvpToken, buildRsvpUrl, replacePlaceholders } from "@/lib/helpers/invite";
+import { logServerError } from "@/lib/utils/log-error";
 
 // ============================================================
 // 型定義
@@ -107,7 +108,11 @@ export async function sendRemindAction(
           where: { eventId_customerId: { eventId, customerId } },
           data: { token: tokenMap.get(customerId) ?? "" },
         });
-      } catch {
+      } catch (err) {
+        logServerError(
+          `sendRemindAction:rsvpTokenUpdate eventId=${eventId} customerId=${customerId}`,
+          err
+        );
         sentCount--;
         failedCount++;
         const customer = customers.find((c) => c.id === customerId);
@@ -121,7 +126,7 @@ export async function sendRemindAction(
 
     return { success: true, sentCount, failedCount, failedNames };
   } catch (error) {
-    console.error("sendRemindAction error:", error);
+    logServerError("sendRemindAction", error);
     return { success: false, error: "リマインドメールの送信中にエラーが発生しました" };
   }
 }
