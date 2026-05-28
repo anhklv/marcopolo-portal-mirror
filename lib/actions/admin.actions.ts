@@ -9,6 +9,8 @@ import { formatZodFieldErrors } from "@/lib/validations/utils";
 import * as adminRepo from "@/lib/repositories/admin.repository";
 import { LastSuperAdminError } from "@/lib/repositories/admin.repository";
 import type { ActionResult } from "@/lib/types/action";
+import { logServerError } from "@/lib/utils/log-error";
+import { isPrismaUniqueViolationOnField } from "@/lib/utils/prisma-error";
 
 // ============================================================
 // Actions
@@ -50,9 +52,10 @@ export async function createAdminAction(
       communityIds: data.communityIds,
     });
   } catch (err: unknown) {
-    if (isPrismaUniqueError(err)) {
+    if (isPrismaUniqueViolationOnField(err, "email")) {
       return { error: "このメールアドレスは既に登録されています" };
     }
+    logServerError("createAdminAction", err);
     throw err;
   }
 
@@ -107,9 +110,10 @@ export async function updateAdminAction(
       communityIds: data.communityIds,
     });
   } catch (err: unknown) {
-    if (isPrismaUniqueError(err)) {
+    if (isPrismaUniqueViolationOnField(err, "email")) {
       return { error: "このメールアドレスは既に登録されています" };
     }
+    logServerError("updateAdminAction", err);
     throw err;
   }
 
@@ -189,17 +193,4 @@ export async function changePasswordAction(
 
   revalidatePath("/admin/settings/password");
   redirect("/admin/customers");
-}
-
-// ============================================================
-// ヘルパー
-// ============================================================
-
-function isPrismaUniqueError(err: unknown): boolean {
-  return (
-    typeof err === "object" &&
-    err !== null &&
-    "code" in err &&
-    (err as { code: string }).code === "P2002"
-  );
 }

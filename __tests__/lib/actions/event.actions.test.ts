@@ -37,6 +37,11 @@ vi.mock("@/lib/repositories/event.repository", () => ({
   toggleEventPause: (...args: unknown[]) => mockToggleEventPause(...args),
 }));
 
+const mockLogServerError = vi.fn();
+vi.mock("@/lib/utils/log-error", () => ({
+  logServerError: (...args: unknown[]) => mockLogServerError(...args),
+}));
+
 import {
   createEventAction,
   updateEventAction,
@@ -235,6 +240,23 @@ describe("createEventAction", () => {
     await createEventAction(validFormData);
 
     expect(mockRevalidatePath).toHaveBeenCalledWith("/admin/events");
+  });
+
+  it("異常系: DB 失敗時に logServerError が呼ばれ汎用エラーを返す", async () => {
+    setupSuperAdmin();
+    const dbError = new Error("duplicate key");
+    mockCreateEvent.mockRejectedValue(dbError);
+
+    const result = await createEventAction(validFormData);
+
+    expect(result).toEqual({
+      success: false,
+      error: "イベントの作成に失敗しました",
+    });
+    expect(mockLogServerError).toHaveBeenCalledWith(
+      "createEventAction",
+      dbError
+    );
   });
 });
 

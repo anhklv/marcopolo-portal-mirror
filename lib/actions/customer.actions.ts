@@ -17,6 +17,8 @@ import * as customerRepo from "@/lib/repositories/customer.repository";
 import { filterCustomers } from "@/lib/helpers/customer-filter";
 import type { ActionResult } from "@/lib/types/action";
 import { encodeCsvDocument } from "@/lib/utils/csv";
+import { logServerError } from "@/lib/utils/log-error";
+import { isPrismaUniqueViolationOnField } from "@/lib/utils/prisma-error";
 
 // ============================================================
 // ヘルパー
@@ -128,9 +130,10 @@ export async function createCustomerAction(
       communities: buildCommunityData(data.communities),
     });
   } catch (err: unknown) {
-    if (isPrismaUniqueError(err)) {
+    if (isPrismaUniqueViolationOnField(err, "email")) {
       return { error: "このメールアドレスは既に登録されています" };
     }
+    logServerError("createCustomerAction", err);
     throw err;
   }
 
@@ -181,9 +184,10 @@ export async function updateCustomerAction(
     };
     await customerRepo.update(id, updateData);
   } catch (err: unknown) {
-    if (isPrismaUniqueError(err)) {
+    if (isPrismaUniqueViolationOnField(err, "email")) {
       return { error: "このメールアドレスは既に登録されています" };
     }
+    logServerError("updateCustomerAction", err);
     throw err;
   }
 
@@ -303,13 +307,4 @@ export async function exportCustomersAction(
   });
 
   return { csv: encodeCsvDocument(headers, rows) };
-}
-
-function isPrismaUniqueError(err: unknown): boolean {
-  return (
-    typeof err === "object" &&
-    err !== null &&
-    "code" in err &&
-    (err as { code: string }).code === "P2002"
-  );
 }
