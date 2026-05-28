@@ -9,6 +9,7 @@ import {
 } from "@/lib/auth/permissions";
 import { remindSchema, testRemindSchema } from "@/lib/validations/remind";
 import { sendMail, sendMailBatch } from "@/lib/mail/send";
+import { getBaseUrl } from "@/lib/helpers/base-url";
 import { generateRsvpToken, buildRsvpUrl, replacePlaceholders } from "@/lib/helpers/invite";
 
 // ============================================================
@@ -76,7 +77,7 @@ export async function sendRemindAction(
     }
 
     const customers = pendingRsvps.map((r) => r.customer);
-    const baseUrl = process.env.APP_BASE_URL ?? "http://localhost:3000";
+    const baseUrl = await getBaseUrl();
     const from = process.env.SMTP_FROM ?? "noreply@example.com";
 
     // トークンを事前生成（メモリ上に保持）
@@ -152,7 +153,7 @@ export async function sendTestRemindAction(
     return { success: false, error: "管理者が見つかりません" };
   }
 
-  const baseUrl = process.env.APP_BASE_URL ?? "http://localhost:3000";
+  const baseUrl = await getBaseUrl();
   const from = process.env.SMTP_FROM ?? "noreply@example.com";
   const dummyUrl = buildRsvpUrl(baseUrl, parsed.data.eventId, "test-dummy-token");
   const text = replacePlaceholders(parsed.data.emailBody, {
