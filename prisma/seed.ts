@@ -4,6 +4,10 @@ import { PrismaClient } from "../lib/generated/prisma";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import bcrypt from "bcryptjs";
+import {
+  devCustomerEmail,
+  devCustomerSubEmails,
+} from "../lib/helpers/dev-customer-email";
 
 // Constants (copied/adapted from lib/constants/customer.ts to avoid build dependency issues in seed)
 const PREFECTURES = [
@@ -53,6 +57,84 @@ const AFFILIATIONS = [
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool, { disposeExternalPool: true });
 const prisma = new PrismaClient({ adapter });
+
+type SeedCustomerIdentity = {
+  lastName: string;
+  firstName: string;
+  company?: string | null;
+};
+
+async function findSeedCustomer(
+  legacyEmail: string,
+  identity?: SeedCustomerIdentity
+) {
+  const byLegacyEmail = await prisma.customer.findUnique({
+    where: { email: legacyEmail },
+  });
+  if (byLegacyEmail) return byLegacyEmail;
+
+  const seedKeyMatch = legacyEmail.match(/^seed-customer-(\d{3})@example\.com$/);
+  if (seedKeyMatch) {
+    const seedKey = `seedKey:seed-customer-${seedKeyMatch[1]}`;
+    const bySeedKey = await prisma.customer.findFirst({
+      where: { note: { contains: seedKey } },
+    });
+    if (bySeedKey) return bySeedKey;
+  }
+
+  if (identity) {
+    return prisma.customer.findFirst({
+      where: {
+        lastName: identity.lastName,
+        firstName: identity.firstName,
+        ...(identity.company ? { company: identity.company } : {}),
+      },
+    });
+  }
+
+  return null;
+}
+
+async function upsertSeedCustomer(
+  legacyEmail: string,
+  createData: Record<string, unknown>,
+  identity?: SeedCustomerIdentity
+) {
+  const existing = await findSeedCustomer(legacyEmail, identity);
+  const dataWithLegacyEmail = { ...createData, email: legacyEmail };
+
+  if (existing) {
+    return prisma.customer.update({
+      where: { id: existing.id },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- seedスクリプト: 動的フィールド構築のためany使用
+      data: dataWithLegacyEmail as any,
+    });
+  }
+
+  return prisma.customer.create({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- seedスクリプト: 動的フィールド構築のためany使用
+    data: dataWithLegacyEmail as any,
+  });
+}
+
+async function normalizeCustomerEmails() {
+  const customers = await prisma.customer.findMany({
+    select: { id: true, subEmails: true },
+    orderBy: { id: "asc" },
+  });
+
+  for (const customer of customers) {
+    await prisma.customer.update({
+      where: { id: customer.id },
+      data: {
+        email: devCustomerEmail(customer.id),
+        subEmails: devCustomerSubEmails(customer.id, customer.subEmails.length),
+      },
+    });
+  }
+
+  console.log(`顧客メールアドレスを正規化しました: ${customers.length} 件`);
+}
 
 async function main() {
   console.log("Seeding master tables...");
@@ -190,7 +272,8 @@ async function main() {
     const customers = [
       {
         firstName: "太郎", lastName: "田中", firstNameKana: "タロウ", lastNameKana: "タナカ",
-        email: "tanaka@example.com", company: "株式会社テスト", phone: "0312345678",
+        email: "tanaka@example.com", subEmails: ["legacy-sub@example.com"],
+        company: "株式会社テスト", phone: "0312345678",
         postalCode: "1000001", city: "千代田区丸の内1-1-1",
         prefecture: "東京都",
         listingCategory: "プライム:東京証券取引所",
@@ -260,8 +343,8 @@ async function main() {
     ];
 
     for (const customerData of customers) {
-      const { communities: communityData, ...customerFields } = customerData;
-      
+      const { communities: communityData, email: legacyEmail, ...customerFields } = customerData;
+
       // Resolve IDs from maps
       const prefectureId = customerFields.prefecture ? prefectureMap.get(customerFields.prefecture) : undefined;
       const listingCategoryId = customerFields.listingCategory ? listingCategoryMap.get(customerFields.listingCategory) : undefined;
@@ -276,11 +359,15 @@ async function main() {
         listingCategoryId,
       };
 
-      const customer = await prisma.customer.upsert({
-        where: { email: customerFields.email },
-        update: createData,
-        create: createData,
-      });
+      const customer = await upsertSeedCustomer(
+        legacyEmail,
+        createData,
+        {
+          lastName: customerFields.lastName,
+          firstName: customerFields.firstName,
+          company: customerFields.company ?? null,
+        }
+      );
 
       for (const comm of communityData) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- seedスクリプト: 動的キー除外のためany使用
@@ -403,7 +490,8 @@ async function main() {
       const firstName = gender === "male" ? pick(firstNamesMale) : pick(firstNamesFemale);
       const lastNameKana = lastNameKanaMap[lastName];
       const firstNameKana = gender === "male" ? firstNameKanaMaleMap[firstName] : firstNameKanaFemaleMap[firstName];
-      const email = `seed-customer-${String(i).padStart(3, "0")}@example.com`;
+      const seedKey = `seed-customer-${String(i).padStart(3, "0")}`;
+      const email = `${seedKey}@example.com`;
       const company = nextRng() % 10 > 1 ? pick(companyNames) : undefined; // 80%は会社あり
       const phone = nextRng() % 3 === 0 ? `03${String(nextRng() % 100000000).padStart(8, "0")}` : undefined;
       const postalCode = nextRng() % 3 === 0 ? `${String(100 + nextRng() % 900).padStart(3, "0")}${String(nextRng() % 10000).padStart(4, "0")}` : undefined;
@@ -411,7 +499,11 @@ async function main() {
       const city = prefectureName ? pick(cities) : undefined;
       const jobChangeIntent = nextRng() % 3 === 0 ? pick(jobChangeIntents) : undefined;
       const listingCategoryKey = nextRng() % 4 === 0 ? pick(LISTING_CATEGORIES) : undefined;
-      const note = nextRng() % 10 === 0 ? "seedで自動生成されたテストデータ" : undefined;
+      const generatedNote =
+        nextRng() % 10 === 0 ? "seedで自動生成されたテストデータ" : undefined;
+      const note = generatedNote
+        ? `${generatedNote} seedKey:${seedKey}`
+        : `seedKey:${seedKey}`;
 
       const prefId = prefectureName ? prefectureMap.get(prefectureName) : undefined;
       const lcId = listingCategoryKey ? listingCategoryMap.get(`${listingCategoryKey.marketName}:${listingCategoryKey.stockExchangeName}`) : undefined;
@@ -466,11 +558,7 @@ async function main() {
       if (jobChangeIntent) createData.jobChangeIntent = jobChangeIntent;
       if (note) createData.note = note;
 
-      const customer = await prisma.customer.upsert({
-        where: { email },
-        update: createData,
-        create: createData,
-      });
+      const customer = await upsertSeedCustomer(email, createData);
 
       // 前回seed実行時の古いコミュニティレコードをクリーンアップ
       await prisma.customerCommunity.deleteMany({
@@ -516,6 +604,8 @@ async function main() {
       }
     }
     console.log("100人の顧客データを作成しました");
+
+    await normalizeCustomerEmails();
   }
 
   // テスト用イベントデータの投入
@@ -639,9 +729,15 @@ async function main() {
     }
 
     // RSVPの投入
-    const tanaka = await prisma.customer.findUnique({ where: { email: "tanaka@example.com" } });
-    const suzuki = await prisma.customer.findUnique({ where: { email: "suzuki@example.com" } });
-    const sato = await prisma.customer.findUnique({ where: { email: "sato@example.com" } });
+    const tanaka = await prisma.customer.findFirst({
+      where: { lastName: "田中", firstName: "太郎", company: "株式会社テスト" },
+    });
+    const suzuki = await prisma.customer.findFirst({
+      where: { lastName: "鈴木", firstName: "花子", company: "鈴木監査法人" },
+    });
+    const sato = await prisma.customer.findFirst({
+      where: { lastName: "佐藤", firstName: "一郎", company: "佐藤コンサルティング" },
+    });
 
     const ventureEvent1 = await prisma.event.findFirst({
       where: { communityId: ventureAuditor.id, title: "第1回 定例勉強会" },
