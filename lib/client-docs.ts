@@ -13,6 +13,7 @@ export const CLIENT_DOCS: { slug: string; docPath: string; label: string }[] = [
   { slug: "report-20260309", docPath: "報告/報告20260309", label: "報告 › 報告20260309" },
   { slug: "report-20260406", docPath: "報告/報告20260406", label: "報告 › 報告20260406" },
   { slug: "report-20260511", docPath: "報告/報告20260511", label: "報告 › 報告20260511" },
+  { slug: "report-20260608", docPath: "報告/報告20260608", label: "報告 › 報告20260608" },
 ];
 
 export function getDocBySlug(slug: string): { docPath: string; label: string } | null {
