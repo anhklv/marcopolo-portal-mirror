@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import { authConfig } from "@/lib/auth/auth.config";
+import { isDebugAdminPanelEnabled } from "@/lib/debug-admin-panel";
 import { NextResponse } from "next/server";
 
 const { auth } = NextAuth(authConfig);
@@ -22,8 +23,11 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
-  // /docs/*: ドキュメントは管理者ログイン必須
+  // /docs/*: DEBUG_ADMIN_PANEL=true かつ管理者ログイン時のみ閲覧可
   if (pathname === "/docs" || pathname.startsWith("/docs/")) {
+    if (!isDebugAdminPanelEnabled()) {
+      return new NextResponse("Not Found", { status: 404 });
+    }
     if (!isLoggedIn) {
       return NextResponse.redirect(new URL("/admin/login", req.url));
     }
@@ -32,10 +36,7 @@ export default auth((req) => {
 
   // 開発用ページ: DEBUG_ADMIN_PANEL !== 'true' なら認証状態に関わらず 404
   const debugPages = ["/admin/styleguide"];
-  const isDebugAdminPanelEnabled =
-    process.env.DEBUG_ADMIN_PANEL === "true" &&
-    process.env.NODE_ENV !== "production";
-  if (debugPages.some((p) => pathname.startsWith(p)) && !isDebugAdminPanelEnabled) {
+  if (debugPages.some((p) => pathname.startsWith(p)) && !isDebugAdminPanelEnabled()) {
     return new NextResponse("Not Found", { status: 404 });
   }
 

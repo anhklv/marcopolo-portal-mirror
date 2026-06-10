@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/auth";
+import { isDebugAdminPanelEnabled } from "@/lib/debug-admin-panel";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/sidebar";
 
@@ -14,9 +15,7 @@ export default async function DashboardLayout({
     redirect("/admin/login");
   }
 
-  const debugMode =
-    process.env.DEBUG_ADMIN_PANEL === "true" &&
-    process.env.NODE_ENV !== "production";
+  const debugMode = isDebugAdminPanelEnabled();
 
   return (
     <SidebarProvider>

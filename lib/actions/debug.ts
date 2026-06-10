@@ -2,15 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 import { loginAction } from "@/lib/actions/auth";
+import { isDebugAdminPanelEnabled } from "@/lib/debug-admin-panel";
 
 const DEBUG_PASSWORD = "rara6y";
-
-function isDebugAdminPanelEnabled() {
-  return (
-    process.env.DEBUG_ADMIN_PANEL === "true" &&
-    process.env.NODE_ENV !== "production"
-  );
-}
 
 interface DebugAdmin {
   id: number;
