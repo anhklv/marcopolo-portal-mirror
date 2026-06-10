@@ -8,7 +8,7 @@ import {
   Users,
   Calendar,
   LogOut,
-  Settings,
+  KeyRound,
   MoreVertical,
   ChevronRight,
   FileText,
@@ -203,8 +203,8 @@ export function AppSidebar({ admin, debugMode }: AppSidebarProps) {
                 )}
                 <DropdownMenuItem asChild>
                   <Link href="/admin/settings/password">
-                    <Settings />
-                    設定
+                    <KeyRound />
+                    パスワード変更
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
