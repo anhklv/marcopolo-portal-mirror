@@ -55,7 +55,14 @@ export function StepRecipients({ event, form }: StepRecipientsProps) {
           </p>
         </div>
 
-        <div className="rounded-lg bg-card">
+        <div className="flex justify-center gap-4">
+          <ActionButton variant="outline" asChild>
+            <Link href={`/admin/events/${event.id}`}>キャンセル</Link>
+          </ActionButton>
+          <ActionButton onClick={form.handleRecipientsNext}>次へ</ActionButton>
+        </div>
+
+        <div className="rounded-lg bg-card max-h-[60vh] overflow-y-auto">
           <Table className="[&_th]:py-4 [&_td]:py-4">
             <TableHeader>
               <TableRow>
@@ -83,13 +90,6 @@ export function StepRecipients({ event, form }: StepRecipientsProps) {
               ))}
             </TableBody>
           </Table>
-        </div>
-
-        <div className="flex justify-center gap-4 pt-4">
-          <ActionButton variant="outline" asChild>
-            <Link href={`/admin/events/${event.id}`}>キャンセル</Link>
-          </ActionButton>
-          <ActionButton onClick={form.handleRecipientsNext}>次へ</ActionButton>
         </div>
       </div>
     </div>

@@ -22,6 +22,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CheckboxItem } from "@/components/ui/checkbox-item";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import { usePagination } from "@/hooks/use-pagination";
 import { Search, ChevronDown } from "lucide-react";
 import {
   RSVP_STATUS_CONFIG,
@@ -59,6 +61,15 @@ export function TabAttendees({
     () => filterAttendees(allRows, searchKeyword, selectedStatuses),
     [allRows, searchKeyword, selectedStatuses]
   );
+
+  const {
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    paginatedItems: paginatedRows,
+    getPageNumbers,
+    itemsPerPage,
+  } = usePagination(filteredRows);
 
   const handleDownloadCsv = () => {
     startCsvTransition(async () => {
@@ -145,6 +156,18 @@ export function TabAttendees({
         </div>
 
         {/* 参加者テーブル */}
+        <div className="space-y-2">
+          <div className="flex justify-end">
+            <div className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{filteredRows.length}</span>件
+              {filteredRows.length > itemsPerPage && (
+                <span className="ml-2">
+                  （{(currentPage - 1) * itemsPerPage + 1}-
+                  {Math.min(currentPage * itemsPerPage, filteredRows.length)}件目を表示）
+                </span>
+              )}
+            </div>
+          </div>
         <div className="rounded-lg bg-card">
           <Table className="[&_th]:py-4 [&_td]:py-4">
             <TableHeader>
@@ -172,7 +195,7 @@ export function TabAttendees({
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredRows.map((row) => {
+                paginatedRows.map((row) => {
                   const statusConf =
                     RSVP_STATUS_CONFIG[
                       row.status as RsvpStatus
@@ -227,6 +250,14 @@ export function TabAttendees({
             </TableBody>
           </Table>
         </div>
+        </div>
+
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          getPageNumbers={getPageNumbers}
+        />
 
         <div className="flex justify-end pt-4">
           <Button

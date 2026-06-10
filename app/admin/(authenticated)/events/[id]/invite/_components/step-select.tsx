@@ -25,6 +25,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ActionButton } from "@/components/ui/action-button";
 import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import { usePagination } from "@/hooks/use-pagination";
 import type { SerializedEventForInvite } from "@/lib/types/serialized";
 import type { CommunityOption } from "@/lib/types/serialized";
 import { getFilterDisplayText } from "@/lib/helpers/filter-display";
@@ -39,6 +41,15 @@ interface StepSelectProps {
 }
 
 export function StepSelect({ event, communities, currentUserRole, form }: StepSelectProps) {
+  const {
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    paginatedItems: paginatedCustomers,
+    getPageNumbers,
+    itemsPerPage,
+  } = usePagination(form.filteredCustomers);
+
   return (
     <div className="max-w-4xl space-y-6">
       <PageHeader
@@ -152,9 +163,23 @@ export function StepSelect({ event, communities, currentUserRole, form }: StepSe
         <div className="flex justify-start">
           <div className="text-sm text-muted-foreground">
             <span className="font-semibold text-foreground">{form.selectedCustomerIds.length}</span>名選択中
+            {" / "}
+            <span className="font-semibold text-foreground">{form.filteredCustomers.length}</span>名
           </div>
         </div>
 
+        <div className="space-y-2">
+          <div className="flex justify-end">
+            <div className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{form.filteredCustomers.length}</span>件
+              {form.filteredCustomers.length > itemsPerPage && (
+                <span className="ml-2">
+                  （{(currentPage - 1) * itemsPerPage + 1}-
+                  {Math.min(currentPage * itemsPerPage, form.filteredCustomers.length)}件目を表示）
+                </span>
+              )}
+            </div>
+          </div>
         <div className="rounded-lg bg-card">
           <Table className="[&_th]:py-4 [&_td]:py-4">
             <TableHeader>
@@ -189,7 +214,7 @@ export function StepSelect({ event, communities, currentUserRole, form }: StepSe
                   </TableCell>
                 </TableRow>
               ) : (
-                form.filteredCustomers.map((customer) => (
+                paginatedCustomers.map((customer) => (
                   <TableRow key={customer.id}>
                     <TableCell>
                       <Checkbox
@@ -217,6 +242,14 @@ export function StepSelect({ event, communities, currentUserRole, form }: StepSe
             </TableBody>
           </Table>
         </div>
+        </div>
+
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          getPageNumbers={getPageNumbers}
+        />
 
         <div className="flex justify-center gap-4 pt-4">
           <ActionButton variant="outline" asChild>

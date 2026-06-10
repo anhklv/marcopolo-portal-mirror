@@ -14,6 +14,8 @@ import { CustomerBadges } from "@/components/ui/customer-badges";
 import { PageHeader } from "@/components/ui/page-header";
 import { ActionButton } from "@/components/ui/action-button";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import { usePagination } from "@/hooks/use-pagination";
 import { StepIndicator } from "@/app/admin/(authenticated)/events/[id]/invite/_components/step-indicator";
 import { SURVEY_STEPS } from "@/lib/constants/survey";
 import type { SerializedEventForSurvey } from "@/lib/types/serialized";
@@ -25,6 +27,15 @@ interface StepSelectProps {
 }
 
 export function StepSelect({ event, form }: StepSelectProps) {
+  const {
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    paginatedItems: paginatedAttendees,
+    getPageNumbers,
+    itemsPerPage,
+  } = usePagination(form.attendees);
+
   return (
     <div className="max-w-4xl space-y-6">
       <PageHeader
@@ -43,24 +54,26 @@ export function StepSelect({ event, form }: StepSelectProps) {
           </p>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex justify-start">
           <div className="text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">
-              {form.selectedAttendeeIds.length}
-            </span>
-            名選択中 / {form.attendees.length}名
+            <span className="font-semibold text-foreground">{form.selectedAttendeeIds.length}</span>名選択中
+            {" / "}
+            <span className="font-semibold text-foreground">{form.attendees.length}</span>名
           </div>
-          <ActionButton
-            variant="outline"
-            size="sm"
-            onClick={form.toggleAllAttendees}
-          >
-            {form.selectedAttendeeIds.length === form.attendees.length
-              ? "すべて解除"
-              : "すべて選択"}
-          </ActionButton>
         </div>
 
+        <div className="space-y-2">
+          <div className="flex justify-end">
+            <div className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{form.attendees.length}</span>件
+              {form.attendees.length > itemsPerPage && (
+                <span className="ml-2">
+                  （{(currentPage - 1) * itemsPerPage + 1}-
+                  {Math.min(currentPage * itemsPerPage, form.attendees.length)}件目を表示）
+                </span>
+              )}
+            </div>
+          </div>
         <div className="rounded-lg bg-card">
           <Table className="[&_th]:py-4 [&_td]:py-4">
             <TableHeader>
@@ -98,7 +111,7 @@ export function StepSelect({ event, form }: StepSelectProps) {
                   </TableCell>
                 </TableRow>
               ) : (
-                form.attendees.map((attendee) => (
+                paginatedAttendees.map((attendee) => (
                   <TableRow key={attendee.id}>
                     <TableCell>
                       <Checkbox
@@ -124,6 +137,14 @@ export function StepSelect({ event, form }: StepSelectProps) {
             </TableBody>
           </Table>
         </div>
+        </div>
+
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          getPageNumbers={getPageNumbers}
+        />
 
         <div className="flex justify-center gap-4 pt-4">
           <ActionButton variant="outline" asChild>
