@@ -67,6 +67,39 @@ function buildCommunityData(communities?: CustomerFormInput["communities"]) {
   }));
 }
 
+async function findOutOfScopeCommunityData(
+  customerId: number,
+  scopedCommunityIds: number[]
+) {
+  const communities = await prisma.customerCommunity.findMany({
+    where: {
+      customerId,
+      communityId: { notIn: scopedCommunityIds },
+    },
+    select: {
+      communityId: true,
+      joinedAt: true,
+      resignedAt: true,
+      auditMemberType: true,
+      auditMemberPremium: true,
+      affiliationId: true,
+      originIndustryId: true,
+      membershipQualificationId: true,
+    },
+  });
+
+  return communities.map((c) => ({
+    communityId: c.communityId,
+    joinedAt: c.joinedAt,
+    resignedAt: c.resignedAt,
+    auditMemberType: c.auditMemberType,
+    auditMemberPremium: c.auditMemberPremium,
+    affiliationId: c.affiliationId,
+    originIndustryId: c.originIndustryId,
+    membershipQualificationId: c.membershipQualificationId,
+  }));
+}
+
 /**
  * ベンチャー監査役の会＋会員の場合、会員種別は必須
  */
@@ -178,9 +211,16 @@ export async function updateCustomerAction(
 
   // 更新
   try {
+    const scopedCommunityData = buildCommunityData(data.communities);
+    const preservedOutOfScopeCommunityData = isSuper
+      ? []
+      : await findOutOfScopeCommunityData(id, scopedCommunityIds);
     const updateData = {
       ...data,
-      communities: buildCommunityData(data.communities),
+      communities: [
+        ...scopedCommunityData,
+        ...preservedOutOfScopeCommunityData,
+      ],
     };
     await customerRepo.update(id, updateData);
   } catch (err: unknown) {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import "@/__tests__/helpers/mock-prisma";
+import { mockPrisma } from "@/__tests__/helpers/mock-prisma";
 
 // next/cache, next/navigation のモック
 vi.mock("next/cache", () => ({
@@ -251,6 +251,58 @@ describe("updateCustomerAction", () => {
     });
 
     expect(result).toEqual({ error: "権限のないコミュニティが含まれています" });
+  });
+
+  it("正常系: community_admin の更新ではスコープ外コミュニティ所属を保持する", async () => {
+    setupCommunityAdmin([1]);
+    mockCanAccessCustomer.mockResolvedValue(true);
+    mockRepoExistsByEmail.mockResolvedValue(false);
+    mockPrisma.customerCommunity.findMany.mockResolvedValue([
+      {
+        communityId: 2,
+        joinedAt: new Date("2024-06-01"),
+        resignedAt: null,
+        auditMemberType: null,
+        auditMemberPremium: null,
+        affiliationId: 10,
+        originIndustryId: null,
+        membershipQualificationId: null,
+      },
+    ]);
+    mockRepoUpdate.mockResolvedValue({ id: 1 });
+
+    await expect(
+      updateCustomerAction(1, {
+        ...validFormData,
+        communities: [{ communityId: 1, joinedAt: "2024/04/01" }],
+      })
+    ).rejects.toThrow("NEXT_REDIRECT");
+
+    expect(mockPrisma.customerCommunity.findMany).toHaveBeenCalledWith({
+      where: {
+        customerId: 1,
+        communityId: { notIn: [1] },
+      },
+      select: {
+        communityId: true,
+        joinedAt: true,
+        resignedAt: true,
+        auditMemberType: true,
+        auditMemberPremium: true,
+        affiliationId: true,
+        originIndustryId: true,
+        membershipQualificationId: true,
+      },
+    });
+    expect(mockRepoUpdate).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({
+        communities: expect.arrayContaining([
+          expect.objectContaining({ communityId: 1 }),
+          expect.objectContaining({ communityId: 2, affiliationId: 10 }),
+        ]),
+      })
+    );
   });
 });
 

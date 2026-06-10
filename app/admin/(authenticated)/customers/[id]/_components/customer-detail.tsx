@@ -45,13 +45,14 @@ import type { SerializedCustomerDetail } from "@/lib/types/serialized";
 
 interface CustomerDetailProps {
   customer: SerializedCustomerDetail;
+  showBack?: boolean;
 }
 
 // ============================================================
 // コンポーネント
 // ============================================================
 
-export function CustomerDetail({ customer }: CustomerDetailProps) {
+export function CustomerDetail({ customer, showBack = true }: CustomerDetailProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -96,7 +97,7 @@ export function CustomerDetail({ customer }: CustomerDetailProps) {
     <div className="max-w-4xl space-y-6">
       <div className="flex items-center justify-between">
         <PageHeader
-          backHref="/admin/customers"
+          backHref={showBack ? "/admin/customers" : undefined}
           title={`${customer.lastName} ${customer.firstName}さんの詳細情報`}
         />
         <Button variant="outline" asChild>

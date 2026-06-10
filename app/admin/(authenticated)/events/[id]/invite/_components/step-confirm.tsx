@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -41,7 +42,14 @@ export function StepConfirm({ event, form }: StepConfirmProps) {
           <div className="space-y-2 text-sm max-h-[300px] overflow-y-auto">
             {form.selectedCustomers.map((customer) => (
               <div key={customer.id}>
-                {customer.lastName} {customer.firstName}
+                <Link
+                  href={`/admin/customers/${customer.id}?from=event`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  {customer.lastName} {customer.firstName}
+                </Link>
                 {customer.company && ` (${customer.company})`}
               </div>
             ))}

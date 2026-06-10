@@ -3,6 +3,7 @@ import { getAuthenticatedAdmin, canAccessEvent } from "@/lib/auth/permissions";
 import { findEventByIdForRemind } from "@/lib/repositories/event.repository";
 import { serializeEventForRemind } from "@/lib/serializers/event";
 import { generateRemindSubject, generateRemindBody } from "@/lib/mail/templates/remind";
+import { getEventDisplayStatus } from "@/lib/utils/event";
 import { prisma } from "@/lib/prisma";
 import { RemindForm } from "./_components/remind-form";
 
@@ -31,6 +32,10 @@ export default async function EventRemindPage({
 
   const event = await findEventByIdForRemind(eventId);
   if (!event) {
+    notFound();
+  }
+
+  if (getEventDisplayStatus(event) !== "receiving") {
     notFound();
   }
 
