@@ -48,6 +48,13 @@ const validTestRemindData = {
   emailBody: "テスト本文\n{RSVP_URL}",
 };
 
+const receivingEvent = {
+  id: 1,
+  date: new Date("2999-01-01T10:00:00.000Z"),
+  responseDeadline: new Date("2998-12-31T10:00:00.000Z"),
+  isPaused: false,
+};
+
 function setupSuperAdmin() {
   mockRequireAuth.mockResolvedValue(superSession);
   mockRequireAuthenticatedAdmin.mockResolvedValue({
@@ -62,7 +69,7 @@ function setupSuperAdmin() {
     adminCommunities: [],
   });
   mockCanAccessEvent.mockResolvedValue(true);
-  mockPrisma.event.findFirst.mockResolvedValue({ id: 1 });
+  mockPrisma.event.findFirst.mockResolvedValue(receivingEvent);
 }
 
 describe("sendRemindAction", () => {
@@ -228,6 +235,22 @@ describe("sendRemindAction", () => {
       success: false,
       error: "イベントが見つかりません",
     });
+  });
+
+  it("異常系: 受付中ではないイベントにはリマインドメールを送信できない", async () => {
+    setupSuperAdmin();
+    mockPrisma.event.findFirst.mockResolvedValue({
+      ...receivingEvent,
+      isPaused: true,
+    });
+
+    const result = await sendRemindAction(validRemindData);
+
+    expect(result).toEqual({
+      success: false,
+      error: "リマインドメールは受付中のイベントのみ送信できます",
+    });
+    expect(mockSendMailBatch).not.toHaveBeenCalled();
   });
 
   it("異常系: pending RSVPが0件", async () => {

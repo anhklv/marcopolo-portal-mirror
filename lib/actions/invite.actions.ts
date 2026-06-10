@@ -11,6 +11,7 @@ import { inviteSchema, testInviteSchema } from "@/lib/validations/invite";
 import { sendMail, sendMailBatch } from "@/lib/mail/send";
 import { getBaseUrl } from "@/lib/helpers/base-url";
 import { generateRsvpToken, buildRsvpUrl, replacePlaceholders } from "@/lib/helpers/invite";
+import { getEventDisplayStatus } from "@/lib/utils/event";
 import { logServerError } from "@/lib/utils/log-error";
 
 // ============================================================
@@ -50,7 +51,7 @@ export async function sendInviteAction(
   // イベント存在チェック + アクセス権チェック
   const event = await prisma.event.findFirst({
     where: { id: eventId, deletedAt: null },
-    select: { id: true },
+    select: { id: true, date: true, responseDeadline: true, isPaused: true },
   });
   if (!event) {
     return { success: false, error: "イベントが見つかりません" };
@@ -59,6 +60,10 @@ export async function sendInviteAction(
   const hasAccess = await canAccessEvent(admin, eventId);
   if (!hasAccess) {
     return { success: false, error: "このイベントへのアクセス権がありません" };
+  }
+
+  if (getEventDisplayStatus(event) !== "receiving") {
+    return { success: false, error: "案内メールは受付中のイベントのみ送信できます" };
   }
 
   // community_admin の場合、全顧客がスコープ内か検証

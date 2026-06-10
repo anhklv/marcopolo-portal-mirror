@@ -6,6 +6,7 @@ import { serializeEventForInvite } from "@/lib/serializers/event";
 import { serializeCustomerForInvite } from "@/lib/serializers/customer";
 import { generateInviteSubject, generateInviteBody } from "@/lib/mail/templates/invite";
 import * as customerRepo from "@/lib/repositories/customer.repository";
+import { getEventDisplayStatus } from "@/lib/utils/event";
 import { prisma } from "@/lib/prisma";
 import { InviteForm } from "./_components/invite-form";
 
@@ -34,6 +35,10 @@ export default async function EventInvitePage({
 
   const event = await findEventByIdForInvite(eventId);
   if (!event) {
+    notFound();
+  }
+
+  if (getEventDisplayStatus(event) !== "receiving") {
     notFound();
   }
 

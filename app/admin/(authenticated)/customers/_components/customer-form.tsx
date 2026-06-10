@@ -156,7 +156,7 @@ export function CustomerForm({
               </div>
 
               {/* ベンチャー監査役の会 詳細 */}
-              {form.auditChecked && (
+              {form.canAccessAudit && form.auditChecked && (
                 <AuditCommunityFields
                   memberCategory={form.memberCategory}
                   auditMemberType={form.auditMemberType}
@@ -179,7 +179,7 @@ export function CustomerForm({
               )}
 
               {/* ないかんMeetup 詳細 */}
-              {form.naikanChecked && (
+              {form.canAccessNaikan && form.naikanChecked && (
                 <SimpleCommunityFields
                   label="ないかんMeetup"
                   affiliationId={form.naikanAffiliationId}
@@ -195,7 +195,7 @@ export function CustomerForm({
               )}
 
               {/* AI部会 詳細 */}
-              {form.aiChecked && (
+              {form.canAccessAi && form.aiChecked && (
                 <SimpleCommunityFields
                   label="AI部会"
                   affiliationId={form.aiAffiliationId}
