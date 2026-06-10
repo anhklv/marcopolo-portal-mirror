@@ -14,7 +14,9 @@ export default async function DashboardLayout({
     redirect("/admin/login");
   }
 
-  const debugMode = process.env.DEBUG_ADMIN_PANEL === "true";
+  const debugMode =
+    process.env.DEBUG_ADMIN_PANEL === "true" &&
+    process.env.NODE_ENV !== "production";
 
   return (
     <SidebarProvider>

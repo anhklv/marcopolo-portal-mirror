@@ -22,9 +22,20 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
+  // /docs/*: ドキュメントは管理者ログイン必須
+  if (pathname === "/docs" || pathname.startsWith("/docs/")) {
+    if (!isLoggedIn) {
+      return NextResponse.redirect(new URL("/admin/login", req.url));
+    }
+    return NextResponse.next();
+  }
+
   // 開発用ページ: DEBUG_ADMIN_PANEL !== 'true' なら認証状態に関わらず 404
   const debugPages = ["/admin/styleguide"];
-  if (debugPages.some((p) => pathname.startsWith(p)) && process.env.DEBUG_ADMIN_PANEL !== "true") {
+  const isDebugAdminPanelEnabled =
+    process.env.DEBUG_ADMIN_PANEL === "true" &&
+    process.env.NODE_ENV !== "production";
+  if (debugPages.some((p) => pathname.startsWith(p)) && !isDebugAdminPanelEnabled) {
     return new NextResponse("Not Found", { status: 404 });
   }
 
@@ -44,5 +55,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/docs", "/docs/:path*"],
 };

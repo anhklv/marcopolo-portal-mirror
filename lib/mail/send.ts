@@ -65,6 +65,47 @@ export interface BatchMailResult {
 
 const BATCH_SIZE = 10;
 
+function buildRecipientEmails(customer: BatchMailCustomer): string[] {
+  return [customer.email, ...(customer.subEmails ?? [])].filter(Boolean);
+}
+
+async function sendMailToCustomer(
+  customer: BatchMailCustomer,
+  params: Pick<BatchMailParams, "tokenMap" | "eventId" | "baseUrl" | "from" | "emailTitle" | "emailBody">
+): Promise<SendMailResult> {
+  const token = params.tokenMap.get(customer.id) ?? "";
+  const rsvpUrl = buildRsvpUrl(params.baseUrl, params.eventId, token);
+  const customerName = `${customer.lastName} ${customer.firstName}`;
+  const text = replacePlaceholders(params.emailBody, { rsvpUrl, customerName });
+  const recipients = buildRecipientEmails(customer);
+
+  const results = await Promise.allSettled(
+    recipients.map((recipient) =>
+      sendMail({
+        from: params.from,
+        to: recipient,
+        subject: params.emailTitle,
+        text,
+      })
+    )
+  );
+
+  const failed = results.find(
+    (result) => result.status === "rejected" || !result.value.success
+  );
+  if (failed) {
+    const error =
+      failed.status === "rejected"
+        ? failed.reason instanceof Error
+          ? failed.reason.message
+          : "メール送信に失敗しました"
+        : failed.value.error;
+    return { success: false, error };
+  }
+
+  return { success: true };
+}
+
 /**
  * RSVP案内/リマインドメールのバッチ送信
  * 顧客リストに対してバッチ分割でメールを送信し、結果を集計する
@@ -76,20 +117,16 @@ export async function sendMailBatch(params: BatchMailParams): Promise<BatchMailR
   for (let i = 0; i < customers.length; i += BATCH_SIZE) {
     const batch = customers.slice(i, i + BATCH_SIZE);
     const batchResults = await Promise.allSettled(
-      batch.map((customer) => {
-        const token = tokenMap.get(customer.id) ?? "";
-        const rsvpUrl = buildRsvpUrl(baseUrl, eventId, token);
-        const customerName = `${customer.lastName} ${customer.firstName}`;
-        const text = replacePlaceholders(emailBody, { rsvpUrl, customerName });
-        const recipients = [customer.email, ...(customer.subEmails ?? [])].filter(Boolean).join(", ");
-
-        return sendMail({
+      batch.map((customer) =>
+        sendMailToCustomer(customer, {
+          tokenMap,
+          eventId,
+          baseUrl,
           from,
-          to: recipients,
-          subject: emailTitle,
-          text,
-        });
-      })
+          emailTitle,
+          emailBody,
+        })
+      )
     );
     sendResults.push(...batchResults);
   }

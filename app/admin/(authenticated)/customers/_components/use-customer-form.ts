@@ -127,9 +127,9 @@ export function useCustomerForm({
   const aiCommunity = findCommunityByCode(communities, COMMUNITY_CODE.AI_CLUB);
 
   // コミュニティのスコープ内チェック
-  const canAccessAudit = isSuper || (auditCommunity && scopedCommunityIds.includes(auditCommunity.id));
-  const canAccessNaikan = isSuper || (naikanCommunity && scopedCommunityIds.includes(naikanCommunity.id));
-  const canAccessAi = isSuper || (aiCommunity && scopedCommunityIds.includes(aiCommunity.id));
+  const canAccessAudit = !!(isSuper || (auditCommunity && scopedCommunityIds.includes(auditCommunity.id)));
+  const canAccessNaikan = !!(isSuper || (naikanCommunity && scopedCommunityIds.includes(naikanCommunity.id)));
+  const canAccessAi = !!(isSuper || (aiCommunity && scopedCommunityIds.includes(aiCommunity.id)));
 
   // 初期値
   const auditInitial = auditCommunity ? getInitialCommunityData(initialData, auditCommunity.id) : undefined;
@@ -137,11 +137,14 @@ export function useCustomerForm({
   const aiInitial = aiCommunity ? getInitialCommunityData(initialData, aiCommunity.id) : undefined;
 
   // コミュニティ選択状態
-  const [auditChecked, setAuditChecked] = useState(!!auditInitial);
-  const [naikanChecked, setNaikanChecked] = useState(!!naikanInitial);
-  const [aiChecked, setAiChecked] = useState(!!aiInitial);
+  const [auditChecked, setAuditChecked] = useState(!!auditInitial && canAccessAudit);
+  const [naikanChecked, setNaikanChecked] = useState(!!naikanInitial && canAccessNaikan);
+  const [aiChecked, setAiChecked] = useState(!!aiInitial && canAccessAi);
 
-  const anyCommunityChecked = auditChecked || naikanChecked || aiChecked;
+  const anyCommunityChecked =
+    (canAccessAudit && auditChecked) ||
+    (canAccessNaikan && naikanChecked) ||
+    (canAccessAi && aiChecked);
 
   // 会員区分・契約主体
   const [memberCategory, setMemberCategory] = useState<string>(
@@ -243,9 +246,9 @@ export function useCustomerForm({
     // 編集時：元々所属していたコミュニティのチェックが外された場合、確認ダイアログを表示
     if (mode === "edit") {
       const removedCommunities: string[] = [];
-      if (auditInitial && !auditChecked) removedCommunities.push(COMMUNITY_NAME[COMMUNITY_CODE.VENTURE_AUDITOR]);
-      if (naikanInitial && !naikanChecked) removedCommunities.push(COMMUNITY_NAME[COMMUNITY_CODE.NAIKAN_MEETUP]);
-      if (aiInitial && !aiChecked) removedCommunities.push(COMMUNITY_NAME[COMMUNITY_CODE.AI_CLUB]);
+      if (canAccessAudit && auditInitial && !auditChecked) removedCommunities.push(COMMUNITY_NAME[COMMUNITY_CODE.VENTURE_AUDITOR]);
+      if (canAccessNaikan && naikanInitial && !naikanChecked) removedCommunities.push(COMMUNITY_NAME[COMMUNITY_CODE.NAIKAN_MEETUP]);
+      if (canAccessAi && aiInitial && !aiChecked) removedCommunities.push(COMMUNITY_NAME[COMMUNITY_CODE.AI_CLUB]);
 
       if (removedCommunities.length > 0) {
         const confirmed = window.confirm(
@@ -266,7 +269,7 @@ export function useCustomerForm({
     // コミュニティデータ構築（日付は表示形式のままZodで検証・変換）
     const communitiesData: CommunityEntry[] = [];
 
-    if (auditChecked && auditCommunity) {
+    if (canAccessAudit && auditChecked && auditCommunity) {
       communitiesData.push(buildCommunityEntry(auditCommunity.id, auditJoinedAt, auditResignedAt, {
         auditMemberType: memberCategory === "member" ? (auditMemberType || null) : null,
         auditMemberPremium: memberCategory === "member" ? auditMemberPremium : null,
@@ -275,13 +278,13 @@ export function useCustomerForm({
       }));
     }
 
-    if (naikanChecked && naikanCommunity) {
+    if (canAccessNaikan && naikanChecked && naikanCommunity) {
       communitiesData.push(buildCommunityEntry(naikanCommunity.id, naikanJoinedAt, naikanResignedAt, {
         affiliationId: naikanAffiliationId || null,
       }));
     }
 
-    if (aiChecked && aiCommunity) {
+    if (canAccessAi && aiChecked && aiCommunity) {
       communitiesData.push(buildCommunityEntry(aiCommunity.id, aiJoinedAt, aiResignedAt, {
         affiliationId: aiAffiliationId || null,
       }));

@@ -125,19 +125,44 @@ describe("sendMailBatch", () => {
     expect(result.successCustomerIds).toEqual([1]);
   });
 
-  it("正常系: subEmailsがある顧客はメイン+サブの宛先で送信される", async () => {
+  it("正常系: subEmailsがある顧客はメインとサブを個別送信し、人数は1名で集計する", async () => {
     const customers: BatchMailCustomer[] = [
       { id: 1, lastName: "田中", firstName: "太郎", email: "tanaka@example.com", subEmails: ["tanaka-sub@example.com"] },
     ];
     sendMailMock.mockResolvedValue({ messageId: "<msg>" });
 
-    await sendMailBatch({ ...baseParams, customers, tokenMap: new Map([[1, "token-1"]]) });
+    const result = await sendMailBatch({ ...baseParams, customers, tokenMap: new Map([[1, "token-1"]]) });
 
     expect(sendMailMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        to: "tanaka@example.com, tanaka-sub@example.com",
+        to: "tanaka@example.com",
       })
     );
+    expect(sendMailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "tanaka-sub@example.com",
+      })
+    );
+    expect(sendMailMock).toHaveBeenCalledTimes(2);
+    expect(result.sentCount).toBe(1);
+    expect(result.failedCount).toBe(0);
+    expect(result.successCustomerIds).toEqual([1]);
+  });
+
+  it("異常系: subEmailsの一部が失敗した場合は顧客単位で失敗扱いにする", async () => {
+    const customers: BatchMailCustomer[] = [
+      { id: 1, lastName: "田中", firstName: "太郎", email: "tanaka@example.com", subEmails: ["tanaka-sub@example.com"] },
+    ];
+    sendMailMock
+      .mockResolvedValueOnce({ messageId: "<msg>" })
+      .mockRejectedValueOnce(new Error("SMTP error"));
+
+    const result = await sendMailBatch({ ...baseParams, customers, tokenMap: new Map([[1, "token-1"]]) });
+
+    expect(result.sentCount).toBe(0);
+    expect(result.failedCount).toBe(1);
+    expect(result.failedNames).toEqual(["田中 太郎"]);
+    expect(result.successCustomerIds).toEqual([]);
   });
 
   it("正常系: subEmailsが空配列の場合はメインアドレスのみで送信される", async () => {

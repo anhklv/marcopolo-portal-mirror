@@ -5,6 +5,13 @@ import { loginAction } from "@/lib/actions/auth";
 
 const DEBUG_PASSWORD = "rara6y";
 
+function isDebugAdminPanelEnabled() {
+  return (
+    process.env.DEBUG_ADMIN_PANEL === "true" &&
+    process.env.NODE_ENV !== "production"
+  );
+}
+
 interface DebugAdmin {
   id: number;
   email: string;
@@ -15,7 +22,7 @@ interface DebugAdmin {
 }
 
 export async function getDebugAdminList(): Promise<DebugAdmin[]> {
-  if (process.env.DEBUG_ADMIN_PANEL !== "true") {
+  if (!isDebugAdminPanelEnabled()) {
     return [];
   }
 
@@ -57,7 +64,7 @@ export async function switchDebugAdmin(
   email: string,
   password?: string
 ): Promise<{ success: boolean; error: string | null }> {
-  if (process.env.DEBUG_ADMIN_PANEL !== "true") {
+  if (!isDebugAdminPanelEnabled()) {
     return { success: false, error: "DEBUGモードが無効です" };
   }
 

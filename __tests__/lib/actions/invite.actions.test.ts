@@ -49,6 +49,13 @@ const validTestInviteData = {
   emailBody: "テスト本文\n{RSVP_URL}",
 };
 
+const receivingEvent = {
+  id: 1,
+  date: new Date("2999-01-01T10:00:00.000Z"),
+  responseDeadline: new Date("2998-12-31T10:00:00.000Z"),
+  isPaused: false,
+};
+
 function setupSuperAdmin() {
   mockRequireAuth.mockResolvedValue(superSession);
   mockRequireAuthenticatedAdmin.mockResolvedValue({
@@ -63,7 +70,7 @@ function setupSuperAdmin() {
     adminCommunities: [],
   });
   mockCanAccessEvent.mockResolvedValue(true);
-  mockPrisma.event.findFirst.mockResolvedValue({ id: 1 });
+  mockPrisma.event.findFirst.mockResolvedValue(receivingEvent);
 }
 
 describe("sendInviteAction", () => {
@@ -177,6 +184,22 @@ describe("sendInviteAction", () => {
     });
   });
 
+  it("異常系: 受付中ではないイベントには案内メールを送信できない", async () => {
+    setupSuperAdmin();
+    mockPrisma.event.findFirst.mockResolvedValue({
+      ...receivingEvent,
+      responseDeadline: new Date("2000-01-01T10:00:00.000Z"),
+    });
+
+    const result = await sendInviteAction(validInviteData);
+
+    expect(result).toEqual({
+      success: false,
+      error: "案内メールは受付中のイベントのみ送信できます",
+    });
+    expect(mockSendMailBatch).not.toHaveBeenCalled();
+  });
+
   it("異常系: community_adminでスコープ外顧客が含まれる場合", async () => {
     mockRequireAuthenticatedAdmin.mockResolvedValue({
       admin: { id: 2, role: "community_admin", adminCommunities: [{ communityId: 1 }] },
@@ -184,7 +207,7 @@ describe("sendInviteAction", () => {
       scopedCommunityIds: [1],
     });
     mockCanAccessEvent.mockResolvedValue(true);
-    mockPrisma.event.findFirst.mockResolvedValue({ id: 1 });
+    mockPrisma.event.findFirst.mockResolvedValue(receivingEvent);
     // customerId: 10 はスコープ内、customerId: 20 はスコープ外
     mockPrisma.customerCommunity.findMany.mockResolvedValue([
       { customerId: 10 },
