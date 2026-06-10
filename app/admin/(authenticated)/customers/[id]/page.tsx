@@ -10,10 +10,13 @@ export const metadata = {
 
 export default async function CustomerDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string }>;
 }) {
   const { id } = await params;
+  const { from } = await searchParams;
   const customerId = Number(id);
 
   if (isNaN(customerId)) {
@@ -32,5 +35,10 @@ export default async function CustomerDetailPage({
     notFound();
   }
 
-  return <CustomerDetail customer={serializeCustomerForDetail(customer)} />;
+  return (
+    <CustomerDetail
+      customer={serializeCustomerForDetail(customer)}
+      showBack={from !== "event"}
+    />
+  );
 }

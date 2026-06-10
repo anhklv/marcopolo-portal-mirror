@@ -120,7 +120,14 @@ export function StepSelect({ event, form }: StepSelectProps) {
                       />
                     </TableCell>
                     <TableCell>
-                      {attendee.lastName} {attendee.firstName}
+                      <Link
+                        href={`/admin/customers/${attendee.id}?from=event`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                      >
+                        {attendee.lastName} {attendee.firstName}
+                      </Link>
                     </TableCell>
                     <TableCell>{attendee.company}</TableCell>
                     <TableCell>

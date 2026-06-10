@@ -223,7 +223,14 @@ export function StepSelect({ event, communities, currentUserRole, form }: StepSe
                       />
                     </TableCell>
                     <TableCell>
-                      {customer.lastName} {customer.firstName}
+                      <Link
+                        href={`/admin/customers/${customer.id}?from=event`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                      >
+                        {customer.lastName} {customer.firstName}
+                      </Link>
                     </TableCell>
                     <TableCell>{customer.company}</TableCell>
                     <TableCell>

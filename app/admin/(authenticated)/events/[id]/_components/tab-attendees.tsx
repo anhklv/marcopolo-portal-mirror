@@ -204,7 +204,9 @@ export function TabAttendees({
                     <TableRow key={row.rsvpId}>
                       <TableCell>
                         <Link
-                          href={`/admin/customers/${row.customerId}`}
+                          href={`/admin/customers/${row.customerId}?from=event`}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="hover:underline"
                         >
                           {row.lastName} {row.firstName}
