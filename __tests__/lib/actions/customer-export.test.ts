@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import "@/__tests__/helpers/mock-prisma";
+import { CUSTOMER_EXPORT_HEADERS } from "@/lib/helpers/customer-export-csv";
 
 // next/cache, next/navigation のモック
 vi.mock("next/cache", () => ({
@@ -46,16 +47,49 @@ const makeExportCustomer = (overrides: Record<string, unknown> = {}) => ({
   firstNameKana: "タロウ",
   lastNameKana: "タナカ",
   email: "tanaka@example.com",
+  subEmails: ["sub1@example.com", "sub2@example.com"],
+  phone: "090-1234-5678",
   company: "テスト株式会社",
+  postalCode: "100-0001",
+  city: "千代田区",
+  gender: "male",
   memberCategory: "member",
+  contractType: "corporate",
+  jobChangeIntent: "active",
+  note: "備考テスト",
   registeredAt: new Date("2024-01-15"),
   prefecture: { name: "東京都" },
   listingCategory: { marketName: "プライム", stockExchangeName: "東京証券取引所" },
   customerCommunities: [
     {
       community: { code: "venture_auditor", name: "ベンチャー監査役の会" },
+      auditMemberType: "regular",
+      auditMemberPremium: true,
       originIndustry: { name: "公認会計士" },
       membershipQualification: { name: "監査役" },
+      joinedAt: new Date("2023-04-01"),
+      resignedAt: null,
+      affiliation: null,
+    },
+    {
+      community: { code: "naikan_meetup", name: "ないかんMeetup" },
+      auditMemberType: null,
+      auditMemberPremium: null,
+      originIndustry: null,
+      membershipQualification: null,
+      joinedAt: new Date("2023-05-01"),
+      resignedAt: null,
+      affiliation: { name: "ないかん所属" },
+    },
+    {
+      community: { code: "ai_club", name: "AI部会" },
+      auditMemberType: null,
+      auditMemberPremium: null,
+      originIndustry: null,
+      membershipQualification: null,
+      joinedAt: new Date("2023-06-01"),
+      resignedAt: null,
+      affiliation: { name: "AI所属" },
     },
   ],
   ...overrides,
@@ -67,17 +101,17 @@ describe("exportCustomersAction - CSV生成", () => {
     setupSuperAdmin();
   });
 
-  it("正常系: CSV文字列が生成される（ヘッダー + データ行）", async () => {
+  it("正常系: 全項目ヘッダーとデータ行が生成される", async () => {
     mockRepoFindAll.mockResolvedValue([makeExportCustomer()]);
 
     const result = await exportCustomersAction();
     expect(result).toHaveProperty("csv");
     const csv = (result as { csv: string }).csv;
 
-    // ヘッダー行確認
-    expect(csv).toContain("ID,姓,名,セイ,メイ,メールアドレス,会社名,所属コミュニティ,会員区分,都道府県,上場区分,出身業種,入会資格,登録日");
-    // データ行確認
-    expect(csv).toContain("1,田中,太郎,タナカ,タロウ,tanaka@example.com,テスト株式会社,ベンチャー監査役の会,会員,東京都,東京証券取引所 プライム,公認会計士,監査役,2024/01/15");
+    expect(csv).toContain(CUSTOMER_EXPORT_HEADERS.join(","));
+    expect(csv).toContain(
+      "1,田中,太郎,タナカ,タロウ,tanaka@example.com,sub1@example.com,sub2@example.com,,090-1234-5678,テスト株式会社,東京証券取引所 プライム,100-0001,東京都,千代田区,男性,会員,法人,積極的に検討中,備考テスト,ベンチャー監査役の会・ないかんMeetup・AI部会,正会員,はい,監査役,公認会計士,2023/04/01,,ないかん所属,2023/05/01,,AI所属,2023/06/01,,2024/01/15"
+    );
   });
 
   it("BOM付き確認（先頭がFEFF）", async () => {
@@ -106,13 +140,23 @@ describe("exportCustomersAction - CSV生成", () => {
         customerCommunities: [
           {
             community: { code: "venture_auditor", name: "ベンチャー監査役の会" },
+            auditMemberType: null,
+            auditMemberPremium: null,
             originIndustry: null,
             membershipQualification: null,
+            joinedAt: null,
+            resignedAt: null,
+            affiliation: null,
           },
           {
             community: { code: "naikan_meetup", name: "ないかんMeetup" },
+            auditMemberType: null,
+            auditMemberPremium: null,
             originIndustry: null,
             membershipQualification: null,
+            joinedAt: null,
+            resignedAt: null,
+            affiliation: null,
           },
         ],
       }),
@@ -130,6 +174,15 @@ describe("exportCustomersAction - CSV生成", () => {
         firstNameKana: null,
         lastNameKana: null,
         company: null,
+        subEmails: [],
+        phone: null,
+        postalCode: null,
+        city: null,
+        gender: null,
+        contractType: null,
+        jobChangeIntent: null,
+        note: null,
+        customerCommunities: [],
       }),
     ]);
 
@@ -137,7 +190,6 @@ describe("exportCustomersAction - CSV生成", () => {
     const csv = (result as { csv: string }).csv;
     const dataLine = csv.split("\n")[1];
 
-    // null フィールドは空文字
     expect(dataLine).toContain(",,");
   });
 
@@ -151,7 +203,6 @@ describe("exportCustomersAction - CSV生成", () => {
     const result = await exportCustomersAction();
     const csv = (result as { csv: string }).csv;
 
-    // カンマを含む値はクォートで囲まれる
     expect(csv).toContain('"テスト,株式会社""ABC"""');
   });
 

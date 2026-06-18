@@ -7,16 +7,14 @@ import {
   requireAuthenticatedAdmin,
   canAccessCustomer,
 } from "@/lib/auth/permissions";
-import { formatDate } from "@/lib/utils";
-import { MEMBER_CATEGORY_LABELS } from "@/lib/constants/customer";
 import { COMMUNITY_CODE } from "@/lib/constants/community";
 import { customerFormSchema } from "@/lib/validations/customer";
 import type { CustomerFormInput } from "@/lib/validations/customer";
 import { formatZodFieldErrors } from "@/lib/validations/utils";
 import * as customerRepo from "@/lib/repositories/customer.repository";
 import { filterCustomers } from "@/lib/helpers/customer-filter";
+import { buildCustomersExportCsv } from "@/lib/helpers/customer-export-csv";
 import type { ActionResult } from "@/lib/types/action";
-import { encodeCsvDocument } from "@/lib/utils/csv";
 import { logServerError } from "@/lib/utils/log-error";
 import { isPrismaUniqueViolationOnField } from "@/lib/utils/prisma-error";
 
@@ -296,55 +294,5 @@ export async function exportCustomersAction(
   const filteredIds = new Set(filteredResult.map((c) => c.id));
   const targetCustomers = customers.filter((c) => filteredIds.has(c.id));
 
-  const headers = [
-    "ID",
-    "姓",
-    "名",
-    "セイ",
-    "メイ",
-    "メールアドレス",
-    "会社名",
-    "所属コミュニティ",
-    "会員区分",
-    "都道府県",
-    "上場区分",
-    "出身業種",
-    "入会資格",
-    "登録日",
-  ];
-
-  const rows = targetCustomers.map((c) => {
-    const communityNames = c.customerCommunities
-      .map((cc) => cc.community.name)
-      .join("・");
-    const memberCategoryLabel = c.memberCategory
-      ? MEMBER_CATEGORY_LABELS[c.memberCategory as keyof typeof MEMBER_CATEGORY_LABELS] ?? ""
-      : "";
-    const registeredAt = formatDate(c.registeredAt);
-    // originIndustry/membershipQualification は CustomerCommunity（ベンチャー監査役の会）に紐づく
-    const auditCC = c.customerCommunities.find((cc) => cc.community.code === COMMUNITY_CODE.VENTURE_AUDITOR);
-
-    return [
-      String(c.id),
-      c.lastName,
-      c.firstName,
-      c.lastNameKana ?? "",
-      c.firstNameKana ?? "",
-      c.email,
-      c.company ?? "",
-      communityNames,
-      memberCategoryLabel,
-      c.prefecture?.name ?? "",
-      c.listingCategory
-        ? (c.listingCategory.stockExchangeName
-            ? `${c.listingCategory.stockExchangeName} ${c.listingCategory.marketName}`
-            : c.listingCategory.marketName)
-        : "",
-      auditCC?.originIndustry?.name ?? "",
-      auditCC?.membershipQualification?.name ?? "",
-      registeredAt,
-    ];
-  });
-
-  return { csv: encodeCsvDocument(headers, rows) };
+  return { csv: buildCustomersExportCsv(targetCustomers) };
 }
