@@ -2,7 +2,7 @@
 
 import { useMemo, useTransition } from "react";
 import Link from "next/link";
-import { Download } from "lucide-react";
+import { Download, Search, ChevronDown, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +24,6 @@ import {
 import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { usePagination } from "@/hooks/use-pagination";
-import { Search, ChevronDown } from "lucide-react";
 import {
   RSVP_STATUS_CONFIG,
   RSVP_STATUSES,
@@ -187,11 +186,21 @@ export function TabAttendees({
                 <TableRow>
                   <TableCell
                     colSpan={event.hasAfterParty ? 6 : 5}
-                    className="text-center text-muted-foreground"
+                    className="text-center text-muted-foreground py-8"
                   >
-                    {allRows.length === 0
-                      ? "参加者がいません。"
-                      : "検索条件に一致する参加者が見つかりませんでした。"}
+                    {allRows.length === 0 ? (
+                      <div className="flex flex-col items-center gap-3">
+                        <p>参加者がいません。</p>
+                        <Button asChild>
+                          <Link href={`/admin/events/${event.id}/invite`}>
+                            <Mail className="h-4 w-4" />
+                            案内メールを送信
+                          </Link>
+                        </Button>
+                      </div>
+                    ) : (
+                      "検索条件に一致する参加者が見つかりませんでした。"
+                    )}
                   </TableCell>
                 </TableRow>
               ) : (

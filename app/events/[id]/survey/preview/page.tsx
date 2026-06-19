@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { Stack } from "@/components/ui/stack";
 import { SurveyAnswerForm } from "../[token]/_components/survey-answer-form";
@@ -10,8 +10,6 @@ import { COMMUNITY_CODE } from "@/lib/constants/community";
 function loadPreviewData(
   eventId: number
 ): SerializedSurveyAnswerPageData | null {
-  if (typeof window === "undefined") return null;
-
   try {
     const json = sessionStorage.getItem(`survey-preview-${eventId}`);
     if (!json) return null;
@@ -65,9 +63,19 @@ export default function SurveyPreviewPage({
   const { id } = use(params);
   const eventId = Number(id);
 
-  const [data] = useState<SerializedSurveyAnswerPageData | null>(() =>
-    loadPreviewData(eventId)
-  );
+  const [data, setData] = useState<SerializedSurveyAnswerPageData | null>(null);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    // sessionStorage はクライアントでのみ参照可能
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- マウント後に一度だけ読み込む
+    setData(loadPreviewData(eventId));
+    setIsReady(true);
+  }, [eventId]);
+
+  if (!isReady) {
+    return null;
+  }
 
   if (!data) {
     return (
