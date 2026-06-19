@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,6 +42,7 @@ interface AdminFormProps {
 // ============================================================
 
 export function AdminForm({ mode, initialData, communities }: AdminFormProps) {
+  const router = useRouter();
   const form = useAdminForm({ mode, initialData, communities });
 
   const pageTitle = mode === "create" ? "管理者登録" : "管理者編集";
@@ -54,7 +56,7 @@ export function AdminForm({ mode, initialData, communities }: AdminFormProps) {
   return (
     <div className="max-w-4xl space-y-6">
       <PageHeader
-        backHref="/admin/admins"
+        backAction={() => router.back()}
         title={pageTitle}
         description={pageDescription}
       />

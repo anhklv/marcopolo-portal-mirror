@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,6 +60,7 @@ export function CustomerForm({
   isSuper,
   scopedCommunityIds,
 }: CustomerFormProps) {
+  const router = useRouter();
   const form = useCustomerForm({
     mode,
     initialData,
@@ -78,7 +80,7 @@ export function CustomerForm({
   return (
     <div className="max-w-4xl space-y-6">
       <PageHeader
-        backHref={mode === "edit" ? `/admin/customers/${initialData?.id}` : "/admin/customers"}
+        backAction={() => router.back()}
         title={pageTitle}
         description={pageDescription}
       />

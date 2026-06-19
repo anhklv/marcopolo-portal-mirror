@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { usePagination } from "@/hooks/use-pagination";
-import { useArrayToggle } from "@/hooks/use-array-toggle";
+import { useEventListFilters } from "@/hooks/use-event-list-filters";
 import { formatEventDate } from "@/lib/utils/event";
 import { filterAndSortEvents } from "@/lib/helpers/event-filter";
 import {
@@ -71,9 +71,23 @@ export function EventList({
   isSuper,
 }: EventListProps) {
   const router = useRouter();
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const [statuses, toggleStatus] = useArrayToggle<EventDisplayStatus>();
-  const [eventTypes, toggleEventType] = useArrayToggle<string>();
+
+  const {
+    filters,
+    keywordInput,
+    setKeywordInput,
+    applyKeywordSearch,
+    setPage,
+    toggleStatus,
+    toggleEventTypeCode,
+  } = useEventListFilters();
+
+  const {
+    keyword: searchKeyword,
+    statuses,
+    eventTypeCodes: eventTypes,
+    page,
+  } = filters;
 
   const filteredEvents = useMemo(
     () =>
@@ -92,7 +106,10 @@ export function EventList({
     paginatedItems: paginatedEvents,
     getPageNumbers,
     itemsPerPage,
-  } = usePagination(filteredEvents);
+  } = usePagination(filteredEvents, {
+    page,
+    onPageChange: setPage,
+  });
 
   // イベント種別フィルタに表示するコミュニティ（その他はsuperのみ）
   const filterableCommunities = useMemo(
@@ -123,8 +140,25 @@ export function EventList({
             type="search"
             placeholder="イベント名、場所、概要で検索..."
             className="pl-9 h-9 text-sm"
-            value={searchKeyword}
-            onChange={(e) => setSearchKeyword(e.target.value)}
+            value={keywordInput}
+            onChange={(e) => {
+              const value = e.target.value;
+              setKeywordInput(value);
+              if (value === "") {
+                applyKeywordSearch("");
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                applyKeywordSearch(e.currentTarget.value);
+              }
+            }}
+            {...{
+              onSearch: (e: React.FormEvent<HTMLInputElement>) => {
+                applyKeywordSearch(e.currentTarget.value);
+              },
+            }}
           />
         </div>
         <Popover>
@@ -149,7 +183,7 @@ export function EventList({
                     label={community.name}
                     checked={eventTypes.includes(community.code)}
                     onCheckedChange={(checked) =>
-                      toggleEventType(community.code, !!checked)
+                      toggleEventTypeCode(community.code, !!checked)
                     }
                     labelClassName="text-sm"
                   />

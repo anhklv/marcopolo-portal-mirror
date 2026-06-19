@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ import { Plus, Search } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { ADMIN_ROLE_LABELS } from "@/lib/constants/admin";
 import { filterAdmins } from "@/lib/helpers/admin-filter";
+import { useAdminListFilters } from "@/hooks/use-admin-list-filters";
 import type { SerializedAdmin } from "@/lib/types/serialized";
 
 // ============================================================
@@ -33,11 +34,12 @@ interface AdminListProps {
 // ============================================================
 
 export function AdminList({ initialAdmins }: AdminListProps) {
-  const [searchKeyword, setSearchKeyword] = useState("");
+  const { filters, keywordInput, setKeywordInput, applyKeywordSearch } =
+    useAdminListFilters();
 
   const filteredAdmins = useMemo(
-    () => filterAdmins(initialAdmins, searchKeyword),
-    [initialAdmins, searchKeyword]
+    () => filterAdmins(initialAdmins, filters.keyword),
+    [initialAdmins, filters.keyword]
   );
 
   return (
@@ -62,8 +64,25 @@ export function AdminList({ initialAdmins }: AdminListProps) {
             type="search"
             placeholder="名前、メールアドレスで検索..."
             className="pl-9 h-9 text-sm"
-            value={searchKeyword}
-            onChange={(e) => setSearchKeyword(e.target.value)}
+            value={keywordInput}
+            onChange={(e) => {
+              const value = e.target.value;
+              setKeywordInput(value);
+              if (value === "") {
+                applyKeywordSearch("");
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                applyKeywordSearch(e.currentTarget.value);
+              }
+            }}
+            {...{
+              onSearch: (e: React.FormEvent<HTMLInputElement>) => {
+                applyKeywordSearch(e.currentTarget.value);
+              },
+            }}
           />
         </div>
       </div>

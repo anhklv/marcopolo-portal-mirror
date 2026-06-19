@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getAuthenticatedAdmin } from "@/lib/auth/permissions";
 import { redirect } from "next/navigation";
 import { findAll } from "@/lib/repositories/admin.repository";
@@ -17,5 +18,9 @@ export default async function AdminsPage() {
 
   const admins = await findAll();
 
-  return <AdminList initialAdmins={admins.map(serializeAdminForList)} />;
+  return (
+    <Suspense fallback={null}>
+      <AdminList initialAdmins={admins.map(serializeAdminForList)} />
+    </Suspense>
+  );
 }
