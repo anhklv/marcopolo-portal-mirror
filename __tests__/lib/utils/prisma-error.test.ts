@@ -39,4 +39,23 @@ describe("isPrismaUniqueViolationOnField", () => {
       isPrismaUniqueViolationOnField({ code: "P2025" }, "email")
     ).toBe(false);
   });
+
+  it("Prisma 7 driver adapter 形式の email P2002 を true と判定する", () => {
+    expect(
+      isPrismaUniqueViolationOnField(
+        {
+          code: "P2002",
+          meta: {
+            modelName: "Customer",
+            driverAdapterError: {
+              cause: {
+                constraint: { fields: ["email"] },
+              },
+            },
+          },
+        },
+        "email"
+      )
+    ).toBe(true);
+  });
 });
