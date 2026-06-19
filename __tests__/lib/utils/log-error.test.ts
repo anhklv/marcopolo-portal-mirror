@@ -29,7 +29,7 @@ describe("logServerError", () => {
     logServerError("createCustomerAction", error);
 
     expect(console.error).toHaveBeenCalledWith(
-      "[createCustomerAction] Unique constraint failed (code=P2002, target=[\"email\"])",
+      "[createCustomerAction] Unique constraint failed (code=P2002, fields=[\"email\"])",
       error.stack
     );
   });

@@ -68,7 +68,7 @@ async function findSeedCustomer(
   legacyEmail: string,
   identity?: SeedCustomerIdentity
 ) {
-  const byLegacyEmail = await prisma.customer.findUnique({
+  const byLegacyEmail = await prisma.customer.findFirst({
     where: { email: legacyEmail },
   });
   if (byLegacyEmail) return byLegacyEmail;
