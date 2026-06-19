@@ -4,14 +4,36 @@ import { useState, useMemo } from "react";
 
 const DEFAULT_ITEMS_PER_PAGE = 20;
 
-export function usePagination<T>(items: T[], itemsPerPage = DEFAULT_ITEMS_PER_PAGE) {
-  const [currentPage, setCurrentPage] = useState(1);
+type UsePaginationOptions = {
+  itemsPerPage?: number;
+  page?: number;
+  onPageChange?: (page: number) => void;
+};
+
+export function usePagination<T>(
+  items: T[],
+  itemsPerPageOrOptions: number | UsePaginationOptions = DEFAULT_ITEMS_PER_PAGE,
+  legacyOptions?: UsePaginationOptions
+) {
+  const options =
+    typeof itemsPerPageOrOptions === "number"
+      ? { itemsPerPage: itemsPerPageOrOptions, ...legacyOptions }
+      : itemsPerPageOrOptions;
+  const itemsPerPage = options.itemsPerPage ?? DEFAULT_ITEMS_PER_PAGE;
+  const isControlled = options.page !== undefined && options.onPageChange !== undefined;
+
+  const [internalPage, setInternalPage] = useState(options.page ?? 1);
+  const currentPage = isControlled ? options.page! : internalPage;
+  const setCurrentPage = isControlled ? options.onPageChange! : setInternalPage;
 
   // フィルタ変更でアイテムが変わったらページ1にリセット（レンダー中の調整）
+  // 外部制御時は hook 側で page を管理するため、参照変化だけではリセットしない
   const [prevItems, setPrevItems] = useState(items);
   if (items !== prevItems) {
     setPrevItems(items);
-    setCurrentPage(1);
+    if (!isControlled) {
+      setCurrentPage(1);
+    }
   }
 
   const totalPages = Math.ceil(items.length / itemsPerPage);

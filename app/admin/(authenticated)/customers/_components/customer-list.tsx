@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useTransition } from "react";
+import { useMemo, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -27,10 +27,10 @@ import { formatDate } from "@/lib/utils";
 import { Search, Users, ChevronDown, Download, Plus } from "lucide-react";
 import { COMMUNITY_CODE } from "@/lib/constants/community";
 import type { SerializedCustomer, CommunityOption } from "@/lib/types/serialized";
-import type { MemberCategory, AuditMemberType } from "@/lib/generated/prisma";
+import type { MemberCategory } from "@/lib/generated/prisma";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { usePagination } from "@/hooks/use-pagination";
-import { useArrayToggle } from "@/hooks/use-array-toggle";
+import { useCustomerListFilters } from "@/hooks/use-customer-list-filters";
 import { exportCustomersAction } from "@/lib/actions/customer.actions";
 import { downloadUtf8CsvFile } from "@/lib/utils/csv-download";
 import { filterCustomers } from "@/lib/helpers/customer-filter";
@@ -60,14 +60,32 @@ export function CustomerList({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  // フィルタ状態
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const [selectedCommunityIds, toggleCommunityId] = useArrayToggle<number>();
-  const [memberCategories, toggleMemberCategory, setMemberCategories] = useArrayToggle<MemberCategory>();
-  const [auditMemberTypes, toggleAuditMemberType, setAuditMemberTypes] = useArrayToggle<AuditMemberType>();
-  const [premiumOnly, setPremiumOnly] = useState(false);
-  const [includeFormerMembers, setIncludeFormerMembers] = useState(false);
-  const [includeNonMemberFilter, setIncludeNonMemberFilter] = useState(false);
+  const {
+    filters,
+    keywordInput,
+    setKeywordInput,
+    applyKeywordSearch,
+    setPage,
+    toggleCommunityId,
+    setMemberCategories,
+    toggleMemberCategory,
+    setAuditMemberTypes,
+    toggleAuditMemberType,
+    setPremiumOnly,
+    setIncludeFormerMembers,
+    setIncludeNonMemberFilter,
+  } = useCustomerListFilters();
+
+  const {
+    keyword: searchKeyword,
+    communityIds: selectedCommunityIds,
+    memberCategories,
+    auditMemberTypes,
+    premiumOnly,
+    includeFormerMembers,
+    includeNonMemberFilter,
+    page,
+  } = filters;
 
   // ベンチャー監査役の会（定数判定用）
   const ventureAuditorCommunity = communities.find((c) => c.code === COMMUNITY_CODE.VENTURE_AUDITOR);
@@ -76,17 +94,14 @@ export function CustomerList({
   const handleCommunityChange = (communityId: number, checked: boolean) => {
     toggleCommunityId(communityId, checked);
 
-    // 状態更新前の値を使って次の状態を計算
     const nextSelectedIds = checked
       ? [...selectedCommunityIds, communityId]
       : selectedCommunityIds.filter((id) => id !== communityId);
 
-    // コミュニティが1つも選択されていない場合、会員区分をリセット
     if (nextSelectedIds.length === 0) {
       setMemberCategories([]);
     }
 
-    // ベンチャー監査役の会が選択されていない場合、関連フィルタをリセット
     if (ventureAuditorCommunity) {
       const isAuditIncluded = nextSelectedIds.includes(ventureAuditorCommunity.id);
       if (!isAuditIncluded) {
@@ -108,7 +123,16 @@ export function CustomerList({
         includeFormerMembers,
         includeNonMemberFilter,
       }),
-    [initialCustomers, searchKeyword, selectedCommunityIds, memberCategories, auditMemberTypes, premiumOnly, includeFormerMembers, includeNonMemberFilter]
+    [
+      initialCustomers,
+      searchKeyword,
+      selectedCommunityIds,
+      memberCategories,
+      auditMemberTypes,
+      premiumOnly,
+      includeFormerMembers,
+      includeNonMemberFilter,
+    ]
   );
 
   const {
@@ -118,9 +142,11 @@ export function CustomerList({
     paginatedItems: paginatedCustomers,
     getPageNumbers,
     itemsPerPage,
-  } = usePagination(filteredCustomers);
+  } = usePagination(filteredCustomers, {
+    page,
+    onPageChange: setPage,
+  });
 
-  // コミュニティ選択操作（handleMemberCategoryChangeは副作用があるため個別定義）
   const handleMemberCategoryChange = (category: MemberCategory, checked: boolean) => {
     toggleMemberCategory(category, checked);
     if (!checked && category === "member") {
@@ -129,13 +155,11 @@ export function CustomerList({
     }
   };
 
-  // ベンチャー監査役の会が選択されているか
   const isAuditSelected = ventureAuditorCommunity
     ? selectedCommunityIds.includes(ventureAuditorCommunity.id)
     : false;
   const anyCommunitySelected = selectedCommunityIds.length > 0;
 
-  // CSVダウンロード
   const handleDownloadCSV = () => {
     startTransition(async () => {
       try {
@@ -187,8 +211,26 @@ export function CustomerList({
             type="search"
             placeholder="名前、会社名、メールアドレスで検索..."
             className="pl-9 h-9 text-sm"
-            value={searchKeyword}
-            onChange={(e) => setSearchKeyword(e.target.value)}
+            value={keywordInput}
+            onChange={(e) => {
+              const value = e.target.value;
+              setKeywordInput(value);
+              if (value === "") {
+                applyKeywordSearch("");
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                applyKeywordSearch(e.currentTarget.value);
+              }
+            }}
+            // type=search の × ボタン（React 型定義に未収載）
+            {...{
+              onSearch: (e: React.FormEvent<HTMLInputElement>) => {
+                applyKeywordSearch(e.currentTarget.value);
+              },
+            }}
           />
         </div>
 
@@ -220,7 +262,6 @@ export function CustomerList({
                         labelClassName="text-sm"
                       />
                     ))}
-                  {/* 非会員（特権管理者のみ） */}
                   {isSuper && (
                     <CheckboxItem
                       id="non-member"
@@ -233,7 +274,6 @@ export function CustomerList({
                 </div>
               </div>
 
-              {/* 会員区分（コミュニティを選択した場合のみ表示、非会員には会員区分がないため） */}
               {anyCommunitySelected && (
                 <div className="space-y-2 border-t pt-4">
                   <Label className="text-sm font-semibold">会員区分</Label>
@@ -263,7 +303,6 @@ export function CustomerList({
                 </div>
               )}
 
-              {/* 会員種別（ベンチャー監査役の会選択時） */}
               {isAuditSelected && (
                 <div className="space-y-2 border-t pt-4">
                   <Label className="text-sm font-semibold">ベンチャー監査役の会 会員種別</Label>
@@ -286,7 +325,6 @@ export function CustomerList({
                 </div>
               )}
 
-              {/* プレミアム */}
               {isAuditSelected && (
                 <div className="space-y-2 border-t pt-4">
                   <CheckboxItem
@@ -381,7 +419,6 @@ export function CustomerList({
         getPageNumbers={getPageNumbers}
       />
 
-      {/* CSVダウンロード */}
       <div className="flex justify-end">
         <Button variant="outline" onClick={handleDownloadCSV} disabled={isPending}>
           <Download className="h-4 w-4" />

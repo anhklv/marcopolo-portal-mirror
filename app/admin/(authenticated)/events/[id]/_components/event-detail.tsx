@@ -109,7 +109,7 @@ export function EventDetail({ event, surveyResult }: EventDetailProps) {
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <PageHeader backHref="/admin/events" title={event.title} />
+          <PageHeader backAction={() => router.back()} title={event.title} />
           <Badge variant={getCommunityBadgeVariant(event.community.code)}>
             {event.community.name}
           </Badge>
@@ -196,7 +196,7 @@ export function EventDetail({ event, surveyResult }: EventDetailProps) {
             const newUrl = value === "attendees"
               ? `/admin/events/${event.id}`
               : `/admin/events/${event.id}?tab=${value}`;
-            router.push(newUrl);
+            router.replace(newUrl);
           }}>
             <TabsList
               variant="line"

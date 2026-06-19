@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { COMMUNITY_CODE } from "@/lib/constants/community";
 import { getAuthenticatedAdmin } from "@/lib/auth/permissions";
@@ -24,15 +25,17 @@ export default async function CustomersPage() {
   });
 
   return (
-    <CustomerList
-      initialCustomers={customers.map(serializeCustomerForList)}
-      communities={communities.map((c) => ({
-        id: c.id,
-        code: c.code,
-        name: c.name,
-      }))}
-      isSuper={isSuper}
-      scopedCommunityIds={scopedCommunityIds}
-    />
+    <Suspense fallback={null}>
+      <CustomerList
+        initialCustomers={customers.map(serializeCustomerForList)}
+        communities={communities.map((c) => ({
+          id: c.id,
+          code: c.code,
+          name: c.name,
+        }))}
+        isSuper={isSuper}
+        scopedCommunityIds={scopedCommunityIds}
+      />
+    </Suspense>
   );
 }

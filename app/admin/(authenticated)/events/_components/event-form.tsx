@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -51,6 +52,7 @@ export function EventForm({
   isSuper,
   scopedCommunityIds,
 }: EventFormProps) {
+  const router = useRouter();
   const form = useEventForm({
     mode,
     initialData,
@@ -109,7 +111,7 @@ export function EventForm({
   return (
     <div className="max-w-4xl space-y-6">
       <PageHeader
-        backHref="/admin/events"
+        backAction={() => router.back()}
         title={pageTitle}
         description={pageDescription}
       />

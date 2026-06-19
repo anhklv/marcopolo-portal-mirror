@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedAdmin } from "@/lib/auth/permissions";
 import { findAllEvents } from "@/lib/repositories/event.repository";
@@ -19,14 +20,16 @@ export default async function EventsPage() {
   });
 
   return (
-    <EventList
-      initialEvents={events.map(serializeEventForList)}
-      communities={communities.map((c) => ({
-        id: c.id,
-        code: c.code,
-        name: c.name,
-      }))}
-      isSuper={isSuper}
-    />
+    <Suspense fallback={null}>
+      <EventList
+        initialEvents={events.map(serializeEventForList)}
+        communities={communities.map((c) => ({
+          id: c.id,
+          code: c.code,
+          name: c.name,
+        }))}
+        isSuper={isSuper}
+      />
+    </Suspense>
   );
 }

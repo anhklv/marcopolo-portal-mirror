@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -53,6 +54,7 @@ interface CustomerDetailProps {
 // ============================================================
 
 export function CustomerDetail({ customer, showBack = true }: CustomerDetailProps) {
+  const router = useRouter();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -97,7 +99,7 @@ export function CustomerDetail({ customer, showBack = true }: CustomerDetailProp
     <div className="max-w-4xl space-y-6">
       <div className="flex items-center justify-between">
         <PageHeader
-          backHref={showBack ? "/admin/customers" : undefined}
+          backAction={showBack ? () => router.back() : undefined}
           title={`${customer.lastName} ${customer.firstName}さんの詳細情報`}
         />
         <Button variant="outline" asChild>
