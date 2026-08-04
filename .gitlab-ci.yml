@@ -8,7 +8,18 @@ default:
 
 verify:
   stage: verify
-  script:
+
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "staging" && $CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"'
+
+  before_script:
     - node --version
     - npm --version
-    - echo "GitLab Runner on Docker Desktop is working"
+
+  script:
+    - npm ci
+    - npm run lint
+    - npm test --if-present
+    - npm run build
