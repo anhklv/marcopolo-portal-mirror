@@ -1,11 +1,15 @@
 stages:
+  - verify
   - deploy
 
 default:
   image: node:22
+  tags:
+    - docker-local
 
 variables:
   VERCEL_TELEMETRY_DISABLED: "1"
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
 
 cache:
   key:
@@ -13,12 +17,28 @@ cache:
       - package-lock.json
   paths:
     - .npm/
+  policy: pull-push
+
+verify_merge_request:
+  stage: verify
+
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+  before_script:
+    - node --version
+    - npm --version
+
+  script:
+    - npm ci
+    - npm run lint
+    - npm run build
 
 deploy_staging:
   stage: deploy
 
   rules:
-    - if: '$CI_COMMIT_BRANCH == "staging"'
+    - if: '$CI_COMMIT_BRANCH == "staging" && $CI_PIPELINE_SOURCE == "push"'
 
   before_script:
     - node --version
@@ -26,23 +46,18 @@ deploy_staging:
     - npm install --global vercel
 
   script:
-    # Lấy cấu hình project và environment variables từ Vercel
     - vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-
-    # Build trong GitLab Runner
     - vercel build --prod --token="$VERCEL_TOKEN"
-
-    # Upload build output và gán vào Production Deployment
-    - >
-      vercel deploy
-      --prebuilt
-      --prod
-      --token="$VERCEL_TOKEN"
-      --archive=tgz
-      --meta gitlabDeployment="1"
-      --meta gitlabCommitSha="$CI_COMMIT_SHA"
-      --meta gitlabCommitRef="$CI_COMMIT_REF_NAME"
-      --meta gitlabProjectPath="$CI_PROJECT_PATH"
+    - |
+      vercel deploy \
+        --prebuilt \
+        --prod \
+        --token="$VERCEL_TOKEN" \
+        --archive=tgz \
+        --meta gitlabDeployment="1" \
+        --meta gitlabCommitSha="$CI_COMMIT_SHA" \
+        --meta gitlabCommitRef="$CI_COMMIT_REF_NAME" \
+        --meta gitlabProjectPath="$CI_PROJECT_PATH"
 
   environment:
     name: staging
