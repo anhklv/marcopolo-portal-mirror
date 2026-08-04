@@ -1,0 +1,49 @@
+stages:
+  - deploy
+
+default:
+  image: node:22
+
+variables:
+  VERCEL_TELEMETRY_DISABLED: "1"
+
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - .npm/
+
+deploy_staging:
+  stage: deploy
+
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "staging"'
+
+  before_script:
+    - node --version
+    - npm --version
+    - npm install --global vercel
+
+  script:
+    # Lấy cấu hình project và environment variables từ Vercel
+    - vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+    # Build trong GitLab Runner
+    - vercel build --prod --token="$VERCEL_TOKEN"
+
+    # Upload build output và gán vào Production Deployment
+    - >
+      vercel deploy
+      --prebuilt
+      --prod
+      --token="$VERCEL_TOKEN"
+      --archive=tgz
+      --meta gitlabDeployment="1"
+      --meta gitlabCommitSha="$CI_COMMIT_SHA"
+      --meta gitlabCommitRef="$CI_COMMIT_REF_NAME"
+      --meta gitlabProjectPath="$CI_PROJECT_PATH"
+
+  environment:
+    name: staging
+    url: https://staging.marcopolo-portal.jp
