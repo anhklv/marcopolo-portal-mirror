@@ -2,9 +2,9 @@ stages:
   - verify
 
 default:
-  image: node:22
+  image: node:20
   tags:
-    - docker-local
+    - docker
 
 verify:
   stage: verify
