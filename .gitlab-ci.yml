@@ -6,17 +6,6 @@ default:
   tags:
     - docker-local
 
-variables:
-  npm_config_cache: "$CI_PROJECT_DIR/.npm"
-
-cache:
-  key:
-    files:
-      - package-lock.json
-  paths:
-    - .npm/
-  policy: pull-push
-
 verify:
   stage: verify
 
