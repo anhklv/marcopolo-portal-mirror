@@ -19,13 +19,12 @@ cache:
     - .npm/
   policy: pull-push
 
-verify_merge_request:
+verify:
   stage: verify
 
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == "staging" && $CI_PIPELINE_SOURCE == "push"'
-    - if: '$CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "main")'
 
   before_script:
     - node --version
@@ -44,21 +43,30 @@ deploy_staging:
   rules:
     - if: '$CI_COMMIT_BRANCH == "staging" && $CI_PIPELINE_SOURCE == "push"'
 
+  variables:
+    VERCEL_PROJECT_ID: "$VERCEL_PROJECT_ID_STAGING"
+
   before_script:
     - node --version
     - npm --version
-    - npm install --global vercel
+    - npm install --global vercel@latest
 
   script:
+    - test -n "$VERCEL_TOKEN" || (echo "VERCEL_TOKEN is missing" && exit 1)
+    - test -n "$VERCEL_ORG_ID" || (echo "VERCEL_ORG_ID is missing" && exit 1)
+    - test -n "$VERCEL_PROJECT_ID" || (echo "VERCEL_PROJECT_ID_STAGING is missing" && exit 1)
+
+    - rm -rf .vercel
     - vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
     - vercel build --prod --token="$VERCEL_TOKEN"
+
     - |
       vercel deploy \
         --prebuilt \
         --prod \
         --token="$VERCEL_TOKEN" \
         --archive=tgz \
-        --meta gitlabDeployment="1" \
+        --meta gitlabEnvironment="staging" \
         --meta gitlabCommitSha="$CI_COMMIT_SHA" \
         --meta gitlabCommitRef="$CI_COMMIT_REF_NAME" \
         --meta gitlabProjectPath="$CI_PROJECT_PATH"
@@ -66,3 +74,41 @@ deploy_staging:
   environment:
     name: staging
     url: https://staging.marcopolo-portal.jp
+
+deploy_production:
+  stage: deploy
+
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"'
+
+  variables:
+    VERCEL_PROJECT_ID: "$VERCEL_PROJECT_ID_PRODUCTION"
+
+  before_script:
+    - node --version
+    - npm --version
+    - npm install --global vercel@latest
+
+  script:
+    - test -n "$VERCEL_TOKEN" || (echo "VERCEL_TOKEN is missing" && exit 1)
+    - test -n "$VERCEL_ORG_ID" || (echo "VERCEL_ORG_ID is missing" && exit 1)
+    - test -n "$VERCEL_PROJECT_ID" || (echo "VERCEL_PROJECT_ID_PRODUCTION is missing" && exit 1)
+
+    - rm -rf .vercel
+    - vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+    - vercel build --prod --token="$VERCEL_TOKEN"
+
+    - |
+      vercel deploy \
+        --prebuilt \
+        --prod \
+        --token="$VERCEL_TOKEN" \
+        --archive=tgz \
+        --meta gitlabEnvironment="production" \
+        --meta gitlabCommitSha="$CI_COMMIT_SHA" \
+        --meta gitlabCommitRef="$CI_COMMIT_REF_NAME" \
+        --meta gitlabProjectPath="$CI_PROJECT_PATH"
+
+  environment:
+    name: production
+    url: https://marcopolo-portal.jp
