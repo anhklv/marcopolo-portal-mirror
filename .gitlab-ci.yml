@@ -1,12 +1,25 @@
 stages:
   - verify
+  - deploy
 
 default:
   image: node:20
   tags:
     - docker
 
-verify:
+variables:
+  VERCEL_TELEMETRY_DISABLED: "1"
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
+
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - .npm/
+  policy: pull-push
+
+verify_merge_request:
   stage: verify
 
   rules:
@@ -24,3 +37,32 @@ verify:
     - npm run lint
     - npm test --if-present
     - npm run build
+
+deploy_staging:
+  stage: deploy
+
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "staging" && $CI_PIPELINE_SOURCE == "push"'
+
+  before_script:
+    - node --version
+    - npm --version
+    - npm install --global vercel
+
+  script:
+    - vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+    - vercel build --prod --token="$VERCEL_TOKEN"
+    - |
+      vercel deploy \
+        --prebuilt \
+        --prod \
+        --token="$VERCEL_TOKEN" \
+        --archive=tgz \
+        --meta gitlabDeployment="1" \
+        --meta gitlabCommitSha="$CI_COMMIT_SHA" \
+        --meta gitlabCommitRef="$CI_COMMIT_REF_NAME" \
+        --meta gitlabProjectPath="$CI_PROJECT_PATH"
+
+  environment:
+    name: staging
+    url: https://staging.marcopolo-portal.jp
