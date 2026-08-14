@@ -19,16 +19,43 @@ cache:
     - .npm/
   policy: pull-push
 
+
+# =========================
+# VERIFY
+# =========================
+
 verify:
   stage: verify
 
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "main")'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
+      variables:
+        DATABASE_URL: "$DATABASE_URL_DEVELOP"
+
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "staging"'
+      variables:
+        DATABASE_URL: "$DATABASE_URL_STAGING"
+
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+      variables:
+        DATABASE_URL: "$DATABASE_URL_PRODUCTION"
+
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "develop"'
+      variables:
+        DATABASE_URL: "$DATABASE_URL_DEVELOP"
+
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "staging"'
+      variables:
+        DATABASE_URL: "$DATABASE_URL_STAGING"
+
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
+      variables:
+        DATABASE_URL: "$DATABASE_URL_PRODUCTION"
 
   before_script:
     - node --version
     - npm --version
+    - test -n "$DATABASE_URL" || (echo "DATABASE_URL is missing" && exit 1)
 
   script:
     - npm ci
@@ -36,6 +63,11 @@ verify:
     - npm run lint
     - npm test --if-present
     - npm run build
+
+
+# =========================
+# DEVELOP
+# =========================
 
 deploy_develop:
   stage: deploy
@@ -75,6 +107,14 @@ deploy_develop:
         --meta gitlabCommitRef="$CI_COMMIT_REF_NAME" \
         --meta gitlabProjectPath="$CI_PROJECT_PATH"
 
+  environment:
+    name: develop
+
+
+# =========================
+# STAGING
+# =========================
+
 deploy_staging:
   stage: deploy
 
@@ -94,9 +134,12 @@ deploy_staging:
     - test -n "$VERCEL_TOKEN" || (echo "VERCEL_TOKEN is missing" && exit 1)
     - test -n "$VERCEL_ORG_ID" || (echo "VERCEL_ORG_ID is missing" && exit 1)
     - test -n "$VERCEL_PROJECT_ID" || (echo "VERCEL_PROJECT_ID_STAGING is missing" && exit 1)
+    - test -n "$DATABASE_URL" || (echo "DATABASE_URL_STAGING is missing" && exit 1)
 
     - rm -rf .vercel
+
     - vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
     - vercel build --prod --token="$VERCEL_TOKEN"
 
     - |
@@ -105,6 +148,7 @@ deploy_staging:
         --prod \
         --token="$VERCEL_TOKEN" \
         --archive=tgz \
+        --meta gitlabDeployment="1" \
         --meta gitlabEnvironment="staging" \
         --meta gitlabCommitSha="$CI_COMMIT_SHA" \
         --meta gitlabCommitRef="$CI_COMMIT_REF_NAME" \
@@ -114,6 +158,11 @@ deploy_staging:
     name: staging
     url: https://staging.marcopolo-portal.jp
 
+
+# =========================
+# PRODUCTION
+# =========================
+
 deploy_production:
   stage: deploy
 
@@ -122,6 +171,7 @@ deploy_production:
 
   variables:
     VERCEL_PROJECT_ID: "$VERCEL_PROJECT_ID_PRODUCTION"
+    DATABASE_URL: "$DATABASE_URL_PRODUCTION"
 
   before_script:
     - node --version
@@ -132,9 +182,12 @@ deploy_production:
     - test -n "$VERCEL_TOKEN" || (echo "VERCEL_TOKEN is missing" && exit 1)
     - test -n "$VERCEL_ORG_ID" || (echo "VERCEL_ORG_ID is missing" && exit 1)
     - test -n "$VERCEL_PROJECT_ID" || (echo "VERCEL_PROJECT_ID_PRODUCTION is missing" && exit 1)
+    - test -n "$DATABASE_URL" || (echo "DATABASE_URL_PRODUCTION is missing" && exit 1)
 
     - rm -rf .vercel
+
     - vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
     - vercel build --prod --token="$VERCEL_TOKEN"
 
     - |
@@ -143,6 +196,7 @@ deploy_production:
         --prod \
         --token="$VERCEL_TOKEN" \
         --archive=tgz \
+        --meta gitlabDeployment="1" \
         --meta gitlabEnvironment="production" \
         --meta gitlabCommitSha="$CI_COMMIT_SHA" \
         --meta gitlabCommitRef="$CI_COMMIT_REF_NAME" \
