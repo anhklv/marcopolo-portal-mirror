@@ -94,11 +94,12 @@ deploy_develop:
 
     - vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
 
-    - vercel build --token="$VERCEL_TOKEN"
+    - vercel build --target=preview --token="$VERCEL_TOKEN"
 
     - |
       vercel deploy \
         --prebuilt \
+        --target=preview \
         --token="$VERCEL_TOKEN" \
         --archive=tgz \
         --meta gitlabDeployment="1" \
