@@ -97,7 +97,7 @@ deploy_develop:
     - vercel build --target=preview --token="$VERCEL_TOKEN"
 
     - |
-      vercel deploy \
+      DEPLOYMENT_URL=$(vercel deploy \
         --prebuilt \
         --target=preview \
         --token="$VERCEL_TOKEN" \
@@ -106,10 +106,18 @@ deploy_develop:
         --meta gitlabEnvironment="develop" \
         --meta gitlabCommitSha="$CI_COMMIT_SHA" \
         --meta gitlabCommitRef="$CI_COMMIT_REF_NAME" \
-        --meta gitlabProjectPath="$CI_PROJECT_PATH"
+        --meta gitlabProjectPath="$CI_PROJECT_PATH")
+
+      echo "Develop deployment: $DEPLOYMENT_URL"
+
+      vercel alias set \
+        "$DEPLOYMENT_URL" \
+        develop.marcopolo-portal.jp \
+        --token="$VERCEL_TOKEN"
 
   environment:
     name: develop
+    url: https://develop.marcopolo-portal.jp
 
 
 # =========================
