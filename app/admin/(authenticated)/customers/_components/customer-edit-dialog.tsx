@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { JOB_CHANGE_INTENT_OPTIONS } from "@/lib/constants/customer";
-import { FLAGS, validateCustomer, type PreviewCustomer } from "./customer-csv-types";
+import { validateCustomer, type PreviewCustomer } from "./customer-csv-types";
 import type { ListingCategoryOption, MasterData } from "@/lib/types/serialized";
 import { NONE_VALUE } from "@/lib/constants/form";
 import { AuditCommunityFields } from "./audit-community-fields";
@@ -42,6 +42,7 @@ interface Props {
   onSave: () => void;
   prefectures: MasterData[];
   listingCategories: ListingCategoryOption[];
+  departments: MasterData[];
   originIndustries: MasterData[];
   membershipQualifications: MasterData[];
   affiliations: MasterData[];
@@ -70,6 +71,7 @@ export function CustomerEditDialog({
   onSave,
   prefectures,
   listingCategories,
+  departments,
   originIndustries,
   membershipQualifications,
   affiliations,
@@ -365,15 +367,19 @@ export function CustomerEditDialog({
               <div className="grid gap-2">
                 <Label>所属部署<span className="text-destructive"> *</span></Label>
                 <div className="grid gap-3">
-                  {FLAGS.map((x) => (
+                  {departments.map((department) => {
+                    const key = departmentKeyByName(department.name);
+                    if (!key) return null;
+                    return (
                     <CheckboxItem
-                      key={x.key}
-                      id={`csv-${x.key}`}
-                      label={x.label}
-                      checked={customer[x.key]}
-                      onCheckedChange={(v) => set(x.key, v)}
+                      key={department.id}
+                      id={`csv-department-${department.id}`}
+                      label={department.name}
+                      checked={customer[key]}
+                      onCheckedChange={(v) => set(key, v)}
                     />
-                  ))}
+                    );
+                  })}
                 </div>
                 {customer.affiliationOther && (
                   <Input
@@ -649,4 +655,18 @@ function resolveListingId(
         x.marketName === name ||
         `${x.stockExchangeName} ${x.marketName}` === name,
     )?.id;
+}
+
+function departmentKeyByName(name: string) {
+  const map = {
+    "内部監査室": "affiliationInternalAudit",
+    "監査役": "affiliationAuditor",
+    "管理部門": "affiliationManagement",
+    "経営者": "affiliationExecutive",
+    "コンサルタント": "affiliationConsultant",
+    "スポンサー": "affiliationNaikanSponsor",
+    "オブザーバー": "affiliationObserver",
+    "その他": "affiliationOther",
+  } as const;
+  return map[name as keyof typeof map];
 }

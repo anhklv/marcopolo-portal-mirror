@@ -21,6 +21,7 @@ type UploadStatus = "idle" | "dragging" | "selected" | "uploading" | "preview";
 interface CustomerCsvUploadProps {
   prefectures: MasterData[];
   listingCategories: ListingCategoryOption[];
+  departments: MasterData[];
   originIndustries: MasterData[];
   membershipQualifications: MasterData[];
   affiliations: MasterData[];

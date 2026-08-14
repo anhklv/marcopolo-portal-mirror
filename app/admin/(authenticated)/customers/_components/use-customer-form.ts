@@ -48,6 +48,8 @@ export interface InitialData {
   city: string | null;
   gender: string | null;
   listingCategoryId: number | null;
+  departmentIds: number[];
+  departmentOtherNote: string | null;
   memberCategory: string | null;
   contractType: string | null;
   jobChangeIntent: string | null;
@@ -59,6 +61,7 @@ interface UseCustomerFormProps {
   mode: "create" | "edit";
   initialData?: InitialData;
   communities: CommunityOption[];
+  otherDepartmentId?: number;
   isSuper: boolean;
   scopedCommunityIds: number[];
 }
@@ -116,6 +119,7 @@ export function useCustomerForm({
   mode,
   initialData,
   communities,
+  otherDepartmentId,
   isSuper,
   scopedCommunityIds,
 }: UseCustomerFormProps) {
@@ -181,6 +185,8 @@ export function useCustomerForm({
   const [subEmails, setSubEmails] = useState<string[]>(initialData?.subEmails ?? []);
   const [company, setCompany] = useState(initialData?.company ?? "");
   const [listingCategoryId, setListingCategoryId] = useState<number | undefined>(initialData?.listingCategoryId ?? undefined);
+  const [departmentIds, setDepartmentIds] = useState<number[]>(initialData?.departmentIds ?? []);
+  const [departmentOtherNote, setDepartmentOtherNote] = useState(initialData?.departmentOtherNote ?? "");
   const [phone, setPhone] = useState(initialData?.phone ?? "");
   const [postalCode, setPostalCode] = useState(initialData?.postalCode ?? "");
   const [prefectureId, setPrefectureId] = useState<number | undefined>(initialData?.prefectureId ?? undefined);
@@ -304,6 +310,9 @@ export function useCustomerForm({
       city,
       gender: gender || null,
       listingCategoryId: listingCategoryId || null,
+      departmentIds,
+      otherDepartmentId: otherDepartmentId || null,
+      departmentOtherNote,
       memberCategory: anyCommunityChecked ? memberCategory : null,
       contractType: anyCommunityChecked ? contractType : null,
       jobChangeIntent: jobChangeIntent || null,
@@ -416,6 +425,8 @@ export function useCustomerForm({
     subEmails, setSubEmails,
     company, setCompany,
     listingCategoryId, setListingCategoryId,
+    departmentIds, setDepartmentIds,
+    departmentOtherNote, setDepartmentOtherNote,
     phone, setPhone,
     postalCode, setPostalCode,
     prefectureId, setPrefectureId,

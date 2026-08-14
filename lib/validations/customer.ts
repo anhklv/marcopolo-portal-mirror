@@ -6,6 +6,13 @@ const optionalId = z.preprocess(
   z.number().int().positive().nullable().optional()
 );
 
+const requiredDepartmentIds = z.preprocess(
+  (v) => (Array.isArray(v) ? v : []),
+  z
+    .array(z.coerce.number().int().positive())
+    .min(1, "所属部署を1つ以上選択してください")
+);
+
 // ============================================================
 // 共通バリデーション関数（クライアント・サーバー両方で使用）
 // ============================================================
@@ -156,7 +163,22 @@ const customerCommunitySchema = z.object({
 });
 
 export const customerFormSchema = customerSchema.extend({
+  departmentIds: requiredDepartmentIds,
+  otherDepartmentId: optionalId,
+  departmentOtherNote: z.string().optional().or(z.literal("")),
   communities: z.array(customerCommunitySchema).optional(),
+}).superRefine((data, ctx) => {
+  if (
+    data.otherDepartmentId &&
+    data.departmentIds.includes(data.otherDepartmentId) &&
+    !data.departmentOtherNote?.trim()
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "その他の所属を入力してください",
+      path: ["departmentOtherNote"],
+    });
+  }
 });
 
 export type CustomerFormInput = z.infer<typeof customerFormSchema>;

@@ -30,6 +30,7 @@ interface CustomerPreviewScreenProps {
   onBack: () => void;
   prefectures: MasterData[];
   listingCategories: ListingCategoryOption[];
+  departments: MasterData[];
   originIndustries: MasterData[];
   membershipQualifications: MasterData[];
   affiliations: MasterData[];
@@ -42,6 +43,7 @@ export function CustomerPreviewScreen({
   onBack,
   prefectures,
   listingCategories,
+  departments,
   originIndustries,
   membershipQualifications,
   affiliations,
@@ -232,6 +234,7 @@ export function CustomerPreviewScreen({
         onSave={handleSave}
         prefectures={prefectures}
         listingCategories={listingCategories}
+        departments={departments}
         originIndustries={originIndustries}
         membershipQualifications={membershipQualifications}
         affiliations={affiliations}
