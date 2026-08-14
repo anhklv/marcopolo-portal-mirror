@@ -112,7 +112,7 @@ deploy_develop:
 
       vercel alias set \
         "$DEPLOYMENT_URL" \
-        develop.marcopolo-portal.jp \
+        dev-marcopolo-portal.vercel.app \
         --scope marcopolo-portal \
         --token="$VERCEL_TOKEN"
 
