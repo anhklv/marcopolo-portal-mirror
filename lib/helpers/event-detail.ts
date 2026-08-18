@@ -67,11 +67,11 @@ export function toAttendeeRows(
 /**
  * キーワード検索 + ステータスフィルタ
  */
-export function filterAttendees(
-  rows: AttendeeRow[],
+export function filterAttendees<T extends AttendeeRow>(
+  rows: T[],
   keyword: string,
   statuses: RsvpStatus[]
-): AttendeeRow[] {
+): T[] {
   return rows.filter((row) => {
     // キーワード検索（氏名・会社名、スペース区切りでAND検索）
     let matchesKeyword = true;
