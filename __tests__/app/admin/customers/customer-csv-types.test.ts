@@ -157,6 +157,47 @@ describe("customer CSV parser", () => {
     expect(rebuildPayload(allCorrected, options).error).toBeUndefined();
   });
 
+  it("does not block hidden dependent fields when invalid community checkboxes fall back to off", async () => {
+    const row = Array.from({ length: 42 }, () => "");
+    [0, 1, 2, 6].forEach((index) => (row[index] = "9"));
+    [27, 28, 29, 30, 31, 32].forEach((index) => (row[index] = "0"));
+    row[26] = "1";
+    row[3] = "9";
+    row[4] = "9";
+    row[17] = "山田";
+    row[18] = "太郎";
+    row[21] = "taro@example.com";
+    const options = {
+      communities: [],
+      prefectures: [],
+      listingCategories: [],
+      departments: [{ id: 1, name: "内部監査室" }],
+      originIndustries: [],
+      membershipQualifications: [],
+      affiliations: [],
+      isSuper: true,
+      scopedCommunityIds: [],
+    };
+    const [customer] = await readCustomerCsv(
+      csvFile(`${CUSTOMER_CSV_HEADERS.join(",")}\n${row.join(",")}`),
+      options,
+    );
+
+    expect(customer.auditCommunity).toBe(false);
+    expect(customer.naikanCommunity).toBe(false);
+    expect(customer.aiCommunity).toBe(false);
+    expect(customer.csvIssues?.map((issue) => issue.key)).toEqual(
+      expect.arrayContaining([
+        "auditCommunity",
+        "naikanCommunity",
+        "aiCommunity",
+        "contractType",
+        "memberCategory",
+      ]),
+    );
+    expect(rebuildPayload(customer, options).error).toBeUndefined();
+  });
+
   it("revalidates community scope after editing", () => {
     const customer = {
       id: 1,

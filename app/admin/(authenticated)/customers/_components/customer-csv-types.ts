@@ -585,7 +585,7 @@ export function rebuildPayload(
     });
   }
   c.csvIssues
-    ?.filter((issue) => isCsvIssueApplicable(c, issue.key))
+    ?.filter((issue) => isCsvIssueBlocking(c, issue.key))
     .forEach((issue) => {
       issues.push(issue.message);
       addFieldError(issue.key, issue.message);
@@ -637,6 +637,33 @@ export function isCsvIssueApplicable(
     return customer.naikanCommunity;
   if (["aiAffiliationId", "aiJoinedAt", "aiResignedAt"].includes(key))
     return customer.aiCommunity;
+  return true;
+}
+
+const CSV_CHECKBOX_KEYS: Array<keyof PreviewCustomer> = [
+  "auditCommunity",
+  "naikanCommunity",
+  "aiCommunity",
+  "auditMemberPremium",
+  "affiliationInternalAudit",
+  "affiliationAuditor",
+  "affiliationManagement",
+  "affiliationExecutive",
+  "affiliationConsultant",
+  "affiliationNaikanSponsor",
+  "affiliationObserver",
+];
+
+function isCsvIssueBlocking(
+  customer: PreviewCustomer,
+  key: keyof PreviewCustomer,
+) {
+  if (!isCsvIssueApplicable(customer, key)) return false;
+
+  // An invalid CSV checkbox safely falls back to OFF. Keep its warning visible,
+  // but do not require the user to interact with an already-safe default.
+  if (CSV_CHECKBOX_KEYS.includes(key) && customer[key] === false) return false;
+
   return true;
 }
 export function formatFileSize(bytes: number) {
