@@ -584,6 +584,12 @@ export function rebuildPayload(
       if (key) addFieldError(key, issue.message);
     });
   }
+  c.csvIssues
+    ?.filter((issue) => isCsvIssueApplicable(c, issue.key))
+    .forEach((issue) => {
+      issues.push(issue.message);
+      addFieldError(issue.key, issue.message);
+    });
   if (c.auditCommunity && c.memberCategory === "member" && !c.auditMemberType) {
     issues.push("会員種別を選択してください");
     addFieldError("auditMemberType", "会員種別を選択してください");
