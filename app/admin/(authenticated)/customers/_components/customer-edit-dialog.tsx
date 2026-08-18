@@ -30,6 +30,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { JOB_CHANGE_INTENT_OPTIONS } from "@/lib/constants/customer";
 import {
+  CUSTOMER_CSV_FIELD_ORDER,
   clearCsvIssues,
   clearCsvIssuesForFieldChange,
   isCsvIssueApplicable,
@@ -130,6 +131,11 @@ export function CustomerEditDialog({
   const validationError = validatedCustomer?.error;
   const warningSummary = (customer?.csvIssues ?? [])
     .filter((issue) => isCsvIssueApplicable(customer!, issue.key))
+    .sort(
+      (a, b) =>
+        CUSTOMER_CSV_FIELD_ORDER.indexOf(a.key) -
+        CUSTOMER_CSV_FIELD_ORDER.indexOf(b.key),
+    )
     .map((issue) => issue.message)
     .filter(
       (warning, index, warnings) =>
