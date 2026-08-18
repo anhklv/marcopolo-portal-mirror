@@ -166,7 +166,7 @@ export function CustomerCsvUpload(props: CustomerCsvUploadProps) {
           </Card>
           <div className="mt-2 flex justify-end">
             <a
-              href="/customer-import-sample.csv"
+              href="/CSV一括登録_sample.csv"
               download
               className="text-sm text-blue-700 underline-offset-4 hover:underline"
             >
