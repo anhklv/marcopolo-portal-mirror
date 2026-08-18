@@ -168,9 +168,9 @@ export function CustomerCsvUpload(props: CustomerCsvUploadProps) {
             <a
               href="/customer-import-sample.csv"
               download
-              className="text-sm text-primary underline-offset-4 hover:underline"
+              className="text-sm text-blue-700 underline-offset-4 hover:underline"
             >
-              サンプルcsv
+              サンプルCSV
             </a>
           </div>
         </div>

@@ -183,7 +183,27 @@ export async function readCustomerCsv(
   const data = rows.slice(1).filter((r) => r.some(Boolean));
   if (!data.length) throw new Error("ファイルにデータが存在しません。");
   if (data.length > 1000) throw new Error("取込可能件数を超えています。");
-  return data.map((r, i) => mapRow(r, i + 1, o));
+  const customers = data.map((r, i) => mapRow(r, i + 1, o));
+  const emailRows = new Map<string, number[]>();
+  customers.forEach((customer) => {
+    const email = customer.email.trim().toLocaleLowerCase();
+    if (email) emailRows.set(email, [...(emailRows.get(email) ?? []), customer.id]);
+  });
+  customers.forEach((customer) => {
+    const email = customer.email.trim().toLocaleLowerCase();
+    if ((emailRows.get(email)?.length ?? 0) > 1) {
+      const originalEmail = customer.email;
+      customer.csvIssues?.push({
+        key: "email",
+        message: `${customer.id}行目: Toメールアドレス「${originalEmail}」がCSVファイル内で重複しています。`,
+      });
+      Object.assign(
+        customer,
+        rebuildPayload({ ...customer, email: "" }, o),
+      );
+    }
+  });
+  return customers;
 }
 
 function mapRow(
@@ -194,6 +214,33 @@ function mapRow(
   const errors: string[] = [];
   if (row.length !== 42) errors.push("列数が不正です");
   const v = (i: number) => (row[i] ?? "").trim();
+  const csvIssues: NonNullable<PreviewCustomer["csvIssues"]> = [];
+  const remember = (
+    key: keyof PreviewCustomer,
+    label: string,
+    message: string,
+  ) => csvIssues.push({ key, message: `${id}行目: ${label}${message}` });
+  const invalidValue = (key: keyof PreviewCustomer, label: string, value: string) =>
+    remember(key, label, `「${value}」は正しくありません。`);
+  const tooLong = (
+    column: number,
+    key: keyof PreviewCustomer,
+    label: string,
+    max: number,
+  ) => {
+    if (v(column).length > max)
+      remember(key, label, `は${max}文字以内で入力してください。`);
+  };
+  const invalidDate = (value: string) => {
+    const match = /^(\d{4})\/(\d{2})\/(\d{2})$/.exec(value);
+    if (!match) return !!value;
+    const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    return (
+      date.getFullYear() !== Number(match[1]) ||
+      date.getMonth() !== Number(match[2]) - 1 ||
+      date.getDate() !== Number(match[3])
+    );
+  };
   const flag = (i: number, label: string) => {
     if (!["0", "1"].includes(v(i)))
       errors.push(`${label}は0または1で入力してください`);
@@ -343,9 +390,6 @@ function mapRow(
     errors.push(...parsed.error.issues.map((x) => x.message));
   if (audit && memberCategory === "member" && !auditMemberType)
     errors.push("会員種別を選択してください");
-  const csvIssues: NonNullable<PreviewCustomer["csvIssues"]> = [];
-  const remember = (key: keyof PreviewCustomer, message: string) =>
-    csvIssues.push({ key, message });
   const flagKeys: Array<keyof PreviewCustomer> = [
     "auditCommunity",
     "naikanCommunity",
@@ -361,30 +405,81 @@ function mapRow(
   ];
   [0, 1, 2, 6, 26, 27, 28, 29, 30, 31, 32].forEach((column, index) => {
     if (!["0", "1"].includes(v(column)))
-      remember(flagKeys[index], "0または1を選択してください");
+      invalidValue(flagKeys[index], CUSTOMER_CSV_HEADERS[column], v(column));
   });
   if (!["1", "2"].includes(v(3)))
-    remember("contractType", "契約主体を選択してください");
+    invalidValue("contractType", CUSTOMER_CSV_HEADERS[3], v(3));
   if (!["1", "2", "3"].includes(v(4)))
-    remember("memberCategory", "会員区分を選択してください");
+    invalidValue("memberCategory", CUSTOMER_CSV_HEADERS[4], v(4));
   if (v(5) && !auditMemberType)
-    remember("auditMemberType", "会員種別を選択してください");
+    invalidValue("auditMemberType", CUSTOMER_CSV_HEADERS[5], v(5));
   if (v(39) && !["1", "2"].includes(v(39)))
-    remember("gender", "性別を選択してください");
+    invalidValue("gender", CUSTOMER_CSV_HEADERS[39], v(39));
   if (v(40) && !["1", "2", "3", "4"].includes(v(40)))
-    remember("jobChangeIntent", "転職意欲を選択してください");
+    invalidValue("jobChangeIntent", CUSTOMER_CSV_HEADERS[40], v(40));
   if (v(7) && !qualificationId)
-    remember("auditMembershipQualificationId", "入会資格を選択してください");
+    invalidValue("auditMembershipQualificationId", CUSTOMER_CSV_HEADERS[7], v(7));
   if (v(8) && !originId)
-    remember("auditOriginIndustryId", "出身業種を選択してください");
+    invalidValue("auditOriginIndustryId", CUSTOMER_CSV_HEADERS[8], v(8));
   if (v(11) && !naikanAffId)
-    remember("naikanAffiliationId", "ないかんMeetupの所属を選択してください");
+    invalidValue("naikanAffiliationId", CUSTOMER_CSV_HEADERS[11], v(11));
   if (v(14) && !aiAffId)
-    remember("aiAffiliationId", "AI部会の所属を選択してください");
+    invalidValue("aiAffiliationId", CUSTOMER_CSV_HEADERS[14], v(14));
   if (v(34) && !listing)
-    remember("listingCategoryId", "上場区分を選択してください");
+    remember("listingCategoryId", CUSTOMER_CSV_HEADERS[34], `「${v(34)}」は存在しません。`);
   if (v(37) && !prefectureId)
-    remember("prefectureId", "都道府県を選択してください");
+    remember("prefectureId", CUSTOMER_CSV_HEADERS[37], `「${v(37)}」は都道府県マスタに存在しません。`);
+
+  const lengthRules: Array<[number, keyof PreviewCustomer, number]> = [
+    [5, "auditMemberType", 50], [7, "auditMembershipQualificationId", 100],
+    [8, "auditOriginIndustryId", 100], [11, "naikanAffiliationId", 100],
+    [14, "aiAffiliationId", 100], [17, "lastName", 100], [18, "firstName", 100],
+    [19, "lastNameKana", 100], [20, "firstNameKana", 100], [21, "email", 255],
+    [25, "company", 200], [33, "affiliationOtherText", 255], [35, "phone", 20],
+    [36, "postalCode", 10], [37, "prefectureId", 20], [38, "city", 255],
+    [41, "note", 500],
+  ];
+  lengthRules.forEach(([column, key, max]) =>
+    tooLong(column, key, CUSTOMER_CSV_HEADERS[column], max),
+  );
+  const subEmailTotal = [v(22), v(23), v(24)].join("").length;
+  if (subEmailTotal > 255)
+    ["subEmail1", "subEmail2", "subEmail3"].forEach((key) =>
+      remember(
+        key as keyof PreviewCustomer,
+        "Ccメールアドレス",
+        "は255文字以内で入力してください。",
+      ),
+    );
+  if (!v(17)) remember("lastName", "姓", "が入力されていません。");
+  if (!v(18)) remember("firstName", "名", "が入力されていません。");
+  if (!v(21)) remember("email", "Toメールアドレス", "が入力されていません。");
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (v(21) && !emailPattern.test(v(21)))
+    remember("email", "Toメールアドレス", `「${v(21)}」の形式が正しくありません。`);
+  [22, 23, 24].forEach((column, index) => {
+    if (v(column) && !emailPattern.test(v(column)))
+      remember(
+        `subEmail${index + 1}` as keyof PreviewCustomer,
+        CUSTOMER_CSV_HEADERS[column],
+        `「${v(column)}」の形式が正しくありません。`,
+      );
+  });
+  const allEmails = [v(21), v(22), v(23), v(24)]
+    .filter(Boolean)
+    .map((email) => email.toLocaleLowerCase());
+  if (new Set(allEmails).size !== allEmails.length)
+    remember("email", "メールアドレス", `「${v(21)}」が重複しています。`);
+  const dateRules: Array<[number, keyof PreviewCustomer]> = [
+    [9, "auditJoinedAt"], [10, "auditResignedAt"], [12, "naikanJoinedAt"],
+    [13, "naikanResignedAt"], [15, "aiJoinedAt"], [16, "aiResignedAt"],
+  ];
+  dateRules.forEach(([column, key]) => {
+    if (invalidDate(v(column)))
+      remember(key, CUSTOMER_CSV_HEADERS[column], "は正しい日付形式で入力してください。");
+  });
+  if (v(35) && !/^[0-9\-+ ]+$/.test(v(35)))
+    remember("phone", "電話番号", "には半角数字、半角ハイフン、半角プラス、半角スペースのみ使用できます。");
   selected.forEach(([on, community], index) => {
     if (
       on &&
@@ -395,10 +490,15 @@ function mapRow(
         ["auditCommunity", "naikanCommunity", "aiCommunity"][
           index
         ] as keyof PreviewCustomer,
-        "権限のないコミュニティが含まれています",
+        CUSTOMER_CSV_HEADERS[index],
+        "は操作権限がありません。",
       );
   });
-  return {
+  const hasCsvIssue = (key: keyof PreviewCustomer) =>
+    csvIssues.some((issue) => issue.key === key);
+  const csvString = (key: keyof PreviewCustomer, column: number) =>
+    hasCsvIssue(key) ? "" : v(column);
+  const preview: PreviewCustomer = {
     id,
     auditCommunity: audit,
     naikanCommunity: naikan,
@@ -407,30 +507,42 @@ function mapRow(
     memberCategory,
     auditMemberType,
     auditMemberPremium: auditPremium,
-    auditMembershipQualification: v(7),
-    auditMembershipQualificationId: qualificationId,
-    auditOriginIndustry: v(8),
-    auditOriginIndustryId: originId,
-    auditJoinedAt: v(9),
-    auditResignedAt: v(10),
-    naikanAffiliation: v(11),
-    naikanAffiliationId: naikanAffId,
-    naikanJoinedAt: v(12),
-    naikanResignedAt: v(13),
-    aiAffiliation: v(14),
-    aiAffiliationId: aiAffId,
-    aiJoinedAt: v(15),
-    aiResignedAt: v(16),
-    lastName: v(17),
-    firstName: v(18),
-    lastNameKana: v(19),
-    firstNameKana: v(20),
-    email: v(21),
-    subEmail1: v(22),
-    subEmail2: v(23),
-    subEmail3: v(24),
-    visibleSubEmailCount: [v(22), v(23), v(24)].filter(Boolean).length,
-    company: v(25),
+    auditMembershipQualification: csvString("auditMembershipQualificationId", 7),
+    auditMembershipQualificationId: hasCsvIssue(
+      "auditMembershipQualificationId",
+    )
+      ? undefined
+      : qualificationId,
+    auditOriginIndustry: csvString("auditOriginIndustryId", 8),
+    auditOriginIndustryId: hasCsvIssue("auditOriginIndustryId")
+      ? undefined
+      : originId,
+    auditJoinedAt: csvString("auditJoinedAt", 9),
+    auditResignedAt: csvString("auditResignedAt", 10),
+    naikanAffiliation: csvString("naikanAffiliationId", 11),
+    naikanAffiliationId: hasCsvIssue("naikanAffiliationId")
+      ? undefined
+      : naikanAffId,
+    naikanJoinedAt: csvString("naikanJoinedAt", 12),
+    naikanResignedAt: csvString("naikanResignedAt", 13),
+    aiAffiliation: csvString("aiAffiliationId", 14),
+    aiAffiliationId: hasCsvIssue("aiAffiliationId") ? undefined : aiAffId,
+    aiJoinedAt: csvString("aiJoinedAt", 15),
+    aiResignedAt: csvString("aiResignedAt", 16),
+    lastName: csvString("lastName", 17),
+    firstName: csvString("firstName", 18),
+    lastNameKana: csvString("lastNameKana", 19),
+    firstNameKana: csvString("firstNameKana", 20),
+    email: csvString("email", 21),
+    subEmail1: csvString("subEmail1", 22),
+    subEmail2: csvString("subEmail2", 23),
+    subEmail3: csvString("subEmail3", 24),
+    visibleSubEmailCount: [
+      csvString("subEmail1", 22),
+      csvString("subEmail2", 23),
+      csvString("subEmail3", 24),
+    ].filter(Boolean).length,
+    company: csvString("company", 25),
     affiliationInternalAudit: deptFlags[0][1],
     affiliationAuditor: deptFlags[1][1],
     affiliationManagement: deptFlags[2][1],
@@ -438,23 +550,24 @@ function mapRow(
     affiliationConsultant: deptFlags[4][1],
     affiliationNaikanSponsor: deptFlags[5][1],
     affiliationObserver: deptFlags[6][1],
-    affiliationOther: !!other,
-    affiliationOtherText: other,
-    listingCategory: v(34),
-    listingCategoryId: listing?.id,
-    phone: v(35),
-    postalCode: v(36),
-    prefecture: v(37),
-    prefectureId,
-    city: v(38),
+    affiliationOther: !!other && !hasCsvIssue("affiliationOtherText"),
+    affiliationOtherText: csvString("affiliationOtherText", 33),
+    listingCategory: csvString("listingCategoryId", 34),
+    listingCategoryId: hasCsvIssue("listingCategoryId")
+      ? undefined
+      : listing?.id,
+    phone: csvString("phone", 35),
+    postalCode: csvString("postalCode", 36),
+    prefecture: csvString("prefectureId", 37),
+    prefectureId: hasCsvIssue("prefectureId") ? undefined : prefectureId,
+    city: csvString("city", 38),
     gender: (gender ?? "") as PreviewCustomer["gender"],
     jobChangeIntent: (jobChangeIntent ??
       "") as PreviewCustomer["jobChangeIntent"],
-    note: v(41),
-    payload: parsed.success ? parsed.data : undefined,
-    error: errors.length ? [...new Set(errors)].join("、") : undefined,
+    note: csvString("note", 41),
     csvIssues,
   };
+  return rebuildPayload(preview, o);
 }
 
 export function rebuildPayload(
@@ -584,12 +697,6 @@ export function rebuildPayload(
       if (key) addFieldError(key, issue.message);
     });
   }
-  c.csvIssues
-    ?.filter((issue) => isCsvIssueBlocking(c, issue.key))
-    .forEach((issue) => {
-      issues.push(issue.message);
-      addFieldError(issue.key, issue.message);
-    });
   if (c.auditCommunity && c.memberCategory === "member" && !c.auditMemberType) {
     issues.push("会員種別を選択してください");
     addFieldError("auditMemberType", "会員種別を選択してください");
@@ -640,32 +747,6 @@ export function isCsvIssueApplicable(
   return true;
 }
 
-const CSV_CHECKBOX_KEYS: Array<keyof PreviewCustomer> = [
-  "auditCommunity",
-  "naikanCommunity",
-  "aiCommunity",
-  "auditMemberPremium",
-  "affiliationInternalAudit",
-  "affiliationAuditor",
-  "affiliationManagement",
-  "affiliationExecutive",
-  "affiliationConsultant",
-  "affiliationNaikanSponsor",
-  "affiliationObserver",
-];
-
-function isCsvIssueBlocking(
-  customer: PreviewCustomer,
-  key: keyof PreviewCustomer,
-) {
-  if (!isCsvIssueApplicable(customer, key)) return false;
-
-  // An invalid CSV checkbox safely falls back to OFF. Keep its warning visible,
-  // but do not require the user to interact with an already-safe default.
-  if (CSV_CHECKBOX_KEYS.includes(key) && customer[key] === false) return false;
-
-  return true;
-}
 export function formatFileSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;

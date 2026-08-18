@@ -374,17 +374,26 @@ export function CustomerForm({
                 id={`customer-department-${department.id}`}
                 label={department.name}
                 checked={form.departmentIds.includes(department.id)}
-                onCheckedChange={(checked) =>
-                  form.setDepartmentIds((current) => {
-                    form.clearFieldError("departmentIds");
-                    if (!checked && department.id === otherDepartmentId) {
-                      form.clearFieldError("departmentOtherNote");
+                onCheckedChange={(checked) => {
+                  const next = checked
+                    ? [...new Set([...form.departmentIds, department.id])]
+                    : form.departmentIds.filter((id) => id !== department.id);
+                  form.setDepartmentIds(next);
+                  form.setFieldErrors((errors) => {
+                    const updated = { ...errors };
+                    if (next.length === 0) {
+                      updated.departmentIds = [
+                        "所属部署を1つ以上選択してください",
+                      ];
+                    } else {
+                      delete updated.departmentIds;
                     }
-                    return checked
-                      ? [...new Set([...current, department.id])]
-                      : current.filter((id) => id !== department.id);
-                  })
-                }
+                    return updated;
+                  });
+                  if (!checked && department.id === otherDepartmentId) {
+                    form.clearFieldError("departmentOtherNote");
+                  }
+                }}
               />
             ))}
           </div>

@@ -89,7 +89,7 @@ describe("customer CSV parser", () => {
     ).toBe(true);
   });
 
-  it("keeps invalid CSV fallback errors until the responsible field is corrected", async () => {
+  it("keeps CSV warnings separate while using safe defaults and form validation", async () => {
     const row = Array.from({ length: 42 }, () => "");
     [0, 1, 2, 6, 26, 27, 28, 29, 30, 31, 32].forEach(
       (index) => (row[index] = "0"),
@@ -131,21 +131,21 @@ describe("customer CSV parser", () => {
       ]),
     );
     const invalid = rebuildPayload(customer, options);
-    expect(invalid.error).toBeTruthy();
-    expect(invalid.fieldErrors?.contractType).toContain(
-      "契約主体を選択してください",
-    );
-    expect(invalid.fieldErrors?.listingCategoryId).toContain(
-      "上場区分を選択してください",
-    );
-    expect(invalid.fieldErrors?.prefectureId).toContain(
-      "都道府県を選択してください",
+    expect(invalid.error).toBeUndefined();
+    expect(invalid.contractType).toBe("corporate");
+    expect(invalid.listingCategoryId).toBeUndefined();
+    expect(invalid.prefectureId).toBeUndefined();
+    expect(invalid.fieldErrors?.contractType).toBeUndefined();
+    expect(invalid.csvIssues?.map((issue) => issue.message)).toEqual(
+      expect.arrayContaining([
+        "1行目: 契約主体「9」は正しくありません。",
+        "1行目: 上場区分「存在しない市場」は存在しません。",
+        "1行目: 都道府県「存在しない県」は都道府県マスタに存在しません。",
+      ]),
     );
 
     const onlyContractCorrected = clearCsvIssues(customer, ["contractType"]);
-    expect(rebuildPayload(onlyContractCorrected, options).error).toContain(
-      "上場区分を選択してください",
-    );
+    expect(rebuildPayload(onlyContractCorrected, options).error).toBeUndefined();
     const allCorrected = clearCsvIssues(
       {
         ...customer,
@@ -196,6 +196,45 @@ describe("customer CSV parser", () => {
       ]),
     );
     expect(rebuildPayload(customer, options).error).toBeUndefined();
+  });
+
+  it("uses the form message after an invalid required CSV value falls back to empty", async () => {
+    const row = Array.from({ length: 42 }, () => "");
+    [0, 1, 2, 6, 27, 28, 29, 30, 31, 32].forEach(
+      (index) => (row[index] = "0"),
+    );
+    row[3] = "1";
+    row[4] = "1";
+    row[17] = "山田";
+    row[18] = "太郎";
+    row[21] = "invalid-email";
+    row[26] = "1";
+    const options = {
+      communities: [],
+      prefectures: [],
+      listingCategories: [],
+      departments: [{ id: 1, name: "内部監査室" }],
+      originIndustries: [],
+      membershipQualifications: [],
+      affiliations: [],
+      isSuper: true,
+      scopedCommunityIds: [],
+    };
+    const [customer] = await readCustomerCsv(
+      csvFile(`${CUSTOMER_CSV_HEADERS.join(",")}\n${row.join(",")}`),
+      options,
+    );
+
+    expect(customer.email).toBe("");
+    expect(customer.csvIssues?.map((issue) => issue.message)).toContain(
+      "1行目: Toメールアドレス「invalid-email」の形式が正しくありません。",
+    );
+    expect(customer.fieldErrors?.email).toContain(
+      "メールアドレスを入力してください",
+    );
+    expect(customer.fieldErrors?.email).not.toContain(
+      "1行目: Toメールアドレス「invalid-email」の形式が正しくありません。",
+    );
   });
 
   it("revalidates community scope after editing", () => {
