@@ -437,6 +437,7 @@ export function useCustomerForm({
 
     // エラー
     fieldErrors,
+    setFieldErrors,
     generalError,
     clearFieldError,
 

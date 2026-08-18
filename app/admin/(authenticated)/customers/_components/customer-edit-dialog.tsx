@@ -78,52 +78,6 @@ const PLACEHOLDERS: Record<string, string> = {
   市区町村以下: "例: 千代田区丸の内1-1-1",
 };
 
-const FIELD_LABELS: Partial<Record<keyof PreviewCustomer, string>> = {
-  auditCommunity: "コミュニティ_ベンチャー監査役の会",
-  naikanCommunity: "コミュニティ_ないかんMeetup",
-  aiCommunity: "コミュニティ_AI部会",
-  contractType: "契約主体",
-  memberCategory: "会員区分",
-  auditMemberType: "ベンチャー監査役の会_会員種別",
-  auditMemberPremium: "ベンチャー監査役の会_プレミアム会員",
-  auditMembershipQualificationId: "ベンチャー監査役の会_入会資格",
-  auditOriginIndustryId: "ベンチャー監査役の会_出身業種",
-  auditJoinedAt: "ベンチャー監査役の会_入会日",
-  auditResignedAt: "ベンチャー監査役の会_脱退日",
-  naikanAffiliationId: "ないかんMeetup_所属",
-  naikanJoinedAt: "ないかんMeetup_入会日",
-  naikanResignedAt: "ないかんMeetup_脱退日",
-  aiAffiliationId: "AI部会_所属",
-  aiJoinedAt: "AI部会_入会日",
-  aiResignedAt: "AI部会_脱退日",
-  lastName: "姓",
-  firstName: "名",
-  lastNameKana: "セイ",
-  firstNameKana: "メイ",
-  email: "メールアドレス",
-  subEmail1: "サブメール1",
-  subEmail2: "サブメール2",
-  subEmail3: "サブメール3",
-  company: "会社名",
-  affiliationInternalAudit: "所属部署",
-  affiliationAuditor: "所属部署",
-  affiliationManagement: "所属部署",
-  affiliationExecutive: "所属部署",
-  affiliationConsultant: "所属部署",
-  affiliationNaikanSponsor: "所属部署",
-  affiliationObserver: "所属部署",
-  affiliationOther: "所属部署_その他",
-  affiliationOtherText: "その他の所属",
-  listingCategoryId: "上場区分",
-  phone: "電話番号",
-  postalCode: "郵便番号",
-  prefectureId: "都道府県",
-  city: "市区町村以下",
-  gender: "性別",
-  jobChangeIntent: "転職意欲",
-  note: "備考",
-};
-
 export function CustomerEditDialog({
   customer,
   onOpenChange,
@@ -176,35 +130,14 @@ export function CustomerEditDialog({
   const validationError = validatedCustomer?.error;
   const warningSummary = (customer?.csvIssues ?? [])
     .filter((issue) => isCsvIssueApplicable(customer!, issue.key))
-    .map((issue) => ({
-      label: FIELD_LABELS[issue.key] ?? "入力項目",
-      message: issue.message,
-    }))
+    .map((issue) => issue.message)
     .filter(
       (warning, index, warnings) =>
-        warnings.findIndex(
-          (candidate) =>
-            candidate.label === warning.label &&
-            candidate.message === warning.message,
-        ) === index,
-    );
-  const errorSummary = Object.entries(validatedCustomer?.fieldErrors ?? {})
-    .flatMap(([key, messages]) =>
-      (messages ?? []).map((message) => ({
-        label: FIELD_LABELS[key as keyof PreviewCustomer] ?? "入力項目",
-        message,
-      })),
-    )
-    .filter(
-      (error, index, errors) =>
-        errors.findIndex(
-          (candidate) =>
-            candidate.label === error.label &&
-            candidate.message === error.message,
-        ) === index,
+        warnings.findIndex((candidate) => candidate === warning) === index,
     );
   const errorFor = (key: keyof PreviewCustomer) =>
     validatedCustomer?.fieldErrors?.[key]?.[0];
+  const departmentError = errorFor("affiliationInternalAudit");
   const visibleSubEmails = customer
     ? (customer.visibleSubEmailCount ??
       [customer.subEmail1, customer.subEmail2, customer.subEmail3].reduce(
@@ -237,10 +170,8 @@ export function CustomerEditDialog({
                     不正な値には初期値が設定されています。必要に応じて修正してください。
                   </p>
                   <ul className="list-disc space-y-1 pl-5">
-                    {warningSummary.map(({ label, message }) => (
-                      <li key={`${label}:${message}`}>
-                        <span className="font-medium">{label}:</span> {message}
-                      </li>
+                    {warningSummary.map((message) => (
+                      <li key={message}>{message}</li>
                     ))}
                   </ul>
                 </div>
@@ -612,11 +543,11 @@ export function CustomerEditDialog({
                     );
                   })}
                 </div>
-                {/* {departmentError && (
+                {departmentError && (
                   <p id="csv-department-error" className="text-sm text-destructive">
                     {departmentError}
                   </p>
-                )} */}
+                )}
                 {customer.affiliationOther && (
                   <FormField
                     label="その他の所属"
