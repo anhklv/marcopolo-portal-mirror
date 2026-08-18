@@ -284,6 +284,42 @@ export async function create(data: CustomerCreateData): Promise<Customer> {
   });
 }
 
+/** CSV import: all rows are inserted in one transaction. */
+export async function createManyAtomic(rows: CustomerCreateData[]): Promise<number> {
+  await prisma.$transaction(async (tx) => {
+    for (const data of rows) {
+      // otherDepartmentId is validation metadata, not a Customer column.
+      // Excluding it also keeps Prisma on the unchecked scalar-input path used
+      // by create(), where prefectureId/listingCategoryId are accepted.
+      const {
+        communities,
+        departmentIds,
+        otherDepartmentId: _otherDepartmentId,
+        departmentOtherNote,
+        ...customerData
+      } = data;
+      void _otherDepartmentId;
+      const customer = await tx.customer.create({
+        data: cleanEmptyStrings(customerData) as Prisma.CustomerCreateInput,
+      });
+      if (communities?.length) {
+        await tx.customerCommunity.createMany({
+          data: communities.map((c) => ({ ...c, customerId: customer.id })),
+        });
+      }
+      if (departmentIds?.length) {
+        await tx.customerDepartment.createMany({
+          data: departmentIds.map((departmentId) => ({ customerId: customer.id, departmentId })),
+          skipDuplicates: true,
+        });
+        const otherDepartment = await findOtherDepartment(tx);
+        await updateOtherDepartmentNote(tx, customer.id, otherDepartment?.id, departmentOtherNote);
+      }
+    }
+  });
+  return rows.length;
+}
+
 /**
  * 更新（CustomerCommunity の差分更新を $transaction）
  */

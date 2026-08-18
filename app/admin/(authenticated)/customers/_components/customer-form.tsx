@@ -624,7 +624,11 @@ export function CustomerForm({
           <TabsContent value="individual" className="space-y-4">
             {formContent}
           </TabsContent>
-          <TabsContent value="csv" className="space-y-4">
+          <TabsContent
+            value="csv"
+            forceMount
+            className="space-y-4 data-[state=inactive]:hidden"
+          >
             <CustomerCsvUpload
               prefectures={prefectures}
               listingCategories={listingCategories}
@@ -632,6 +636,9 @@ export function CustomerForm({
               originIndustries={originIndustries}
               membershipQualifications={membershipQualifications}
               affiliations={affiliations}
+              communities={communities}
+              isSuper={isSuper}
+              scopedCommunityIds={scopedCommunityIds}
             />
           </TabsContent>
         </Tabs>

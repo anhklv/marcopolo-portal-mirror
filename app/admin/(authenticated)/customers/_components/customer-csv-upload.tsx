@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ActionButton } from "@/components/ui/action-button";
 import { cn } from "@/lib/utils";
-import type { ListingCategoryOption, MasterData } from "@/lib/types/serialized";
+import type { CommunityOption, ListingCategoryOption, MasterData } from "@/lib/types/serialized";
 import { CustomerPreviewScreen } from "./customer-preview-screen";
 import {
-  INITIAL_PREVIEW_DATA,
   formatFileSize,
   isCsvFile,
+  readCustomerCsv,
   type PreviewCustomer,
 } from "./customer-csv-types";
 
@@ -25,6 +25,9 @@ interface CustomerCsvUploadProps {
   originIndustries: MasterData[];
   membershipQualifications: MasterData[];
   affiliations: MasterData[];
+  communities: CommunityOption[];
+  isSuper: boolean;
+  scopedCommunityIds: number[];
 }
 
 export function CustomerCsvUpload(props: CustomerCsvUploadProps) {
@@ -32,11 +35,15 @@ export function CustomerCsvUpload(props: CustomerCsvUploadProps) {
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [file, setFile] = useState<File | null>(null);
   const [customers, setCustomers] =
-    useState<PreviewCustomer[]>(INITIAL_PREVIEW_DATA);
+    useState<PreviewCustomer[]>([]);
 
   const selectFile = useCallback((selected: File) => {
     if (!isCsvFile(selected)) {
-      toast.error("CSV形式のファイルのみアップロードできます");
+      toast.error("CSVファイルを指定してください。");
+      return;
+    }
+    if (selected.size > 5 * 1024 * 1024) {
+      toast.error("ファイルサイズが上限を超えています。");
       return;
     }
     setFile(selected);
@@ -83,17 +90,25 @@ export function CustomerCsvUpload(props: CustomerCsvUploadProps) {
   const handleRemove = useCallback(() => {
     setFile(null);
     setStatus("idle");
-    setCustomers(INITIAL_PREVIEW_DATA);
+    setCustomers([]);
   }, []);
 
-  const handleUpload = useCallback(() => {
-    if (!file) return;
+  const handleUpload = useCallback(async () => {
+    if (!file) {
+      toast.error("ファイルを選択してください。");
+      return;
+    }
     setStatus("uploading");
-    setTimeout(() => {
+    try {
+      const parsed = await readCustomerCsv(file, props);
+      setCustomers(parsed);
       setStatus("preview");
       toast.success("CSVファイルを読み込みました");
-    }, 800);
-  }, [file]);
+    } catch (error) {
+      setStatus("selected");
+      toast.error(error instanceof Error ? error.message : "CSVファイルの読み込みに失敗しました。");
+    }
+  }, [file, props]);
 
   if (status === "preview" && file) {
     return (
@@ -151,9 +166,9 @@ export function CustomerCsvUpload(props: CustomerCsvUploadProps) {
           </Card>
           <div className="mt-2 flex justify-end">
             <a
-              href="#"
+              href="/customer-import-sample.csv"
+              download
               className="text-sm text-primary underline-offset-4 hover:underline"
-              onClick={(e) => e.preventDefault()}
             >
               サンプルcsv
             </a>

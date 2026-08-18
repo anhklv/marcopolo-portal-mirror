@@ -2,15 +2,16 @@ import { z } from "zod";
 
 // null/undefined/""/0 を null にし、正の整数のみ受け付けるオプショナルID
 const optionalId = z.preprocess(
-  (v) => (v === null || v === undefined || v === "" || v === 0 ? null : Number(v)),
-  z.number().int().positive().nullable().optional()
+  (v) =>
+    v === null || v === undefined || v === "" || v === 0 ? null : Number(v),
+  z.number().int().positive().nullable().optional(),
 );
 
 const requiredDepartmentIds = z.preprocess(
   (v) => (Array.isArray(v) ? v : []),
   z
     .array(z.coerce.number().int().positive())
-    .min(1, "所属部署を1つ以上選択してください")
+    .min(1, "所属部署を1つ以上選択してください"),
 );
 
 // ============================================================
@@ -26,7 +27,8 @@ export function validateKatakana(value: string): string | null {
 export function validatePhone(value: string): string | null {
   if (!value) return null;
   if (!/^[0-9]*$/.test(value)) return "数字のみで入力してください";
-  if (value.length < 10 || value.length > 11) return "電話番号は数字10桁または11桁で入力してください";
+  if (value.length < 10 || value.length > 11)
+    return "電話番号は数字10桁または11桁で入力してください";
   return null;
 }
 
@@ -45,7 +47,12 @@ export function validateDateInput(value: string): string | null {
   const month = parseInt(match[2]) - 1;
   const day = parseInt(match[3]);
   const d = new Date(year, month, day);
-  if (isNaN(d.getTime()) || d.getFullYear() !== year || d.getMonth() !== month || d.getDate() !== day) {
+  if (
+    isNaN(d.getTime()) ||
+    d.getFullYear() !== year ||
+    d.getMonth() !== month ||
+    d.getDate() !== day
+  ) {
     return "存在しない日付です";
   }
   return null;
@@ -113,27 +120,18 @@ export const customerSchema = z.object({
     .max(255, "市区町村は255文字以内で入力してください")
     .optional()
     .or(z.literal("")),
-  gender: z
-    .enum(["male", "female"])
-    .optional()
-    .nullable(),
+  gender: z.enum(["male", "female"]).optional().nullable(),
   listingCategoryId: optionalId,
   memberCategory: z
     .enum(["member", "sponsor", "observer"])
     .optional()
     .nullable(),
-  contractType: z
-    .enum(["corporate", "individual"])
-    .optional()
-    .nullable(),
+  contractType: z.enum(["corporate", "individual"]).optional().nullable(),
   jobChangeIntent: z
     .enum(["active", "considering", "if_good", "not_thinking"])
     .optional()
     .nullable(),
-  note: z
-    .string()
-    .optional()
-    .or(z.literal("")),
+  note: z.string().optional().or(z.literal("")),
 });
 
 const optionalDateString = z
@@ -149,36 +147,68 @@ const optionalDateString = z
   .optional();
 
 const customerCommunitySchema = z.object({
-  communityId: z.coerce.number().int().positive("コミュニティIDは正の整数を指定してください"),
+  communityId: z.coerce
+    .number()
+    .int()
+    .positive("コミュニティIDは正の整数を指定してください"),
   joinedAt: optionalDateString,
   resignedAt: optionalDateString,
-  auditMemberType: z
-    .enum(["regular", "online"])
-    .nullable()
-    .optional(),
+  auditMemberType: z.enum(["regular", "online"]).nullable().optional(),
   auditMemberPremium: z.boolean().nullable().optional(),
   affiliationId: optionalId,
   originIndustryId: optionalId,
   membershipQualificationId: optionalId,
 });
 
-export const customerFormSchema = customerSchema.extend({
-  departmentIds: requiredDepartmentIds,
-  otherDepartmentId: optionalId,
-  departmentOtherNote: z.string().optional().or(z.literal("")),
-  communities: z.array(customerCommunitySchema).optional(),
-}).superRefine((data, ctx) => {
-  if (
-    data.otherDepartmentId &&
-    data.departmentIds.includes(data.otherDepartmentId) &&
-    !data.departmentOtherNote?.trim()
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "その他の所属を入力してください",
-      path: ["departmentOtherNote"],
-    });
-  }
-});
+export const customerFormSchema = customerSchema
+  .extend({
+    departmentIds: requiredDepartmentIds,
+    otherDepartmentId: optionalId,
+    departmentOtherNote: z.string().optional().or(z.literal("")),
+    communities: z.array(customerCommunitySchema).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (
+      data.otherDepartmentId &&
+      data.departmentIds.includes(data.otherDepartmentId) &&
+      !data.departmentOtherNote?.trim()
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "その他の所属を入力してください",
+        path: ["departmentOtherNote"],
+      });
+    }
+  });
 
 export type CustomerFormInput = z.infer<typeof customerFormSchema>;
+
+/**
+ * customerFormSchema transforms community dates to the database-friendly
+ * YYYY-MM-DD representation. Server actions may receive an already parsed
+ * payload from the CSV preview, so convert those dates back to schema input
+ * before performing the mandatory server-side validation.
+ */
+export function normalizeCustomerFormDatesForValidation(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object") return raw;
+  const data = raw as Record<string, unknown>;
+  if (!Array.isArray(data.communities)) return raw;
+  return {
+    ...data,
+    communities: data.communities.map((community) => {
+      if (!community || typeof community !== "object") return community;
+      const entry = community as Record<string, unknown>;
+      return {
+        ...entry,
+        joinedAt:
+          typeof entry.joinedAt === "string"
+            ? entry.joinedAt.replace(/-/g, "/")
+            : entry.joinedAt,
+        resignedAt:
+          typeof entry.resignedAt === "string"
+            ? entry.resignedAt.replace(/-/g, "/")
+            : entry.resignedAt,
+      };
+    }),
+  };
+}

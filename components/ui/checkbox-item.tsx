@@ -12,6 +12,8 @@ interface CheckboxItemProps {
   disabled?: boolean
   className?: string
   labelClassName?: string
+  "aria-describedby"?: string
+  "aria-invalid"?: boolean
 }
 
 function CheckboxItem({
@@ -22,6 +24,8 @@ function CheckboxItem({
   disabled,
   className,
   labelClassName,
+  "aria-describedby": ariaDescribedBy,
+  "aria-invalid": ariaInvalid,
 }: CheckboxItemProps) {
   return (
     <div className={cn("flex items-center space-x-2", className)}>
@@ -30,6 +34,8 @@ function CheckboxItem({
         checked={checked}
         onCheckedChange={(c) => onCheckedChange?.(c === true)}
         disabled={disabled}
+        aria-describedby={ariaDescribedBy}
+        aria-invalid={ariaInvalid}
       />
       <label htmlFor={id} className={cn("cursor-pointer text-base", labelClassName)}>
         {label}
