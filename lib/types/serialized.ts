@@ -65,6 +65,7 @@ export interface SerializedCustomer {
   city: string | null;
   gender: string | null;
   listingCategory: string | null;
+  departments: string[];
   originIndustry: string | null;
   membershipQualification: string | null;
   memberCategory: string | null;
@@ -94,6 +95,7 @@ export interface SerializedCustomerDetail {
   city: string | null;
   gender: string | null;
   listingCategory: MasterData | null;
+  departments: MasterData[];
   memberCategory: string | null;
   contractType: string | null;
   jobChangeIntent: string | null;

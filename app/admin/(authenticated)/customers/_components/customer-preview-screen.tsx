@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { CheckCircle2, CircleAlert, FileText, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,11 +14,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CustomerEditDialog } from "./customer-edit-dialog";
-import type { ListingCategoryOption, MasterData } from "@/lib/types/serialized";
+import type {
+  CommunityOption,
+  ListingCategoryOption,
+  MasterData,
+} from "@/lib/types/serialized";
+import { createCustomersBatchAction } from "@/lib/actions/customer.actions";
 import {
   formatFileSize,
   selectedCommunityNames,
-  validateCustomer,
+  rebuildPayload,
   type PreviewCustomer,
 } from "./customer-csv-types";
 import { useRouter } from "next/navigation";
@@ -30,9 +35,13 @@ interface CustomerPreviewScreenProps {
   onBack: () => void;
   prefectures: MasterData[];
   listingCategories: ListingCategoryOption[];
+  departments: MasterData[];
   originIndustries: MasterData[];
   membershipQualifications: MasterData[];
   affiliations: MasterData[];
+  communities: CommunityOption[];
+  isSuper: boolean;
+  scopedCommunityIds: number[];
 }
 
 export function CustomerPreviewScreen({
@@ -42,12 +51,17 @@ export function CustomerPreviewScreen({
   onBack,
   prefectures,
   listingCategories,
+  departments,
   originIndustries,
   membershipQualifications,
   affiliations,
+  communities,
+  isSuper,
+  scopedCommunityIds,
 }: CustomerPreviewScreenProps) {
   const [editingCustomer, setEditingCustomer] =
     useState<PreviewCustomer | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const errorCount = customers.filter((customer) => customer.error).length;
   const validCount = customers.length - errorCount;
@@ -56,10 +70,12 @@ export function CustomerPreviewScreen({
 
   const handleSave = () => {
     if (!editingCustomer) return;
-    const updatedCustomer = {
-      ...editingCustomer,
-      error: validateCustomer(editingCustomer),
-    };
+    const updatedCustomer = rebuildPayload(editingCustomer, {
+      communities,
+      departments,
+      isSuper,
+      scopedCommunityIds,
+    });
     onCustomersChange(
       customers.map((customer) =>
         customer.id === updatedCustomer.id ? updatedCustomer : customer,
@@ -136,9 +152,14 @@ export function CustomerPreviewScreen({
                   </TableCell>
                   <TableCell>
                     {customer.error ? (
-                      <div className="flex items-start gap-1.5 text-destructive">
+                      <div className="flex items-center gap-1.5 text-destructive">
                         <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
-                        <span className="text-xs">{customer.error}</span>
+                        <span className="text-xs">
+                          {/* {customer.error.split("、")[0]}
+                          {customer.error.split("、").length > 1 &&
+                            `（他${customer.error.split("、").length - 1}件）`} */}
+                          入力値に誤りがあります。
+                        </span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-1.5 text-green-600">
@@ -205,21 +226,39 @@ export function CustomerPreviewScreen({
         </ActionButton>
         <ActionButton
           type="button"
-          // disabled={errorCount > 0}
-          disabled={validCount < 1}
-          onClick={() => {
-            toast.success(
-              `${validCount}件の顧客データを登録しました\n${errorCount}件の顧客データ エラー`,
-              {
-                style: {
-                  whiteSpace: "pre-line",
-                },
+          disabled={validCount < 1 || isPending}
+          onClick={() =>
+            startTransition(async () => {
+              try {
+                const validCustomers = customers.filter(
+                  (customer) => !customer.error,
+                );
+                const result = await createCustomersBatchAction(
+                  validCustomers.map((customer) => customer.payload),
+                );
+                if (result.error) {
+                  toast.error(result.error);
+                  return;
+                }
+                toast.success(
+                  `${result.count ?? validCustomers.length}件の顧客データを登録しました。\n${errorCount}件の顧客データ エラー。`,
+                  {
+                    style: {
+                      whiteSpace: "pre-line",
+                    },
+                  }
+                );
+                router.push("/admin/customers");
+                router.refresh();
+              } catch {
+                toast.error(
+                  "顧客データの登録に失敗しました。もう一度お試しください。",
+                );
               }
-            )
-            router.push(`/admin/customers`)
-          }}
+            })
+          }
         >
-          登録する
+          {isPending ? "登録中..." : "登録する"}
         </ActionButton>
       </div>
 
@@ -232,9 +271,13 @@ export function CustomerPreviewScreen({
         onSave={handleSave}
         prefectures={prefectures}
         listingCategories={listingCategories}
+        departments={departments}
         originIndustries={originIndustries}
         membershipQualifications={membershipQualifications}
         affiliations={affiliations}
+        communities={communities}
+        isSuper={isSuper}
+        scopedCommunityIds={scopedCommunityIds}
       />
     </div>
   );
@@ -258,8 +301,8 @@ function resolveListingId(
   return items.some((item) => item.id === id)
     ? id
     : items.find(
-        (item) =>
-          item.marketName === name ||
-          `${item.stockExchangeName} ${item.marketName}` === name,
-      )?.id;
+      (item) =>
+        item.marketName === name ||
+        `${item.stockExchangeName} ${item.marketName}` === name,
+    )?.id;
 }

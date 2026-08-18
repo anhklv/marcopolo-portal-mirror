@@ -21,6 +21,14 @@ export const mockPrisma = {
     deleteMany: vi.fn(),
     count: vi.fn(),
   },
+  department: {
+    findMany: vi.fn(),
+    findUnique: vi.fn(),
+  },
+  customerDepartment: {
+    createMany: vi.fn(),
+    deleteMany: vi.fn(),
+  },
   event: {
     findFirst: vi.fn(),
     findUnique: vi.fn(),
@@ -69,6 +77,7 @@ export const mockPrisma = {
     count: vi.fn(),
   },
   $transaction: vi.fn(),
+  $executeRaw: vi.fn(),
 };
 
 // lib/prisma のモック

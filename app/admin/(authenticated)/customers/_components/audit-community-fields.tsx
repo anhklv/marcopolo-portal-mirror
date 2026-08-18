@@ -29,6 +29,9 @@ interface AuditCommunityFieldsProps {
   setAuditResignedAt: (v: string) => void;
   joinedAtError?: string;
   resignedAtError?: string;
+  memberTypeError?: string;
+  membershipQualificationError?: string;
+  originIndustryError?: string;
   membershipQualifications: MasterData[];
   originIndustries: MasterData[];
 }
@@ -49,6 +52,9 @@ export function AuditCommunityFields({
   setAuditResignedAt,
   joinedAtError,
   resignedAtError,
+  memberTypeError,
+  membershipQualificationError,
+  originIndustryError,
   membershipQualifications,
   originIndustries,
 }: AuditCommunityFieldsProps) {
@@ -61,15 +67,21 @@ export function AuditCommunityFields({
 
       {memberCategory === "member" && (
         <div className="grid gap-2">
-          <Label>会員種別 <span className="text-destructive">*</span></Label>
+          <Label>
+            会員種別 <span className="text-destructive">*</span>
+          </Label>
           <div className="flex items-center gap-4">
             <Select value={auditMemberType} onValueChange={setAuditMemberType}>
-              <SelectTrigger className="w-[300px] bg-white">
+              <SelectTrigger className="w-full bg-white sm:w-[300px]" aria-invalid={!!memberTypeError}>
                 <SelectValue placeholder="会員種別を選択" />
               </SelectTrigger>
               <SelectContent className="bg-white">
                 {AUDIT_MEMBER_TYPES.map((type) => (
-                  <SelectItem key={type.value} value={type.value} className="bg-white hover:bg-gray-100">
+                  <SelectItem
+                    key={type.value}
+                    value={type.value}
+                    className="bg-white hover:bg-gray-100"
+                  >
                     {type.label}
                   </SelectItem>
                 ))}
@@ -82,51 +94,100 @@ export function AuditCommunityFields({
               onCheckedChange={setAuditMemberPremium}
             />
           </div>
+          {memberTypeError && (
+            <p className="text-sm text-destructive">{memberTypeError}</p>
+          )}
         </div>
       )}
 
       <div className="grid gap-2">
         <Label>入会資格</Label>
         <Select
-          value={membershipQualificationId ? String(membershipQualificationId) : NONE_VALUE}
-          onValueChange={(v) => setMembershipQualificationId(v === NONE_VALUE ? undefined : Number(v))}
+          value={
+            membershipQualificationId
+              ? String(membershipQualificationId)
+              : NONE_VALUE
+          }
+          onValueChange={(v) =>
+            setMembershipQualificationId(
+              v === NONE_VALUE ? undefined : Number(v),
+            )
+          }
         >
-          <SelectTrigger className="w-full bg-white">
+          <SelectTrigger className="w-full bg-white" aria-invalid={!!membershipQualificationError}>
             <SelectValue placeholder="----" />
           </SelectTrigger>
           <SelectContent className="bg-white">
-            <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100">----</SelectItem>
+            <SelectItem
+              value={NONE_VALUE}
+              className="bg-white hover:bg-gray-100"
+            >
+              ----
+            </SelectItem>
             {membershipQualifications.map((q) => (
-              <SelectItem key={q.id} value={String(q.id)} className="bg-white hover:bg-gray-100">{q.name}</SelectItem>
+              <SelectItem
+                key={q.id}
+                value={String(q.id)}
+                className="bg-white hover:bg-gray-100"
+              >
+                {q.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
+        {membershipQualificationError && (
+          <p className="text-sm text-destructive">{membershipQualificationError}</p>
+        )}
       </div>
 
       <div className="grid gap-2">
         <Label>出身業種</Label>
         <Select
           value={originIndustryId ? String(originIndustryId) : NONE_VALUE}
-          onValueChange={(v) => setOriginIndustryId(v === NONE_VALUE ? undefined : Number(v))}
+          onValueChange={(v) =>
+            setOriginIndustryId(v === NONE_VALUE ? undefined : Number(v))
+          }
         >
-          <SelectTrigger className="w-full bg-white">
+          <SelectTrigger className="w-full bg-white" aria-invalid={!!originIndustryError}>
             <SelectValue placeholder="----" />
           </SelectTrigger>
           <SelectContent className="bg-white">
-            <SelectItem value={NONE_VALUE} className="bg-white hover:bg-gray-100">----</SelectItem>
+            <SelectItem
+              value={NONE_VALUE}
+              className="bg-white hover:bg-gray-100"
+            >
+              ----
+            </SelectItem>
             {originIndustries.map((i) => (
-              <SelectItem key={i.id} value={String(i.id)} className="bg-white hover:bg-gray-100">{i.name}</SelectItem>
+              <SelectItem
+                key={i.id}
+                value={String(i.id)}
+                className="bg-white hover:bg-gray-100"
+              >
+                {i.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
+        {originIndustryError && (
+          <p className="text-sm text-destructive">{originIndustryError}</p>
+        )}
       </div>
 
-      <div className="grid grid-cols-2 items-start gap-4">
+      <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
         <FormField label="入会日">
-          <DatePickerWithInput value={auditJoinedAt} onChange={setAuditJoinedAt} error={joinedAtError} />
+          <DatePickerWithInput
+            value={auditJoinedAt}
+            onChange={setAuditJoinedAt}
+            error={joinedAtError}
+          />
         </FormField>
         <FormField label="脱退日">
-          <DatePickerWithInput value={auditResignedAt} onChange={setAuditResignedAt} error={resignedAtError} />
+          <DatePickerWithInput
+            value={auditResignedAt}
+            onChange={setAuditResignedAt}
+            error={resignedAtError}
+          />
         </FormField>
       </div>
     </div>

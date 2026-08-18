@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,7 +36,6 @@ import { AuditCommunityFields } from "./audit-community-fields";
 import { SimpleCommunityFields } from "./simple-community-fields";
 import { CustomerCsvUpload } from "./customer-csv-upload";
 import { NONE_VALUE } from "@/lib/constants/form";
-import { FLAGS } from "./customer-csv-types";
 
 interface CustomerFormProps {
   mode: "create" | "edit";
@@ -45,6 +43,7 @@ interface CustomerFormProps {
   communities: CommunityOption[];
   prefectures: MasterData[];
   listingCategories: ListingCategoryOption[];
+  departments: MasterData[];
   originIndustries: MasterData[];
   membershipQualifications: MasterData[];
   affiliations: MasterData[];
@@ -62,6 +61,7 @@ export function CustomerForm({
   communities,
   prefectures,
   listingCategories,
+  departments,
   originIndustries,
   membershipQualifications,
   affiliations,
@@ -69,25 +69,17 @@ export function CustomerForm({
   scopedCommunityIds,
 }: CustomerFormProps) {
   const router = useRouter();
+  const otherDepartmentId = departments.find(
+    (department) => department.name === "その他",
+  )?.id;
   const form = useCustomerForm({
     mode,
     initialData,
     communities,
+    otherDepartmentId,
     isSuper,
     scopedCommunityIds,
   });
-  // 所属部署は永続化先が未実装のため、現時点では画面内だけで保持する。
-  const [departmentFlags, setDepartmentFlags] = useState<
-    Record<(typeof FLAGS)[number]["key"], boolean>
-  >(
-    () =>
-      Object.fromEntries(FLAGS.map(({ key }) => [key, false])) as Record<
-        (typeof FLAGS)[number]["key"],
-        boolean
-      >,
-  );
-  const [affiliationOtherText, setAffiliationOtherText] = useState("");
-
   const pageTitle = mode === "create" ? "顧客登録" : "顧客編集";
   const pageDescription =
     mode === "create"
@@ -376,28 +368,49 @@ export function CustomerForm({
         <div className="grid gap-2">
           <Label>所属部署<span className="text-destructive"> *</span></Label>
           <div className="grid gap-3">
-            {FLAGS.map((x) => (
+            {departments.map((department) => (
               <CheckboxItem
-                key={x.key}
-                id={`customer-${x.key}`}
-                label={x.label}
-                checked={departmentFlags[x.key]}
+                key={department.id}
+                id={`customer-department-${department.id}`}
+                label={department.name}
+                checked={form.departmentIds.includes(department.id)}
                 onCheckedChange={(checked) =>
-                  setDepartmentFlags((current) => ({
-                    ...current,
-                    [x.key]: checked,
-                  }))
+                  form.setDepartmentIds((current) => {
+                    form.clearFieldError("departmentIds");
+                    if (!checked && department.id === otherDepartmentId) {
+                      form.clearFieldError("departmentOtherNote");
+                    }
+                    return checked
+                      ? [...new Set([...current, department.id])]
+                      : current.filter((id) => id !== department.id);
+                  })
                 }
               />
             ))}
           </div>
-          {departmentFlags.affiliationOther && (
-            <Input
-              aria-label="その他の所属"
-              placeholder="その他"
-              value={affiliationOtherText}
-              onChange={(e) => setAffiliationOtherText(e.target.value)}
-            />
+          {form.fieldErrors["departmentIds"] && (
+            <p className="text-sm text-destructive">
+              {form.fieldErrors["departmentIds"][0]}
+            </p>
+          )}
+          {departments.some((department) => department.name === "その他" && form.departmentIds.includes(department.id)) && (
+            <div className="grid gap-1">
+              <Input
+                aria-label="その他の所属"
+                placeholder="その他"
+                aria-invalid={!!form.fieldErrors["departmentOtherNote"]}
+                value={form.departmentOtherNote}
+                onChange={(e) => {
+                  form.setDepartmentOtherNote(e.target.value);
+                  form.clearFieldError("departmentOtherNote");
+                }}
+              />
+              {form.fieldErrors["departmentOtherNote"] && (
+                <p className="text-sm text-destructive">
+                  {form.fieldErrors["departmentOtherNote"][0]}
+                </p>
+              )}
+            </div>
           )}
         </div>
 
@@ -611,13 +624,21 @@ export function CustomerForm({
           <TabsContent value="individual" className="space-y-4">
             {formContent}
           </TabsContent>
-          <TabsContent value="csv" className="space-y-4">
+          <TabsContent
+            value="csv"
+            forceMount
+            className="space-y-4 data-[state=inactive]:hidden"
+          >
             <CustomerCsvUpload
               prefectures={prefectures}
               listingCategories={listingCategories}
+              departments={departments}
               originIndustries={originIndustries}
               membershipQualifications={membershipQualifications}
               affiliations={affiliations}
+              communities={communities}
+              isSuper={isSuper}
+              scopedCommunityIds={scopedCommunityIds}
             />
           </TabsContent>
         </Tabs>
