@@ -253,6 +253,28 @@ export async function createCustomersBatchAction(
   }
 }
 
+export async function findExistingCustomerEmailsAction(
+  emails: string[],
+): Promise<{ emails?: string[]; error?: string }> {
+  await requireAuthenticatedAdmin();
+  const normalized = [
+    ...new Set(
+      emails.map((email) => email.trim().toLowerCase()).filter(Boolean),
+    ),
+  ];
+  if (normalized.length === 0) return { emails: [] };
+  if (normalized.length > 1000)
+    return { error: "確認対象のメールアドレス件数が不正です" };
+  const customers = await prisma.customer.findMany({
+    where: {
+      email: { in: normalized, mode: "insensitive" },
+      deletedAt: null,
+    },
+    select: { email: true },
+  });
+  return { emails: customers.map((customer) => customer.email) };
+}
+
 /**
  * 顧客更新
  */

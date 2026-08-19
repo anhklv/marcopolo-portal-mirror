@@ -19,7 +19,10 @@ import type {
   ListingCategoryOption,
   MasterData,
 } from "@/lib/types/serialized";
-import { createCustomersBatchAction } from "@/lib/actions/customer.actions";
+import {
+  createCustomersBatchAction,
+  findExistingCustomerEmailsAction,
+} from "@/lib/actions/customer.actions";
 import {
   formatFileSize,
   selectedCommunityNames,
@@ -68,8 +71,31 @@ export function CustomerPreviewScreen({
 
   const router = useRouter();
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editingCustomer) return;
+    const existingResult = await findExistingCustomerEmailsAction([
+      editingCustomer.email,
+    ]);
+    if (existingResult.error) {
+      toast.error(existingResult.error);
+      return;
+    }
+    if ((existingResult.emails?.length ?? 0) > 0) {
+      // const message = `${editingCustomer.id}行目：Toメールアドレス「${editingCustomer.email}」は既存顧客のメールアドレスと重複しています。`;
+      const message = `${editingCustomer.id}行目：このメールアドレスは既に登録されています`;
+      console.log('message', message);
+      setEditingCustomer({
+        ...editingCustomer,
+        csvIssues: [
+          ...(editingCustomer.csvIssues ?? []).filter(
+            (issue) => issue.key !== "email" || issue.message !== message,
+          ),
+          { key: "email", message },
+        ],
+      });
+      toast.error("このメールアドレスは既に登録されています");
+      return;
+    }
     const updatedCustomer = rebuildPayload(editingCustomer, {
       communities,
       departments,

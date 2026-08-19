@@ -10,11 +10,13 @@ import { cn } from "@/lib/utils";
 import type { CommunityOption, ListingCategoryOption, MasterData } from "@/lib/types/serialized";
 import { CustomerPreviewScreen } from "./customer-preview-screen";
 import {
+  applyExistingCustomerEmailIssues,
   formatFileSize,
   isCsvFile,
   readCustomerCsv,
   type PreviewCustomer,
 } from "./customer-csv-types";
+import { findExistingCustomerEmailsAction } from "@/lib/actions/customer.actions";
 
 type UploadStatus = "idle" | "dragging" | "selected" | "uploading" | "preview";
 
@@ -101,7 +103,17 @@ export function CustomerCsvUpload(props: CustomerCsvUploadProps) {
     setStatus("uploading");
     try {
       const parsed = await readCustomerCsv(file, props);
-      setCustomers(parsed);
+      const existingResult = await findExistingCustomerEmailsAction(
+        parsed.map((customer) => customer.csvEmailValue ?? ""),
+      );
+      if (existingResult.error) throw new Error(existingResult.error);
+      setCustomers(
+        applyExistingCustomerEmailIssues(
+          parsed,
+          existingResult.emails ?? [],
+          props,
+        ),
+      );
       setStatus("preview");
       toast.success("CSVファイルを読み込みました");
     } catch (error) {

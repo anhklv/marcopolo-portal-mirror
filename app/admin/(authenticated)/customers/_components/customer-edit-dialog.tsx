@@ -51,7 +51,7 @@ interface Props {
   customer: PreviewCustomer | null;
   onOpenChange: (open: boolean) => void;
   onChange: (customer: PreviewCustomer) => void;
-  onSave: () => void;
+  onSave: () => void | Promise<void>;
   prefectures: MasterData[];
   listingCategories: ListingCategoryOption[];
   departments: MasterData[];
@@ -122,11 +122,11 @@ export function CustomerEditDialog({
   };
   const validatedCustomer = customer
     ? rebuildPayload(customer, {
-        communities,
-        departments,
-        isSuper,
-        scopedCommunityIds,
-      })
+      communities,
+      departments,
+      isSuper,
+      scopedCommunityIds,
+    })
     : undefined;
   const validationError = validatedCustomer?.error;
   const warningSummary = (customer?.csvIssues ?? [])
@@ -203,37 +203,37 @@ export function CustomerEditDialog({
                 <div className="flex flex-wrap gap-x-6 gap-y-3">
                   {(canAccess(COMMUNITY_CODE.VENTURE_AUDITOR) ||
                     customer.auditCommunity) && (
-                    <CheckboxItem
-                      id="csv-audit"
-                      label="ベンチャー監査役の会"
-                      checked={customer.auditCommunity}
-                      onCheckedChange={(v) => set("auditCommunity", v)}
+                      <CheckboxItem
+                        id="csv-audit"
+                        label="ベンチャー監査役の会"
+                        checked={customer.auditCommunity}
+                        onCheckedChange={(v) => set("auditCommunity", v)}
                       // aria-invalid={!!communityError}
                       // aria-describedby={communityError ? "csv-community-error" : undefined}
-                    />
-                  )}
+                      />
+                    )}
                   {(canAccess(COMMUNITY_CODE.NAIKAN_MEETUP) ||
                     customer.naikanCommunity) && (
-                    <CheckboxItem
-                      id="csv-naikan"
-                      label="ないかんMeetup"
-                      checked={customer.naikanCommunity}
-                      onCheckedChange={(v) => set("naikanCommunity", v)}
+                      <CheckboxItem
+                        id="csv-naikan"
+                        label="ないかんMeetup"
+                        checked={customer.naikanCommunity}
+                        onCheckedChange={(v) => set("naikanCommunity", v)}
                       // aria-invalid={!!communityError}
                       // aria-describedby={communityError ? "csv-community-error" : undefined}
-                    />
-                  )}
+                      />
+                    )}
                   {(canAccess(COMMUNITY_CODE.AI_CLUB) ||
                     customer.aiCommunity) && (
-                    <CheckboxItem
-                      id="csv-ai"
-                      label="AI部会"
-                      checked={customer.aiCommunity}
-                      onCheckedChange={(v) => set("aiCommunity", v)}
+                      <CheckboxItem
+                        id="csv-ai"
+                        label="AI部会"
+                        checked={customer.aiCommunity}
+                        onCheckedChange={(v) => set("aiCommunity", v)}
                       // aria-invalid={!!communityError}
                       // aria-describedby={communityError ? "csv-community-error" : undefined}
-                    />
-                  )}
+                      />
+                    )}
                 </div>
                 {/* {communityError && (
                   <p id="csv-community-error" className="text-sm text-destructive">
@@ -460,63 +460,65 @@ export function CustomerEditDialog({
                 {[customer.subEmail1, customer.subEmail2, customer.subEmail3]
                   .slice(0, visibleSubEmails)
                   .map((value, index) => (
-                    <div key={index} className="flex gap-2">
-                      <Input
-                        type="email"
-                        placeholder={`サブメールアドレス ${index + 1}`}
-                        className="flex-1"
-                        aria-invalid={
-                          !!errorFor(
-                            `subEmail${index + 1}` as keyof PreviewCustomer,
-                          )
-                        }
-                        value={value}
-                        onChange={(e) =>
-                          set(
-                            `subEmail${index + 1}` as
+                    <div key={index} className="flex flex-col">
+                      <div className="flex gap-2">
+                        <Input
+                          type="email"
+                          placeholder={`サブメールアドレス ${index + 1}`}
+                          className="flex-1"
+                          aria-invalid={
+                            !!errorFor(
+                              `subEmail${index + 1}` as keyof PreviewCustomer,
+                            )
+                          }
+                          value={value}
+                          onChange={(e) =>
+                            set(
+                              `subEmail${index + 1}` as
                               | "subEmail1"
                               | "subEmail2"
                               | "subEmail3",
-                            e.target.value,
-                          )
-                        }
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="shrink-0"
-                        onClick={() => {
-                          const compacted = [
-                            customer.subEmail1,
-                            customer.subEmail2,
-                            customer.subEmail3,
-                          ];
-                          compacted.splice(index, 1);
-                          compacted.push("");
-                          onChange({
-                            ...customer,
-                            subEmail1: compacted[0],
-                            subEmail2: compacted[1],
-                            subEmail3: compacted[2],
-                            visibleSubEmailCount: Math.max(
-                              0,
-                              visibleSubEmails - 1,
-                            ),
-                          });
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                              e.target.value,
+                            )
+                          }
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="shrink-0"
+                          onClick={() => {
+                            const compacted = [
+                              customer.subEmail1,
+                              customer.subEmail2,
+                              customer.subEmail3,
+                            ];
+                            compacted.splice(index, 1);
+                            compacted.push("");
+                            onChange({
+                              ...customer,
+                              subEmail1: compacted[0],
+                              subEmail2: compacted[1],
+                              subEmail3: compacted[2],
+                              visibleSubEmailCount: Math.max(
+                                0,
+                                visibleSubEmails - 1,
+                              ),
+                            });
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
                       {errorFor(
                         `subEmail${index + 1}` as keyof PreviewCustomer,
                       ) && (
-                        <p className="col-span-full text-sm text-destructive">
-                          {errorFor(
-                            `subEmail${index + 1}` as keyof PreviewCustomer,
-                          )}
-                        </p>
-                      )}
+                          <p className="col-span-full text-sm text-destructive">
+                            {errorFor(
+                              `subEmail${index + 1}` as keyof PreviewCustomer,
+                            )}
+                          </p>
+                        )}
                     </div>
                   ))}
               </div>
@@ -541,10 +543,10 @@ export function CustomerEditDialog({
                         label={department.name}
                         checked={customer[key]}
                         onCheckedChange={(v) => set(key, v)}
-                        // aria-invalid={!!departmentError}
-                        // aria-describedby={
-                        //   departmentError ? "csv-department-error" : undefined
-                        // }
+                      // aria-invalid={!!departmentError}
+                      // aria-describedby={
+                      //   departmentError ? "csv-department-error" : undefined
+                      // }
                       />
                     );
                   })}
@@ -838,10 +840,10 @@ function resolveListingId(
   return items.some((x) => x.id === id)
     ? id
     : items.find(
-        (x) =>
-          x.marketName === name ||
-          `${x.stockExchangeName} ${x.marketName}` === name,
-      )?.id;
+      (x) =>
+        x.marketName === name ||
+        `${x.stockExchangeName} ${x.marketName}` === name,
+    )?.id;
 }
 
 function departmentKeyByName(name: string) {

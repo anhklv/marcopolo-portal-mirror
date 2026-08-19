@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CUSTOMER_CSV_HEADERS,
+  applyExistingCustomerEmailIssues,
   clearCsvIssues,
   clearCsvIssuesForFieldChange,
   parseCsv,
@@ -198,7 +199,7 @@ describe("customer CSV parser", () => {
     expect(rebuildPayload(customer, options).error).toBeUndefined();
   });
 
-  it("uses the form message after an invalid required CSV value falls back to empty", async () => {
+  it("keeps invalid text input and uses the form validation message", async () => {
     const row = Array.from({ length: 42 }, () => "");
     [0, 1, 2, 6, 27, 28, 29, 30, 31, 32].forEach(
       (index) => (row[index] = "0"),
@@ -225,16 +226,56 @@ describe("customer CSV parser", () => {
       options,
     );
 
-    expect(customer.email).toBe("");
+    expect(customer.email).toBe("invalid-email");
     expect(customer.csvIssues?.map((issue) => issue.message)).toContain(
-      "1行目: Toメールアドレス「invalid-email」の形式が正しくありません。",
+      "1行目: 有効なメールアドレスを入力してください",
     );
     expect(customer.fieldErrors?.email).toContain(
-      "メールアドレスを入力してください",
+      "有効なメールアドレスを入力してください",
     );
     expect(customer.fieldErrors?.email).not.toContain(
-      "1行目: Toメールアドレス「invalid-email」の形式が正しくありません。",
+      "1行目: 有効なメールアドレスを入力してください",
     );
+  });
+
+  it("warns when a To email already belongs to an existing customer", async () => {
+    const row = Array.from({ length: 42 }, () => "");
+    [0, 1, 2, 6, 27, 28, 29, 30, 31, 32].forEach(
+      (index) => (row[index] = "0"),
+    );
+    row[3] = "1";
+    row[4] = "1";
+    row[17] = "山田";
+    row[18] = "太郎";
+    row[21] = "EXISTING@example.com";
+    row[26] = "1";
+    const options = {
+      communities: [],
+      prefectures: [],
+      listingCategories: [],
+      departments: [{ id: 1, name: "内部監査室" }],
+      originIndustries: [],
+      membershipQualifications: [],
+      affiliations: [],
+      isSuper: true,
+      scopedCommunityIds: [],
+    };
+    const parsed = await readCustomerCsv(
+      csvFile(`${CUSTOMER_CSV_HEADERS.join(",")}\n${row.join(",")}`),
+      options,
+    );
+    const [customer] = applyExistingCustomerEmailIssues(
+      parsed,
+      ["existing@example.com"],
+      options,
+    );
+
+    expect(customer.email).toBe("EXISTING@example.com");
+    expect(customer.csvIssues?.map((issue) => issue.message)).toContain(
+      // "1行目：Toメールアドレス「EXISTING@example.com」は既存顧客のメールアドレスと重複しています。",
+      "1行目：このメールアドレスは既に登録されています",
+    );
+    expect(customer.fieldErrors?.email).toBeUndefined();
   });
 
   it("revalidates community scope after editing", () => {
