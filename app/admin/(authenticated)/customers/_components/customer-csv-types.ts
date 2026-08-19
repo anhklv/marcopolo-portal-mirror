@@ -248,7 +248,7 @@ export async function readCustomerCsv(
       });
       Object.assign(
         customer,
-        rebuildPayload({ ...customer, email: "" }, o),
+        rebuildPayload({ ...customer }, o),
       );
     }
   });
@@ -512,7 +512,7 @@ function mapRow(
     [14, "aiAffiliationId", 100], [17, "lastName", 100], [18, "firstName", 100],
     [19, "lastNameKana", 100], [20, "firstNameKana", 100], [21, "email", 255],
     [25, "company", 200], [33, "affiliationOtherText", 255],
-    [36, "postalCode", 10], [37, "prefectureId", 20], [38, "city", 255],
+    [37, "prefectureId", 20], [38, "city", 255],
     [41, "note", 500],
   ];
   lengthRules.forEach(([column, key, max]) =>
@@ -606,18 +606,18 @@ function mapRow(
     auditOriginIndustryId: hasCsvIssue("auditOriginIndustryId")
       ? undefined
       : originId,
-    auditJoinedAt: csvString("auditJoinedAt", 9),
-    auditResignedAt: csvString("auditResignedAt", 10),
+    auditJoinedAt: v(9),
+    auditResignedAt: v(10),
     naikanAffiliation: csvString("naikanAffiliationId", 11),
     naikanAffiliationId: hasCsvIssue("naikanAffiliationId")
       ? undefined
       : naikanAffId,
-    naikanJoinedAt: csvString("naikanJoinedAt", 12),
-    naikanResignedAt: csvString("naikanResignedAt", 13),
+    naikanJoinedAt: v(12),
+    naikanResignedAt: v(13),
     aiAffiliation: csvString("aiAffiliationId", 14),
     aiAffiliationId: hasCsvIssue("aiAffiliationId") ? undefined : aiAffId,
-    aiJoinedAt: csvString("aiJoinedAt", 15),
-    aiResignedAt: csvString("aiResignedAt", 16),
+    aiJoinedAt: v(15),
+    aiResignedAt: v(16),
     lastName: v(17),
     firstName: v(18),
     lastNameKana: v(19),

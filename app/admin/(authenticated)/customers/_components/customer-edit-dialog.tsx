@@ -129,18 +129,32 @@ export function CustomerEditDialog({
     })
     : undefined;
   const validationError = validatedCustomer?.error;
-  const warningSummary = (customer?.csvIssues ?? [])
+  // Get all warning each field
+  // const warningSummary = (customer?.csvIssues ?? [])
+  //   .filter((issue) => isCsvIssueApplicable(customer!, issue.key))
+  //   .sort(
+  //     (a, b) =>
+  //       CUSTOMER_CSV_FIELD_ORDER.indexOf(a.key) -
+  //       CUSTOMER_CSV_FIELD_ORDER.indexOf(b.key),
+  //   )
+  //   .map((issue) => issue.message)
+  //   .filter(
+  //     (warning, index, warnings) =>
+  //       warnings.findIndex((candidate) => candidate === warning) === index,
+  //   );
+  // Get the first warning each field
+  const warningSummary = [...(customer?.csvIssues ?? [])]
     .filter((issue) => isCsvIssueApplicable(customer!, issue.key))
     .sort(
       (a, b) =>
         CUSTOMER_CSV_FIELD_ORDER.indexOf(a.key) -
         CUSTOMER_CSV_FIELD_ORDER.indexOf(b.key),
     )
-    .map((issue) => issue.message)
     .filter(
-      (warning, index, warnings) =>
-        warnings.findIndex((candidate) => candidate === warning) === index,
-    );
+      (issue, index, issues) =>
+        issues.findIndex((candidate) => candidate.key === issue.key) === index,
+    )
+    .map((issue) => issue.message);
   const errorFor = (key: keyof PreviewCustomer) =>
     validatedCustomer?.fieldErrors?.[key]?.[0];
   const departmentError = errorFor("affiliationInternalAudit");
