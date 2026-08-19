@@ -1,6 +1,8 @@
 import {
   customerFormSchema,
   type CustomerFormInput,
+  validatePhone,
+  validatePostalCode,
 } from "@/lib/validations/customer";
 import { COMMUNITY_CODE } from "@/lib/constants/community";
 import type {
@@ -127,6 +129,7 @@ export interface PreviewCustomer {
   lastNameKana: string;
   firstNameKana: string;
   email: string;
+  csvEmailValue?: string;
   subEmail1: string;
   subEmail2: string;
   subEmail3: string;
@@ -234,13 +237,14 @@ export async function readCustomerCsv(
     const email = customer.email.trim().toLocaleLowerCase();
     if (email) emailRows.set(email, [...(emailRows.get(email) ?? []), customer.id]);
   });
+
   customers.forEach((customer) => {
     const email = customer.email.trim().toLocaleLowerCase();
     if ((emailRows.get(email)?.length ?? 0) > 1) {
       const originalEmail = customer.email;
       customer.csvIssues?.push({
         key: "email",
-        message: `${customer.id}行目: Toメールアドレス「${originalEmail}」がCSVファイル内で重複しています。`,
+        message: `${customer.id}行目: メールアドレス「${originalEmail}」がCSVファイル内で重複しています。`,
       });
       Object.assign(
         customer,
@@ -249,6 +253,33 @@ export async function readCustomerCsv(
     }
   });
   return customers;
+}
+
+export function applyExistingCustomerEmailIssues(
+  customers: PreviewCustomer[],
+  existingEmails: readonly string[],
+  o: CsvMappingOptions,
+): PreviewCustomer[] {
+  const existing = new Set(
+    existingEmails.map((email) => email.trim().toLocaleLowerCase()),
+  );
+  return customers.map((customer) => {
+    const originalEmail = customer.csvEmailValue?.trim() ?? "";
+    if (!originalEmail || !existing.has(originalEmail.toLocaleLowerCase()))
+      return customer;
+    const withIssue: PreviewCustomer = {
+      ...customer,
+      csvIssues: [
+        ...(customer.csvIssues ?? []),
+        {
+          key: "email",
+          // message: `${customer.id}行目：Toメールアドレス「${originalEmail}」は既存顧客のメールアドレスと重複しています。`,
+          message: `${customer.id}行目：このメールアドレスは既に登録されています`,
+        },
+      ],
+    };
+    return rebuildPayload(withIssue, o);
+  });
 }
 
 function mapRow(
@@ -321,11 +352,11 @@ function mapRow(
       errors.push("権限のないコミュニティが含まれています");
   });
   const contractType = pick(
-      3,
-      { "1": "corporate", "2": "individual" },
-      "契約主体",
-      "corporate",
-    ),
+    3,
+    { "1": "corporate", "2": "individual" },
+    "契約主体",
+    "corporate",
+  ),
     memberCategory = pick(
       4,
       { "1": "member", "2": "sponsor", "3": "observer" },
@@ -341,14 +372,14 @@ function mapRow(
     naikanAffId = master("ないかんMeetup_所属", v(11), o.affiliations),
     aiAffId = master("AI部会_所属", v(14), o.affiliations);
   const deptNames = [
-      "内部監査室",
-      "監査役",
-      "管理部門",
-      "経営者",
-      "コンサルタント",
-      "スポンサー",
-      "オブザーバー",
-    ],
+    "内部監査室",
+    "監査役",
+    "管理部門",
+    "経営者",
+    "コンサルタント",
+    "スポンサー",
+    "オブザーバー",
+  ],
     deptFlags = deptNames.map(
       (name, i) => [name, flag(26 + i, `所属部署_${name}`)] as const,
     ),
@@ -361,10 +392,10 @@ function mapRow(
   if (other && otherId) departmentIds.push(otherId);
   const listing = v(34)
     ? o.listingCategories.find(
-        (x) =>
-          x.marketName === v(34) ||
-          `${x.stockExchangeName} ${x.marketName}` === v(34),
-      )
+      (x) =>
+        x.marketName === v(34) ||
+        `${x.stockExchangeName} ${x.marketName}` === v(34),
+    )
     : undefined;
   if (v(34) && !listing) errors.push(`上場区分「${v(34)}」が見つかりません`);
   const prefectureId = master("都道府県", v(37), o.prefectures);
@@ -392,20 +423,20 @@ function mapRow(
     affiliationId: aiAffId,
   });
   const gender = v(39)
-      ? pick(39, { "1": "male", "2": "female" }, "性別", "")
-      : null,
+    ? pick(39, { "1": "male", "2": "female" }, "性別", "")
+    : null,
     jobChangeIntent = v(40)
       ? pick(
-          40,
-          {
-            "1": "active",
-            "2": "considering",
-            "3": "if_good",
-            "4": "not_thinking",
-          },
-          "転職意欲",
-          "",
-        )
+        40,
+        {
+          "1": "active",
+          "2": "considering",
+          "3": "if_good",
+          "4": "not_thinking",
+        },
+        "転職意欲",
+        "",
+      )
       : null;
   const raw = {
     firstName: v(18),
@@ -480,7 +511,7 @@ function mapRow(
     [8, "auditOriginIndustryId", 100], [11, "naikanAffiliationId", 100],
     [14, "aiAffiliationId", 100], [17, "lastName", 100], [18, "firstName", 100],
     [19, "lastNameKana", 100], [20, "firstNameKana", 100], [21, "email", 255],
-    [25, "company", 200], [33, "affiliationOtherText", 255], [35, "phone", 20],
+    [25, "company", 200], [33, "affiliationOtherText", 255],
     [36, "postalCode", 10], [37, "prefectureId", 20], [38, "city", 255],
     [41, "note", 500],
   ];
@@ -496,12 +527,13 @@ function mapRow(
         "は255文字以内で入力してください。",
       ),
     );
-  if (!v(17)) remember("lastName", "姓", "が入力されていません。");
-  if (!v(18)) remember("firstName", "名", "が入力されていません。");
-  if (!v(21)) remember("email", "Toメールアドレス", "が入力されていません。");
+  if (!v(17)) remember("lastName", "姓", "を入力してください");
+  if (!v(18)) remember("firstName", "名", "を入力してください");
+  if (!v(21)) remember("email", "メールアドレス", "を入力してください");
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (v(21) && !emailPattern.test(v(21)))
-    remember("email", "Toメールアドレス", `「${v(21)}」の形式が正しくありません。`);
+    // remember("email", "Toメールアドレス", `「${v(21)}」の形式が正しくありません。`);
+    remember("email", "", `有効なメールアドレスを入力してください`);
   [22, 23, 24].forEach((column, index) => {
     if (v(column) && !emailPattern.test(v(column)))
       remember(
@@ -523,8 +555,20 @@ function mapRow(
     if (invalidDate(v(column)))
       remember(key, CUSTOMER_CSV_HEADERS[column], "は正しい日付形式で入力してください。");
   });
-  if (v(35) && !/^[0-9\-+ ]+$/.test(v(35)))
-    remember("phone", "電話番号", "には半角数字、半角ハイフン、半角プラス、半角スペースのみ使用できます。");
+  const phoneError = validatePhone(v(35));
+  if (phoneError)
+    remember(
+      "phone",
+      "",
+      `${phoneError.startsWith("電話番号") ? phoneError : `電話番号は${phoneError}`}。`,
+    );
+  const postalCodeError = validatePostalCode(v(36));
+  if (postalCodeError)
+    remember(
+      "postalCode",
+      "",
+      `${postalCodeError.startsWith("郵便番号") ? postalCodeError : `郵便番号は${postalCodeError}`}。`,
+    );
   selected.forEach(([on, community], index) => {
     if (
       on &&
@@ -533,7 +577,7 @@ function mapRow(
     )
       remember(
         ["auditCommunity", "naikanCommunity", "aiCommunity"][
-          index
+        index
         ] as keyof PreviewCustomer,
         CUSTOMER_CSV_HEADERS[index],
         "は操作権限がありません。",
@@ -574,20 +618,21 @@ function mapRow(
     aiAffiliationId: hasCsvIssue("aiAffiliationId") ? undefined : aiAffId,
     aiJoinedAt: csvString("aiJoinedAt", 15),
     aiResignedAt: csvString("aiResignedAt", 16),
-    lastName: csvString("lastName", 17),
-    firstName: csvString("firstName", 18),
-    lastNameKana: csvString("lastNameKana", 19),
-    firstNameKana: csvString("firstNameKana", 20),
-    email: csvString("email", 21),
-    subEmail1: csvString("subEmail1", 22),
-    subEmail2: csvString("subEmail2", 23),
-    subEmail3: csvString("subEmail3", 24),
+    lastName: v(17),
+    firstName: v(18),
+    lastNameKana: v(19),
+    firstNameKana: v(20),
+    email: v(21),
+    csvEmailValue: v(21),
+    subEmail1: v(22),
+    subEmail2: v(23),
+    subEmail3: v(24),
     visibleSubEmailCount: [
-      csvString("subEmail1", 22),
-      csvString("subEmail2", 23),
-      csvString("subEmail3", 24),
+      v(22),
+      v(23),
+      v(24),
     ].filter(Boolean).length,
-    company: csvString("company", 25),
+    company: v(25),
     affiliationInternalAudit: deptFlags[0][1],
     affiliationAuditor: deptFlags[1][1],
     affiliationManagement: deptFlags[2][1],
@@ -595,21 +640,21 @@ function mapRow(
     affiliationConsultant: deptFlags[4][1],
     affiliationNaikanSponsor: deptFlags[5][1],
     affiliationObserver: deptFlags[6][1],
-    affiliationOther: !!other && !hasCsvIssue("affiliationOtherText"),
-    affiliationOtherText: csvString("affiliationOtherText", 33),
+    affiliationOther: !!other,
+    affiliationOtherText: v(33),
     listingCategory: csvString("listingCategoryId", 34),
     listingCategoryId: hasCsvIssue("listingCategoryId")
       ? undefined
       : listing?.id,
-    phone: csvString("phone", 35),
-    postalCode: csvString("postalCode", 36),
+    phone: v(35),
+    postalCode: v(36),
     prefecture: csvString("prefectureId", 37),
     prefectureId: hasCsvIssue("prefectureId") ? undefined : prefectureId,
-    city: csvString("city", 38),
+    city: v(38),
     gender: (gender ?? "") as PreviewCustomer["gender"],
     jobChangeIntent: (jobChangeIntent ??
       "") as PreviewCustomer["jobChangeIntent"],
-    note: csvString("note", 41),
+    note: v(41),
     csvIssues,
   };
   return rebuildPayload(preview, o);
@@ -663,15 +708,15 @@ export function rebuildPayload(
     affiliationId: c.aiAffiliationId,
   });
   const checks: [
-      [boolean, string],
-      [boolean, string],
-      [boolean, string],
-      [boolean, string],
-      [boolean, string],
-      [boolean, string],
-      [boolean, string],
-      [boolean, string],
-    ] = [
+    [boolean, string],
+    [boolean, string],
+    [boolean, string],
+    [boolean, string],
+    [boolean, string],
+    [boolean, string],
+    [boolean, string],
+    [boolean, string],
+  ] = [
       [c.affiliationInternalAudit, "内部監査室"],
       [c.affiliationAuditor, "監査役"],
       [c.affiliationManagement, "管理部門"],
