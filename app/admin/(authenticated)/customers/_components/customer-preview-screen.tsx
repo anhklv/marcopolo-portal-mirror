@@ -5,6 +5,7 @@ import { CheckCircle2, CircleAlert, FileText, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ActionButton } from "@/components/ui/action-button";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import {
   Table,
   TableBody,
@@ -23,6 +24,7 @@ import {
   createCustomersBatchAction,
   findExistingCustomerEmailsAction,
 } from "@/lib/actions/customer.actions";
+import { usePagination } from "@/hooks/use-pagination";
 import {
   formatFileSize,
   selectedCommunityNames,
@@ -68,6 +70,14 @@ export function CustomerPreviewScreen({
 
   const errorCount = customers.filter((customer) => customer.error).length;
   const validCount = customers.length - errorCount;
+  const {
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    paginatedItems: paginatedCustomers,
+    getPageNumbers,
+    itemsPerPage,
+  } = usePagination(customers);
 
   const router = useRouter();
 
@@ -142,11 +152,26 @@ export function CustomerPreviewScreen({
       </div>
 
       <div>
-        <div className="mb-3">
-          <h3 className="font-semibold">データプレビュー</h3>
-          <p className="text-sm text-muted-foreground">
-            登録内容を確認し、不正なデータを編集してください。
-          </p>
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h3 className="font-semibold">データプレビュー</h3>
+            <p className="text-sm text-muted-foreground">
+              登録内容を確認し、不正なデータを編集してください。
+            </p>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            <span className="font-semibold text-foreground">
+              {customers.length}
+            </span>
+            件
+            {customers.length > itemsPerPage && (
+              <span className="ml-2">
+                （{(currentPage - 1) * itemsPerPage + 1}-
+                {Math.min(currentPage * itemsPerPage, customers.length)}
+                件目を表示）
+              </span>
+            )}
+          </div>
         </div>
         <div className="overflow-hidden rounded-lg border">
           <Table>
@@ -162,7 +187,7 @@ export function CustomerPreviewScreen({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {customers.map((customer) => (
+              {paginatedCustomers.map((customer) => (
                 <TableRow
                   key={customer.id}
                   className={customer.error ? "bg-destructive/5" : undefined}
@@ -244,6 +269,14 @@ export function CustomerPreviewScreen({
             </TableBody>
           </Table>
         </div>
+        <div className="mt-4">
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            getPageNumbers={getPageNumbers}
+          />
+        </div>
       </div>
 
       <div className="flex justify-center gap-3">
@@ -259,6 +292,28 @@ export function CustomerPreviewScreen({
                 const validCustomers = customers.filter(
                   (customer) => !customer.error,
                 );
+                const existingResult = await findExistingCustomerEmailsAction(
+                  validCustomers.map((customer) => customer.email),
+                );
+                if (existingResult.error) {
+                  toast.error(existingResult.error);
+                  return;
+                }
+                const existingEmails = existingResult.emails ?? [];
+                if (existingEmails.length > 0) {
+                  toast.error(
+                    [
+                      "既に登録されているメールアドレスがあります。",
+                      ...existingEmails.map((email) => `・${email}`),
+                    ].join("\n"),
+                    {
+                      style: {
+                        whiteSpace: "pre-line",
+                      },
+                    },
+                  );
+                  return;
+                }
                 const result = await createCustomersBatchAction(
                   validCustomers.map((customer) => customer.payload),
                 );
