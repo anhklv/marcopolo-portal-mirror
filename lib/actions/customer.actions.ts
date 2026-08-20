@@ -191,7 +191,6 @@ export async function createCustomerAction(
 export async function createCustomersBatchAction(
   rawRows: unknown[],
 ): Promise<ActionResult & { count?: number }> {
-  console.log(123123)
   const { isSuper, scopedCommunityIds } = await requireAuthenticatedAdmin();
   if (!Array.isArray(rawRows) || rawRows.length < 1 || rawRows.length > 1000) {
     return { error: "登録件数が不正です" };
