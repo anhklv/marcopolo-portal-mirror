@@ -218,6 +218,7 @@ describe("customerFormSchema", () => {
     firstName: "田中",
     lastName: "太郎",
     email: "tanaka@example.com",
+    departmentIds: [1],
   };
 
   it("正常系: communities 配列あり", () => {
@@ -330,5 +331,39 @@ describe("customerFormSchema", () => {
       ],
     });
     expect(result.success).toBe(false);
+  });
+
+  it("異常系: 所属部署が未選択", () => {
+    const result = customerFormSchema.safeParse({
+      ...validBase,
+      departmentIds: [],
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path).toEqual(["departmentIds"]);
+    }
+  });
+
+  it("異常系: その他を選択しているがその他の所属が未入力", () => {
+    const result = customerFormSchema.safeParse({
+      ...validBase,
+      departmentIds: [1, 8],
+      otherDepartmentId: 8,
+      departmentOtherNote: " ",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path).toEqual(["departmentOtherNote"]);
+    }
+  });
+
+  it("正常系: その他を選択してその他の所属を入力", () => {
+    const result = customerFormSchema.safeParse({
+      ...validBase,
+      departmentIds: [1, 8],
+      otherDepartmentId: 8,
+      departmentOtherNote: "地域企業支援",
+    });
+    expect(result.success).toBe(true);
   });
 });

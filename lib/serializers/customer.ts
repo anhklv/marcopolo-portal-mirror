@@ -28,6 +28,7 @@ export function serializeCustomerForList(c: CustomerWithCommunities): Serialized
     city: c.city,
     gender: c.gender,
     listingCategory: c.listingCategory?.marketName ?? null,
+    departments: c.customerDepartments.map((cd) => cd.department.name),
     originIndustry: auditCC?.originIndustry?.name ?? null,
     membershipQualification: auditCC?.membershipQualification?.name ?? null,
     memberCategory: c.memberCategory,
@@ -88,6 +89,10 @@ export function serializeCustomerForDetail(c: CustomerDetail): SerializedCustome
             : c.listingCategory.marketName,
         }
       : null,
+    departments: c.customerDepartments.map((cd) => ({
+      id: cd.department.id,
+      name: cd.department.name,
+    })),
     memberCategory: c.memberCategory,
     contractType: c.contractType,
     jobChangeIntent: c.jobChangeIntent,

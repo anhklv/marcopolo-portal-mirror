@@ -86,6 +86,7 @@ export function DatePickerWithInput({
           id={id}
           type="text"
           value={value}
+          aria-invalid={!!displayError}
           placeholder="YYYY/MM/DD"
           className={cn("bg-white pr-10", displayError && "border-destructive")}
           onChange={handleInputChange}
