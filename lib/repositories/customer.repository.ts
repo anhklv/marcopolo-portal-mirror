@@ -284,37 +284,60 @@ export async function create(data: CustomerCreateData): Promise<Customer> {
   });
 }
 
-/** CSV import: all rows are inserted in one transaction. */
+/** CSV import: all rows are inserted in one transaction using bulk queries. */
 export async function createManyAtomic(rows: CustomerCreateData[]): Promise<number> {
   await prisma.$transaction(async (tx) => {
-    for (const data of rows) {
-      // otherDepartmentId is validation metadata, not a Customer column.
-      // Excluding it also keeps Prisma on the unchecked scalar-input path used
-      // by create(), where prefectureId/listingCategoryId are accepted.
+    const customerData = rows.map((data) => {
       const {
-        communities,
-        departmentIds,
+        communities: _communities,
+        departmentIds: _departmentIds,
         otherDepartmentId: _otherDepartmentId,
-        departmentOtherNote,
-        ...customerData
+        departmentOtherNote: _departmentOtherNote,
+        ...customer
       } = data;
-      void _otherDepartmentId;
-      const customer = await tx.customer.create({
-        data: cleanEmptyStrings(customerData) as Prisma.CustomerCreateInput,
+      return cleanEmptyStrings(customer) as Prisma.CustomerCreateManyInput;
+    });
+    const createdCustomers = await tx.customer.createManyAndReturn({
+      data: customerData,
+      select: { id: true, email: true },
+    });
+    const customerIdsByEmail = new Map(
+      createdCustomers.map((customer) => [customer.email.trim().toLowerCase(), customer.id]),
+    );
+    const customerIdFor = (row: CustomerCreateData) => {
+      const customerId = customerIdsByEmail.get(row.email.trim().toLowerCase());
+      if (customerId === undefined) {
+        throw new Error(`Created customer was not returned: ${row.email}`);
+      }
+      return customerId;
+    };
+
+    const communities = rows.flatMap((row) =>
+      (row.communities ?? []).map((community) => ({
+        ...community,
+        customerId: customerIdFor(row),
+      })),
+    );
+    if (communities.length > 0) {
+      await tx.customerCommunity.createMany({ data: communities });
+    }
+
+    const hasDepartments = rows.some((row) => row.departmentIds?.length);
+    if (hasDepartments) {
+      const otherDepartment = await findOtherDepartment(tx);
+      const departments = rows.flatMap((row) => {
+        const customerId = customerIdFor(row);
+        const otherNote = normalizeNote(row.departmentOtherNote);
+        return (row.departmentIds ?? []).map((departmentId) => ({
+          customerId,
+          departmentId,
+          note: departmentId === otherDepartment?.id ? otherNote : null,
+        }));
       });
-      if (communities?.length) {
-        await tx.customerCommunity.createMany({
-          data: communities.map((c) => ({ ...c, customerId: customer.id })),
-        });
-      }
-      if (departmentIds?.length) {
-        await tx.customerDepartment.createMany({
-          data: departmentIds.map((departmentId) => ({ customerId: customer.id, departmentId })),
-          skipDuplicates: true,
-        });
-        const otherDepartment = await findOtherDepartment(tx);
-        await updateOtherDepartmentNote(tx, customer.id, otherDepartment?.id, departmentOtherNote);
-      }
+      await tx.customerDepartment.createMany({
+        data: departments,
+        skipDuplicates: true,
+      });
     }
   });
   return rows.length;

@@ -4,6 +4,7 @@ import {
   findAll,
   findById,
   create,
+  createManyAtomic,
   update,
   softDelete,
   existsByEmail,
@@ -410,6 +411,57 @@ describe("customer.repository", () => {
         skipDuplicates: true,
       });
       expect(mockPrisma.$executeRaw).toHaveBeenCalled();
+    });
+  });
+
+  describe("createManyAtomic", () => {
+    it("複数顧客と関連データを行単位ではなく一括登録する", async () => {
+      mockPrisma.$transaction.mockImplementation(async (fn: (tx: typeof mockPrisma) => Promise<unknown>) => {
+        return fn(mockPrisma);
+      });
+      mockPrisma.customer.createManyAndReturn.mockResolvedValue([
+        { id: 10, email: "one@example.com" },
+        { id: 20, email: "two@example.com" },
+      ]);
+      mockPrisma.department.findUnique.mockResolvedValue({ id: 2 });
+      mockPrisma.customerCommunity.createMany.mockResolvedValue({ count: 2 });
+      mockPrisma.customerDepartment.createMany.mockResolvedValue({ count: 3 });
+
+      const count = await createManyAtomic([
+        {
+          firstName: "一郎",
+          lastName: "田中",
+          email: "one@example.com",
+          communities: [{ communityId: 1 }],
+          departmentIds: [1, 2],
+          departmentOtherNote: " 地域企業支援 ",
+        },
+        {
+          firstName: "二郎",
+          lastName: "鈴木",
+          email: "two@example.com",
+          communities: [{ communityId: 2 }],
+          departmentIds: [3],
+        },
+      ]);
+
+      expect(count).toBe(2);
+      expect(mockPrisma.customer.createManyAndReturn).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.customer.create).not.toHaveBeenCalled();
+      expect(mockPrisma.customerCommunity.createMany).toHaveBeenCalledWith({
+        data: [
+          { communityId: 1, customerId: 10 },
+          { communityId: 2, customerId: 20 },
+        ],
+      });
+      expect(mockPrisma.customerDepartment.createMany).toHaveBeenCalledWith({
+        data: [
+          { customerId: 10, departmentId: 1, note: null },
+          { customerId: 10, departmentId: 2, note: "地域企業支援" },
+          { customerId: 20, departmentId: 3, note: null },
+        ],
+        skipDuplicates: true,
+      });
     });
   });
 
