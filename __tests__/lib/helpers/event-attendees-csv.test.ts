@@ -61,6 +61,7 @@ function row(
     city: "千代田区千代田1-1",
     gender: "male",
     note: "備考テキスト",
+    departmentNames: ["内部監査室", "監査役"],
     ...overrides,
   };
 }
@@ -70,11 +71,11 @@ describe("buildEventAttendeesCsv", () => {
     const csv = buildEventAttendeesCsv(makeEvent(), [row()]);
     expect(csv.charCodeAt(0)).toBe(0xfeff);
     expect(csv).toContain(
-      "顧客ID,氏名,会社名,ステータス,回答日時,メッセージ,姓,名,セイ,メイ,メールアドレス,サブメール1,サブメール2,サブメール3,電話番号,上場区分,郵便番号,都道府県,市区町村,性別,備考"
+      "顧客ID,氏名,会社名,ステータス,回答日時,メッセージ,姓,名,セイ,メイ,メールアドレス,サブメール1,サブメール2,サブメール3,電話番号,上場区分,郵便番号,都道府県,市区町村,性別,備考,所属部署"
     );
     expect(csv).toContain("10,山田 太郎,株式会社テスト,参加");
     expect(csv).toContain(
-      "山田,太郎,ヤマダ,タロウ,taro.yamada@example.com,sub1@example.com,sub2@example.com,,0312345678,東京証券取引所 プライム,1000001,東京都,千代田区千代田1-1,男性,備考テキスト"
+      "山田,太郎,ヤマダ,タロウ,taro.yamada@example.com,sub1@example.com,sub2@example.com,,0312345678,東京証券取引所 プライム,1000001,東京都,千代田区千代田1-1,男性,備考テキスト,内部監査室・監査役"
     );
   });
 
@@ -120,6 +121,7 @@ describe("buildEventAttendeesCsv", () => {
         city: null,
         gender: null,
         note: null,
+        departmentNames: [],
       }),
     ]);
 
@@ -129,7 +131,7 @@ describe("buildEventAttendeesCsv", () => {
       "",
       "taro.yamada@example.com",
     ]);
-    expect(dataCells.slice(11)).toEqual(Array(10).fill(""));
+    expect(dataCells.slice(11)).toEqual(Array(11).fill(""));
   });
 });
 
@@ -164,6 +166,10 @@ describe("toEventAttendeeCsvRows", () => {
               marketName: "プライム",
               stockExchangeName: "東京証券取引所",
             },
+            customerDepartments: [
+              { department: { name: "内部監査室" } },
+              { department: { name: "監査役" } },
+            ],
           },
         },
       ],
@@ -181,6 +187,7 @@ describe("toEventAttendeeCsvRows", () => {
       city: "千代田区千代田1-1",
       gender: "female",
       note: "備考テキスト",
+      departmentNames: ["内部監査室", "監査役"],
     });
   });
 });

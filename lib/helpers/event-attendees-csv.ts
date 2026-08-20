@@ -32,6 +32,7 @@ export interface EventAttendeeCsvRow extends AttendeeRow {
   city: string | null;
   gender: Gender | null;
   note: string | null;
+  departmentNames: string[];
 }
 
 /**
@@ -78,6 +79,9 @@ export function toEventAttendeeCsvRows(
       city: customer.city,
       gender: customer.gender,
       note: customer.note,
+      departmentNames: customer.customerDepartments.map(
+        ({ department }) => department.name
+      ),
     };
   });
 }
@@ -115,7 +119,8 @@ export function buildEventAttendeesCsv(
     "都道府県",
     "市区町村",
     "性別",
-    "備考"
+    "備考",
+    "所属部署"
   );
 
   const dataRows = rows.map((row) => buildRow(event.hasAfterParty, row));
@@ -161,7 +166,8 @@ function buildRow(hasAfterParty: boolean, row: EventAttendeeCsvRow): string[] {
     row.prefectureName ?? "",
     row.city ?? "",
     row.gender ? GENDER_LABELS[row.gender] : "",
-    row.note ?? ""
+    row.note ?? "",
+    row.departmentNames.join("・")
   );
 
   return cells;

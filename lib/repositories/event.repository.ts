@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import type {
   Community,
   Customer,
+  Department,
   Event,
   ListingCategory,
   Prefecture,
@@ -50,6 +51,9 @@ export type EventForAttendeesExport = Pick<Event, "id" | "hasAfterParty"> & {
         ListingCategory,
         "marketName" | "stockExchangeName"
       > | null;
+      customerDepartments: {
+        department: Pick<Department, "name">;
+      }[];
     };
   })[];
 };
@@ -230,6 +234,12 @@ export async function findEventByIdForAttendeesExport(
               prefecture: { select: { name: true } },
               listingCategory: {
                 select: { marketName: true, stockExchangeName: true },
+              },
+              customerDepartments: {
+                orderBy: { department: { sortOrder: "asc" } },
+                select: {
+                  department: { select: { name: true } },
+                },
               },
             },
           },
