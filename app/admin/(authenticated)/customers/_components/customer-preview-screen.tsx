@@ -439,6 +439,12 @@ export function CustomerPreviewScreen({
                         ))}
                       </div>
                     </div>,
+                    {
+                      style: {
+                        width: "420px",
+                        maxWidth: "calc(100vw - 32px)",
+                      },
+                    },
                   );
                   return;
                 }
