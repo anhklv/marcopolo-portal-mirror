@@ -44,6 +44,7 @@ export type EventForAttendeesExport = Pick<Event, "id" | "hasAfterParty"> & {
       | "postalCode"
       | "city"
       | "gender"
+      | "jobChangeIntent"
       | "note"
     > & {
       prefecture: Pick<Prefecture, "name"> | null;
@@ -52,6 +53,7 @@ export type EventForAttendeesExport = Pick<Event, "id" | "hasAfterParty"> & {
         "marketName" | "stockExchangeName"
       > | null;
       customerDepartments: {
+        note: string | null;
         department: Pick<Department, "name">;
       }[];
     };
@@ -230,6 +232,7 @@ export async function findEventByIdForAttendeesExport(
               postalCode: true,
               city: true,
               gender: true,
+              jobChangeIntent: true,
               note: true,
               prefecture: { select: { name: true } },
               listingCategory: {
@@ -238,6 +241,7 @@ export async function findEventByIdForAttendeesExport(
               customerDepartments: {
                 orderBy: { department: { sortOrder: "asc" } },
                 select: {
+                  note: true,
                   department: { select: { name: true } },
                 },
               },
