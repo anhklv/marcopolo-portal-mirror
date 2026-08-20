@@ -403,17 +403,42 @@ export function CustomerPreviewScreen({
                     existingEmailSet.has(customer.email.trim().toLowerCase()),
                   );
                   toast.error(
-                    [
-                      "既に登録されているメールアドレスがあります。",
-                      ...duplicateCustomers.map(
-                        (customer) => `${customer.id}行目：${customer.email}`,
-                      ),
-                    ].join("\n"),
-                    {
-                      style: {
-                        whiteSpace: "pre-line",
-                      },
-                    },
+                    <div className="space-y-2">
+                      <style>
+                        {`
+                          .duplicate-email-toast-scroll {
+                            scrollbar-width: thin;
+                            scrollbar-color: rgb(255 255 255 / 0.65) rgb(255 255 255 / 0.18);
+                          }
+
+                          .duplicate-email-toast-scroll::-webkit-scrollbar {
+                            width: 6px;
+                          }
+
+                          .duplicate-email-toast-scroll::-webkit-scrollbar-track {
+                            background: rgb(255 255 255 / 0.16);
+                            border-radius: 999px;
+                          }
+
+                          .duplicate-email-toast-scroll::-webkit-scrollbar-thumb {
+                            background: rgb(255 255 255 / 0.62);
+                            border-radius: 999px;
+                          }
+
+                          .duplicate-email-toast-scroll::-webkit-scrollbar-thumb:hover {
+                            background: rgb(255 255 255 / 0.82);
+                          }
+                        `}
+                      </style>
+                      <p>既に登録されているメールアドレスがあります。</p>
+                      <div className="duplicate-email-toast-scroll max-h-64 overflow-y-auto pr-3 text-sm leading-6">
+                        {duplicateCustomers.map((customer) => (
+                          <div key={customer.id}>
+                            {customer.id}行目：{customer.email}
+                          </div>
+                        ))}
+                      </div>
+                    </div>,
                   );
                   return;
                 }
