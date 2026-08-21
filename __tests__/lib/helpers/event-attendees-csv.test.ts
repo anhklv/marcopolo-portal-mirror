@@ -54,7 +54,6 @@ function row(
     phone: "0312345678",
     listingCategory: {
       marketName: "プライム",
-      stockExchangeName: "東京証券取引所",
     },
     postalCode: "1000001",
     prefectureName: "東京都",
@@ -114,7 +113,7 @@ describe("buildEventAttendeesCsv", () => {
     ]);
     expect(csv).toContain("10,山田 太郎,株式会社テスト,参加");
     expect(csv).toContain(
-      "山田,太郎,ヤマダ,タロウ,taro.yamada@example.com,sub1@example.com,sub2@example.com,,1,1,1,1,1,1,1,その他所属内容,東京証券取引所 プライム,0312345678,1000001,東京都,千代田区千代田1-1,1,1,備考テキスト"
+      "山田,太郎,ヤマダ,タロウ,taro.yamada@example.com,sub1@example.com,sub2@example.com,,1,1,1,1,1,1,1,その他所属内容,プライム,0312345678,1000001,東京都,千代田区千代田1-1,1,1,備考テキスト"
     );
   });
 
@@ -229,7 +228,6 @@ describe("toEventAttendeeCsvRows", () => {
             prefecture: { name: "東京都" },
             listingCategory: {
               marketName: "プライム",
-              stockExchangeName: "東京証券取引所",
             },
             customerDepartments: [
               { department: { name: "内部監査室" }, note: null },
