@@ -1,5 +1,13 @@
 import { prisma } from "@/lib/prisma";
-import type { Community, Customer, Event, Rsvp } from "@/lib/generated/prisma";
+import type {
+  Community,
+  Customer,
+  Department,
+  Event,
+  ListingCategory,
+  Prefecture,
+  Rsvp,
+} from "@/lib/generated/prisma";
 
 // ============================================================
 // 型定義
@@ -14,6 +22,41 @@ export type EventForDetail = Event & {
   community: Community;
   rsvps: (Rsvp & {
     customer: Pick<Customer, "id" | "lastName" | "firstName" | "company">;
+  })[];
+};
+
+export type EventForAttendeesExport = Pick<Event, "id" | "hasAfterParty"> & {
+  rsvps: (Pick<
+    Rsvp,
+    "id" | "status" | "afterPartyStatus" | "comment" | "respondedAt"
+  > & {
+    customer: Pick<
+      Customer,
+      | "id"
+      | "lastName"
+      | "firstName"
+      | "lastNameKana"
+      | "firstNameKana"
+      | "company"
+      | "email"
+      | "subEmails"
+      | "phone"
+      | "postalCode"
+      | "city"
+      | "gender"
+      | "jobChangeIntent"
+      | "note"
+    > & {
+      prefecture: Pick<Prefecture, "name"> | null;
+      listingCategory: Pick<
+        ListingCategory,
+        "marketName" | "stockExchangeName"
+      > | null;
+      customerDepartments: {
+        note: string | null;
+        department: Pick<Department, "name">;
+      }[];
+    };
   })[];
 };
 
@@ -148,6 +191,61 @@ export async function findEventByIdForDetail(
         include: {
           customer: {
             select: { id: true, lastName: true, firstName: true, company: true },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+}
+
+/**
+ * イベント参加状況 CSV 出力用取得
+ * 画面表示用データに個人情報を含めず、エクスポート時だけ顧客プロフィールを取得する。
+ */
+export async function findEventByIdForAttendeesExport(
+  eventId: number
+): Promise<EventForAttendeesExport | null> {
+  return prisma.event.findFirst({
+    where: { id: eventId, deletedAt: null },
+    select: {
+      id: true,
+      hasAfterParty: true,
+      rsvps: {
+        select: {
+          id: true,
+          status: true,
+          afterPartyStatus: true,
+          comment: true,
+          respondedAt: true,
+          customer: {
+            select: {
+              id: true,
+              lastName: true,
+              firstName: true,
+              lastNameKana: true,
+              firstNameKana: true,
+              company: true,
+              email: true,
+              subEmails: true,
+              phone: true,
+              postalCode: true,
+              city: true,
+              gender: true,
+              jobChangeIntent: true,
+              note: true,
+              prefecture: { select: { name: true } },
+              listingCategory: {
+                select: { marketName: true, stockExchangeName: true },
+              },
+              customerDepartments: {
+                orderBy: { department: { sortOrder: "asc" } },
+                select: {
+                  note: true,
+                  department: { select: { name: true } },
+                },
+              },
+            },
           },
         },
         orderBy: { createdAt: "asc" },

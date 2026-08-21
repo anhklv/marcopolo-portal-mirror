@@ -53,8 +53,11 @@ const CUSTOMER_EXPORT_HEADERS = [
   "登録日",
 ] as const;
 
-function formatListingCategory(
-  listingCategory: NonNullable<CustomerWithCommunities["listingCategory"]>
+export function formatListingCategory(
+  listingCategory: Pick<
+    NonNullable<CustomerWithCommunities["listingCategory"]>,
+    "marketName" | "stockExchangeName"
+  >
 ): string {
   return listingCategory.stockExchangeName
     ? `${listingCategory.stockExchangeName} ${listingCategory.marketName}`
