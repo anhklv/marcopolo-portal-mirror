@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import type { Prisma, Customer, CustomerCommunity, Community, Rsvp, Event, Prefecture, ListingCategory, OriginIndustry, MembershipQualification, Affiliation, MemberCategory, AuditMemberType } from "@/lib/generated/prisma";
+import type { Prisma, Customer, CustomerCommunity, CustomerDepartment, Community, Rsvp, Event, Prefecture, ListingCategory, Department, OriginIndustry, MembershipQualification, Affiliation, MemberCategory, AuditMemberType } from "@/lib/generated/prisma";
 
 
 // ============================================================
@@ -12,6 +12,9 @@ export type CustomerWithCommunities = Customer & {
     affiliation?: Affiliation | null;
     originIndustry?: OriginIndustry | null;
     membershipQualification?: MembershipQualification | null;
+  })[];
+  customerDepartments: (CustomerDepartment & {
+    department: Department;
   })[];
   prefecture?: Prefecture | null;
   listingCategory?: ListingCategory | null;
@@ -51,6 +54,9 @@ interface CustomerCreateData {
   city?: string | null;
   gender?: "male" | "female" | null;
   listingCategoryId?: number | null;
+  departmentIds?: number[];
+  otherDepartmentId?: number | null;
+  departmentOtherNote?: string | null;
   memberCategory?: "member" | "sponsor" | "observer" | null;
   contractType?: "corporate" | "individual" | null;
   jobChangeIntent?: "active" | "considering" | "if_good" | "not_thinking" | null;
@@ -177,6 +183,11 @@ export async function findAll(
           membershipQualification: true,
         },
       },
+      customerDepartments: {
+        include: {
+          department: true,
+        },
+      },
       prefecture: true,
       listingCategory: true,
     },
@@ -212,6 +223,11 @@ export async function findById(id: number): Promise<CustomerDetail | null> {
           membershipQualification: true,
         },
       },
+      customerDepartments: {
+        include: {
+          department: true,
+        },
+      },
       rsvps: {
         include: { event: true },
         orderBy: { event: { date: "desc" } },
@@ -226,7 +242,7 @@ export async function findById(id: number): Promise<CustomerDetail | null> {
  * 新規作成（Customer + CustomerCommunity を $transaction）
  */
 export async function create(data: CustomerCreateData): Promise<Customer> {
-  const { communities, ...customerData } = data;
+  const { communities, departmentIds, otherDepartmentId, departmentOtherNote, ...customerData } = data;
 
   // 空文字をnullに変換
   const cleanData = cleanEmptyStrings(customerData);
@@ -252,15 +268,86 @@ export async function create(data: CustomerCreateData): Promise<Customer> {
       });
     }
 
+    if (departmentIds && departmentIds.length > 0) {
+      const otherDepartment = await findOtherDepartment(tx);
+      await tx.customerDepartment.createMany({
+        data: departmentIds.map((departmentId) => ({
+          customerId: customer.id,
+          departmentId,
+        })),
+        skipDuplicates: true,
+      });
+      await updateOtherDepartmentNote(tx, customer.id, otherDepartment?.id, departmentOtherNote);
+    }
+
     return customer;
   });
+}
+
+/** CSV import: all rows are inserted in one transaction using bulk queries. */
+export async function createManyAtomic(rows: CustomerCreateData[]): Promise<number> {
+  await prisma.$transaction(async (tx) => {
+    const customerData = rows.map((data) => {
+      const {
+        communities: _communities,
+        departmentIds: _departmentIds,
+        otherDepartmentId: _otherDepartmentId,
+        departmentOtherNote: _departmentOtherNote,
+        ...customer
+      } = data;
+      return cleanEmptyStrings(customer) as Prisma.CustomerCreateManyInput;
+    });
+    const createdCustomers = await tx.customer.createManyAndReturn({
+      data: customerData,
+      select: { id: true, email: true },
+    });
+    const customerIdsByEmail = new Map(
+      createdCustomers.map((customer) => [customer.email.trim().toLowerCase(), customer.id]),
+    );
+    const customerIdFor = (row: CustomerCreateData) => {
+      const customerId = customerIdsByEmail.get(row.email.trim().toLowerCase());
+      if (customerId === undefined) {
+        throw new Error(`Created customer was not returned: ${row.email}`);
+      }
+      return customerId;
+    };
+
+    const communities = rows.flatMap((row) =>
+      (row.communities ?? []).map((community) => ({
+        ...community,
+        customerId: customerIdFor(row),
+      })),
+    );
+    if (communities.length > 0) {
+      await tx.customerCommunity.createMany({ data: communities });
+    }
+
+    const hasDepartments = rows.some((row) => row.departmentIds?.length);
+    if (hasDepartments) {
+      const otherDepartment = await findOtherDepartment(tx);
+      const departments = rows.flatMap((row) => {
+        const customerId = customerIdFor(row);
+        const otherNote = normalizeNote(row.departmentOtherNote);
+        return (row.departmentIds ?? []).map((departmentId) => ({
+          customerId,
+          departmentId,
+          note: departmentId === otherDepartment?.id ? otherNote : null,
+        }));
+      });
+      await tx.customerDepartment.createMany({
+        data: departments,
+        skipDuplicates: true,
+      });
+    }
+  });
+  return rows.length;
 }
 
 /**
  * 更新（CustomerCommunity の差分更新を $transaction）
  */
 export async function update(id: number, data: CustomerCreateData): Promise<Customer> {
-  const { communities, ...customerData } = data;
+  const { communities, departmentIds, otherDepartmentId, departmentOtherNote, ...customerData } = data;
 
   // 空文字をnullに変換
   const cleanData = cleanEmptyStrings(customerData);
@@ -290,6 +377,22 @@ export async function update(id: number, data: CustomerCreateData): Promise<Cust
           membershipQualificationId: c.membershipQualificationId,
         })),
       });
+    }
+
+    await tx.customerDepartment.deleteMany({
+      where: { customerId: id },
+    });
+
+    if (departmentIds && departmentIds.length > 0) {
+      const otherDepartment = await findOtherDepartment(tx);
+      await tx.customerDepartment.createMany({
+        data: departmentIds.map((departmentId) => ({
+          customerId: id,
+          departmentId,
+        })),
+        skipDuplicates: true,
+      });
+      await updateOtherDepartmentNote(tx, id, otherDepartment?.id, departmentOtherNote);
     }
 
     return customer;
@@ -338,4 +441,33 @@ function cleanEmptyStrings<T extends Record<string, unknown>>(obj: T): T {
     }
   }
   return result;
+}
+
+function normalizeNote(note?: string | null): string | null {
+  const trimmed = note?.trim();
+  return trimmed ? trimmed : null;
+}
+
+function findOtherDepartment(tx: Prisma.TransactionClient) {
+  return tx.department.findUnique({
+    where: { name: "その他" },
+    select: { id: true },
+  });
+}
+
+async function updateOtherDepartmentNote(
+  tx: Prisma.TransactionClient,
+  customerId: number,
+  departmentId: number | undefined,
+  note?: string | null,
+) {
+  const normalizedNote = normalizeNote(note);
+  if (!departmentId || !normalizedNote) return;
+
+  await tx.$executeRaw`
+    UPDATE "customer_departments"
+    SET "note" = ${normalizedNote}
+    WHERE "customer_id" = ${customerId}
+      AND "department_id" = ${departmentId}
+  `;
 }

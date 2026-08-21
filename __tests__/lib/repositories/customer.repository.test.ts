@@ -4,6 +4,7 @@ import {
   findAll,
   findById,
   create,
+  createManyAtomic,
   update,
   softDelete,
   existsByEmail,
@@ -325,6 +326,7 @@ describe("customer.repository", () => {
       });
       mockPrisma.customer.create.mockResolvedValue(createdCustomer);
       mockPrisma.customerCommunity.createMany.mockResolvedValue({ count: 1 });
+      mockPrisma.customerDepartment.createMany.mockResolvedValue({ count: 2 });
 
       const result = await create({
         firstName: "太郎",
@@ -336,6 +338,7 @@ describe("customer.repository", () => {
             joinedAt: new Date("2024-04-01"),
           },
         ],
+        departmentIds: [1, 2],
       });
 
       expect(result).toEqual(createdCustomer);
@@ -351,6 +354,13 @@ describe("customer.repository", () => {
           ]),
         })
       );
+      expect(mockPrisma.customerDepartment.createMany).toHaveBeenCalledWith({
+        data: [
+          { customerId: 1, departmentId: 1 },
+          { customerId: 1, departmentId: 2 },
+        ],
+        skipDuplicates: true,
+      });
     });
 
     it("正常系: コミュニティなし（非会員）→ Customer のみ作成", async () => {
@@ -370,6 +380,89 @@ describe("customer.repository", () => {
       expect(mockPrisma.customer.create).toHaveBeenCalled();
       expect(mockPrisma.customerCommunity.createMany).not.toHaveBeenCalled();
     });
+
+    it("正常系: その他の所属部署メモを customer_departments.note に保存", async () => {
+      const createdCustomer = makeCustomer();
+      mockPrisma.$transaction.mockImplementation(async (fn: (tx: typeof mockPrisma) => Promise<unknown>) => {
+        return fn(mockPrisma);
+      });
+      mockPrisma.customer.create.mockResolvedValue(createdCustomer);
+      mockPrisma.department.findUnique.mockResolvedValue({ id: 2 });
+      mockPrisma.customerDepartment.createMany.mockResolvedValue({ count: 2 });
+      mockPrisma.$executeRaw.mockResolvedValue(1);
+
+      await create({
+        firstName: "太郎",
+        lastName: "田中",
+        email: "tanaka@example.com",
+        departmentIds: [1, 2],
+        departmentOtherNote: "地域企業支援",
+      });
+
+      expect(mockPrisma.department.findUnique).toHaveBeenCalledWith({
+        where: { name: "その他" },
+        select: { id: true },
+      });
+      expect(mockPrisma.customerDepartment.createMany).toHaveBeenCalledWith({
+        data: [
+          { customerId: 1, departmentId: 1 },
+          { customerId: 1, departmentId: 2 },
+        ],
+        skipDuplicates: true,
+      });
+      expect(mockPrisma.$executeRaw).toHaveBeenCalled();
+    });
+  });
+
+  describe("createManyAtomic", () => {
+    it("複数顧客と関連データを行単位ではなく一括登録する", async () => {
+      mockPrisma.$transaction.mockImplementation(async (fn: (tx: typeof mockPrisma) => Promise<unknown>) => {
+        return fn(mockPrisma);
+      });
+      mockPrisma.customer.createManyAndReturn.mockResolvedValue([
+        { id: 10, email: "one@example.com" },
+        { id: 20, email: "two@example.com" },
+      ]);
+      mockPrisma.department.findUnique.mockResolvedValue({ id: 2 });
+      mockPrisma.customerCommunity.createMany.mockResolvedValue({ count: 2 });
+      mockPrisma.customerDepartment.createMany.mockResolvedValue({ count: 3 });
+
+      const count = await createManyAtomic([
+        {
+          firstName: "一郎",
+          lastName: "田中",
+          email: "one@example.com",
+          communities: [{ communityId: 1 }],
+          departmentIds: [1, 2],
+          departmentOtherNote: " 地域企業支援 ",
+        },
+        {
+          firstName: "二郎",
+          lastName: "鈴木",
+          email: "two@example.com",
+          communities: [{ communityId: 2 }],
+          departmentIds: [3],
+        },
+      ]);
+
+      expect(count).toBe(2);
+      expect(mockPrisma.customer.createManyAndReturn).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.customer.create).not.toHaveBeenCalled();
+      expect(mockPrisma.customerCommunity.createMany).toHaveBeenCalledWith({
+        data: [
+          { communityId: 1, customerId: 10 },
+          { communityId: 2, customerId: 20 },
+        ],
+      });
+      expect(mockPrisma.customerDepartment.createMany).toHaveBeenCalledWith({
+        data: [
+          { customerId: 10, departmentId: 1, note: null },
+          { customerId: 10, departmentId: 2, note: "地域企業支援" },
+          { customerId: 20, departmentId: 3, note: null },
+        ],
+        skipDuplicates: true,
+      });
+    });
   });
 
   // ============================================================
@@ -384,6 +477,8 @@ describe("customer.repository", () => {
       mockPrisma.customer.update.mockResolvedValue(updatedCustomer);
       mockPrisma.customerCommunity.deleteMany.mockResolvedValue({ count: 1 });
       mockPrisma.customerCommunity.createMany.mockResolvedValue({ count: 2 });
+      mockPrisma.customerDepartment.deleteMany.mockResolvedValue({ count: 1 });
+      mockPrisma.customerDepartment.createMany.mockResolvedValue({ count: 2 });
 
       const result = await update(1, {
         firstName: "更新後",
@@ -393,6 +488,7 @@ describe("customer.repository", () => {
           { communityId: 1 },
           { communityId: 2 },
         ],
+        departmentIds: [3, 4],
       });
 
       expect(result).toEqual(updatedCustomer);
@@ -401,6 +497,16 @@ describe("customer.repository", () => {
         where: { customerId: 1 },
       });
       expect(mockPrisma.customerCommunity.createMany).toHaveBeenCalled();
+      expect(mockPrisma.customerDepartment.deleteMany).toHaveBeenCalledWith({
+        where: { customerId: 1 },
+      });
+      expect(mockPrisma.customerDepartment.createMany).toHaveBeenCalledWith({
+        data: [
+          { customerId: 1, departmentId: 3 },
+          { customerId: 1, departmentId: 4 },
+        ],
+        skipDuplicates: true,
+      });
     });
 
     it("正常系: コミュニティを全削除 → 非会員化", async () => {
@@ -410,6 +516,7 @@ describe("customer.repository", () => {
       });
       mockPrisma.customer.update.mockResolvedValue(updatedCustomer);
       mockPrisma.customerCommunity.deleteMany.mockResolvedValue({ count: 1 });
+      mockPrisma.customerDepartment.deleteMany.mockResolvedValue({ count: 1 });
 
       await update(1, {
         firstName: "太郎",
@@ -422,6 +529,10 @@ describe("customer.repository", () => {
         where: { customerId: 1 },
       });
       expect(mockPrisma.customerCommunity.createMany).not.toHaveBeenCalled();
+      expect(mockPrisma.customerDepartment.deleteMany).toHaveBeenCalledWith({
+        where: { customerId: 1 },
+      });
+      expect(mockPrisma.customerDepartment.createMany).not.toHaveBeenCalled();
     });
   });
 

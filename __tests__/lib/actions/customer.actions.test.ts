@@ -51,6 +51,7 @@ const validFormData = {
   firstName: "田中",
   lastName: "太郎",
   email: "tanaka@example.com",
+  departmentIds: [1],
   communities: [{ communityId: 1, joinedAt: "2024/04/01" }],
 };
 
