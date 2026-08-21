@@ -92,6 +92,7 @@ export function serializeCustomerForDetail(c: CustomerDetail): SerializedCustome
     departments: c.customerDepartments.map((cd) => ({
       id: cd.department.id,
       name: cd.department.name,
+      note: cd.note,
     })),
     memberCategory: c.memberCategory,
     contractType: c.contractType,

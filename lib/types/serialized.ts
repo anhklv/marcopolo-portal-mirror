@@ -95,7 +95,7 @@ export interface SerializedCustomerDetail {
   city: string | null;
   gender: string | null;
   listingCategory: MasterData | null;
-  departments: MasterData[];
+  departments: (MasterData & { note: string | null })[];
   memberCategory: string | null;
   contractType: string | null;
   jobChangeIntent: string | null;

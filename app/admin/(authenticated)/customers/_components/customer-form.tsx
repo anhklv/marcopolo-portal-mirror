@@ -403,9 +403,11 @@ export function CustomerForm({
             </p>
           )}
           {departments.some((department) => department.name === "その他" && form.departmentIds.includes(department.id)) && (
-            <div className="grid gap-1">
+            <FormField
+              label="その他の所属"
+              error={form.fieldErrors["departmentOtherNote"]?.[0]}
+            >
               <Input
-                aria-label="その他の所属"
                 placeholder="その他"
                 aria-invalid={!!form.fieldErrors["departmentOtherNote"]}
                 value={form.departmentOtherNote}
@@ -414,12 +416,7 @@ export function CustomerForm({
                   form.clearFieldError("departmentOtherNote");
                 }}
               />
-              {form.fieldErrors["departmentOtherNote"] && (
-                <p className="text-sm text-destructive">
-                  {form.fieldErrors["departmentOtherNote"][0]}
-                </p>
-              )}
-            </div>
+            </FormField>
           )}
         </div>
 
