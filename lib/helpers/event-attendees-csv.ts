@@ -6,7 +6,6 @@ import {
   toAttendeeRows,
   type AttendeeRow,
 } from "@/lib/helpers/event-detail";
-import { formatListingCategory } from "@/lib/helpers/customer-export-csv";
 import { formatDateTime } from "@/lib/utils/event";
 import { encodeCsvDocument } from "@/lib/utils/csv";
 import type {
@@ -47,7 +46,6 @@ export interface EventAttendeeCsvRow extends AttendeeRow {
   phone: string | null;
   listingCategory: {
     marketName: string;
-    stockExchangeName: string;
   } | null;
   postalCode: string | null;
   prefectureName: string | null;
@@ -199,7 +197,7 @@ function buildRow(hasAfterParty: boolean, row: EventAttendeeCsvRow): string[] {
       departmentNames.has(name) ? "1" : "0"
     ),
     otherDepartmentNote,
-    row.listingCategory ? formatListingCategory(row.listingCategory) : "",
+    row.listingCategory?.marketName ?? "",
     row.phone ?? "",
     row.postalCode ?? "",
     row.prefectureName ?? "",

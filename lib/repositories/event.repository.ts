@@ -48,10 +48,7 @@ export type EventForAttendeesExport = Pick<Event, "id" | "hasAfterParty"> & {
       | "note"
     > & {
       prefecture: Pick<Prefecture, "name"> | null;
-      listingCategory: Pick<
-        ListingCategory,
-        "marketName" | "stockExchangeName"
-      > | null;
+      listingCategory: Pick<ListingCategory, "marketName"> | null;
       customerDepartments: {
         note: string | null;
         department: Pick<Department, "name">;
@@ -236,7 +233,7 @@ export async function findEventByIdForAttendeesExport(
               note: true,
               prefecture: { select: { name: true } },
               listingCategory: {
-                select: { marketName: true, stockExchangeName: true },
+                select: { marketName: true },
               },
               customerDepartments: {
                 orderBy: { department: { sortOrder: "asc" } },
