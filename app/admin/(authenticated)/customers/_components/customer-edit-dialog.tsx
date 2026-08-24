@@ -77,6 +77,7 @@ const PLACEHOLDERS: Record<string, string> = {
   郵便番号: "例: 1234567",
   都道府県: "例: 東京都",
   市区町村以下: "例: 千代田区丸の内1-1-1",
+  役職: "例: 部長",
 };
 
 export function CustomerEditDialog({
