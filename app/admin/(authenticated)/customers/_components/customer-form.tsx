@@ -420,6 +420,14 @@ export function CustomerForm({
           )}
         </div>
 
+        <FormField label="役職" error={form.fieldErrors["position"]?.[0]}>
+          <Input
+            placeholder="例: 部長"
+            value={form.position}
+            onChange={(e) => form.setPosition(e.target.value)}
+          />
+        </FormField>
+
         <FormField label="上場区分">
           <Select
             value={

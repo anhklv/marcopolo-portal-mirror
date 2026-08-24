@@ -22,6 +22,7 @@ export function serializeCustomerForList(c: CustomerWithCommunities): Serialized
     email: c.email,
     subEmails: c.subEmails,
     company: c.company,
+    position: c.position,
     phone: c.phone,
     postalCode: c.postalCode,
     prefecture: c.prefecture?.name ?? null,
@@ -74,6 +75,7 @@ export function serializeCustomerForDetail(c: CustomerDetail): SerializedCustome
     email: c.email,
     subEmails: c.subEmails,
     company: c.company,
+    position: c.position,
     phone: c.phone,
     postalCode: c.postalCode,
     prefecture: c.prefecture

@@ -191,6 +191,7 @@ model Customer {
   lastNameKana              String?         @map("last_name_kana") @db.VarChar(100)
   firstNameKana             String?         @map("first_name_kana") @db.VarChar(100)
   company                   String?         @db.VarChar(200)
+  position                  String?         @db.VarChar(50)
   email                     String          @db.VarChar(255)
   subEmails                 String[]        @default([]) @map("sub_emails")
   phone                     String?         @db.VarChar(20)

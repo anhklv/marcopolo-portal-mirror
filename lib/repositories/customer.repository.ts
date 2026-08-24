@@ -48,6 +48,7 @@ interface CustomerCreateData {
   email: string;
   subEmails?: string[];
   company?: string | null;
+  position?: string | null;
   phone?: string | null;
   postalCode?: string | null;
   prefectureId?: number | null;

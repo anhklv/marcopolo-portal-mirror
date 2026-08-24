@@ -38,6 +38,7 @@ export type EventForAttendeesExport = Pick<Event, "id" | "hasAfterParty"> & {
       | "lastNameKana"
       | "firstNameKana"
       | "company"
+      | "position"
       | "email"
       | "subEmails"
       | "phone"
@@ -223,6 +224,7 @@ export async function findEventByIdForAttendeesExport(
               lastNameKana: true,
               firstNameKana: true,
               company: true,
+              position: true,
               email: true,
               subEmails: true,
               phone: true,

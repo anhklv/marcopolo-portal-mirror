@@ -45,7 +45,7 @@ describe("customer CSV parser", () => {
   });
 
   it("trims header cells before exact comparison", async () => {
-    const row = Array.from({ length: 42 }, () => "");
+    const row = Array.from({ length: CUSTOMER_CSV_HEADERS.length }, () => "");
     [0, 1, 2, 6, 26, 27, 28, 29, 30, 31, 32].forEach(
       (index) => (row[index] = "0"),
     );
@@ -91,7 +91,7 @@ describe("customer CSV parser", () => {
   });
 
   it("keeps CSV warnings separate while using safe defaults and form validation", async () => {
-    const row = Array.from({ length: 42 }, () => "");
+    const row = Array.from({ length: CUSTOMER_CSV_HEADERS.length }, () => "");
     [0, 1, 2, 6, 26, 27, 28, 29, 30, 31, 32].forEach(
       (index) => (row[index] = "0"),
     );
@@ -102,8 +102,8 @@ describe("customer CSV parser", () => {
     row[18] = "太郎";
     row[21] = "taro@example.com";
     row[26] = "1";
-    row[34] = "存在しない市場";
-    row[37] = "存在しない県";
+    row[35] = "存在しない市場";
+    row[38] = "存在しない県";
     const options = {
       communities: [
         { id: 10, code: "venture_auditor", name: "ベンチャー監査役の会" },
@@ -159,7 +159,7 @@ describe("customer CSV parser", () => {
   });
 
   it("does not block hidden dependent fields when invalid community checkboxes fall back to off", async () => {
-    const row = Array.from({ length: 42 }, () => "");
+    const row = Array.from({ length: CUSTOMER_CSV_HEADERS.length }, () => "");
     [0, 1, 2, 6].forEach((index) => (row[index] = "9"));
     [27, 28, 29, 30, 31, 32].forEach((index) => (row[index] = "0"));
     row[26] = "1";
@@ -200,7 +200,7 @@ describe("customer CSV parser", () => {
   });
 
   it("keeps invalid text input and uses the form validation message", async () => {
-    const row = Array.from({ length: 42 }, () => "");
+    const row = Array.from({ length: CUSTOMER_CSV_HEADERS.length }, () => "");
     [0, 1, 2, 6, 27, 28, 29, 30, 31, 32].forEach(
       (index) => (row[index] = "0"),
     );
@@ -239,7 +239,7 @@ describe("customer CSV parser", () => {
   });
 
   it("warns when a To email already belongs to an existing customer", async () => {
-    const row = Array.from({ length: 42 }, () => "");
+    const row = Array.from({ length: CUSTOMER_CSV_HEADERS.length }, () => "");
     [0, 1, 2, 6, 27, 28, 29, 30, 31, 32].forEach(
       (index) => (row[index] = "0"),
     );
@@ -316,6 +316,7 @@ describe("customer CSV parser", () => {
       affiliationObserver: false,
       affiliationOther: false,
       affiliationOtherText: "",
+      position: "",
       listingCategory: "",
       phone: "",
       postalCode: "",
@@ -373,6 +374,7 @@ describe("customer CSV parser", () => {
       affiliationObserver: false,
       affiliationOther: false,
       affiliationOtherText: "",
+      position: "",
       listingCategory: "",
       phone: "",
       postalCode: "",

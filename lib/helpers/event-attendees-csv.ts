@@ -43,6 +43,7 @@ export interface EventAttendeeCsvRow extends AttendeeRow {
   firstNameKana: string | null;
   email: string;
   subEmails: string[];
+  position: string | null;
   phone: string | null;
   listingCategory: {
     marketName: string;
@@ -96,6 +97,7 @@ export function toEventAttendeeCsvRows(
       firstNameKana: customer.firstNameKana,
       email: customer.email,
       subEmails: customer.subEmails,
+      position: customer.position,
       phone: customer.phone,
       listingCategory: customer.listingCategory,
       postalCode: customer.postalCode,
@@ -120,30 +122,31 @@ export function buildEventAttendeesCsv(
 ): string {
   const headers: string[] = [
     "顧客ID",
+    "回答日時",
     "氏名",
     "会社名",
+    "役職",
+    "都道府県",
+    "上場区分",
     "ステータス",
   ];
   if (event.hasAfterParty) {
     headers.push("懇親会");
   }
   headers.push(
-    "回答日時",
+    "メールアドレス",
     "メッセージ",
     "姓",
     "名",
     "セイ",
     "メイ",
-    "メールアドレス",
     "サブメール1",
     "サブメール2",
     "サブメール3",
     ...DEPARTMENT_CSV_COLUMNS.map((name) => `所属部署_${name}`),
     "所属部署_その他",
-    "上場区分",
     "電話番号",
     "郵便番号",
-    "都道府県",
     "市区町村",
     "性別",
     "転職意欲",
@@ -160,8 +163,12 @@ function buildRow(hasAfterParty: boolean, row: EventAttendeeCsvRow): string[] {
 
   const cells: string[] = [
     String(row.customerId),
+    row.respondedAt ? formatDateTime(row.respondedAt) : "",
     `${row.lastName} ${row.firstName}`.trim(),
     row.company ?? "",
+    row.position ?? "",
+    row.prefectureName ?? "",
+    row.listingCategory?.marketName ?? "",
     statusLabel,
   ];
 
@@ -183,13 +190,12 @@ function buildRow(hasAfterParty: boolean, row: EventAttendeeCsvRow): string[] {
     row.customerDepartments.find(({ name }) => name === "その他")?.note ?? "";
 
   cells.push(
-    row.respondedAt ? formatDateTime(row.respondedAt) : "",
+    row.email,
     row.comment ?? "",
     row.lastName,
     row.firstName,
     row.lastNameKana ?? "",
     row.firstNameKana ?? "",
-    row.email,
     row.subEmails[0] ?? "",
     row.subEmails[1] ?? "",
     row.subEmails[2] ?? "",
@@ -197,10 +203,8 @@ function buildRow(hasAfterParty: boolean, row: EventAttendeeCsvRow): string[] {
       departmentNames.has(name) ? "1" : "0"
     ),
     otherDepartmentNote,
-    row.listingCategory?.marketName ?? "",
     row.phone ?? "",
     row.postalCode ?? "",
-    row.prefectureName ?? "",
     row.city ?? "",
     row.gender ? GENDER_CSV_VALUES[row.gender] : "",
     row.jobChangeIntent
