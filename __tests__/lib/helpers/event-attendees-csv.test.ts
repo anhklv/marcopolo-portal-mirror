@@ -43,6 +43,7 @@ function row(
     lastName: "山田",
     firstName: "太郎",
     company: "株式会社テスト",
+    position: "部長",
     status: "attending",
     afterPartyStatus: null,
     comment: null,
@@ -81,16 +82,19 @@ describe("buildEventAttendeesCsv", () => {
     expect(csv.charCodeAt(0)).toBe(0xfeff);
     expect(csv.split("\n")[0].replace(/^\uFEFF/, "").split(",")).toEqual([
       "顧客ID",
+      "回答日時",
       "氏名",
       "会社名",
+      "役職",
+      "都道府県",
+      "上場区分",
       "ステータス",
-      "回答日時",
+      "メールアドレス",
       "メッセージ",
       "姓",
       "名",
       "セイ",
       "メイ",
-      "メールアドレス",
       "サブメール1",
       "サブメール2",
       "サブメール3",
@@ -102,18 +106,16 @@ describe("buildEventAttendeesCsv", () => {
       "所属部署_スポンサー",
       "所属部署_オブザーバー",
       "所属部署_その他",
-      "上場区分",
       "電話番号",
       "郵便番号",
-      "都道府県",
       "市区町村",
       "性別",
       "転職意欲",
       "備考",
     ]);
-    expect(csv).toContain("10,山田 太郎,株式会社テスト,参加");
+    expect(csv).toContain("山田 太郎,株式会社テスト,部長,東京都,プライム,参加");
     expect(csv).toContain(
-      "山田,太郎,ヤマダ,タロウ,taro.yamada@example.com,sub1@example.com,sub2@example.com,,1,1,1,1,1,1,1,その他所属内容,プライム,0312345678,1000001,東京都,千代田区千代田1-1,1,1,備考テキスト"
+      "taro.yamada@example.com,,山田,太郎,ヤマダ,タロウ,sub1@example.com,sub2@example.com,,1,1,1,1,1,1,1,その他所属内容,0312345678,1000001,千代田区千代田1-1,1,1,備考テキスト"
     );
   });
 
@@ -136,6 +138,7 @@ describe("buildEventAttendeesCsv", () => {
       [
         row({
           company: null,
+          position: null,
           comment: null,
           respondedAt: null,
         }),
@@ -143,7 +146,7 @@ describe("buildEventAttendeesCsv", () => {
     );
     const lines = csv.split("\n").filter((l) => l.length > 0);
     expect(lines.length).toBeGreaterThanOrEqual(2);
-    expect(lines[1]).toContain("10,山田 太郎,,参加");
+    expect(lines[1]).toContain("10,,山田 太郎,,,東京都,プライム,参加");
   });
 
   it("未設定のプロフィール項目は空セルとして出る", () => {
@@ -151,6 +154,7 @@ describe("buildEventAttendeesCsv", () => {
       row({
         lastNameKana: null,
         firstNameKana: null,
+        position: null,
         subEmails: [],
         phone: null,
         listingCategory: null,
@@ -164,15 +168,30 @@ describe("buildEventAttendeesCsv", () => {
       }),
     ]);
 
-    const dataCells = csv.split("\n")[1].split(",");
-    expect(dataCells.slice(8, 11)).toEqual([
-      "",
-      "",
-      "taro.yamada@example.com",
-    ]);
-    expect(dataCells.slice(11, 14)).toEqual(["", "", ""]);
-    expect(dataCells.slice(14, 21)).toEqual(Array(7).fill("0"));
-    expect(dataCells.slice(21)).toEqual(Array(9).fill(""));
+    const [headerLine, dataLine] = csv.split("\n");
+    const headers = headerLine.replace(/^\uFEFF/, "").split(",");
+    const dataCells = dataLine.split(",");
+    expect(dataCells[headers.indexOf("役職")]).toBe("");
+    expect(dataCells[headers.indexOf("都道府県")]).toBe("");
+    expect(dataCells[headers.indexOf("上場区分")]).toBe("");
+    expect(dataCells[headers.indexOf("セイ")]).toBe("");
+    expect(dataCells[headers.indexOf("メイ")]).toBe("");
+    expect(dataCells[headers.indexOf("メールアドレス")]).toBe(
+      "taro.yamada@example.com"
+    );
+    expect(dataCells.slice(headers.indexOf("サブメール1"), headers.indexOf("所属部署_内部監査室"))).toEqual(["", "", ""]);
+    expect(dataCells.slice(headers.indexOf("所属部署_内部監査室"), headers.indexOf("所属部署_その他"))).toEqual(Array(7).fill("0"));
+    [
+      "所属部署_その他",
+      "電話番号",
+      "郵便番号",
+      "市区町村",
+      "性別",
+      "転職意欲",
+      "備考",
+    ].forEach((header) => {
+      expect(dataCells[headers.indexOf(header)] ?? "").toBe("");
+    });
   });
 
   it.each([
@@ -217,6 +236,7 @@ describe("toEventAttendeeCsvRows", () => {
             lastNameKana: "スズキ",
             firstNameKana: "ハナコ",
             company: "鈴木監査法人",
+            position: "監査役",
             email: "hanako.suzuki@example.com",
             subEmails: ["sub1@example.com"],
             phone: "0312345678",
@@ -246,6 +266,7 @@ describe("toEventAttendeeCsvRows", () => {
       customerId: 10,
       lastNameKana: "スズキ",
       firstNameKana: "ハナコ",
+      position: "監査役",
       email: "hanako.suzuki@example.com",
       subEmails: ["sub1@example.com"],
       phone: "0312345678",
