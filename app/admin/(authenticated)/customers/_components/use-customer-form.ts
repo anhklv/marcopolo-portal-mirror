@@ -42,6 +42,7 @@ export interface InitialData {
   email: string;
   subEmails: string[];
   company: string | null;
+  position: string | null;
   phone: string | null;
   postalCode: string | null;
   prefectureId: number | null;
@@ -184,6 +185,7 @@ export function useCustomerForm({
   const [email, setEmail] = useState(initialData?.email ?? "");
   const [subEmails, setSubEmails] = useState<string[]>(initialData?.subEmails ?? []);
   const [company, setCompany] = useState(initialData?.company ?? "");
+  const [position, setPosition] = useState(initialData?.position ?? "");
   const [listingCategoryId, setListingCategoryId] = useState<number | undefined>(initialData?.listingCategoryId ?? undefined);
   const [departmentIds, setDepartmentIds] = useState<number[]>(initialData?.departmentIds ?? []);
   const [departmentOtherNote, setDepartmentOtherNote] = useState(initialData?.departmentOtherNote ?? "");
@@ -304,6 +306,7 @@ export function useCustomerForm({
       email,
       subEmails: subEmails.filter((e) => e.trim() !== ""),
       company,
+      position,
       phone,
       postalCode,
       prefectureId: prefectureId || null,
@@ -424,6 +427,7 @@ export function useCustomerForm({
     email, setEmail,
     subEmails, setSubEmails,
     company, setCompany,
+    position, setPosition,
     listingCategoryId, setListingCategoryId,
     departmentIds, setDepartmentIds,
     departmentOtherNote, setDepartmentOtherNote,

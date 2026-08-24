@@ -52,6 +52,7 @@ export default async function EditCustomerPage({
     email: customer.email,
     subEmails: customer.subEmails,
     company: customer.company,
+    position: customer.position,
     phone: customer.phone,
     postalCode: customer.postalCode,
     prefectureId: customer.prefectureId,

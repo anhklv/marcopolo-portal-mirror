@@ -266,6 +266,7 @@ export function CustomerDetail({ customer, showBack = true }: CustomerDetailProp
                     .join(" 、 ")}
                 </DataItem>
               )}
+              {customer.position && <DataItem label="役職">{customer.position}</DataItem>}
               {customer.listingCategory && (
                 <DataItem label="上場区分">{customer.listingCategory.name}</DataItem>
               )}

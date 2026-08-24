@@ -104,6 +104,11 @@ export const customerSchema = z.object({
     .max(200, "会社名は200文字以内で入力してください")
     .optional()
     .or(z.literal("")),
+  position: z
+    .string()
+    .max(50, "役職は50文字以内で入力してください")
+    .optional()
+    .or(z.literal("")),
   phone: z
     .string()
     .superRefine(refineWithValidator(validatePhone))
