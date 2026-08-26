@@ -22,6 +22,7 @@ export function serializeCustomerForList(c: CustomerWithCommunities): Serialized
     email: c.email,
     subEmails: c.subEmails,
     company: c.company,
+    position: c.position,
     phone: c.phone,
     postalCode: c.postalCode,
     prefecture: c.prefecture?.name ?? null,
@@ -74,6 +75,7 @@ export function serializeCustomerForDetail(c: CustomerDetail): SerializedCustome
     email: c.email,
     subEmails: c.subEmails,
     company: c.company,
+    position: c.position,
     phone: c.phone,
     postalCode: c.postalCode,
     prefecture: c.prefecture
@@ -92,6 +94,7 @@ export function serializeCustomerForDetail(c: CustomerDetail): SerializedCustome
     departments: c.customerDepartments.map((cd) => ({
       id: cd.department.id,
       name: cd.department.name,
+      note: cd.note,
     })),
     memberCategory: c.memberCategory,
     contractType: c.contractType,

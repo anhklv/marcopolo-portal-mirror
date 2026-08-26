@@ -46,6 +46,7 @@ export const CUSTOMER_CSV_HEADERS = [
   "所属部署_スポンサー",
   "所属部署_オブザーバー",
   "所属部署_その他",
+  "役職",
   "上場区分",
   "電話番号",
   "郵便番号",
@@ -91,6 +92,7 @@ export const CUSTOMER_CSV_FIELD_ORDER: Array<keyof PreviewCustomer> = [
   "affiliationNaikanSponsor",
   "affiliationObserver",
   "affiliationOtherText",
+  "position",
   "listingCategoryId",
   "phone",
   "postalCode",
@@ -144,6 +146,7 @@ export interface PreviewCustomer {
   affiliationObserver: boolean;
   affiliationOther: boolean;
   affiliationOtherText: string;
+  position: string;
   listingCategory: string;
   listingCategoryId?: number;
   phone: string;
@@ -224,7 +227,7 @@ export async function readCustomerCsv(
   if (!rows.length) throw new Error("ヘッダー行が存在しません。");
   const header = rows[0].map((x) => x.trim());
   if (
-    header.length !== 42 ||
+    header.length !== 43 ||
     header.some((x, i) => x !== CUSTOMER_CSV_HEADERS[i])
   )
     throw new Error("CSVファイルの列数が不正です。");
@@ -390,15 +393,15 @@ function mapRow(
     .map((x) => o.departments.find((d) => d.name === x[0])?.id)
     .filter((x): x is number => !!x);
   if (other && otherId) departmentIds.push(otherId);
-  const listing = v(34)
+  const listing = v(35)
     ? o.listingCategories.find(
       (x) =>
-        x.marketName === v(34) ||
-        `${x.stockExchangeName} ${x.marketName}` === v(34),
+        x.marketName === v(35) ||
+        `${x.stockExchangeName} ${x.marketName}` === v(35),
     )
     : undefined;
-  if (v(34) && !listing) errors.push(`上場区分「${v(34)}」が見つかりません`);
-  const prefectureId = master("都道府県", v(37), o.prefectures);
+  if (v(35) && !listing) errors.push(`上場区分「${v(35)}」が見つかりません`);
+  const prefectureId = master("都道府県", v(38), o.prefectures);
   const communities: NonNullable<CustomerFormInput["communities"]> = [];
   const add = (
     on: boolean,
@@ -422,12 +425,12 @@ function mapRow(
   add(ai, byCode(COMMUNITY_CODE.AI_CLUB), v(15), v(16), {
     affiliationId: aiAffId,
   });
-  const gender = v(39)
-    ? pick(39, { "1": "male", "2": "female" }, "性別", "")
+  const gender = v(40)
+    ? pick(40, { "1": "male", "2": "female" }, "性別", "")
     : null,
-    jobChangeIntent = v(40)
+    jobChangeIntent = v(41)
       ? pick(
-        40,
+        41,
         {
           "1": "active",
           "2": "considering",
@@ -446,16 +449,17 @@ function mapRow(
     email: v(21),
     subEmails: [v(22), v(23), v(24)].filter(Boolean),
     company: v(25),
-    phone: v(35),
-    postalCode: v(36),
+    position: v(34),
+    phone: v(36),
+    postalCode: v(37),
     prefectureId,
-    city: v(38),
+    city: v(39),
     gender,
     listingCategoryId: listing?.id,
     memberCategory,
     contractType,
     jobChangeIntent,
-    note: v(41),
+    note: v(42),
     departmentIds,
     otherDepartmentId: otherId,
     departmentOtherNote: other,
@@ -489,10 +493,10 @@ function mapRow(
     invalidValue("memberCategory", CUSTOMER_CSV_HEADERS[4], v(4));
   if (v(5) && !auditMemberType)
     invalidValue("auditMemberType", CUSTOMER_CSV_HEADERS[5], v(5));
-  if (v(39) && !["1", "2"].includes(v(39)))
-    invalidValue("gender", CUSTOMER_CSV_HEADERS[39], v(39));
-  if (v(40) && !["1", "2", "3", "4"].includes(v(40)))
-    invalidValue("jobChangeIntent", CUSTOMER_CSV_HEADERS[40], v(40));
+  if (v(40) && !["1", "2"].includes(v(40)))
+    invalidValue("gender", CUSTOMER_CSV_HEADERS[40], v(40));
+  if (v(41) && !["1", "2", "3", "4"].includes(v(41)))
+    invalidValue("jobChangeIntent", CUSTOMER_CSV_HEADERS[41], v(41));
   if (v(7) && !qualificationId)
     invalidValue("auditMembershipQualificationId", CUSTOMER_CSV_HEADERS[7], v(7));
   if (v(8) && !originId)
@@ -501,10 +505,10 @@ function mapRow(
     invalidValue("naikanAffiliationId", CUSTOMER_CSV_HEADERS[11], v(11));
   if (v(14) && !aiAffId)
     invalidValue("aiAffiliationId", CUSTOMER_CSV_HEADERS[14], v(14));
-  if (v(34) && !listing)
-    remember("listingCategoryId", CUSTOMER_CSV_HEADERS[34], `「${v(34)}」は存在しません。`);
-  if (v(37) && !prefectureId)
-    remember("prefectureId", CUSTOMER_CSV_HEADERS[37], `「${v(37)}」は都道府県マスタに存在しません。`);
+  if (v(35) && !listing)
+    remember("listingCategoryId", CUSTOMER_CSV_HEADERS[35], `「${v(35)}」は存在しません。`);
+  if (v(38) && !prefectureId)
+    remember("prefectureId", CUSTOMER_CSV_HEADERS[38], `「${v(38)}」は都道府県マスタに存在しません。`);
 
   const lengthRules: Array<[number, keyof PreviewCustomer, number]> = [
     [5, "auditMemberType", 50], [7, "auditMembershipQualificationId", 100],
@@ -512,8 +516,8 @@ function mapRow(
     [14, "aiAffiliationId", 100], [17, "lastName", 100], [18, "firstName", 100],
     [19, "lastNameKana", 100], [20, "firstNameKana", 100], [21, "email", 255],
     [25, "company", 200], [33, "affiliationOtherText", 255],
-    [37, "prefectureId", 20], [38, "city", 255],
-    [41, "note", 500],
+    [34, "position", 50], [38, "prefectureId", 20], [39, "city", 255],
+    [42, "note", 500],
   ];
   lengthRules.forEach(([column, key, max]) =>
     tooLong(column, key, CUSTOMER_CSV_HEADERS[column], max),
@@ -555,14 +559,14 @@ function mapRow(
     if (invalidDate(v(column)))
       remember(key, CUSTOMER_CSV_HEADERS[column], "は正しい日付形式で入力してください。");
   });
-  const phoneError = validatePhone(v(35));
+  const phoneError = validatePhone(v(36));
   if (phoneError)
     remember(
       "phone",
       "",
       `${phoneError.startsWith("電話番号") ? phoneError : `電話番号は${phoneError}`}。`,
     );
-  const postalCodeError = validatePostalCode(v(36));
+  const postalCodeError = validatePostalCode(v(37));
   if (postalCodeError)
     remember(
       "postalCode",
@@ -642,19 +646,20 @@ function mapRow(
     affiliationObserver: deptFlags[6][1],
     affiliationOther: !!other,
     affiliationOtherText: v(33),
-    listingCategory: csvString("listingCategoryId", 34),
+    position: v(34),
+    listingCategory: csvString("listingCategoryId", 35),
     listingCategoryId: hasCsvIssue("listingCategoryId")
       ? undefined
       : listing?.id,
-    phone: v(35),
-    postalCode: v(36),
-    prefecture: csvString("prefectureId", 37),
+    phone: v(36),
+    postalCode: v(37),
+    prefecture: csvString("prefectureId", 38),
     prefectureId: hasCsvIssue("prefectureId") ? undefined : prefectureId,
-    city: v(38),
+    city: v(39),
     gender: (gender ?? "") as PreviewCustomer["gender"],
     jobChangeIntent: (jobChangeIntent ??
       "") as PreviewCustomer["jobChangeIntent"],
-    note: v(41),
+    note: v(42),
     csvIssues,
   };
   return rebuildPayload(preview, o);
@@ -735,6 +740,7 @@ export function rebuildPayload(
     email: c.email,
     subEmails: [c.subEmail1, c.subEmail2, c.subEmail3].filter(Boolean),
     company: c.company,
+    position: c.position,
     phone: c.phone,
     postalCode: c.postalCode,
     prefectureId: c.prefectureId,
@@ -774,6 +780,7 @@ export function rebuildPayload(
     const directKeys: Record<string, keyof PreviewCustomer> = {
       departmentIds: "affiliationInternalAudit",
       departmentOtherNote: "affiliationOtherText",
+      position: "position",
     };
     parsed.error.issues.forEach((issue) => {
       const [root, index, nested] = issue.path;

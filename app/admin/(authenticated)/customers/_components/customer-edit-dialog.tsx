@@ -77,6 +77,7 @@ const PLACEHOLDERS: Record<string, string> = {
   郵便番号: "例: 1234567",
   都道府県: "例: 東京都",
   市区町村以下: "例: 千代田区丸の内1-1-1",
+  役職: "例: 部長",
 };
 
 export function CustomerEditDialog({
@@ -585,6 +586,13 @@ export function CustomerEditDialog({
                   </FormField>
                 )}
               </div>
+              <Field
+                label="役職"
+                error={errorFor("position")}
+                value={customer.position}
+                maxLength={50}
+                onChange={(v) => set("position", v)}
+              />
               <FormField label="上場区分" error={errorFor("listingCategoryId")}>
                 <Select
                   value={String(
@@ -782,6 +790,7 @@ function Field({
   email,
   tel,
   error,
+  maxLength,
 }: {
   label: string;
   value: string;
@@ -791,6 +800,7 @@ function Field({
   email?: boolean;
   tel?: boolean;
   error?: string;
+  maxLength?: number;
 }) {
   return (
     <FormField label={label} required={required} error={error}>
@@ -798,6 +808,7 @@ function Field({
         type={date ? "date" : email ? "email" : tel ? "tel" : "text"}
         placeholder={PLACEHOLDERS[label]}
         aria-invalid={!!error}
+        maxLength={maxLength}
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />

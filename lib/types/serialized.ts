@@ -59,6 +59,7 @@ export interface SerializedCustomer {
   email: string;
   subEmails: string[];
   company: string | null;
+  position: string | null;
   phone: string | null;
   postalCode: string | null;
   prefecture: string | null;
@@ -89,13 +90,14 @@ export interface SerializedCustomerDetail {
   email: string;
   subEmails: string[];
   company: string | null;
+  position: string | null;
   phone: string | null;
   postalCode: string | null;
   prefecture: MasterData | null;
   city: string | null;
   gender: string | null;
   listingCategory: MasterData | null;
-  departments: MasterData[];
+  departments: (MasterData & { note: string | null })[];
   memberCategory: string | null;
   contractType: string | null;
   jobChangeIntent: string | null;
