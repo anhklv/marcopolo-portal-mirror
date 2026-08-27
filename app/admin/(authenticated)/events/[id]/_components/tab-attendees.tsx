@@ -1,8 +1,16 @@
 "use client";
 
-import { useMemo, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { Download, Search, ChevronDown, Mail } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  ChevronDown,
+  Download,
+  Mail,
+  MoreVertical,
+  Pencil,
+  Search,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +29,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { usePagination } from "@/hooks/use-pagination";
@@ -36,6 +50,7 @@ import { exportEventAttendeesCsvAction } from "@/lib/actions/event-attendees-exp
 import { downloadUtf8CsvFile } from "@/lib/utils/csv-download";
 import type { RsvpStatus, AfterPartyStatus } from "@/lib/generated/prisma";
 import type { SerializedEventDetail } from "@/lib/types/serialized";
+import { AttendeeRsvpEditDialog } from "./attendee-rsvp-edit-dialog";
 
 interface TabAttendeesProps {
   event: SerializedEventDetail;
@@ -54,7 +69,12 @@ export function TabAttendees({
   selectedStatuses,
   onSelectedStatusesChange,
 }: TabAttendeesProps) {
+  const router = useRouter();
   const [isCsvPending, startCsvTransition] = useTransition();
+  const [editingAttendee, setEditingAttendee] = useState<
+    (AttendeeRow & { token: string }) | null
+  >(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const filteredRows = useMemo(
     () => filterAttendees(allRows, searchKeyword, selectedStatuses),
@@ -99,6 +119,21 @@ export function TabAttendees({
     } else {
       onSelectedStatusesChange(selectedStatuses.filter((s) => s !== status));
     }
+  };
+
+  const handleOpenEdit = (row: AttendeeRow) => {
+    const token = event.rsvps.find((rsvp) => rsvp.id === row.rsvpId)?.token;
+    if (!token) {
+      toast.error("参加URLが見つかりません");
+      return;
+    }
+
+    setEditingAttendee({ ...row, token });
+    setEditDialogOpen(true);
+  };
+
+  const handleSaved = () => {
+    router.refresh();
   };
 
   return (
@@ -179,13 +214,14 @@ export function TabAttendees({
                 )}
                 <TableHead>回答日時</TableHead>
                 <TableHead>メッセージ</TableHead>
+                <TableHead className="text-right">操作</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredRows.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={event.hasAfterParty ? 6 : 5}
+                    colSpan={event.hasAfterParty ? 7 : 6}
                     className="text-center text-muted-foreground py-8"
                   >
                     {allRows.length === 0 ? (
@@ -254,6 +290,29 @@ export function TabAttendees({
                           </div>
                         ) : null}
                       </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              aria-label="操作"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-card">
+                            <DropdownMenuItem
+                              className="bg-card hover:bg-accent"
+                              onClick={() => handleOpenEdit(row)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                              変更
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
                   );
                 })
@@ -282,6 +341,19 @@ export function TabAttendees({
           </Button>
         </div>
       </CardContent>
+
+      <AttendeeRsvpEditDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        event={{
+          id: event.id,
+          title: event.title,
+          allowsOnline: event.allowsOnline,
+          hasAfterParty: event.hasAfterParty,
+        }}
+        attendee={editingAttendee}
+        onSaved={handleSaved}
+      />
     </Card>
   );
 }

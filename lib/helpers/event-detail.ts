@@ -19,6 +19,8 @@ export interface AttendeeRow {
   respondedAt: string | null;
 }
 
+type AttendeeRsvpSource = Omit<SerializedRsvpForEventDetail, "token">;
+
 interface EventSummary {
   onsiteCount: number;
   onlineCount: number;
@@ -42,7 +44,7 @@ const RSVP_STATUS_ORDER: Record<string, number> = {
  * RSVPデータ → 表示用行への変換（ステータス優先、同一ステータス内はcreatedAt昇順）
  */
 export function toAttendeeRows(
-  rsvps: SerializedRsvpForEventDetail[]
+  rsvps: AttendeeRsvpSource[]
 ): AttendeeRow[] {
   return rsvps
     .map((r) => ({

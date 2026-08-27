@@ -93,6 +93,7 @@ describe("serializeEventForDetail", () => {
     expect(serialized.rsvps).toHaveLength(1);
     expect(serialized.rsvps[0]).toEqual({
       id: 10,
+      token: "token-1",
       status: "attending",
       afterPartyStatus: "attending",
       comment: "楽しみです",
