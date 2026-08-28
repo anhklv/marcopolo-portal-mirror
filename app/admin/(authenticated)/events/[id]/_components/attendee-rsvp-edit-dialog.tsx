@@ -229,12 +229,12 @@ function AttendeeRsvpEditForm({
         </FormField>
       </Stack>
 
-      <DialogFooter className="gap-2 sm:gap-0">
+      <DialogFooter className="gap-3">
         <ActionButton variant="outline" onClick={onClose} disabled={isPending}>
           キャンセル
         </ActionButton>
         <ActionButton onClick={handleSave} disabled={isPending}>
-          {isPending ? "保存中..." : "保存"}
+          {isPending ? "更新中..." : "更新"}
         </ActionButton>
       </DialogFooter>
 
