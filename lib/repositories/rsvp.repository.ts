@@ -12,6 +12,11 @@ export type RsvpForPage = Rsvp & {
   customer: Pick<Customer, "id" | "lastName" | "firstName" | "deletedAt">;
 };
 
+export type RsvpForAdminUpdate = Rsvp & {
+  event: Pick<Event, "id" | "deletedAt" | "hasAfterParty">;
+  customer: Pick<Customer, "id" | "deletedAt">;
+};
+
 // ============================================================
 // Repository 関数
 // ============================================================
@@ -38,6 +43,37 @@ export async function findRsvpByToken(
           id: true,
           lastName: true,
           firstName: true,
+          deletedAt: true,
+        },
+      },
+    },
+  });
+}
+
+/**
+ * 管理者によるRSVP更新用に取得（RSVPとイベントの組み合わせを確認）
+ */
+export async function findRsvpByIdForAdmin(
+  rsvpId: number,
+  eventId: number
+): Promise<RsvpForAdminUpdate | null> {
+  return prisma.rsvp.findFirst({
+    where: {
+      id: rsvpId,
+      eventId,
+      event: { deletedAt: null },
+    },
+    include: {
+      event: {
+        select: {
+          id: true,
+          deletedAt: true,
+          hasAfterParty: true,
+        },
+      },
+      customer: {
+        select: {
+          id: true,
           deletedAt: true,
         },
       },

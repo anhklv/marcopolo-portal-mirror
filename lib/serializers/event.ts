@@ -49,6 +49,7 @@ export function serializeEventForDetail(e: EventForDetail): SerializedEventDetai
     },
     rsvps: e.rsvps.map((r) => ({
       id: r.id,
+      token: r.token,
       status: r.status,
       afterPartyStatus: r.afterPartyStatus,
       comment: r.comment,

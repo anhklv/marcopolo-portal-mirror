@@ -11,6 +11,7 @@ import type { AttendeeRow } from "@/lib/helpers/event-detail";
 const makeRsvp = (
   overrides: Partial<SerializedRsvpForEventDetail> & { id: number }
 ): SerializedRsvpForEventDetail => ({
+  token: `token-${overrides.id}`,
   status: "pending",
   afterPartyStatus: null,
   comment: null,

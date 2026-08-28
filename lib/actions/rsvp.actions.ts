@@ -1,7 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { rsvpResponseSchema } from "@/lib/validations/rsvp";
+import {
+  adminRsvpUpdateSchema,
+  rsvpResponseSchema,
+} from "@/lib/validations/rsvp";
+import {
+  canAccessEvent,
+  requireAuthenticatedAdmin,
+} from "@/lib/auth/permissions";
 import * as rsvpRepo from "@/lib/repositories/rsvp.repository";
 import { logServerError } from "@/lib/utils/log-error";
 
@@ -12,6 +19,8 @@ import { logServerError } from "@/lib/utils/log-error";
 type SubmitRsvpResult =
   | { success: true }
   | { success: false; error: string };
+
+type AdminUpdateRsvpResult = SubmitRsvpResult;
 
 // ============================================================
 // Actions
@@ -92,5 +101,67 @@ export async function submitRsvpAction(
   } catch (error) {
     logServerError("submitRsvpAction", error);
     return { success: false, error: "回答の送信中にエラーが発生しました" };
+  }
+}
+
+/**
+ * 管理者によるRSVP更新（回答期限・受付停止に関わらず変更可能）
+ */
+export async function adminUpdateRsvpAction(
+  formData: unknown
+): Promise<AdminUpdateRsvpResult> {
+  const parsed = adminRsvpUpdateSchema.safeParse(formData);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  const { rsvpId, eventId, status, afterPartyStatus, comment } = parsed.data;
+
+  try {
+    const { admin } = await requireAuthenticatedAdmin();
+    const hasAccess = await canAccessEvent(admin, eventId);
+    if (!hasAccess) {
+      return {
+        success: false,
+        error: "このイベントへのアクセス権がありません",
+      };
+    }
+
+    const rsvp = await rsvpRepo.findRsvpByIdForAdmin(rsvpId, eventId);
+    if (!rsvp) {
+      return { success: false, error: "参加者が見つかりません" };
+    }
+
+    if (rsvp.customer.deletedAt) {
+      return { success: false, error: "この顧客は削除されています" };
+    }
+
+    if (
+      rsvp.event.hasAfterParty &&
+      status === "attending" &&
+      !afterPartyStatus
+    ) {
+      return {
+        success: false,
+        error: "懇親会の参加可否を選択してください",
+      };
+    }
+
+    await rsvpRepo.updateRsvpResponse(rsvp.id, {
+      status,
+      afterPartyStatus: status === "attending" ? afterPartyStatus : null,
+      comment,
+      respondedAt: new Date(),
+    });
+
+    revalidatePath(`/admin/events/${eventId}`);
+
+    return { success: true };
+  } catch (error) {
+    logServerError("adminUpdateRsvpAction", error);
+    return {
+      success: false,
+      error: "参加ステータスの更新に失敗しました",
+    };
   }
 }
