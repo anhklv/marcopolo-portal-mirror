@@ -234,7 +234,7 @@ function AttendeeRsvpEditForm({
           キャンセル
         </ActionButton>
         <ActionButton onClick={handleSave} disabled={isPending}>
-          {isPending ? "保存中..." : "保存"}
+          {isPending ? "更新中..." : "更新"}
         </ActionButton>
       </DialogFooter>
 
