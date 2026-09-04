@@ -10,7 +10,7 @@ import {
 import { remindSchema, testRemindSchema } from "@/lib/validations/remind";
 import { sendMail, sendMailBatch } from "@/lib/mail/send";
 import { getBaseUrl } from "@/lib/helpers/base-url";
-import { generateRsvpToken, buildRsvpUrl, replacePlaceholders } from "@/lib/helpers/invite";
+import { buildRsvpUrl, replacePlaceholders } from "@/lib/helpers/invite";
 import { getEventDisplayStatus } from "@/lib/utils/event";
 import { logServerError } from "@/lib/utils/log-error";
 
@@ -86,11 +86,10 @@ export async function sendRemindAction(
     const baseUrl = await getBaseUrl();
     const from = process.env.SMTP_FROM ?? "noreply@example.com";
 
-    // トークンを事前生成（メモリ上に保持）
-    const tokenMap = new Map<number, string>();
-    for (const c of customers) {
-      tokenMap.set(c.id, generateRsvpToken());
-    }
+    // 初回案内時に発行されたtokenを再利用し、参加URLを固定する
+    const tokenMap = new Map(
+      pendingRsvps.map((rsvp) => [rsvp.customerId, rsvp.token])
+    );
 
     // メール送信（バッチ処理）
     const batchResult = await sendMailBatch({
@@ -103,29 +102,7 @@ export async function sendRemindAction(
       emailBody,
     });
 
-    let { sentCount, failedCount } = batchResult;
-    const { failedNames, successCustomerIds } = batchResult;
-
-    // 送信成功分のみトークン更新（既存RSVPのupdate）
-    for (const customerId of successCustomerIds) {
-      try {
-        await prisma.rsvp.update({
-          where: { eventId_customerId: { eventId, customerId } },
-          data: { token: tokenMap.get(customerId) ?? "" },
-        });
-      } catch (err) {
-        logServerError(
-          `sendRemindAction:rsvpTokenUpdate eventId=${eventId} customerId=${customerId}`,
-          err
-        );
-        sentCount--;
-        failedCount++;
-        const customer = customers.find((c) => c.id === customerId);
-        if (customer) {
-          failedNames.push(`${customer.lastName} ${customer.firstName}`);
-        }
-      }
-    }
+    const { sentCount, failedCount, failedNames } = batchResult;
 
     revalidatePath(`/admin/events/${eventId}`);
 

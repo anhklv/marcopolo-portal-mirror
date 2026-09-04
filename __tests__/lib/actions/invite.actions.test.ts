@@ -279,14 +279,15 @@ describe("sendInviteAction", () => {
     );
   });
 
-  it("正常系: pending顧客への再送でトークンが更新される", async () => {
+  it("正常系: pending顧客への再送で既存トークンが再利用される", async () => {
     setupSuperAdmin();
     // customerId: 10 は pending（未回答）
-    mockPrisma.rsvp.findMany.mockResolvedValueOnce([{ customerId: 10, status: "pending" }]);
+    mockPrisma.rsvp.findMany.mockResolvedValueOnce([
+      { customerId: 10, status: "pending", token: "existing-token" },
+    ]);
     mockPrisma.customer.findMany.mockResolvedValue([
       { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com" },
     ]);
-    mockPrisma.rsvp.update.mockResolvedValue({});
     mockSendMailBatch.mockResolvedValue({ sentCount: 1, failedCount: 0, failedNames: [], successCustomerIds: [10] });
 
     const result = await sendInviteAction({
@@ -302,23 +303,25 @@ describe("sendInviteAction", () => {
     });
     // createManyは呼ばれない（新規がないため）
     expect(mockPrisma.rsvp.createMany).not.toHaveBeenCalled();
-    // updateでトークン更新
-    expect(mockPrisma.rsvp.update).toHaveBeenCalledWith({
-      where: { eventId_customerId: { eventId: 1, customerId: 10 } },
-      data: { token: expect.any(String) },
-    });
+    expect(mockSendMailBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokenMap: new Map([[10, "existing-token"]]),
+      })
+    );
+    expect(mockPrisma.rsvp.update).not.toHaveBeenCalled();
   });
 
   it("正常系: pending + 新規の混在ケース", async () => {
     setupSuperAdmin();
     // customerId: 10 は pending、customerId: 20 は新規
-    mockPrisma.rsvp.findMany.mockResolvedValueOnce([{ customerId: 10, status: "pending" }]);
+    mockPrisma.rsvp.findMany.mockResolvedValueOnce([
+      { customerId: 10, status: "pending", token: "existing-token" },
+    ]);
     mockPrisma.customer.findMany.mockResolvedValue([
       { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com" },
       { id: 20, lastName: "佐藤", firstName: "花子", email: "sato@example.com" },
     ]);
     mockPrisma.rsvp.createMany.mockResolvedValue({ count: 1 });
-    mockPrisma.rsvp.update.mockResolvedValue({});
     mockSendMailBatch.mockResolvedValue({ sentCount: 2, failedCount: 0, failedNames: [], successCustomerIds: [10, 20] });
 
     const result = await sendInviteAction(validInviteData);
@@ -334,21 +337,22 @@ describe("sendInviteAction", () => {
       data: [expect.objectContaining({ eventId: 1, customerId: 20 })],
       skipDuplicates: true,
     });
-    // pending分はupdate
-    expect(mockPrisma.rsvp.update).toHaveBeenCalledWith({
-      where: { eventId_customerId: { eventId: 1, customerId: 10 } },
-      data: { token: expect.any(String) },
-    });
+    const tokenMap = mockSendMailBatch.mock.calls[0][0].tokenMap;
+    expect(tokenMap.get(10)).toBe("existing-token");
+    expect(tokenMap.get(20)).toEqual(expect.any(String));
+    expect(tokenMap.get(20)).not.toBe("existing-token");
+    expect(mockPrisma.rsvp.update).not.toHaveBeenCalled();
   });
 
-  it("異常系: pending再送のDB更新失敗時はfailedとして集計される", async () => {
+  it("正常系: pending再送ではRSVPのDB更新を行わない", async () => {
     setupSuperAdmin();
-    mockPrisma.rsvp.findMany.mockResolvedValueOnce([{ customerId: 10, status: "pending" }]);
+    mockPrisma.rsvp.findMany.mockResolvedValueOnce([
+      { customerId: 10, status: "pending", token: "existing-token" },
+    ]);
     mockPrisma.customer.findMany.mockResolvedValue([
       { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com" },
     ]);
     mockSendMailBatch.mockResolvedValue({ sentCount: 1, failedCount: 0, failedNames: [], successCustomerIds: [10] });
-    mockPrisma.rsvp.update.mockRejectedValue(new Error("DB error"));
 
     const result = await sendInviteAction({
       ...validInviteData,
@@ -357,10 +361,11 @@ describe("sendInviteAction", () => {
 
     expect(result).toEqual({
       success: true,
-      sentCount: 0,
-      failedCount: 1,
-      failedNames: ["田中 太郎"],
+      sentCount: 1,
+      failedCount: 0,
+      failedNames: [],
     });
+    expect(mockPrisma.rsvp.update).not.toHaveBeenCalled();
   });
 
   it("正常系: online/absent の回答済み顧客も除外される", async () => {
