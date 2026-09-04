@@ -10,6 +10,7 @@ export interface CustomerFormMasterData {
   communities: CommunityOption[];
   prefectures: MasterData[];
   listingCategories: ListingCategoryOption[];
+  departments: MasterData[];
   originIndustries: MasterData[];
   membershipQualifications: MasterData[];
   affiliations: MasterData[];
@@ -27,11 +28,12 @@ export interface EventFormMasterData {
  * 顧客フォーム（新規作成・編集）で使用するマスタデータを一括取得
  */
 export async function fetchCustomerFormMasterData(): Promise<CustomerFormMasterData> {
-  const [communities, prefectures, listingCategories, originIndustries, membershipQualifications, affiliations] =
+  const [communities, prefectures, listingCategories, departments, originIndustries, membershipQualifications, affiliations] =
     await Promise.all([
       prisma.community.findMany({ where: { code: { not: COMMUNITY_CODE.OTHER } }, orderBy: { sortOrder: "asc" } }),
       prisma.prefecture.findMany({ orderBy: { sortOrder: "asc" } }),
       prisma.listingCategory.findMany({ orderBy: { sortOrder: "asc" } }),
+      prisma.department.findMany({ orderBy: { sortOrder: "asc" } }),
       prisma.originIndustry.findMany({ orderBy: { sortOrder: "asc" } }),
       prisma.membershipQualification.findMany({ orderBy: { sortOrder: "asc" } }),
       prisma.affiliation.findMany({ orderBy: { sortOrder: "asc" } }),
@@ -45,6 +47,7 @@ export async function fetchCustomerFormMasterData(): Promise<CustomerFormMasterD
       marketName: lc.marketName,
       stockExchangeName: lc.stockExchangeName,
     })),
+    departments,
     originIndustries,
     membershipQualifications,
     affiliations,

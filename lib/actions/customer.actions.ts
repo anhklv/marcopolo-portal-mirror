@@ -8,7 +8,10 @@ import {
   canAccessCustomer,
 } from "@/lib/auth/permissions";
 import { COMMUNITY_CODE } from "@/lib/constants/community";
-import { customerFormSchema } from "@/lib/validations/customer";
+import {
+  customerFormSchema,
+  normalizeCustomerFormDatesForValidation,
+} from "@/lib/validations/customer";
 import type { CustomerFormInput } from "@/lib/validations/customer";
 import { formatZodFieldErrors } from "@/lib/validations/utils";
 import * as customerRepo from "@/lib/repositories/customer.repository";
@@ -25,7 +28,7 @@ import { isPrismaUniqueViolationOnField } from "@/lib/utils/prisma-error";
 function validateCommunityScope(
   communityIds: number[],
   scopedCommunityIds: number[],
-  isSuper: boolean
+  isSuper: boolean,
 ): string | null {
   if (isSuper) return null;
 
@@ -35,7 +38,7 @@ function validateCommunityScope(
   }
 
   const outOfScope = communityIds.filter(
-    (id) => !scopedCommunityIds.includes(id)
+    (id) => !scopedCommunityIds.includes(id),
   );
   if (outOfScope.length > 0) {
     return "権限のないコミュニティが含まれています";
@@ -43,10 +46,16 @@ function validateCommunityScope(
   return null;
 }
 
-function parseFormData(raw: unknown): { data: CustomerFormInput | null; errors: ActionResult | null } {
+function parseFormData(raw: unknown): {
+  data: CustomerFormInput | null;
+  errors: ActionResult | null;
+} {
   const parsed = customerFormSchema.safeParse(raw);
   if (!parsed.success) {
-    return { data: null, errors: { fieldErrors: formatZodFieldErrors(parsed.error) } };
+    return {
+      data: null,
+      errors: { fieldErrors: formatZodFieldErrors(parsed.error) },
+    };
   }
   return { data: parsed.data, errors: null };
 }
@@ -67,7 +76,7 @@ function buildCommunityData(communities?: CustomerFormInput["communities"]) {
 
 async function findOutOfScopeCommunityData(
   customerId: number,
-  scopedCommunityIds: number[]
+  scopedCommunityIds: number[],
 ) {
   const communities = await prisma.customerCommunity.findMany({
     where: {
@@ -102,7 +111,7 @@ async function findOutOfScopeCommunityData(
  * ベンチャー監査役の会＋会員の場合、会員種別は必須
  */
 async function validateAuditMemberType(
-  data: CustomerFormInput
+  data: CustomerFormInput,
 ): Promise<{ error?: string }> {
   const ventureAuditor = await prisma.community.findUnique({
     where: { code: COMMUNITY_CODE.VENTURE_AUDITOR },
@@ -110,13 +119,16 @@ async function validateAuditMemberType(
   if (!ventureAuditor) return {};
 
   const auditCommunity = (data.communities ?? []).find(
-    (c) => c.communityId === ventureAuditor.id
+    (c) => c.communityId === ventureAuditor.id,
   );
   if (!auditCommunity) return {};
 
   if (data.memberCategory !== "member") return {};
 
-  if (!auditCommunity.auditMemberType || !["regular", "online"].includes(auditCommunity.auditMemberType)) {
+  if (
+    !auditCommunity.auditMemberType ||
+    !["regular", "online"].includes(auditCommunity.auditMemberType)
+  ) {
     return { error: "会員種別を選択してください" };
   }
   return {};
@@ -130,7 +142,7 @@ async function validateAuditMemberType(
  * 顧客新規作成
  */
 export async function createCustomerAction(
-  formData: unknown
+  formData: unknown,
 ): Promise<ActionResult | void> {
   // 認証
   const { isSuper, scopedCommunityIds } = await requireAuthenticatedAdmin();
@@ -145,7 +157,11 @@ export async function createCustomerAction(
 
   // スコープ検証
   const communityIds = (data.communities ?? []).map((c) => c.communityId);
-  const scopeError = validateCommunityScope(communityIds, scopedCommunityIds, isSuper);
+  const scopeError = validateCommunityScope(
+    communityIds,
+    scopedCommunityIds,
+    isSuper,
+  );
   if (scopeError) return { error: scopeError };
 
   // メール重複チェック
@@ -172,15 +188,102 @@ export async function createCustomerAction(
   redirect("/admin/customers");
 }
 
+export async function createCustomersBatchAction(
+  rawRows: unknown[],
+): Promise<ActionResult & { count?: number }> {
+  const { isSuper, scopedCommunityIds } = await requireAuthenticatedAdmin();
+  if (!Array.isArray(rawRows) || rawRows.length < 1 || rawRows.length > 1000) {
+    return { error: "登録件数が不正です" };
+  }
+  const rows: CustomerFormInput[] = [];
+  for (let index = 0; index < rawRows.length; index++) {
+    const parsed = customerFormSchema.safeParse(
+      normalizeCustomerFormDatesForValidation(rawRows[index]),
+    );
+    if (!parsed.success)
+      return {
+        error: `${index + 1}行目: ${parsed.error.issues[0]?.message ?? "データが不正です"}`,
+      };
+    const auditError = await validateAuditMemberType(parsed.data);
+    if (auditError.error)
+      return { error: `${index + 1}行目: ${auditError.error}` };
+    const scopeError = validateCommunityScope(
+      (parsed.data.communities ?? []).map((c) => c.communityId),
+      scopedCommunityIds,
+      isSuper,
+    );
+    if (scopeError) return { error: `${index + 1}行目: ${scopeError}` };
+    rows.push(parsed.data);
+  }
+  const normalizedEmails = rows.map((row) => row.email.trim().toLowerCase());
+  const duplicate = normalizedEmails.find(
+    (email, index) => normalizedEmails.indexOf(email) !== index,
+  );
+  if (duplicate)
+    return {
+      error: `CSVファイル内でメールアドレスが重複しています: ${duplicate}`,
+    };
+  const existing = await prisma.customer.findFirst({
+    where: {
+      email: { in: rows.map((row) => row.email), mode: "insensitive" },
+      deletedAt: null,
+    },
+    select: { email: true },
+  });
+  if (existing)
+    return {
+      error: `このメールアドレスは既に登録されています: ${existing.email}`,
+    };
+  try {
+
+    const count = await customerRepo.createManyAtomic(
+      rows.map((row) => ({
+        ...row,
+        communities: buildCommunityData(row.communities),
+      })),
+    );
+    revalidatePath("/admin/customers");
+    return { count };
+  } catch (error) {
+    if (isPrismaUniqueViolationOnField(error, "email"))
+      return { error: "このメールアドレスは既に登録されています" };
+    logServerError("createCustomersBatchAction", error);
+    return { error: "顧客データの登録に失敗しました" };
+  }
+}
+
+export async function findExistingCustomerEmailsAction(
+  emails: string[],
+): Promise<{ emails?: string[]; error?: string }> {
+  await requireAuthenticatedAdmin();
+  const normalized = [
+    ...new Set(
+      emails.map((email) => email.trim().toLowerCase()).filter(Boolean),
+    ),
+  ];
+  if (normalized.length === 0) return { emails: [] };
+  if (normalized.length > 1000)
+    return { error: "確認対象のメールアドレス件数が不正です" };
+  const customers = await prisma.customer.findMany({
+    where: {
+      email: { in: normalized, mode: "insensitive" },
+      deletedAt: null,
+    },
+    select: { email: true },
+  });
+  return { emails: customers.map((customer) => customer.email) };
+}
+
 /**
  * 顧客更新
  */
 export async function updateCustomerAction(
   id: number,
-  formData: unknown
+  formData: unknown,
 ): Promise<ActionResult | void> {
   // 認証
-  const { admin, isSuper, scopedCommunityIds } = await requireAuthenticatedAdmin();
+  const { admin, isSuper, scopedCommunityIds } =
+    await requireAuthenticatedAdmin();
 
   // アクセス権チェック
   const hasAccess = await canAccessCustomer(admin, id);
@@ -198,7 +301,11 @@ export async function updateCustomerAction(
 
   // スコープ検証
   const communityIds = (data.communities ?? []).map((c) => c.communityId);
-  const scopeError = validateCommunityScope(communityIds, scopedCommunityIds, isSuper);
+  const scopeError = validateCommunityScope(
+    communityIds,
+    scopedCommunityIds,
+    isSuper,
+  );
   if (scopeError) return { error: scopeError };
 
   // メール重複チェック（自身を除外）
@@ -237,7 +344,7 @@ export async function updateCustomerAction(
  * 顧客論理削除
  */
 export async function deleteCustomerAction(
-  id: number
+  id: number,
 ): Promise<ActionResult | void> {
   // 認証
   const { admin } = await requireAuthenticatedAdmin();
@@ -258,7 +365,7 @@ export async function deleteCustomerAction(
  * CSVエクスポート
  */
 export async function exportCustomersAction(
-  filters?: customerRepo.CustomerListFilters
+  filters?: customerRepo.CustomerListFilters,
 ): Promise<{ csv: string } | ActionResult> {
   // 認証
   const { isSuper, scopedCommunityIds } = await requireAuthenticatedAdmin();
@@ -287,7 +394,9 @@ export async function exportCustomersAction(
     auditMemberTypes: filters?.auditMemberTypes ?? [],
     premiumOnly: filters?.premiumOnly ?? false,
     includeFormerMembers: filters?.includeFormerMembers ?? false,
-    includeNonMemberFilter: isSuper ? (filters?.includeNonMember ?? false) : false,
+    includeNonMemberFilter: isSuper
+      ? (filters?.includeNonMember ?? false)
+      : false,
   };
 
   const filteredResult = filterCustomers(filterableCustomers, helperFilters);

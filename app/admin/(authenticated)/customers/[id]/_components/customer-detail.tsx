@@ -255,6 +255,18 @@ export function CustomerDetail({ customer, showBack = true }: CustomerDetailProp
                 </DataItem>
               )}
               {customer.company && <DataItem label="会社名">{customer.company}</DataItem>}
+              {customer.departments.length > 0 && (
+                <DataItem label="所属部署">
+                  {customer.departments
+                    .map((department) =>
+                      department.name === "その他" && department.note
+                        ? `${department.name}：${department.note}`
+                        : department.name
+                    )
+                    .join(" 、 ")}
+                </DataItem>
+              )}
+              {customer.position && <DataItem label="役職">{customer.position}</DataItem>}
               {customer.listingCategory && (
                 <DataItem label="上場区分">{customer.listingCategory.name}</DataItem>
               )}

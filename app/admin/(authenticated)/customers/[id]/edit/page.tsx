@@ -1,6 +1,7 @@
 import { getAuthenticatedAdmin, canAccessCustomer } from "@/lib/auth/permissions";
 import { findById } from "@/lib/repositories/customer.repository";
 import { fetchCustomerFormMasterData } from "@/lib/repositories/master.repository";
+import { prisma } from "@/lib/prisma";
 import { CustomerForm } from "../../_components/customer-form";
 import { notFound } from "next/navigation";
 
@@ -34,6 +35,13 @@ export default async function EditCustomerPage({
 
   const masterData = await fetchCustomerFormMasterData();
 
+  const otherDepartmentId = masterData.departments.find(
+    (department) => department.name === "その他",
+  )?.id;
+  const otherDepartmentNote = otherDepartmentId
+    ? await fetchCustomerDepartmentNote(customerId, otherDepartmentId)
+    : null;
+
   // Date をシリアライズして initialData を構築
   const initialData = {
     id: customer.id,
@@ -44,12 +52,15 @@ export default async function EditCustomerPage({
     email: customer.email,
     subEmails: customer.subEmails,
     company: customer.company,
+    position: customer.position,
     phone: customer.phone,
     postalCode: customer.postalCode,
     prefectureId: customer.prefectureId,
     city: customer.city,
     gender: customer.gender,
     listingCategoryId: customer.listingCategoryId,
+    departmentIds: customer.customerDepartments.map((cd) => cd.departmentId),
+    departmentOtherNote: otherDepartmentNote,
     memberCategory: customer.memberCategory,
     contractType: customer.contractType,
     jobChangeIntent: customer.jobChangeIntent,
@@ -75,4 +86,19 @@ export default async function EditCustomerPage({
       scopedCommunityIds={scopedCommunityIds}
     />
   );
+}
+
+async function fetchCustomerDepartmentNote(
+  customerId: number,
+  departmentId: number,
+) {
+  const rows = await prisma.$queryRaw<{ note: string | null }[]>`
+    SELECT "note"
+    FROM "customer_departments"
+    WHERE "customer_id" = ${customerId}
+      AND "department_id" = ${departmentId}
+    LIMIT 1
+  `;
+
+  return rows[0]?.note ?? null;
 }

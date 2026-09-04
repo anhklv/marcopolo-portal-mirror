@@ -4,13 +4,12 @@ import {
   requireAuthenticatedAdmin,
   canAccessEvent,
 } from "@/lib/auth/permissions";
-import { findEventByIdForDetail } from "@/lib/repositories/event.repository";
-import { serializeEventForDetail } from "@/lib/serializers/event";
+import { findEventByIdForAttendeesExport } from "@/lib/repositories/event.repository";
+import { filterAttendees } from "@/lib/helpers/event-detail";
 import {
-  toAttendeeRows,
-  filterAttendees,
-} from "@/lib/helpers/event-detail";
-import { buildEventAttendeesCsv } from "@/lib/helpers/event-attendees-csv";
+  buildEventAttendeesCsv,
+  toEventAttendeeCsvRows,
+} from "@/lib/helpers/event-attendees-csv";
 import { exportEventAttendeesCsvSchema } from "@/lib/validations/event";
 import { formatZodFieldErrors } from "@/lib/validations/utils";
 import type { ActionResult } from "@/lib/types/action";
@@ -37,15 +36,14 @@ export async function exportEventAttendeesCsvAction(
     return { error: "このイベントにアクセスできません" };
   }
 
-  const event = await findEventByIdForDetail(eventId);
+  const event = await findEventByIdForAttendeesExport(eventId);
   if (!event) {
     return { error: "イベントが見つかりません" };
   }
 
-  const serialized = serializeEventForDetail(event);
-  const allRows = toAttendeeRows(serialized.rsvps);
+  const allRows = toEventAttendeeCsvRows(event.rsvps);
   const filtered = filterAttendees(allRows, keyword, statuses);
 
-  const csv = buildEventAttendeesCsv(serialized, filtered);
+  const csv = buildEventAttendeesCsv(event, filtered);
   return { csv };
 }
