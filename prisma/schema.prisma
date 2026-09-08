@@ -299,6 +299,7 @@ model Rsvp {
   status           RsvpStatus       @default(pending)
   afterPartyStatus AfterPartyStatus? @map("after_party_status")
   comment          String?          @db.Text
+  adminNote        String?          @map("admin_note") @db.Text
   respondedAt      DateTime?        @map("responded_at")
   createdAt        DateTime         @default(now()) @map("created_at")
   updatedAt        DateTime         @updatedAt @map("updated_at")
