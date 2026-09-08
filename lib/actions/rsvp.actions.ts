@@ -10,6 +10,8 @@ import {
   requireAuthenticatedAdmin,
 } from "@/lib/auth/permissions";
 import * as rsvpRepo from "@/lib/repositories/rsvp.repository";
+import { getBaseUrl } from "@/lib/helpers/base-url";
+import { sendMailBatch } from "@/lib/mail/send";
 import { logServerError } from "@/lib/utils/log-error";
 
 // ============================================================
@@ -20,7 +22,9 @@ type SubmitRsvpResult =
   | { success: true }
   | { success: false; error: string };
 
-type AdminUpdateRsvpResult = SubmitRsvpResult;
+type AdminUpdateRsvpResult =
+  | { success: true; emailWarning?: string }
+  | { success: false; error: string };
 
 // ============================================================
 // Actions
@@ -115,7 +119,17 @@ export async function adminUpdateRsvpAction(
     return { success: false, error: parsed.error.issues[0].message };
   }
 
-  const { rsvpId, eventId, status, afterPartyStatus, comment } = parsed.data;
+  const {
+    rsvpId,
+    eventId,
+    status,
+    afterPartyStatus,
+    comment,
+    adminNote,
+    notifyCustomerByEmail,
+    emailSubject,
+    emailBody,
+  } = parsed.data;
 
   try {
     const { admin } = await requireAuthenticatedAdmin();
@@ -151,12 +165,37 @@ export async function adminUpdateRsvpAction(
       status,
       afterPartyStatus: status === "attending" ? afterPartyStatus : null,
       comment,
+      adminNote,
       respondedAt: new Date(),
     });
 
+    let emailWarning: string | undefined;
+    if (notifyCustomerByEmail) {
+      try {
+        const batchResult = await sendMailBatch({
+          customers: [rsvp.customer],
+          tokenMap: new Map([[rsvp.customer.id, rsvp.token]]),
+          eventId,
+          baseUrl: await getBaseUrl(),
+          from: process.env.SMTP_FROM ?? "noreply@example.com",
+          emailTitle: emailSubject?.trim() ?? "",
+          emailBody: emailBody?.trim() ?? "",
+        });
+
+        if (batchResult.failedCount > 0) {
+          emailWarning =
+            "参加ステータスは更新しましたが、通知メールの送信に失敗しました";
+        }
+      } catch (error) {
+        logServerError("adminUpdateRsvpAction:sendNotification", error);
+        emailWarning =
+          "参加ステータスは更新しましたが、通知メールの送信に失敗しました";
+      }
+    }
+
     revalidatePath(`/admin/events/${eventId}`);
 
-    return { success: true };
+    return emailWarning ? { success: true, emailWarning } : { success: true };
   } catch (error) {
     logServerError("adminUpdateRsvpAction", error);
     return {
