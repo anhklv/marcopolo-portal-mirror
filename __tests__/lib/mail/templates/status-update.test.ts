@@ -20,7 +20,7 @@ describe("generateStatusUpdateSubject", () => {
 });
 
 describe("generateStatusUpdateBody", () => {
-  it("通知に必要な項目と受信者別プレースホルダを含む", () => {
+  it("通知に必要な項目と受信者名プレースホルダを含む", () => {
     const body = generateStatusUpdateBody(baseParams);
 
     expect(body).toContain("{CUSTOMER_NAME} 様");
@@ -28,7 +28,11 @@ describe("generateStatusUpdateBody", () => {
     expect(body).toContain("■開催日時");
     expect(body).toContain("■参加ステータス\n現地参加");
     expect(body).toContain("■懇親会\n参加する");
-    expect(body).toContain("{RSVP_URL}");
+    expect(body).not.toContain("詳細については、以下の参加URLよりご確認ください。");
+    expect(body).not.toContain("{RSVP_URL}");
+    expect(body).toContain(
+      "※本メールは、管理者による参加ステータスの更新に伴い、自動送信されています。"
+    );
   });
 
   it("懇親会ステータスがない場合は懇親会セクションを省略する", () => {
