@@ -7,16 +7,41 @@ vi.mock("next/cache", () => ({
   revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
 }));
 
+const mockSendMailBatch = vi.fn();
+vi.mock("@/lib/mail/send", () => ({
+  sendMailBatch: (...args: unknown[]) => mockSendMailBatch(...args),
+}));
+
+const mockGetBaseUrl = vi.fn();
+vi.mock("@/lib/helpers/base-url", () => ({
+  getBaseUrl: (...args: unknown[]) => mockGetBaseUrl(...args),
+}));
+
 // repository のモック
 const mockFindRsvpByToken = vi.fn();
+const mockFindRsvpByIdForAdmin = vi.fn();
 const mockUpdateRsvpResponse = vi.fn();
 
 vi.mock("@/lib/repositories/rsvp.repository", () => ({
   findRsvpByToken: (...args: unknown[]) => mockFindRsvpByToken(...args),
+  findRsvpByIdForAdmin: (...args: unknown[]) =>
+    mockFindRsvpByIdForAdmin(...args),
   updateRsvpResponse: (...args: unknown[]) => mockUpdateRsvpResponse(...args),
 }));
 
-import { submitRsvpAction } from "@/lib/actions/rsvp.actions";
+const mockRequireAuthenticatedAdmin = vi.fn();
+const mockCanAccessEvent = vi.fn();
+
+vi.mock("@/lib/auth/permissions", () => ({
+  requireAuthenticatedAdmin: (...args: unknown[]) =>
+    mockRequireAuthenticatedAdmin(...args),
+  canAccessEvent: (...args: unknown[]) => mockCanAccessEvent(...args),
+}));
+
+import {
+  adminUpdateRsvpAction,
+  submitRsvpAction,
+} from "@/lib/actions/rsvp.actions";
 
 // テストデータ
 function createMockRsvpData(overrides: Record<string, unknown> = {}) {
@@ -321,6 +346,249 @@ describe("submitRsvpAction", () => {
     expect(result).toEqual({
       success: false,
       error: "回答の送信中にエラーが発生しました",
+    });
+  });
+});
+
+function createMockAdminRsvpData(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 1,
+    eventId: 10,
+    customerId: 20,
+    token: "admin-test-token",
+    status: "pending",
+    event: {
+      id: 10,
+      deletedAt: null,
+      hasAfterParty: false,
+    },
+    customer: {
+      id: 20,
+      lastName: "山田",
+      firstName: "太郎",
+      email: "yamada@example.com",
+      subEmails: ["yamada-sub@example.com"],
+      deletedAt: null,
+    },
+    ...overrides,
+  };
+}
+
+const validAdminUpdateData = {
+  rsvpId: 1,
+  eventId: 10,
+  status: "attending" as const,
+  afterPartyStatus: null,
+  comment: "管理者による変更",
+  adminNote: "電話連絡により変更",
+};
+
+describe("adminUpdateRsvpAction", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockRequireAuthenticatedAdmin.mockResolvedValue({
+      admin: { id: 1, role: "super", adminCommunities: [] },
+    });
+    mockCanAccessEvent.mockResolvedValue(true);
+    mockGetBaseUrl.mockResolvedValue("http://localhost:3000");
+    mockSendMailBatch.mockResolvedValue({
+      sentCount: 1,
+      failedCount: 0,
+      failedNames: [],
+      successCustomerIds: [20],
+    });
+  });
+
+  it("正常系: RSVPを更新してイベント詳細を再検証する", async () => {
+    mockFindRsvpByIdForAdmin.mockResolvedValue(createMockAdminRsvpData());
+    mockUpdateRsvpResponse.mockResolvedValue({});
+
+    const result = await adminUpdateRsvpAction(validAdminUpdateData);
+
+    expect(result).toEqual({ success: true });
+    expect(mockFindRsvpByIdForAdmin).toHaveBeenCalledWith(1, 10);
+    expect(mockUpdateRsvpResponse).toHaveBeenCalledWith(1, {
+      status: "attending",
+      afterPartyStatus: null,
+      comment: "管理者による変更",
+      adminNote: "電話連絡により変更",
+      respondedAt: expect.any(Date),
+    });
+    expect(mockRevalidatePath).toHaveBeenCalledWith("/admin/events/10");
+    expect(mockSendMailBatch).not.toHaveBeenCalled();
+  });
+
+  it("正常系: 通知指定時は更新後に顧客へメールを送信する", async () => {
+    const rsvp = createMockAdminRsvpData();
+    mockFindRsvpByIdForAdmin.mockResolvedValue(rsvp);
+    mockUpdateRsvpResponse.mockResolvedValue({});
+
+    const result = await adminUpdateRsvpAction({
+      ...validAdminUpdateData,
+      notifyCustomerByEmail: true,
+      emailSubject: "更新のお知らせ",
+      emailBody: "更新しました",
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(mockUpdateRsvpResponse).toHaveBeenCalled();
+    expect(mockSendMailBatch).toHaveBeenCalledWith({
+      customers: [rsvp.customer],
+      tokenMap: new Map([[20, "admin-test-token"]]),
+      eventId: 10,
+      baseUrl: "http://localhost:3000",
+      from: "noreply@example.com",
+      emailTitle: "更新のお知らせ",
+      emailBody: "更新しました",
+    });
+  });
+
+  it("正常系: メール送信失敗時も更新成功として警告を返す", async () => {
+    mockFindRsvpByIdForAdmin.mockResolvedValue(createMockAdminRsvpData());
+    mockUpdateRsvpResponse.mockResolvedValue({});
+    mockSendMailBatch.mockResolvedValue({
+      sentCount: 0,
+      failedCount: 1,
+      failedNames: ["山田 太郎"],
+      successCustomerIds: [],
+    });
+
+    const result = await adminUpdateRsvpAction({
+      ...validAdminUpdateData,
+      notifyCustomerByEmail: true,
+      emailSubject: "更新のお知らせ",
+      emailBody: "更新しました",
+    });
+
+    expect(result).toEqual({
+      success: true,
+      emailWarning:
+        "参加ステータスは更新しましたが、通知メールの送信に失敗しました",
+    });
+  });
+
+  it("異常系: 通知指定時に件名が空の場合は更新しない", async () => {
+    const result = await adminUpdateRsvpAction({
+      ...validAdminUpdateData,
+      notifyCustomerByEmail: true,
+      emailSubject: " ",
+      emailBody: "更新しました",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "メールタイトルを入力してください",
+    });
+    expect(mockRequireAuthenticatedAdmin).not.toHaveBeenCalled();
+    expect(mockUpdateRsvpResponse).not.toHaveBeenCalled();
+  });
+
+  it("正常系: オンライン参加の場合は懇親会回答をnullにする", async () => {
+    mockFindRsvpByIdForAdmin.mockResolvedValue(
+      createMockAdminRsvpData({
+        event: { id: 10, deletedAt: null, hasAfterParty: true },
+      })
+    );
+    mockUpdateRsvpResponse.mockResolvedValue({});
+
+    const result = await adminUpdateRsvpAction({
+      ...validAdminUpdateData,
+      status: "online",
+      afterPartyStatus: "attending",
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(mockUpdateRsvpResponse).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({
+        status: "online",
+        afterPartyStatus: null,
+      })
+    );
+  });
+
+  it("異常系: イベントへのアクセス権がない", async () => {
+    mockCanAccessEvent.mockResolvedValue(false);
+
+    const result = await adminUpdateRsvpAction(validAdminUpdateData);
+
+    expect(result).toEqual({
+      success: false,
+      error: "このイベントへのアクセス権がありません",
+    });
+    expect(mockFindRsvpByIdForAdmin).not.toHaveBeenCalled();
+  });
+
+  it("異常系: RSVPがイベント内に存在しない", async () => {
+    mockFindRsvpByIdForAdmin.mockResolvedValue(null);
+
+    const result = await adminUpdateRsvpAction(validAdminUpdateData);
+
+    expect(result).toEqual({
+      success: false,
+      error: "参加者が見つかりません",
+    });
+    expect(mockUpdateRsvpResponse).not.toHaveBeenCalled();
+  });
+
+  it("異常系: 顧客が論理削除されている", async () => {
+    mockFindRsvpByIdForAdmin.mockResolvedValue(
+      createMockAdminRsvpData({
+        customer: { id: 20, deletedAt: new Date() },
+      })
+    );
+
+    const result = await adminUpdateRsvpAction(validAdminUpdateData);
+
+    expect(result).toEqual({
+      success: false,
+      error: "この顧客は削除されています",
+    });
+    expect(mockUpdateRsvpResponse).not.toHaveBeenCalled();
+  });
+
+  it("異常系: 現地参加かつ懇親会の回答が未選択", async () => {
+    mockFindRsvpByIdForAdmin.mockResolvedValue(
+      createMockAdminRsvpData({
+        event: { id: 10, deletedAt: null, hasAfterParty: true },
+      })
+    );
+
+    const result = await adminUpdateRsvpAction({
+      rsvpId: 1,
+      eventId: 10,
+      status: "attending",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "懇親会の参加可否を選択してください",
+    });
+    expect(mockUpdateRsvpResponse).not.toHaveBeenCalled();
+  });
+
+  it("異常系: メッセージが1000文字を超える", async () => {
+    const result = await adminUpdateRsvpAction({
+      ...validAdminUpdateData,
+      comment: "あ".repeat(1001),
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "メッセージは1000文字以内で入力してください",
+    });
+    expect(mockRequireAuthenticatedAdmin).not.toHaveBeenCalled();
+  });
+
+  it("異常系: DB更新に失敗する", async () => {
+    mockFindRsvpByIdForAdmin.mockResolvedValue(createMockAdminRsvpData());
+    mockUpdateRsvpResponse.mockRejectedValue(new Error("DB error"));
+
+    const result = await adminUpdateRsvpAction(validAdminUpdateData);
+
+    expect(result).toEqual({
+      success: false,
+      error: "参加ステータスの更新に失敗しました",
     });
   });
 });

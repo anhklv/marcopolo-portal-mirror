@@ -135,9 +135,11 @@ export interface SerializedCustomerDetail {
 
 export interface SerializedRsvpForEventDetail {
   id: number;
+  token: string;
   status: string;
   afterPartyStatus: string | null;
   comment: string | null;
+  adminNote: string | null;
   respondedAt: string | null;
   customer: {
     id: number;

@@ -38,6 +38,7 @@ function makeEvent(overrides: Partial<EventForDetail> = {}): EventForDetail {
         status: "attending",
         afterPartyStatus: "attending",
         comment: "楽しみです",
+        adminNote: "管理者確認済み",
         respondedAt: new Date("2026-02-01T10:00:00.000Z"),
         createdAt: new Date("2026-01-15T00:00:00.000Z"),
         updatedAt: new Date("2026-01-15T00:00:00.000Z"),
@@ -93,9 +94,11 @@ describe("serializeEventForDetail", () => {
     expect(serialized.rsvps).toHaveLength(1);
     expect(serialized.rsvps[0]).toEqual({
       id: 10,
+      token: "token-1",
       status: "attending",
       afterPartyStatus: "attending",
       comment: "楽しみです",
+      adminNote: "管理者確認済み",
       respondedAt: "2026-02-01T10:00:00.000Z",
       customer: {
         id: 100,
@@ -146,6 +149,7 @@ describe("serializeEventForDetail", () => {
           status: "pending",
           afterPartyStatus: null,
           comment: null,
+          adminNote: null,
           respondedAt: null,
           createdAt: new Date("2026-01-15T00:00:00.000Z"),
           updatedAt: new Date("2026-01-15T00:00:00.000Z"),

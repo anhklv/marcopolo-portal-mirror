@@ -12,6 +12,19 @@ export type RsvpForPage = Rsvp & {
   customer: Pick<Customer, "id" | "lastName" | "firstName" | "deletedAt">;
 };
 
+export type RsvpForAdminUpdate = Rsvp & {
+  event: Pick<Event, "id" | "deletedAt" | "hasAfterParty">;
+  customer: Pick<
+    Customer,
+    | "id"
+    | "lastName"
+    | "firstName"
+    | "email"
+    | "subEmails"
+    | "deletedAt"
+  >;
+};
+
 // ============================================================
 // Repository 関数
 // ============================================================
@@ -46,6 +59,41 @@ export async function findRsvpByToken(
 }
 
 /**
+ * 管理者によるRSVP更新用に取得（RSVPとイベントの組み合わせを確認）
+ */
+export async function findRsvpByIdForAdmin(
+  rsvpId: number,
+  eventId: number
+): Promise<RsvpForAdminUpdate | null> {
+  return prisma.rsvp.findFirst({
+    where: {
+      id: rsvpId,
+      eventId,
+      event: { deletedAt: null },
+    },
+    include: {
+      event: {
+        select: {
+          id: true,
+          deletedAt: true,
+          hasAfterParty: true,
+        },
+      },
+      customer: {
+        select: {
+          id: true,
+          lastName: true,
+          firstName: true,
+          email: true,
+          subEmails: true,
+          deletedAt: true,
+        },
+      },
+    },
+  });
+}
+
+/**
  * RSVP回答更新
  */
 export async function updateRsvpResponse(
@@ -54,6 +102,7 @@ export async function updateRsvpResponse(
     status: "attending" | "online" | "absent";
     afterPartyStatus: "attending" | "not_attending" | null;
     comment: string | null;
+    adminNote?: string | null;
     respondedAt: Date;
   }
 ): Promise<Rsvp> {
