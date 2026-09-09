@@ -20,6 +20,7 @@ export function serializeRsvpForPage(
       hasAfterParty: rsvp.event.hasAfterParty,
       responseDeadline: rsvp.event.responseDeadline?.toISOString() ?? null,
       community: {
+        code: rsvp.event.community.code,
         name: rsvp.event.community.name,
       },
     },

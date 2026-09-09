@@ -35,6 +35,7 @@ function createMockRsvp(
       createdAt: new Date("2026-01-01T00:00:00Z"),
       updatedAt: new Date("2026-01-01T00:00:00Z"),
       community: {
+        code: "venture_auditor",
         name: "ベンチャー監査役の会",
       },
     },
@@ -63,6 +64,7 @@ describe("serializeRsvpForPage", () => {
     expect(result.event.allowsOnline).toBe(true);
     expect(result.event.hasAfterParty).toBe(true);
     expect(result.event.responseDeadline).toBe("2026-02-28T23:59:59.000Z");
+    expect(result.event.community.code).toBe("venture_auditor");
     expect(result.event.community.name).toBe("ベンチャー監査役の会");
 
     expect(result.rsvp.id).toBe(1);

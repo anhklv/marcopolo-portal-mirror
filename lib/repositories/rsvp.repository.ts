@@ -7,7 +7,7 @@ import type { Community, Customer, Event, Rsvp } from "@/lib/generated/prisma";
 
 export type RsvpForPage = Rsvp & {
   event: Event & {
-    community: Pick<Community, "name">;
+    community: Pick<Community, "code" | "name">;
   };
   customer: Pick<Customer, "id" | "lastName" | "firstName" | "deletedAt">;
 };
@@ -42,7 +42,7 @@ export async function findRsvpByToken(
       event: {
         include: {
           community: {
-            select: { name: true },
+            select: { code: true, name: true },
           },
         },
       },

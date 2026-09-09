@@ -58,6 +58,10 @@ function createMockRsvpData(overrides: Record<string, unknown> = {}) {
       hasAfterParty: false,
       responseDeadline: new Date("2099-12-31T23:59:59Z"),
       date: new Date("2099-12-31T23:59:59Z"),
+      community: {
+        code: "venture_auditor",
+        name: "ベンチャー監査役の会",
+      },
     },
     customer: {
       id: 20,
@@ -205,9 +209,52 @@ describe("submitRsvpAction", () => {
     expect(mockRevalidatePath).toHaveBeenCalledWith("/admin/events/10");
   });
 
+  it("正常系: ないかんMeetupで規約同意済み → success", async () => {
+    const rsvpData = createMockRsvpData({
+      event: {
+        ...createMockRsvpData().event,
+        community: {
+          code: "naikan_meetup",
+          name: "ないかんMeetup",
+        },
+      },
+    });
+    mockFindRsvpByToken.mockResolvedValue(rsvpData);
+    mockUpdateRsvpResponse.mockResolvedValue({});
+
+    const result = await submitRsvpAction({
+      ...validFormData,
+      termsAgreed: true,
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(mockUpdateRsvpResponse).toHaveBeenCalledOnce();
+  });
+
   // =========================================================
   // 異常系
   // =========================================================
+
+  it("異常系: ないかんMeetupで規約未同意 → RSVPを更新しない", async () => {
+    const rsvpData = createMockRsvpData({
+      event: {
+        ...createMockRsvpData().event,
+        community: {
+          code: "naikan_meetup",
+          name: "ないかんMeetup",
+        },
+      },
+    });
+    mockFindRsvpByToken.mockResolvedValue(rsvpData);
+
+    const result = await submitRsvpAction(validFormData);
+
+    expect(result).toEqual({
+      success: false,
+      error: "参加規約と個人情報保護方針に同意してください",
+    });
+    expect(mockUpdateRsvpResponse).not.toHaveBeenCalled();
+  });
 
   it("異常系: バリデーション失敗（status不正値）", async () => {
     const result = await submitRsvpAction({

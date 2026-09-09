@@ -3,6 +3,7 @@
 import { useState, useTransition, useMemo } from "react";
 import { toast } from "sonner";
 import { submitRsvpAction } from "@/lib/actions/rsvp.actions";
+import { COMMUNITY_CODE } from "@/lib/constants/community";
 import type { SerializedRsvpPageData } from "@/lib/types/serialized";
 
 // ============================================================
@@ -71,6 +72,10 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
       (data.rsvp.afterPartyStatus as FormAfterPartyStatus) ?? null
     );
   const [comment, setComment] = useState(data.rsvp.comment ?? "");
+  const [termsAgreed, setTermsAgreed] = useState(false);
+
+  const requiresTermsAgreement =
+    data.event.community.code === COMMUNITY_CODE.NAIKAN_MEETUP;
 
   // 回答期限チェック
   const isDeadlinePassed = useMemo(() => {
@@ -103,6 +108,11 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
       return;
     }
 
+    if (requiresTermsAgreement && !termsAgreed) {
+      toast.error("参加規約と個人情報保護方針に同意してください");
+      return;
+    }
+
     startTransition(async () => {
       try {
         const result = await submitRsvpAction({
@@ -111,9 +121,11 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
           afterPartyStatus:
             status === "attend" ? afterPartyStatus : null,
           comment: comment || undefined,
+          termsAgreed: requiresTermsAgreement ? termsAgreed : undefined,
         });
 
         if (result.success) {
+          setTermsAgreed(false);
           setSubmitted(true);
         } else {
           toast.error(result.error);
@@ -137,6 +149,9 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
     setAfterPartyStatus,
     comment,
     setComment,
+    requiresTermsAgreement,
+    termsAgreed,
+    setTermsAgreed,
     isDeadlinePassed,
     handleStatusChange,
     handleSubmit,

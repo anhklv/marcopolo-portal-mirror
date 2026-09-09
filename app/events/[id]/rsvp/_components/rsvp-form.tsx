@@ -3,6 +3,7 @@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Stack } from "@/components/ui/stack";
 import { FormField } from "@/components/ui/form-field";
@@ -33,6 +34,9 @@ export function RsvpForm({ data }: RsvpFormProps) {
     setAfterPartyStatus,
     comment,
     setComment,
+    requiresTermsAgreement,
+    termsAgreed,
+    setTermsAgreed,
     isDeadlinePassed,
     handleStatusChange,
     handleSubmit,
@@ -206,11 +210,42 @@ export function RsvpForm({ data }: RsvpFormProps) {
               />
             </FormField>
 
+            {requiresTermsAgreement && (
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="rsvp-terms-agreed"
+                  aria-label="参加規約と個人情報保護方針に同意する"
+                  checked={termsAgreed}
+                  onCheckedChange={(checked) =>
+                    setTermsAgreed(checked === true)
+                  }
+                />
+                <div className="flex flex-wrap items-center gap-x-1 text-sm leading-relaxed">
+                  <AgreementDialog
+                    title="参加規約"
+                    mockContent="本イベントへの参加にあたり、主催者が定める参加上の注意事項および運営ルールをご確認ください。"
+                  />
+                  <span>と</span>
+                  <AgreementDialog
+                    title="個人情報保護方針"
+                    mockContent="お預かりした個人情報は、イベントの運営、連絡および関連するご案内のために利用します。"
+                  />
+                  <label htmlFor="rsvp-terms-agreed" className="cursor-pointer">
+                    に同意する
+                  </label>
+                </div>
+              </div>
+            )}
+
             {/* 送信ボタン */}
             <div className="flex justify-center pt-4">
               <ActionButton
                 onClick={handleSubmit}
-                disabled={isDeadlinePassed || isPending}
+                disabled={
+                  isDeadlinePassed ||
+                  isPending ||
+                  (requiresTermsAgreement && !termsAgreed)
+                }
               >
                 {isPending
                   ? "送信中..."
@@ -315,6 +350,41 @@ function EventDetailDialog({
             </div>
           )}
         </Stack>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AgreementDialog({
+  title,
+  mockContent,
+}: {
+  title: string;
+  mockContent: string;
+}) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          className="text-primary underline underline-offset-4 hover:text-primary/80"
+        >
+          {title}
+        </button>
+      </DialogTrigger>
+      <DialogContent className="bg-card max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            内容をご確認のうえ、画面を閉じて同意チェックを行ってください。
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 text-sm leading-7">
+          <p>{mockContent}</p>
+          <p className="rounded-md bg-muted p-4 text-muted-foreground">
+            ※この文章はモックアップ用の仮テキストです。正式な内容は実装時に反映します。
+          </p>
+        </div>
       </DialogContent>
     </Dialog>
   );
