@@ -23,7 +23,6 @@ export function generateStatusUpdateSubject(
 /**
  * 参加ステータス更新通知メールの本文生成
  * - {CUSTOMER_NAME} … 姓 名（モーダル表示時に対象顧客名へ置換）
- * - {RSVP_URL} … RSVP回答URL
  */
 export function generateStatusUpdateBody(
   params: StatusUpdateTemplateParams
@@ -42,8 +41,6 @@ export function generateStatusUpdateBody(
   }
 
   sections.push(
-    "詳細については、以下の参加URLよりご確認ください。",
-    "{RSVP_URL}",
     "※本メールは、管理者による参加ステータスの更新に伴い、自動送信されています。"
   );
 
