@@ -16,8 +16,16 @@ export interface AttendeeRow {
   status: string;
   afterPartyStatus: string | null;
   comment: string | null;
+  adminNote: string | null;
   respondedAt: string | null;
 }
+
+type AttendeeRsvpSource = Omit<
+  SerializedRsvpForEventDetail,
+  "token" | "adminNote"
+> & {
+  adminNote?: string | null;
+};
 
 interface EventSummary {
   onsiteCount: number;
@@ -42,7 +50,7 @@ const RSVP_STATUS_ORDER: Record<string, number> = {
  * RSVPデータ → 表示用行への変換（ステータス優先、同一ステータス内はcreatedAt昇順）
  */
 export function toAttendeeRows(
-  rsvps: SerializedRsvpForEventDetail[]
+  rsvps: AttendeeRsvpSource[]
 ): AttendeeRow[] {
   return rsvps
     .map((r) => ({
@@ -54,6 +62,7 @@ export function toAttendeeRows(
       status: r.status,
       afterPartyStatus: r.afterPartyStatus,
       comment: r.comment,
+      adminNote: r.adminNote ?? null,
       respondedAt: r.respondedAt,
     }))
     .sort((a, b) => {
