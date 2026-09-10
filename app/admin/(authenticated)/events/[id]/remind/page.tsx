@@ -6,6 +6,7 @@ import { generateRemindSubject, generateRemindBody } from "@/lib/mail/templates/
 import { getEventDisplayStatus } from "@/lib/utils/event";
 import { prisma } from "@/lib/prisma";
 import { RemindForm } from "./_components/remind-form";
+import { parseRemindTarget } from "@/lib/helpers/remind-target";
 
 export const metadata = {
   title: "リマインドメール送信",
@@ -13,11 +14,15 @@ export const metadata = {
 
 export default async function EventRemindPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ target?: string }>;
 }) {
   const { id } = await params;
+  const { target: rawTarget } = await searchParams;
   const eventId = Number(id);
+  const target = parseRemindTarget(rawTarget ?? null);
 
   if (isNaN(eventId)) {
     notFound();
@@ -30,17 +35,12 @@ export default async function EventRemindPage({
     notFound();
   }
 
-  const event = await findEventByIdForRemind(eventId);
+  const event = await findEventByIdForRemind(eventId, target);
   if (!event) {
     notFound();
   }
 
   if (getEventDisplayStatus(event) !== "receiving") {
-    notFound();
-  }
-
-  // pending顧客0名 → notFound
-  if (event.rsvps.length === 0) {
     notFound();
   }
 
@@ -51,7 +51,7 @@ export default async function EventRemindPage({
   });
 
   // テンプレート初期値生成
-  const serializedEvent = serializeEventForRemind(event);
+  const serializedEvent = serializeEventForRemind(event, target);
   const templateParams = {
     eventTitle: event.title,
     eventDate: serializedEvent.date,
