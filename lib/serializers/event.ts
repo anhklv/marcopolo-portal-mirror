@@ -2,6 +2,11 @@
 
 import type { EventForDetail, EventForInvite, EventForList, EventForRemind } from "@/lib/repositories/event.repository";
 import type { SerializedEvent, SerializedEventDetail, SerializedEventForInvite, SerializedEventForRemind } from "@/lib/types/serialized";
+import {
+  DEFAULT_REMIND_TARGET,
+  REMIND_TARGET_LABELS,
+  type RemindTarget,
+} from "@/lib/helpers/remind-target";
 
 /**
  * イベント一覧用シリアライズ
@@ -88,7 +93,10 @@ export function serializeEventForInvite(e: EventForInvite): SerializedEventForIn
 /**
  * イベントリマインド用シリアライズ
  */
-export function serializeEventForRemind(e: EventForRemind): SerializedEventForRemind {
+export function serializeEventForRemind(
+  e: EventForRemind,
+  target: RemindTarget = DEFAULT_REMIND_TARGET
+): SerializedEventForRemind {
   return {
     id: e.id,
     title: e.title,
@@ -102,6 +110,8 @@ export function serializeEventForRemind(e: EventForRemind): SerializedEventForRe
       code: e.community.code,
       name: e.community.name,
     },
+    remindTarget: target,
+    remindTargetLabel: REMIND_TARGET_LABELS[target],
     pendingCustomers: e.rsvps.map((r) => ({
       id: r.customer.id,
       firstName: r.customer.firstName,

@@ -1,5 +1,6 @@
 // Server Component → Client Component 間で受け渡すシリアライズ済みデータの型定義
 // Date → string 変換後の型を一元管理し、ページとコンポーネントで共有する
+import type { RemindTarget } from "@/lib/helpers/remind-target";
 
 // ============================================================
 // 共通
@@ -230,6 +231,8 @@ export interface SerializedEventForRemind {
   timetable: string | null;
   note: string | null;
   community: CommunityOption;
+  remindTarget: RemindTarget;
+  remindTargetLabel: string;
   pendingCustomers: SerializedPendingCustomer[];
 }
 

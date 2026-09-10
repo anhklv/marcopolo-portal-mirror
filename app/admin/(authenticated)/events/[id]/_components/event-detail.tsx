@@ -39,6 +39,7 @@ import {
   computeEventSummary,
 } from "@/lib/helpers/event-detail";
 import { togglePauseEventAction } from "@/lib/actions/event.actions";
+import type { RemindTarget } from "@/lib/helpers/remind-target";
 import type { RsvpStatus } from "@/lib/generated/prisma";
 import type {
   SerializedEventDetail,
@@ -73,6 +74,33 @@ export function EventDetail({ event, surveyResult }: EventDetailProps) {
   // 参加者データ
   const allRows = useMemo(() => toAttendeeRows(event.rsvps), [event.rsvps]);
   const summary = useMemo(() => computeEventSummary(allRows), [allRows]);
+  const remindItems: { target: RemindTarget; label: string; count: number }[] = [
+    {
+      target: "all",
+      label: "全員に再送",
+      count: summary.onsiteCount + summary.onlineCount,
+    },
+    {
+      target: "onsite",
+      label: "現地参加者に再送",
+      count: summary.onsiteCount,
+    },
+    {
+      target: "online",
+      label: "オンライン参加者に再送",
+      count: summary.onlineCount,
+    },
+    {
+      target: "after_party",
+      label: "懇親会参加者に再送",
+      count: summary.afterPartyCount,
+    },
+    {
+      target: "pending",
+      label: "未回答者に再送",
+      count: summary.pendingCount,
+    },
+  ];
 
   // イベントステータス（localIsPausedを反映）
   const eventStatus = getEventDisplayStatus({
@@ -141,17 +169,22 @@ export function EventDetail({ event, surveyResult }: EventDetailProps) {
                 </Link>
               </DropdownMenuItem>
             )}
-            {isReceiving && summary.pendingCount > 0 && (
-              <DropdownMenuItem asChild className="bg-card hover:bg-accent">
-                <Link
-                  href={`/admin/events/${event.id}/remind`}
-                  className="flex items-center gap-2"
-                >
-                  <Send className="h-4 w-4" />
-                  未回答者に再送 ({summary.pendingCount}名)
-                </Link>
-              </DropdownMenuItem>
-            )}
+            {isReceiving &&
+              remindItems.map((item) => (
+                  <DropdownMenuItem
+                    key={item.target}
+                    asChild
+                    className="bg-card hover:bg-accent"
+                  >
+                    <Link
+                      href={`/admin/events/${event.id}/remind?target=${item.target}`}
+                      className="flex items-center gap-2"
+                    >
+                      <Send className="h-4 w-4" />
+                      {item.label} ({item.count}名)
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
             {event.community.hasSurvey && (
               <DropdownMenuItem asChild className="bg-card hover:bg-accent">
                 <Link
