@@ -7,6 +7,16 @@ vi.mock("next/cache", () => ({
   revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
 }));
 
+const mockSendMailBatch = vi.fn();
+vi.mock("@/lib/mail/send", () => ({
+  sendMailBatch: (...args: unknown[]) => mockSendMailBatch(...args),
+}));
+
+const mockGetBaseUrl = vi.fn();
+vi.mock("@/lib/helpers/base-url", () => ({
+  getBaseUrl: (...args: unknown[]) => mockGetBaseUrl(...args),
+}));
+
 // repository のモック
 const mockFindRsvpByToken = vi.fn();
 const mockFindRsvpByIdForAdmin = vi.fn();
@@ -345,6 +355,7 @@ function createMockAdminRsvpData(overrides: Record<string, unknown> = {}) {
     id: 1,
     eventId: 10,
     customerId: 20,
+    token: "admin-test-token",
     status: "pending",
     event: {
       id: 10,
@@ -353,6 +364,10 @@ function createMockAdminRsvpData(overrides: Record<string, unknown> = {}) {
     },
     customer: {
       id: 20,
+      lastName: "山田",
+      firstName: "太郎",
+      email: "yamada@example.com",
+      subEmails: ["yamada-sub@example.com"],
       deletedAt: null,
     },
     ...overrides,
@@ -365,6 +380,7 @@ const validAdminUpdateData = {
   status: "attending" as const,
   afterPartyStatus: null,
   comment: "管理者による変更",
+  adminNote: "電話連絡により変更",
 };
 
 describe("adminUpdateRsvpAction", () => {
@@ -374,6 +390,13 @@ describe("adminUpdateRsvpAction", () => {
       admin: { id: 1, role: "super", adminCommunities: [] },
     });
     mockCanAccessEvent.mockResolvedValue(true);
+    mockGetBaseUrl.mockResolvedValue("http://localhost:3000");
+    mockSendMailBatch.mockResolvedValue({
+      sentCount: 1,
+      failedCount: 0,
+      failedNames: [],
+      successCustomerIds: [20],
+    });
   });
 
   it("正常系: RSVPを更新してイベント詳細を再検証する", async () => {
@@ -388,9 +411,76 @@ describe("adminUpdateRsvpAction", () => {
       status: "attending",
       afterPartyStatus: null,
       comment: "管理者による変更",
+      adminNote: "電話連絡により変更",
       respondedAt: expect.any(Date),
     });
     expect(mockRevalidatePath).toHaveBeenCalledWith("/admin/events/10");
+    expect(mockSendMailBatch).not.toHaveBeenCalled();
+  });
+
+  it("正常系: 通知指定時は更新後に顧客へメールを送信する", async () => {
+    const rsvp = createMockAdminRsvpData();
+    mockFindRsvpByIdForAdmin.mockResolvedValue(rsvp);
+    mockUpdateRsvpResponse.mockResolvedValue({});
+
+    const result = await adminUpdateRsvpAction({
+      ...validAdminUpdateData,
+      notifyCustomerByEmail: true,
+      emailSubject: "更新のお知らせ",
+      emailBody: "更新しました",
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(mockUpdateRsvpResponse).toHaveBeenCalled();
+    expect(mockSendMailBatch).toHaveBeenCalledWith({
+      customers: [rsvp.customer],
+      tokenMap: new Map([[20, "admin-test-token"]]),
+      eventId: 10,
+      baseUrl: "http://localhost:3000",
+      from: "noreply@example.com",
+      emailTitle: "更新のお知らせ",
+      emailBody: "更新しました",
+    });
+  });
+
+  it("正常系: メール送信失敗時も更新成功として警告を返す", async () => {
+    mockFindRsvpByIdForAdmin.mockResolvedValue(createMockAdminRsvpData());
+    mockUpdateRsvpResponse.mockResolvedValue({});
+    mockSendMailBatch.mockResolvedValue({
+      sentCount: 0,
+      failedCount: 1,
+      failedNames: ["山田 太郎"],
+      successCustomerIds: [],
+    });
+
+    const result = await adminUpdateRsvpAction({
+      ...validAdminUpdateData,
+      notifyCustomerByEmail: true,
+      emailSubject: "更新のお知らせ",
+      emailBody: "更新しました",
+    });
+
+    expect(result).toEqual({
+      success: true,
+      emailWarning:
+        "参加ステータスは更新しましたが、通知メールの送信に失敗しました",
+    });
+  });
+
+  it("異常系: 通知指定時に件名が空の場合は更新しない", async () => {
+    const result = await adminUpdateRsvpAction({
+      ...validAdminUpdateData,
+      notifyCustomerByEmail: true,
+      emailSubject: " ",
+      emailBody: "更新しました",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "メールタイトルを入力してください",
+    });
+    expect(mockRequireAuthenticatedAdmin).not.toHaveBeenCalled();
+    expect(mockUpdateRsvpResponse).not.toHaveBeenCalled();
   });
 
   it("正常系: オンライン参加の場合は懇親会回答をnullにする", async () => {

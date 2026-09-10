@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { rsvpResponseSchema } from "@/lib/validations/rsvp";
+import {
+  adminRsvpUpdateSchema,
+  rsvpResponseSchema,
+} from "@/lib/validations/rsvp";
 
 describe("rsvpResponseSchema", () => {
   it("正常系: 全フィールド有効（参加+懇親会参加）", () => {
@@ -144,5 +147,41 @@ describe("rsvpResponseSchema", () => {
       afterPartyStatus: "maybe",
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("adminRsvpUpdateSchema", () => {
+  const baseData = {
+    rsvpId: 1,
+    eventId: 10,
+    status: "attending",
+  };
+
+  it("備考をtrimし、通知未指定時はfalseにする", () => {
+    const result = adminRsvpUpdateSchema.safeParse({
+      ...baseData,
+      adminNote: "  電話連絡により変更  ",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.adminNote).toBe("電話連絡により変更");
+      expect(result.data.notifyCustomerByEmail).toBe(false);
+    }
+  });
+
+  it("通知する場合は件名と本文が必須", () => {
+    const result = adminRsvpUpdateSchema.safeParse({
+      ...baseData,
+      notifyCustomerByEmail: true,
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.map((issue) => issue.message)).toEqual([
+        "メールタイトルを入力してください",
+        "メール本文を入力してください",
+      ]);
+    }
   });
 });

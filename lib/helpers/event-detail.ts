@@ -16,10 +16,16 @@ export interface AttendeeRow {
   status: string;
   afterPartyStatus: string | null;
   comment: string | null;
+  adminNote: string | null;
   respondedAt: string | null;
 }
 
-type AttendeeRsvpSource = Omit<SerializedRsvpForEventDetail, "token">;
+type AttendeeRsvpSource = Omit<
+  SerializedRsvpForEventDetail,
+  "token" | "adminNote"
+> & {
+  adminNote?: string | null;
+};
 
 interface EventSummary {
   onsiteCount: number;
@@ -56,6 +62,7 @@ export function toAttendeeRows(
       status: r.status,
       afterPartyStatus: r.afterPartyStatus,
       comment: r.comment,
+      adminNote: r.adminNote ?? null,
       respondedAt: r.respondedAt,
     }))
     .sort((a, b) => {

@@ -47,6 +47,7 @@ function row(
     status: "attending",
     afterPartyStatus: null,
     comment: null,
+    adminNote: null,
     respondedAt: "2024-06-01T15:00:00.000Z",
     lastNameKana: "ヤマダ",
     firstNameKana: "タロウ",
