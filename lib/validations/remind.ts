@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { REMIND_TARGETS } from "@/lib/helpers/remind-target";
 
 /**
  * リマインドメール送信バリデーション
@@ -6,6 +7,7 @@ import { z } from "zod";
  */
 export const remindSchema = z.object({
   eventId: z.number().int().positive("イベントIDが不正です"),
+  target: z.enum(REMIND_TARGETS).default("pending"),
   emailTitle: z
     .string()
     .trim()

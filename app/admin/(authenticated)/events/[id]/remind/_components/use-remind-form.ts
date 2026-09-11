@@ -38,10 +38,11 @@ export function useRemindForm({
   const urlStep: RemindStep = (rawStep === "email" || rawStep === "confirm") ? rawStep : "recipients";
 
   const buildStepUrl = useCallback((newStep: RemindStep) => {
+    const targetQuery = `target=${event.remindTarget}`;
     return newStep === "recipients"
-      ? `/admin/events/${event.id}/remind`
-      : `/admin/events/${event.id}/remind?step=${newStep}`;
-  }, [event.id]);
+      ? `/admin/events/${event.id}/remind?${targetQuery}`
+      : `/admin/events/${event.id}/remind?${targetQuery}&step=${newStep}`;
+  }, [event.id, event.remindTarget]);
 
   const setStep = useCallback((newStep: RemindStep) => {
     router.push(buildStepUrl(newStep));
@@ -112,6 +113,7 @@ export function useRemindForm({
       try {
         const result = await sendRemindAction({
           eventId: event.id,
+          target: event.remindTarget,
           emailTitle,
           emailBody,
         });
