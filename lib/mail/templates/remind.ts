@@ -2,6 +2,7 @@
  * リマインドメールテンプレート
  */
 
+import type { RemindTarget } from "@/lib/helpers/remind-target";
 import { formatEventDate } from "@/lib/utils/event";
 
 interface RemindTemplateParams {
@@ -11,13 +12,18 @@ interface RemindTemplateParams {
   eventDescription: string | null;
   eventTimetable: string | null;
   eventNote: string | null;
+  remindTarget?: RemindTarget;
 }
 
 /**
  * リマインドメールのタイトル生成
  */
 export function generateRemindSubject(params: RemindTemplateParams): string {
-  return `【${params.eventTitle}】参加可否のご回答をお願いします`;
+  if (params.remindTarget === "pending" || !params.remindTarget) {
+    return `【${params.eventTitle}】参加可否のご回答をお願いします`;
+  }
+
+  return `【${params.eventTitle}】ご案内（再送）`;
 }
 
 /**
@@ -48,9 +54,15 @@ export function generateRemindBody(params: RemindTemplateParams): string {
     sections.push(`【場所】\n${params.eventLocation}`);
   }
 
-  sections.push(
-    `まだ参加可否のご回答をいただいておりません。\nお忙しい中恐縮ですが、以下のURLよりご回答をお願いいたします。\n{RSVP_URL}`
-  );
+  if (params.remindTarget === "pending" || !params.remindTarget) {
+    sections.push(
+      `まだ参加可否のご回答をいただいておりません。\nお忙しい中恐縮ですが、以下のURLよりご回答をお願いいたします。\n{RSVP_URL}`
+    );
+  } else {
+    sections.push(
+      `先日ご案内いたしました本イベントについて、改めてご案内いたします。\nご回答内容の確認・変更は、以下のURLよりお願いいたします。\n{RSVP_URL}`
+    );
+  }
 
   if (params.eventNote) {
     sections.push(`【備考】\n${params.eventNote}`);

@@ -14,9 +14,17 @@ const baseParams = {
 };
 
 describe("generateRemindSubject", () => {
-  it("イベントタイトルを含む件名を返す", () => {
+  it("未回答者向けの件名を返す", () => {
     const subject = generateRemindSubject(baseParams);
     expect(subject).toBe("【第10回ベンチャー監査役の会】参加可否のご回答をお願いします");
+  });
+
+  it("再送対象者向けの件名を返す", () => {
+    const subject = generateRemindSubject({
+      ...baseParams,
+      remindTarget: "invited",
+    });
+    expect(subject).toBe("【第10回ベンチャー監査役の会】ご案内（再送）");
   });
 });
 
@@ -64,9 +72,25 @@ describe("generateRemindBody", () => {
     expect(body).toContain("{CUSTOMER_NAME}様");
   });
 
-  it("リマインド固有の文言を含む", () => {
-    const body = generateRemindBody(baseParams);
+  it("未回答者向けの文言を含む", () => {
+    const body = generateRemindBody({
+      ...baseParams,
+      remindTarget: "pending",
+    });
     expect(body).toContain("まだ参加可否のご回答をいただいておりません");
     expect(body).toContain("お忙しい中恐縮ですが");
   });
+
+  it.each(["invited", "all", "onsite", "online", "after_party"] as const)(
+    "%s 向けは再送用の文言を含む",
+    (remindTarget) => {
+      const body = generateRemindBody({
+        ...baseParams,
+        remindTarget,
+      });
+      expect(body).toContain("先日ご案内いたしました本イベントについて、改めてご案内いたします");
+      expect(body).toContain("ご回答内容の確認・変更は、以下のURLよりお願いいたします");
+      expect(body).not.toContain("まだ参加可否のご回答をいただいておりません");
+    }
+  );
 });

@@ -291,6 +291,44 @@ describe("sendRemindAction", () => {
     expect(mockPrisma.rsvp.update).not.toHaveBeenCalled();
   });
 
+  it("正常系: target=invited の場合は案内送信済みの全員に送信する", async () => {
+    setupSuperAdmin();
+    mockPrisma.rsvp.findMany.mockResolvedValueOnce([
+      { customerId: 10, status: "pending", token: "pending-token", customer: { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com", subEmails: [] } },
+      { customerId: 20, status: "absent", token: "absent-token", customer: { id: 20, lastName: "佐藤", firstName: "花子", email: "sato@example.com", subEmails: [] } },
+    ]);
+    mockSendMailBatch.mockResolvedValue({ sentCount: 2, failedCount: 0, failedNames: [], successCustomerIds: [10, 20] });
+
+    const result = await sendRemindAction({
+      ...validRemindData,
+      target: "invited",
+    });
+
+    expect(result).toEqual({
+      success: true,
+      sentCount: 2,
+      failedCount: 0,
+      failedNames: [],
+    });
+    expect(mockPrisma.rsvp.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          eventId: 1,
+          customer: { deletedAt: null },
+        },
+      })
+    );
+    expect(mockSendMailBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokenMap: new Map([
+          [10, "pending-token"],
+          [20, "absent-token"],
+        ]),
+      })
+    );
+    expect(mockPrisma.rsvp.update).not.toHaveBeenCalled();
+  });
+
   it("正常系: reminderではRSVPのDB更新を行わない", async () => {
     setupSuperAdmin();
     mockPrisma.rsvp.findMany.mockResolvedValueOnce([
