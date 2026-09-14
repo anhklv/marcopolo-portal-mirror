@@ -5,6 +5,7 @@ import { Copy } from "lucide-react";
 import { toast } from "sonner";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -14,18 +15,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FormField } from "@/components/ui/form-field";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Stack } from "@/components/ui/stack";
 import { Textarea } from "@/components/ui/textarea";
 import { adminUpdateRsvpAction } from "@/lib/actions/rsvp.actions";
 import type { AttendeeRow } from "@/lib/helpers/event-detail";
-import { buildRsvpUrl } from "@/lib/helpers/invite";
+import { buildRsvpUrl, replacePlaceholders } from "@/lib/helpers/invite";
 import {
   dbStatusToFormStatus,
   formStatusToDbStatus,
   type FormRsvpStatus,
 } from "@/lib/helpers/rsvp-status";
+import {
+  generateStatusUpdateBody,
+  generateStatusUpdateSubject,
+} from "@/lib/mail/templates/status-update";
 
 type FormAfterPartyStatus = "attending" | "not_attending";
 type EditableAttendee = AttendeeRow & { token: string };
@@ -36,6 +42,7 @@ interface AttendeeRsvpEditDialogProps {
   event: {
     id: number;
     title: string;
+    date: string;
     allowsOnline: boolean;
     hasAfterParty: boolean;
   };
@@ -56,7 +63,7 @@ export function AttendeeRsvpEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-x-hidden overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-x-hidden overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>参加ステータスの変更</DialogTitle>
           <DialogDescription>
@@ -98,17 +105,76 @@ function AttendeeRsvpEditForm({
       () => (attendee.afterPartyStatus as FormAfterPartyStatus) ?? null
     );
   const [comment, setComment] = useState(() => attendee.comment ?? "");
+  const [adminNote, setAdminNote] = useState(() => attendee.adminNote ?? "");
+  const [notifyCustomerByEmail, setNotifyCustomerByEmail] = useState(false);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
   const rsvpUrl = buildRsvpUrl(
     globalThis.location?.origin ?? "",
     event.id,
     attendee.token
   );
 
+  const createEmailContent = (
+    nextStatus: FormRsvpStatus | null = status,
+    nextAfterPartyStatus: FormAfterPartyStatus | null = afterPartyStatus
+  ) => {
+    const templateParams = {
+      eventTitle: event.title,
+      eventDate: event.date,
+      participationStatus: getParticipationStatusLabel(
+        nextStatus,
+        event.allowsOnline
+      ),
+      afterPartyStatus:
+        event.hasAfterParty && nextStatus === "attend"
+          ? getAfterPartyStatusLabel(nextAfterPartyStatus)
+          : null,
+    };
+
+    return {
+      subject: generateStatusUpdateSubject(templateParams),
+      body: replacePlaceholders(generateStatusUpdateBody(templateParams), {
+        customerName: `${attendee.lastName} ${attendee.firstName}`,
+        rsvpUrl,
+      }),
+    };
+  };
+
+  const handleNotifyByEmailChange = (checked: boolean | "indeterminate") => {
+    const nextChecked = checked === true;
+    setNotifyCustomerByEmail(nextChecked);
+
+    if (nextChecked) {
+      const content = createEmailContent();
+      setEmailSubject(content.subject);
+      setEmailBody(content.body);
+    }
+  };
+
   const handleStatusChange = (value: string) => {
     const nextStatus = value as FormRsvpStatus;
+    const nextAfterPartyStatus =
+      nextStatus === "attend" ? afterPartyStatus : null;
     setStatus(nextStatus);
     if (nextStatus !== "attend") {
       setAfterPartyStatus(null);
+    }
+    if (notifyCustomerByEmail) {
+      const content = createEmailContent(nextStatus, nextAfterPartyStatus);
+      setEmailSubject(content.subject);
+      setEmailBody(content.body);
+    }
+  };
+
+  const handleAfterPartyStatusChange = (value: string) => {
+    const nextStatus = value as FormAfterPartyStatus;
+    setAfterPartyStatus(nextStatus);
+
+    if (notifyCustomerByEmail) {
+      const content = createEmailContent(status, nextStatus);
+      setEmailSubject(content.subject);
+      setEmailBody(content.body);
     }
   };
 
@@ -145,10 +211,22 @@ function AttendeeRsvpEditForm({
           afterPartyStatus:
             status === "attend" ? afterPartyStatus : null,
           comment: comment || undefined,
+          adminNote: adminNote || undefined,
+          notifyCustomerByEmail,
+          emailSubject: notifyCustomerByEmail ? emailSubject : undefined,
+          emailBody: notifyCustomerByEmail ? emailBody : undefined,
         });
 
         if (result.success) {
-          toast.success("参加ステータスを更新しました");
+          if (result.emailWarning) {
+            toast.warning(result.emailWarning);
+          } else {
+            toast.success(
+              notifyCustomerByEmail
+                ? "参加ステータスを更新し、通知メールを送信しました"
+                : "参加ステータスを更新しました"
+            );
+          }
           onSaved();
           onClose();
         } else {
@@ -198,9 +276,7 @@ function AttendeeRsvpEditForm({
             <Label className="text-base">懇親会も参加しますか？</Label>
             <RadioGroup
               value={afterPartyStatus ?? undefined}
-              onValueChange={(value) =>
-                setAfterPartyStatus(value as FormAfterPartyStatus)
-              }
+              onValueChange={handleAfterPartyStatusChange}
               className="grid grid-cols-2 gap-3"
             >
               <RadioOption
@@ -227,6 +303,53 @@ function AttendeeRsvpEditForm({
             className="min-h-[120px]"
           />
         </FormField>
+
+        <FormField
+          label="備考（任意）"
+          description="管理者向けの変更理由・備考です。顧客には表示されません。"
+        >
+          <Textarea
+            placeholder="変更理由など..."
+            value={adminNote}
+            onChange={(event) => setAdminNote(event.target.value)}
+            className="min-h-[100px]"
+          />
+        </FormField>
+
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="notify-customer-by-email"
+            checked={notifyCustomerByEmail}
+            onCheckedChange={handleNotifyByEmailChange}
+          />
+          <Label
+            htmlFor="notify-customer-by-email"
+            className="cursor-pointer font-normal"
+          >
+            顧客にメールで通知する
+          </Label>
+        </div>
+
+        {notifyCustomerByEmail ? (
+          <Stack gap="md" className="rounded-md border bg-muted/20 p-4">
+            <p className="text-sm text-muted-foreground">
+              通知メールの件名・本文を編集できます。
+            </p>
+            <FormField label="件名">
+              <Input
+                value={emailSubject}
+                onChange={(event) => setEmailSubject(event.target.value)}
+              />
+            </FormField>
+            <FormField label="本文">
+              <Textarea
+                value={emailBody}
+                onChange={(event) => setEmailBody(event.target.value)}
+                className="min-h-[360px] whitespace-pre-wrap"
+              />
+            </FormField>
+          </Stack>
+        ) : null}
       </Stack>
 
       <DialogFooter className="gap-3">
@@ -258,6 +381,34 @@ function AttendeeRsvpEditForm({
       </div>
     </>
   );
+}
+
+function getParticipationStatusLabel(
+  status: FormRsvpStatus | null,
+  allowsOnline: boolean
+): string {
+  if (status === "attend") {
+    return allowsOnline ? "現地参加" : "参加する";
+  }
+  if (status === "online") {
+    return "オンライン参加";
+  }
+  if (status === "decline") {
+    return "参加しない";
+  }
+  return "未回答";
+}
+
+function getAfterPartyStatusLabel(
+  status: FormAfterPartyStatus | null
+): string {
+  if (status === "attending") {
+    return "参加する";
+  }
+  if (status === "not_attending") {
+    return "参加しない";
+  }
+  return "未回答";
 }
 
 function RadioOption({

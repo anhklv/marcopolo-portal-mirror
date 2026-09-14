@@ -14,7 +14,15 @@ export type RsvpForPage = Rsvp & {
 
 export type RsvpForAdminUpdate = Rsvp & {
   event: Pick<Event, "id" | "deletedAt" | "hasAfterParty">;
-  customer: Pick<Customer, "id" | "deletedAt">;
+  customer: Pick<
+    Customer,
+    | "id"
+    | "lastName"
+    | "firstName"
+    | "email"
+    | "subEmails"
+    | "deletedAt"
+  >;
 };
 
 // ============================================================
@@ -74,6 +82,10 @@ export async function findRsvpByIdForAdmin(
       customer: {
         select: {
           id: true,
+          lastName: true,
+          firstName: true,
+          email: true,
+          subEmails: true,
           deletedAt: true,
         },
       },
@@ -90,6 +102,7 @@ export async function updateRsvpResponse(
     status: "attending" | "online" | "absent";
     afterPartyStatus: "attending" | "not_attending" | null;
     comment: string | null;
+    adminNote?: string | null;
     respondedAt: Date;
   }
 ): Promise<Rsvp> {

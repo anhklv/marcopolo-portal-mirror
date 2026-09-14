@@ -348,6 +348,7 @@ export function TabAttendees({
         event={{
           id: event.id,
           title: event.title,
+          date: event.date,
           allowsOnline: event.allowsOnline,
           hasAfterParty: event.hasAfterParty,
         }}

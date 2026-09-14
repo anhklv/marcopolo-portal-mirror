@@ -252,8 +252,43 @@ describe("sendRemindAction", () => {
 
     expect(result).toEqual({
       success: false,
-      error: "未回答の参加者がいません",
+      error: "未回答者がいません",
     });
+  });
+
+  it("正常系: target=onsite の場合は現地参加者に送信する", async () => {
+    setupSuperAdmin();
+    mockPrisma.rsvp.findMany.mockResolvedValueOnce([
+      { customerId: 10, status: "attending", token: "onsite-token", customer: { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com", subEmails: [] } },
+    ]);
+    mockSendMailBatch.mockResolvedValue({ sentCount: 1, failedCount: 0, failedNames: [], successCustomerIds: [10] });
+
+    const result = await sendRemindAction({
+      ...validRemindData,
+      target: "onsite",
+    });
+
+    expect(result).toEqual({
+      success: true,
+      sentCount: 1,
+      failedCount: 0,
+      failedNames: [],
+    });
+    expect(mockPrisma.rsvp.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          eventId: 1,
+          status: "attending",
+          customer: { deletedAt: null },
+        }),
+      })
+    );
+    expect(mockSendMailBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokenMap: new Map([[10, "onsite-token"]]),
+      })
+    );
+    expect(mockPrisma.rsvp.update).not.toHaveBeenCalled();
   });
 
   it("正常系: reminderではRSVPのDB更新を行わない", async () => {

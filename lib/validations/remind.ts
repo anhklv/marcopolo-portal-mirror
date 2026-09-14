@@ -1,11 +1,13 @@
 import { z } from "zod";
+import { REMIND_TARGETS } from "@/lib/helpers/remind-target";
 
 /**
  * リマインドメール送信バリデーション
- * ※ customerIds は不要（サーバー側でpending RSVPを取得するため）
+ * ※ customerIds は不要（サーバー側で選択された対象のRSVPを取得するため）
  */
 export const remindSchema = z.object({
   eventId: z.number().int().positive("イベントIDが不正です"),
+  target: z.enum(REMIND_TARGETS).default("pending"),
   emailTitle: z
     .string()
     .trim()

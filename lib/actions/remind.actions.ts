@@ -11,6 +11,10 @@ import { remindSchema, testRemindSchema } from "@/lib/validations/remind";
 import { sendMail, sendMailBatch } from "@/lib/mail/send";
 import { getBaseUrl } from "@/lib/helpers/base-url";
 import { buildRsvpUrl, replacePlaceholders } from "@/lib/helpers/invite";
+import {
+  REMIND_TARGET_LABELS,
+  buildRemindRsvpWhere,
+} from "@/lib/helpers/remind-target";
 import { getEventDisplayStatus } from "@/lib/utils/event";
 import { logServerError } from "@/lib/utils/log-error";
 
@@ -31,7 +35,7 @@ type SendTestRemindResult =
 // ============================================================
 
 /**
- * リマインドメール一括送信（pending RSVP のみ対象）
+ * リマインドメール一括送信（指定された対象の既存RSVPを利用）
  */
 export async function sendRemindAction(
   formData: unknown
@@ -46,7 +50,7 @@ export async function sendRemindAction(
     return { success: false, error: messages[0] };
   }
 
-  const { eventId, emailTitle, emailBody } = parsed.data;
+  const { eventId, target, emailTitle, emailBody } = parsed.data;
 
   // イベント存在チェック + アクセス権チェック
   const event = await prisma.event.findFirst({
@@ -67,10 +71,14 @@ export async function sendRemindAction(
   }
 
   try {
-    // サーバー側でpending RSVPを取得（クライアントからcustomerIdsを受け取らない）
+    // サーバー側で対象RSVPを取得（クライアントからcustomerIdsを受け取らない）
     // 削除済み顧客は除外
-    const pendingRsvps = await prisma.rsvp.findMany({
-      where: { eventId, status: "pending", customer: { deletedAt: null } },
+    const targetRsvps = await prisma.rsvp.findMany({
+      where: {
+        eventId,
+        ...buildRemindRsvpWhere(target),
+        customer: { deletedAt: null },
+      },
       include: {
         customer: {
           select: { id: true, lastName: true, firstName: true, email: true, subEmails: true },
@@ -78,17 +86,17 @@ export async function sendRemindAction(
       },
     });
 
-    if (pendingRsvps.length === 0) {
-      return { success: false, error: "未回答の参加者がいません" };
+    if (targetRsvps.length === 0) {
+      return { success: false, error: `${REMIND_TARGET_LABELS[target]}がいません` };
     }
 
-    const customers = pendingRsvps.map((r) => r.customer);
+    const customers = targetRsvps.map((r) => r.customer);
     const baseUrl = await getBaseUrl();
     const from = process.env.SMTP_FROM ?? "noreply@example.com";
 
     // 初回案内時に発行されたtokenを再利用し、参加URLを固定する
     const tokenMap = new Map(
-      pendingRsvps.map((rsvp) => [rsvp.customerId, rsvp.token])
+      targetRsvps.map((rsvp) => [rsvp.customerId, rsvp.token])
     );
 
     // メール送信（バッチ処理）
