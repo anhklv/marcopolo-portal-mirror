@@ -295,6 +295,36 @@ describe("sendRemindAction", () => {
     );
   });
 
+  it("正常系: target=invited の場合は案内送信済みの全員に送信する", async () => {
+    setupSuperAdmin();
+    mockPrisma.rsvp.findMany.mockResolvedValueOnce([
+      { customerId: 10, status: "pending", customer: { id: 10, lastName: "田中", firstName: "太郎", email: "tanaka@example.com", subEmails: [] } },
+      { customerId: 20, status: "absent", customer: { id: 20, lastName: "佐藤", firstName: "花子", email: "sato@example.com", subEmails: [] } },
+    ]);
+    mockPrisma.rsvp.update.mockResolvedValue({});
+    mockSendMailBatch.mockResolvedValue({ sentCount: 2, failedCount: 0, failedNames: [], successCustomerIds: [10, 20] });
+
+    const result = await sendRemindAction({
+      ...validRemindData,
+      target: "invited",
+    });
+
+    expect(result).toEqual({
+      success: true,
+      sentCount: 2,
+      failedCount: 0,
+      failedNames: [],
+    });
+    expect(mockPrisma.rsvp.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          eventId: 1,
+          customer: { deletedAt: null },
+        },
+      })
+    );
+  });
+
   it("異常系: DB更新失敗 → failedとして集計", async () => {
     setupSuperAdmin();
     mockPrisma.rsvp.findMany.mockResolvedValueOnce([

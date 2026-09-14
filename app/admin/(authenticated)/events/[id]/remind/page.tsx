@@ -59,6 +59,7 @@ export default async function EventRemindPage({
     eventDescription: event.description,
     eventTimetable: event.timetable,
     eventNote: event.note,
+    remindTarget: target,
   };
 
   return (
