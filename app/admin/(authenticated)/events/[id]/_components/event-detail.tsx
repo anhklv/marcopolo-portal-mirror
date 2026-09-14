@@ -77,7 +77,7 @@ export function EventDetail({ event, surveyResult }: EventDetailProps) {
   const remindItems: { target: RemindTarget; label: string; count: number }[] = [
     {
       target: "all",
-      label: "全員に再送",
+      label: "参加者全員に再送",
       count: summary.onsiteCount + summary.onlineCount,
     },
     {
@@ -166,6 +166,17 @@ export function EventDetail({ event, surveyResult }: EventDetailProps) {
                 >
                   <Mail className="h-4 w-4" />
                   案内
+                </Link>
+              </DropdownMenuItem>
+            )}
+            {isReceiving && (
+              <DropdownMenuItem asChild className="bg-card hover:bg-accent">
+                <Link
+                  href={`/admin/events/${event.id}/remind?target=invited`}
+                  className="flex items-center gap-2"
+                >
+                  <Send className="h-4 w-4" />
+                  全員に再送 ({event.rsvps.length}名)
                 </Link>
               </DropdownMenuItem>
             )}
