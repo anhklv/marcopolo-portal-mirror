@@ -10,7 +10,7 @@ import {
 import { remindSchema, testRemindSchema } from "@/lib/validations/remind";
 import { sendMail, sendMailBatch } from "@/lib/mail/send";
 import { getBaseUrl } from "@/lib/helpers/base-url";
-import { generateRsvpToken, buildRsvpUrl, replacePlaceholders } from "@/lib/helpers/invite";
+import { buildRsvpUrl, replacePlaceholders } from "@/lib/helpers/invite";
 import {
   REMIND_TARGET_LABELS,
   buildRemindRsvpWhere,
@@ -35,7 +35,7 @@ type SendTestRemindResult =
 // ============================================================
 
 /**
- * リマインドメール一括送信（pending RSVP のみ対象）
+ * リマインドメール一括送信（指定された対象の既存RSVPを利用）
  */
 export async function sendRemindAction(
   formData: unknown
@@ -71,7 +71,7 @@ export async function sendRemindAction(
   }
 
   try {
-    // サーバー側でpending RSVPを取得（クライアントからcustomerIdsを受け取らない）
+    // サーバー側で対象RSVPを取得（クライアントからcustomerIdsを受け取らない）
     // 削除済み顧客は除外
     const targetRsvps = await prisma.rsvp.findMany({
       where: {
@@ -94,11 +94,10 @@ export async function sendRemindAction(
     const baseUrl = await getBaseUrl();
     const from = process.env.SMTP_FROM ?? "noreply@example.com";
 
-    // トークンを事前生成（メモリ上に保持）
-    const tokenMap = new Map<number, string>();
-    for (const c of customers) {
-      tokenMap.set(c.id, generateRsvpToken());
-    }
+    // 初回案内時に発行されたtokenを再利用し、参加URLを固定する
+    const tokenMap = new Map(
+      targetRsvps.map((rsvp) => [rsvp.customerId, rsvp.token])
+    );
 
     // メール送信（バッチ処理）
     const batchResult = await sendMailBatch({
@@ -111,29 +110,7 @@ export async function sendRemindAction(
       emailBody,
     });
 
-    let { sentCount, failedCount } = batchResult;
-    const { failedNames, successCustomerIds } = batchResult;
-
-    // 送信成功分のみトークン更新（既存RSVPのupdate）
-    for (const customerId of successCustomerIds) {
-      try {
-        await prisma.rsvp.update({
-          where: { eventId_customerId: { eventId, customerId } },
-          data: { token: tokenMap.get(customerId) ?? "" },
-        });
-      } catch (err) {
-        logServerError(
-          `sendRemindAction:rsvpTokenUpdate eventId=${eventId} customerId=${customerId}`,
-          err
-        );
-        sentCount--;
-        failedCount++;
-        const customer = customers.find((c) => c.id === customerId);
-        if (customer) {
-          failedNames.push(`${customer.lastName} ${customer.firstName}`);
-        }
-      }
-    }
+    const { sentCount, failedCount, failedNames } = batchResult;
 
     revalidatePath(`/admin/events/${eventId}`);
 
