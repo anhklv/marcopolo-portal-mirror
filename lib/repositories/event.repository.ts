@@ -1,4 +1,9 @@
 import { prisma } from "@/lib/prisma";
+import {
+  buildRemindRsvpWhere,
+  DEFAULT_REMIND_TARGET,
+  type RemindTarget,
+} from "@/lib/helpers/remind-target";
 import type {
   Community,
   Customer,
@@ -65,7 +70,7 @@ export type EventForInvite = Event & {
 
 export type EventForRemind = Event & {
   community: Community;
-  rsvps: (Pick<Rsvp, "customerId" | "status"> & {
+  rsvps: (Pick<Rsvp, "customerId" | "status" | "afterPartyStatus"> & {
     customer: Pick<
       Customer,
       "id" | "lastName" | "firstName" | "email" | "subEmails" | "company" | "memberCategory"
@@ -274,14 +279,18 @@ export async function findEventByIdForInvite(
  * イベントリマインド用取得（community + pending RSVP + customer情報 含む）
  */
 export async function findEventByIdForRemind(
-  eventId: number
+  eventId: number,
+  target: RemindTarget = DEFAULT_REMIND_TARGET
 ): Promise<EventForRemind | null> {
   return prisma.event.findFirst({
     where: { id: eventId, deletedAt: null },
     include: {
       community: true,
       rsvps: {
-        where: { status: "pending", customer: { deletedAt: null } },
+        where: {
+          ...buildRemindRsvpWhere(target),
+          customer: { deletedAt: null },
+        },
         include: {
           customer: {
             select: {
