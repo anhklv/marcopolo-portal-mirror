@@ -33,12 +33,14 @@ interface StepRecipientsProps {
 }
 
 export function StepRecipients({ event, form }: StepRecipientsProps) {
+  const hasRecipients = event.pendingCustomers.length > 0;
+
   return (
     <div className="max-w-4xl space-y-6">
       <PageHeader
         backHref={`/admin/events/${event.id}`}
         title={event.title}
-        description="未回答者へのリマインドメールを送信します。"
+        description={`${event.remindTargetLabel}へリマインドメールを送信します。`}
       />
 
       <StepIndicator currentStep={form.step} steps={REMIND_STEPS} />
@@ -47,7 +49,7 @@ export function StepRecipients({ event, form }: StepRecipientsProps) {
         <div className="space-y-2 py-4">
           <SectionHeading>送信先確認</SectionHeading>
           <p className="text-base text-muted-foreground">
-            未回答者
+            {event.remindTargetLabel}
             <span className="font-bold text-foreground text-lg">
               {event.pendingCustomers.length}名
             </span>
@@ -59,7 +61,9 @@ export function StepRecipients({ event, form }: StepRecipientsProps) {
           <ActionButton variant="outline" asChild>
             <Link href={`/admin/events/${event.id}`}>キャンセル</Link>
           </ActionButton>
-          <ActionButton onClick={form.handleRecipientsNext}>次へ</ActionButton>
+          <ActionButton onClick={form.handleRecipientsNext} disabled={!hasRecipients}>
+            次へ
+          </ActionButton>
         </div>
 
         <div className="rounded-lg bg-card max-h-[60vh] overflow-y-auto">
@@ -72,29 +76,40 @@ export function StepRecipients({ event, form }: StepRecipientsProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {event.pendingCustomers.map((customer) => (
-                <TableRow key={customer.id}>
-                  <TableCell>
-                    <Link
-                      href={`/admin/customers/${customer.id}?from=event`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:underline"
-                    >
-                      {customer.lastName} {customer.firstName}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{customer.company}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-1 flex-wrap items-center">
-                      <CustomerBadges
-                        customerCommunities={customer.customerCommunities}
-                        memberCategory={customer.memberCategory}
-                      />
-                    </div>
+              {hasRecipients ? (
+                event.pendingCustomers.map((customer) => (
+                  <TableRow key={customer.id}>
+                    <TableCell>
+                      <Link
+                        href={`/admin/customers/${customer.id}?from=event`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                      >
+                        {customer.lastName} {customer.firstName}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{customer.company}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1 flex-wrap items-center">
+                        <CustomerBadges
+                          customerCommunities={customer.customerCommunities}
+                          memberCategory={customer.memberCategory}
+                        />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={3}
+                    className="py-10 text-center text-muted-foreground"
+                  >
+                    対象の顧客はいません
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>

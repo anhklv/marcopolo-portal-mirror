@@ -39,7 +39,9 @@ export function StepConfirm({ form, event }: StepConfirmProps) {
       <div className="space-y-6">
         <div className="space-y-4">
           <SectionHeading>送信先</SectionHeading>
-          <p className="text-sm text-muted-foreground">{event.pendingCustomers.length}名に送信します</p>
+          <p className="text-sm text-muted-foreground">
+            {event.remindTargetLabel} {event.pendingCustomers.length}名に送信します
+          </p>
           <div className="space-y-2 text-sm max-h-[300px] overflow-y-auto">
             {event.pendingCustomers.map((customer) => (
               <div key={customer.id}>
@@ -90,7 +92,7 @@ export function StepConfirm({ form, event }: StepConfirmProps) {
               <DialogHeader>
                 <DialogTitle>リマインドメールを送信しますか？</DialogTitle>
                 <DialogDescription>
-                  {event.pendingCustomers.length}名にリマインドメールを送信します。この操作は取り消せません。
+                  {event.remindTargetLabel} {event.pendingCustomers.length}名にリマインドメールを送信します。この操作は取り消せません。
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
