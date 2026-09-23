@@ -3,7 +3,6 @@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Stack } from "@/components/ui/stack";
 import { FormField } from "@/components/ui/form-field";
@@ -16,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CheckCircle2, AlertCircle, Info } from "lucide-react";
+import { CheckCircle2, AlertCircle, Info, ExternalLink } from "lucide-react";
 import { formatEventDate } from "@/lib/utils/event";
 import { useRsvpForm } from "./use-rsvp-form";
 import type { SerializedRsvpPageData } from "@/lib/types/serialized";
@@ -36,7 +35,12 @@ export function RsvpForm({ data }: RsvpFormProps) {
     setComment,
     requiresTermsAgreement,
     termsAgreed,
-    setTermsAgreed,
+    antiSocialForcesAnswer,
+    setAntiSocialForcesAnswer,
+    participationRulesAnswer,
+    setParticipationRulesAnswer,
+    informationSharingAnswer,
+    setInformationSharingAnswer,
     isDeadlinePassed,
     handleStatusChange,
     handleSubmit,
@@ -211,30 +215,72 @@ export function RsvpForm({ data }: RsvpFormProps) {
             </FormField>
 
             {requiresTermsAgreement && (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="rsvp-terms-agreed"
-                  aria-label="参加規約と個人情報保護方針に同意する"
-                  checked={termsAgreed}
-                  onCheckedChange={(checked) =>
-                    setTermsAgreed(checked === true)
-                  }
-                />
-                <div className="flex flex-wrap items-center gap-x-1 text-sm leading-relaxed">
-                  <AgreementDialog
-                    title="参加規約"
-                    mockContent="本イベントへの参加にあたり、主催者が定める参加上の注意事項および運営ルールをご確認ください。"
-                  />
-                  <span>と</span>
-                  <AgreementDialog
-                    title="個人情報保護方針"
-                    mockContent="お預かりした個人情報は、イベントの運営、連絡および関連するご案内のために利用します。"
-                  />
-                  <label htmlFor="rsvp-terms-agreed" className="cursor-pointer">
-                    に同意する
-                  </label>
+              <section aria-labelledby="rsvp-agreement-heading" className="space-y-4">
+                <div>
+                  <h2 id="rsvp-agreement-heading" className="text-base font-semibold">
+                    参加にあたっての確認事項
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    以下の3項目をご確認のうえ、それぞれご回答ください。
+                  </p>
                 </div>
-              </div>
+
+                <AgreementItem
+                  id="rsvp-anti-social-forces"
+                  number="01"
+                  title="反社会的勢力でないことの確約"
+                  answer={antiSocialForcesAnswer}
+                  onAnswerChange={setAntiSocialForcesAnswer}
+                  agreeLabel="了承しました。"
+                  disagreeLabel="了承できません。"
+                >
+                  私は、暴力団等の反社会的勢力に該当せず、今後においても反社会的勢力との関係を持つ意思がないことを確約します。また、反社会的勢力に該当し、もしくは暴力的な要求行為等に該当する行為をしたことが判明した場合にはイベントの参加を中止されても異議申し立てを行いません。
+                </AgreementItem>
+
+                <AgreementItem
+                  id="rsvp-participation-rules"
+                  number="02"
+                  title="参加規約順守の確約"
+                  answer={participationRulesAnswer}
+                  onAnswerChange={setParticipationRulesAnswer}
+                  agreeLabel="順守します。"
+                  disagreeLabel="順守できません。"
+                >
+                  <p>
+                    ないかんMeetupの参加規約（守秘義務・場づくりに対する確約）です。あり方を理解し、全ての規約の順守をお約束する方にのみご参加頂いております。
+                  </p>
+                  <p className="mt-2">
+                    参加規約は以下リンクです。<strong>必ずご確認をお願いします。</strong>
+                  </p>
+                  <a
+                    href="https://drive.google.com/file/d/1obYVxMOth6gHamYgqVIiA9liNc_243CX/view?usp=sharing"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-flex max-w-full items-start gap-1 break-all font-medium text-primary underline underline-offset-4 hover:text-primary/80"
+                  >
+                    https://drive.google.com/file/d/1obYVxMOth6gHamYgqVIiA9liNc_243CX/view?usp=sharing
+                    <ExternalLink aria-hidden="true" className="mt-1 h-3.5 w-3.5 shrink-0" />
+                    <span className="sr-only">（新しいタブで開きます）</span>
+                  </a>
+                </AgreementItem>
+
+                <AgreementItem
+                  id="rsvp-information-sharing"
+                  number="03"
+                  title="イベント参加者内で開示したい情報について"
+                  answer={informationSharingAnswer}
+                  onAnswerChange={setInformationSharingAnswer}
+                  agreeLabel="了承しました。"
+                  disagreeLabel="了承できません。"
+                >
+                  所属会社名及び氏名について、双方向のコミュニケーションを行うためイベント参加者内での開示をお願いします。また事前にグループ分けリストを作成し、共有することがあります。
+                </AgreementItem>
+                {!termsAgreed && !isDeadlinePassed && (
+                  <p className="text-sm text-muted-foreground" role="status">
+                    送信するには、3項目すべてへの同意が必要です。
+                  </p>
+                )}
+              </section>
             )}
 
             {/* 送信ボタン */}
@@ -355,37 +401,84 @@ function EventDetailDialog({
   );
 }
 
-function AgreementDialog({
+function AgreementItem({
+  id,
+  number,
   title,
-  mockContent,
+  answer,
+  onAnswerChange,
+  agreeLabel,
+  disagreeLabel,
+  children,
 }: {
+  id: string;
+  number: string;
   title: string;
-  mockContent: string;
+  answer: "agree" | "disagree" | null;
+  onAnswerChange: (answer: "agree" | "disagree") => void;
+  agreeLabel: string;
+  disagreeLabel: string;
+  children: React.ReactNode;
 }) {
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <button
-          type="button"
-          className="text-primary underline underline-offset-4 hover:text-primary/80"
-        >
-          {title}
-        </button>
-      </DialogTrigger>
-      <DialogContent className="bg-card max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
-            内容をご確認のうえ、画面を閉じて同意チェックを行ってください。
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 text-sm leading-7">
-          <p>{mockContent}</p>
-          <p className="rounded-md bg-muted p-4 text-muted-foreground">
-            ※この文章はモックアップ用の仮テキストです。正式な内容は実装時に反映します。
-          </p>
+    <div className={`overflow-hidden rounded-lg border ${answer === "agree" ? "border-primary/50" : "border-border"}`}>
+      <div className="flex items-start gap-3 bg-muted/50 px-4 py-3">
+        <span className="text-sm font-semibold text-muted-foreground" aria-hidden="true">
+          {number}
+        </span>
+        <h3 id={`${id}-title`} className="flex-1 text-sm font-semibold">{title}</h3>
+        <span className="rounded bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+          必須
+        </span>
+      </div>
+      <div className="space-y-4 px-4 py-4">
+        <div id={`${id}-description`} className="text-sm leading-6 text-muted-foreground">
+          {children}
         </div>
-      </DialogContent>
-    </Dialog>
+        <RadioGroup
+          value={answer ?? undefined}
+          onValueChange={(value) =>
+            onAnswerChange(value as "agree" | "disagree")
+          }
+          aria-labelledby={`${id}-title`}
+          aria-describedby={`${id}-description`}
+          className="grid gap-2 sm:grid-cols-2"
+        >
+          <AgreementChoice
+            id={`${id}-agree`}
+            value="agree"
+            label={agreeLabel}
+            selected={answer === "agree"}
+          />
+          <AgreementChoice
+            id={`${id}-disagree`}
+            value="disagree"
+            label={disagreeLabel}
+            selected={answer === "disagree"}
+          />
+        </RadioGroup>
+      </div>
+    </div>
+  );
+}
+
+function AgreementChoice({
+  id,
+  value,
+  label,
+  selected,
+}: {
+  id: string;
+  value: "agree" | "disagree";
+  label: string;
+  selected: boolean;
+}) {
+  return (
+    <div className={`flex items-center gap-2 rounded-md border p-3 transition-colors ${selected ? "border-primary bg-primary/5" : "hover:bg-muted/50"}`}>
+      <RadioGroupItem id={id} value={value} />
+      <Label htmlFor={id} className="flex-1 cursor-pointer text-sm leading-5">
+        {label}
+      </Label>
+    </div>
   );
 }

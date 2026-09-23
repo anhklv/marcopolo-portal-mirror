@@ -16,6 +16,8 @@ type FormStatus = "attend" | "online" | "decline";
 /** 懇親会の選択値（DB enum値をそのまま使用） */
 type FormAfterPartyStatus = "attending" | "not_attending";
 
+type AgreementAnswer = "agree" | "disagree" | null;
+
 interface UseRsvpFormProps {
   data: SerializedRsvpPageData;
 }
@@ -72,7 +74,16 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
       (data.rsvp.afterPartyStatus as FormAfterPartyStatus) ?? null
     );
   const [comment, setComment] = useState(data.rsvp.comment ?? "");
-  const [termsAgreed, setTermsAgreed] = useState(false);
+  const [antiSocialForcesAnswer, setAntiSocialForcesAnswer] =
+    useState<AgreementAnswer>(null);
+  const [participationRulesAnswer, setParticipationRulesAnswer] =
+    useState<AgreementAnswer>(null);
+  const [informationSharingAnswer, setInformationSharingAnswer] =
+    useState<AgreementAnswer>(null);
+  const termsAgreed =
+    antiSocialForcesAnswer === "agree" &&
+    participationRulesAnswer === "agree" &&
+    informationSharingAnswer === "agree";
 
   const requiresTermsAgreement =
     data.event.community.code === COMMUNITY_CODE.NAIKAN_MEETUP;
@@ -109,7 +120,7 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
     }
 
     if (requiresTermsAgreement && !termsAgreed) {
-      toast.error("参加規約と個人情報保護方針に同意してください");
+      toast.error("3つの確認事項すべてに同意してください");
       return;
     }
 
@@ -125,7 +136,9 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
         });
 
         if (result.success) {
-          setTermsAgreed(false);
+          setAntiSocialForcesAnswer(null);
+          setParticipationRulesAnswer(null);
+          setInformationSharingAnswer(null);
           setSubmitted(true);
         } else {
           toast.error(result.error);
@@ -151,7 +164,12 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
     setComment,
     requiresTermsAgreement,
     termsAgreed,
-    setTermsAgreed,
+    antiSocialForcesAnswer,
+    setAntiSocialForcesAnswer,
+    participationRulesAnswer,
+    setParticipationRulesAnswer,
+    informationSharingAnswer,
+    setInformationSharingAnswer,
     isDeadlinePassed,
     handleStatusChange,
     handleSubmit,
