@@ -64,9 +64,9 @@ export function StepSelect({ event, communities, currentUserRole, form }: StepSe
         <div className="space-y-2">
           <SectionHeading>案内者を選択</SectionHeading>
           <p className="text-sm text-muted-foreground">
-            未案内・未回答の顧客を選択して案内メールを送信します。未回答の顧客には新しいURLで再送されます。
+            未案内・未回答の顧客を選択して案内メールを送信します。未回答の顧客には既存の参加URLで再送されます。
             <br />
-            ※送信時に自動で個別ID付きURLが生成されます。
+            ※未案内の顧客には送信時に個別ID付きURLが自動生成されます。
           </p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">

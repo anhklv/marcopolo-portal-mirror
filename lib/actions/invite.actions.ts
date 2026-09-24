@@ -84,27 +84,26 @@ export async function sendInviteAction(
   }
 
   try {
-    // 既存RSVPを取得（status含む）
+    // 既存RSVPを取得（再送時は既存tokenを再利用する）
     const existingRsvps = await prisma.rsvp.findMany({
       where: { eventId },
-      select: { customerId: true, status: true },
+      select: { customerId: true, status: true, token: true },
     });
-    const existingRsvpMap = new Map(existingRsvps.map((r) => [r.customerId, r.status]));
+    const existingRsvpMap = new Map(existingRsvps.map((r) => [r.customerId, r]));
 
     // 回答済み（attending/online/absent）のIDを除外。pendingは再送対象
     const answeredStatuses = new Set(["attending", "online", "absent"]);
     const targetCustomerIds = customerIds.filter((id) => {
-      const status = existingRsvpMap.get(id);
-      return !status || !answeredStatuses.has(status);
+      const existingRsvp = existingRsvpMap.get(id);
+      return !existingRsvp || !answeredStatuses.has(existingRsvp.status);
     });
 
     if (targetCustomerIds.length === 0) {
       return { success: false, error: "選択された顧客は全て回答済みです" };
     }
 
-    // 新規 vs pending再送 を分類
+    // 新規顧客を特定（pending再送は既存RSVPをそのまま利用）
     const newCustomerIds = targetCustomerIds.filter((id) => !existingRsvpMap.has(id));
-    const pendingCustomerIds = targetCustomerIds.filter((id) => existingRsvpMap.get(id) === "pending");
 
     // 顧客情報取得（メール送信用。メイン＋サブメールアドレスへ送信）
     const customers = await prisma.customer.findMany({
@@ -119,10 +118,11 @@ export async function sendInviteAction(
     const baseUrl = await getBaseUrl();
     const from = process.env.SMTP_FROM ?? "noreply@example.com";
 
-    // トークンを事前生成（メモリ上に保持）
+    // 新規顧客のみtokenを生成し、pending再送では既存tokenを再利用
     const tokenMap = new Map<number, string>();
     for (const c of customers) {
-      tokenMap.set(c.id, generateRsvpToken());
+      const existingToken = existingRsvpMap.get(c.id)?.token;
+      tokenMap.set(c.id, existingToken ?? generateRsvpToken());
     }
 
     // メール送信（バッチ処理）
@@ -136,8 +136,7 @@ export async function sendInviteAction(
       emailBody,
     });
 
-    let { sentCount, failedCount } = batchResult;
-    const { failedNames, successCustomerIds } = batchResult;
+    const { sentCount, failedCount, failedNames, successCustomerIds } = batchResult;
 
     // 成功分のRSVPデータを構築
     const successRsvpData = successCustomerIds.map((customerId) => ({
@@ -148,32 +147,10 @@ export async function sendInviteAction(
 
     // 送信成功分のみRSVPレコード保存
     const newRsvpData = successRsvpData.filter((d) => newCustomerIds.includes(d.customerId));
-    const pendingRsvpData = successRsvpData.filter((d) => pendingCustomerIds.includes(d.customerId));
 
     // 新規顧客 → createMany
     if (newRsvpData.length > 0) {
       await prisma.rsvp.createMany({ data: newRsvpData, skipDuplicates: true });
-    }
-
-    // pending再送 → トークン更新（個別に失敗した場合はfailedとして集計）
-    for (const d of pendingRsvpData) {
-      try {
-        await prisma.rsvp.update({
-          where: { eventId_customerId: { eventId: d.eventId, customerId: d.customerId } },
-          data: { token: d.token },
-        });
-      } catch (err) {
-        logServerError(
-          `sendInviteAction:rsvpTokenUpdate eventId=${d.eventId} customerId=${d.customerId}`,
-          err
-        );
-        sentCount--;
-        failedCount++;
-        const customer = customers.find((c) => c.id === d.customerId);
-        if (customer) {
-          failedNames.push(`${customer.lastName} ${customer.firstName}`);
-        }
-      }
     }
 
     revalidatePath(`/admin/events/${eventId}`);
