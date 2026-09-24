@@ -1,6 +1,7 @@
 "use client";
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CheckCircle2, AlertCircle, Info } from "lucide-react";
+import { CheckCircle2, AlertCircle, Info, ExternalLink } from "lucide-react";
 import { formatEventDate } from "@/lib/utils/event";
 import { useRsvpForm } from "./use-rsvp-form";
 import type { SerializedRsvpPageData } from "@/lib/types/serialized";
@@ -33,6 +34,14 @@ export function RsvpForm({ data }: RsvpFormProps) {
     setAfterPartyStatus,
     comment,
     setComment,
+    requiresTermsAgreement,
+    termsAgreed,
+    antiSocialForcesAgreed,
+    setAntiSocialForcesAgreed,
+    participationRulesAgreed,
+    setParticipationRulesAgreed,
+    informationSharingAgreed,
+    setInformationSharingAgreed,
     isDeadlinePassed,
     handleStatusChange,
     handleSubmit,
@@ -206,11 +215,82 @@ export function RsvpForm({ data }: RsvpFormProps) {
               />
             </FormField>
 
+            {requiresTermsAgreement && (
+              <section aria-labelledby="rsvp-agreement-heading" className="space-y-4">
+                <div>
+                  <h2 id="rsvp-agreement-heading" className="text-base font-semibold">
+                    参加にあたっての確認事項
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    以下の3項目をご確認のうえ、それぞれ同意してください。
+                  </p>
+                </div>
+
+                <AgreementItem
+                  id="rsvp-anti-social-forces"
+                  number="01"
+                  title="反社会的勢力でないことの確約"
+                  checked={antiSocialForcesAgreed}
+                  onCheckedChange={setAntiSocialForcesAgreed}
+                  checkboxLabel="上記の内容を確認し、了解しました。"
+                >
+                  私は、暴力団等の反社会的勢力に該当せず、今後においても反社会的勢力との関係を持つ意思がないことを確約します。また、反社会的勢力に該当し、もしくは暴力的な要求行為等に該当する行為をしたことが判明した場合にはイベントの参加を中止されても異議申し立てを行いません。
+                </AgreementItem>
+
+                <AgreementItem
+                  id="rsvp-participation-rules"
+                  number="02"
+                  title="参加規約順守の確約"
+                  checked={participationRulesAgreed}
+                  onCheckedChange={setParticipationRulesAgreed}
+                  checkboxLabel="参加規約を確認し、順守します。"
+                >
+                  <p>
+                    より良い場にするためのお願い。ないかんMeetupの参加規約（守秘義務・場づくりに対する確約）です。あり方を理解し、全ての規約の順守をお約束頂ける方にのみご参加頂いております。
+                  </p>
+                  <p className="mt-2">
+                    参加規約は以下リンクです。<strong>必ずご確認をお願いします。</strong>
+                  </p>
+                  <a
+                    href="https://drive.google.com/file/d/1obYVxMOth6gHamYgqVIiA9liNc_243CX/view?usp=sharing"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-flex max-w-full items-start gap-1 break-all font-medium text-primary underline underline-offset-4 hover:text-primary/80"
+                  >
+                    https://drive.google.com/file/d/1obYVxMOth6gHamYgqVIiA9liNc_243CX/view?usp=sharing
+                    <ExternalLink aria-hidden="true" className="mt-1 h-3.5 w-3.5 shrink-0" />
+                    <span className="sr-only">（新しいタブで開きます）</span>
+                  </a>
+                </AgreementItem>
+
+                <AgreementItem
+                  id="rsvp-information-sharing"
+                  number="03"
+                  title="イベント参加者内で開示したい情報について"
+                  checked={informationSharingAgreed}
+                  onCheckedChange={setInformationSharingAgreed}
+                  checkboxLabel="上記の内容を確認し、了解しました。"
+                >
+                  所属会社名及び氏名について。双方向のコミュニケーションを行うためイベント参加者内での開示をお願いします。また事前にグループ分けリストを作成し、共有することがあります。
+                </AgreementItem>
+                {!termsAgreed && !isDeadlinePassed && (
+                  <p className="text-sm text-muted-foreground" role="status">
+                    送信するには、3項目すべてへの同意が必要です。
+                  </p>
+                )}
+              </section>
+            )}
+
             {/* 送信ボタン */}
             <div className="flex justify-center pt-4">
               <ActionButton
                 onClick={handleSubmit}
-                disabled={isDeadlinePassed || isPending}
+                disabled={
+                  isDeadlinePassed ||
+                  isPending ||
+                  !status ||
+                  (requiresTermsAgreement && !termsAgreed)
+                }
               >
                 {isPending
                   ? "送信中..."
@@ -317,5 +397,54 @@ function EventDetailDialog({
         </Stack>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function AgreementItem({
+  id,
+  number,
+  title,
+  checked,
+  onCheckedChange,
+  checkboxLabel,
+  children,
+}: {
+  id: string;
+  number: string;
+  title: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  checkboxLabel: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={`overflow-hidden rounded-lg border ${checked ? "border-primary/50" : "border-border"}`}>
+      <div className="flex items-start gap-3 bg-muted/50 px-4 py-3">
+        <span className="text-sm font-semibold text-muted-foreground" aria-hidden="true">
+          {number}
+        </span>
+        <h3 id={`${id}-title`} className="flex-1 text-sm font-semibold">{title}</h3>
+        <span className="rounded bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+          必須
+        </span>
+      </div>
+      <div className="space-y-4 px-4 py-4">
+        <div id={`${id}-description`} className="text-sm leading-6 text-muted-foreground">
+          {children}
+        </div>
+        <div className="flex items-start gap-3 rounded-md border bg-background p-3">
+          <Checkbox
+            id={id}
+            checked={checked}
+            onCheckedChange={(value) => onCheckedChange(value === true)}
+            aria-describedby={`${id}-description`}
+            className="mt-0.5"
+          />
+          <Label htmlFor={id} className="flex-1 cursor-pointer text-sm leading-5">
+            {checkboxLabel}
+          </Label>
+        </div>
+      </div>
+    </div>
   );
 }

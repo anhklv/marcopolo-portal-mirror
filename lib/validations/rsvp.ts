@@ -18,6 +18,7 @@ export const rsvpResponseSchema = z.object({
     .max(1000, "メッセージは1000文字以内で入力してください")
     .optional()
     .transform((val) => val?.trim() || null),
+  termsAgreed: z.boolean().optional(),
 });
 
 export type RsvpResponseInput = z.infer<typeof rsvpResponseSchema>;
