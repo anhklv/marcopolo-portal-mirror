@@ -16,8 +16,6 @@ type FormStatus = "attend" | "online" | "decline";
 /** 懇親会の選択値（DB enum値をそのまま使用） */
 type FormAfterPartyStatus = "attending" | "not_attending";
 
-type AgreementAnswer = "agree" | "disagree" | null;
-
 interface UseRsvpFormProps {
   data: SerializedRsvpPageData;
 }
@@ -74,19 +72,17 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
       (data.rsvp.afterPartyStatus as FormAfterPartyStatus) ?? null
     );
   const [comment, setComment] = useState(data.rsvp.comment ?? "");
-  const [antiSocialForcesAnswer, setAntiSocialForcesAnswer] =
-    useState<AgreementAnswer>(null);
-  const [participationRulesAnswer, setParticipationRulesAnswer] =
-    useState<AgreementAnswer>(null);
-  const [informationSharingAnswer, setInformationSharingAnswer] =
-    useState<AgreementAnswer>(null);
+  const [antiSocialForcesAgreed, setAntiSocialForcesAgreed] = useState(false);
+  const [participationRulesAgreed, setParticipationRulesAgreed] = useState(false);
+  const [informationSharingAgreed, setInformationSharingAgreed] = useState(false);
   const termsAgreed =
-    antiSocialForcesAnswer === "agree" &&
-    participationRulesAnswer === "agree" &&
-    informationSharingAnswer === "agree";
+    antiSocialForcesAgreed &&
+    participationRulesAgreed &&
+    informationSharingAgreed;
 
   const requiresTermsAgreement =
-    data.event.community.code === COMMUNITY_CODE.NAIKAN_MEETUP;
+    data.event.community.code === COMMUNITY_CODE.NAIKAN_MEETUP &&
+    (status === "attend" || status === "online");
 
   // 回答期限チェック
   const isDeadlinePassed = useMemo(() => {
@@ -100,6 +96,11 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
     setStatus(newStatus);
     if (newStatus !== "attend") {
       setAfterPartyStatus(null);
+    }
+    if (newStatus === "decline") {
+      setAntiSocialForcesAgreed(false);
+      setParticipationRulesAgreed(false);
+      setInformationSharingAgreed(false);
     }
   };
 
@@ -136,9 +137,9 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
         });
 
         if (result.success) {
-          setAntiSocialForcesAnswer(null);
-          setParticipationRulesAnswer(null);
-          setInformationSharingAnswer(null);
+          setAntiSocialForcesAgreed(false);
+          setParticipationRulesAgreed(false);
+          setInformationSharingAgreed(false);
           setSubmitted(true);
         } else {
           toast.error(result.error);
@@ -164,12 +165,12 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
     setComment,
     requiresTermsAgreement,
     termsAgreed,
-    antiSocialForcesAnswer,
-    setAntiSocialForcesAnswer,
-    participationRulesAnswer,
-    setParticipationRulesAnswer,
-    informationSharingAnswer,
-    setInformationSharingAnswer,
+    antiSocialForcesAgreed,
+    setAntiSocialForcesAgreed,
+    participationRulesAgreed,
+    setParticipationRulesAgreed,
+    informationSharingAgreed,
+    setInformationSharingAgreed,
     isDeadlinePassed,
     handleStatusChange,
     handleSubmit,

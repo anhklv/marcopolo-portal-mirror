@@ -78,11 +78,12 @@ export async function submitRsvpAction(
     // 7. ないかんMeetupの規約同意チェック
     if (
       rsvp.event.community.code === COMMUNITY_CODE.NAIKAN_MEETUP &&
+      status !== "absent" &&
       termsAgreed !== true
     ) {
       return {
         success: false,
-        error: "参加規約と個人情報保護方針に同意してください",
+        error: "3つの確認事項すべてに同意してください",
       };
     }
 

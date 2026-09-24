@@ -251,9 +251,55 @@ describe("submitRsvpAction", () => {
 
     expect(result).toEqual({
       success: false,
-      error: "参加規約と個人情報保護方針に同意してください",
+      error: "3つの確認事項すべてに同意してください",
     });
     expect(mockUpdateRsvpResponse).not.toHaveBeenCalled();
+  });
+
+  it("異常系: ないかんMeetupでオンライン参加かつ規約未同意 → RSVPを更新しない", async () => {
+    const rsvpData = createMockRsvpData({
+      event: {
+        ...createMockRsvpData().event,
+        community: {
+          code: "naikan_meetup",
+          name: "ないかんMeetup",
+        },
+      },
+    });
+    mockFindRsvpByToken.mockResolvedValue(rsvpData);
+
+    const result = await submitRsvpAction({
+      ...validFormData,
+      status: "online",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "3つの確認事項すべてに同意してください",
+    });
+    expect(mockUpdateRsvpResponse).not.toHaveBeenCalled();
+  });
+
+  it("正常系: ないかんMeetupで不参加の場合は規約同意なしでも送信できる", async () => {
+    const rsvpData = createMockRsvpData({
+      event: {
+        ...createMockRsvpData().event,
+        community: {
+          code: "naikan_meetup",
+          name: "ないかんMeetup",
+        },
+      },
+    });
+    mockFindRsvpByToken.mockResolvedValue(rsvpData);
+    mockUpdateRsvpResponse.mockResolvedValue({});
+
+    const result = await submitRsvpAction({
+      ...validFormData,
+      status: "absent",
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(mockUpdateRsvpResponse).toHaveBeenCalledOnce();
   });
 
   it("異常系: バリデーション失敗（status不正値）", async () => {

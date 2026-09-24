@@ -1,6 +1,7 @@
 "use client";
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -35,12 +36,12 @@ export function RsvpForm({ data }: RsvpFormProps) {
     setComment,
     requiresTermsAgreement,
     termsAgreed,
-    antiSocialForcesAnswer,
-    setAntiSocialForcesAnswer,
-    participationRulesAnswer,
-    setParticipationRulesAnswer,
-    informationSharingAnswer,
-    setInformationSharingAnswer,
+    antiSocialForcesAgreed,
+    setAntiSocialForcesAgreed,
+    participationRulesAgreed,
+    setParticipationRulesAgreed,
+    informationSharingAgreed,
+    setInformationSharingAgreed,
     isDeadlinePassed,
     handleStatusChange,
     handleSubmit,
@@ -221,7 +222,7 @@ export function RsvpForm({ data }: RsvpFormProps) {
                     参加にあたっての確認事項
                   </h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    以下の3項目をご確認のうえ、それぞれご回答ください。
+                    以下の3項目をご確認のうえ、それぞれ同意してください。
                   </p>
                 </div>
 
@@ -229,10 +230,9 @@ export function RsvpForm({ data }: RsvpFormProps) {
                   id="rsvp-anti-social-forces"
                   number="01"
                   title="反社会的勢力でないことの確約"
-                  answer={antiSocialForcesAnswer}
-                  onAnswerChange={setAntiSocialForcesAnswer}
-                  agreeLabel="了承しました。"
-                  disagreeLabel="了承できません。"
+                  checked={antiSocialForcesAgreed}
+                  onCheckedChange={setAntiSocialForcesAgreed}
+                  checkboxLabel="上記の内容を確認し、了解しました。"
                 >
                   私は、暴力団等の反社会的勢力に該当せず、今後においても反社会的勢力との関係を持つ意思がないことを確約します。また、反社会的勢力に該当し、もしくは暴力的な要求行為等に該当する行為をしたことが判明した場合にはイベントの参加を中止されても異議申し立てを行いません。
                 </AgreementItem>
@@ -241,13 +241,12 @@ export function RsvpForm({ data }: RsvpFormProps) {
                   id="rsvp-participation-rules"
                   number="02"
                   title="参加規約順守の確約"
-                  answer={participationRulesAnswer}
-                  onAnswerChange={setParticipationRulesAnswer}
-                  agreeLabel="順守します。"
-                  disagreeLabel="順守できません。"
+                  checked={participationRulesAgreed}
+                  onCheckedChange={setParticipationRulesAgreed}
+                  checkboxLabel="参加規約を確認し、順守します。"
                 >
                   <p>
-                    ないかんMeetupの参加規約（守秘義務・場づくりに対する確約）です。あり方を理解し、全ての規約の順守をお約束する方にのみご参加頂いております。
+                    より良い場にするためのお願い。ないかんMeetupの参加規約（守秘義務・場づくりに対する確約）です。あり方を理解し、全ての規約の順守をお約束頂ける方にのみご参加頂いております。
                   </p>
                   <p className="mt-2">
                     参加規約は以下リンクです。<strong>必ずご確認をお願いします。</strong>
@@ -268,12 +267,11 @@ export function RsvpForm({ data }: RsvpFormProps) {
                   id="rsvp-information-sharing"
                   number="03"
                   title="イベント参加者内で開示したい情報について"
-                  answer={informationSharingAnswer}
-                  onAnswerChange={setInformationSharingAnswer}
-                  agreeLabel="了承しました。"
-                  disagreeLabel="了承できません。"
+                  checked={informationSharingAgreed}
+                  onCheckedChange={setInformationSharingAgreed}
+                  checkboxLabel="上記の内容を確認し、了解しました。"
                 >
-                  所属会社名及び氏名について、双方向のコミュニケーションを行うためイベント参加者内での開示をお願いします。また事前にグループ分けリストを作成し、共有することがあります。
+                  所属会社名及び氏名について。双方向のコミュニケーションを行うためイベント参加者内での開示をお願いします。また事前にグループ分けリストを作成し、共有することがあります。
                 </AgreementItem>
                 {!termsAgreed && !isDeadlinePassed && (
                   <p className="text-sm text-muted-foreground" role="status">
@@ -290,6 +288,7 @@ export function RsvpForm({ data }: RsvpFormProps) {
                 disabled={
                   isDeadlinePassed ||
                   isPending ||
+                  !status ||
                   (requiresTermsAgreement && !termsAgreed)
                 }
               >
@@ -405,23 +404,21 @@ function AgreementItem({
   id,
   number,
   title,
-  answer,
-  onAnswerChange,
-  agreeLabel,
-  disagreeLabel,
+  checked,
+  onCheckedChange,
+  checkboxLabel,
   children,
 }: {
   id: string;
   number: string;
   title: string;
-  answer: "agree" | "disagree" | null;
-  onAnswerChange: (answer: "agree" | "disagree") => void;
-  agreeLabel: string;
-  disagreeLabel: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  checkboxLabel: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className={`overflow-hidden rounded-lg border ${answer === "agree" ? "border-primary/50" : "border-border"}`}>
+    <div className={`overflow-hidden rounded-lg border ${checked ? "border-primary/50" : "border-border"}`}>
       <div className="flex items-start gap-3 bg-muted/50 px-4 py-3">
         <span className="text-sm font-semibold text-muted-foreground" aria-hidden="true">
           {number}
@@ -435,50 +432,19 @@ function AgreementItem({
         <div id={`${id}-description`} className="text-sm leading-6 text-muted-foreground">
           {children}
         </div>
-        <RadioGroup
-          value={answer ?? undefined}
-          onValueChange={(value) =>
-            onAnswerChange(value as "agree" | "disagree")
-          }
-          aria-labelledby={`${id}-title`}
-          aria-describedby={`${id}-description`}
-          className="grid gap-2 sm:grid-cols-2"
-        >
-          <AgreementChoice
-            id={`${id}-agree`}
-            value="agree"
-            label={agreeLabel}
-            selected={answer === "agree"}
+        <div className="flex items-start gap-3 rounded-md border bg-background p-3">
+          <Checkbox
+            id={id}
+            checked={checked}
+            onCheckedChange={(value) => onCheckedChange(value === true)}
+            aria-describedby={`${id}-description`}
+            className="mt-0.5"
           />
-          <AgreementChoice
-            id={`${id}-disagree`}
-            value="disagree"
-            label={disagreeLabel}
-            selected={answer === "disagree"}
-          />
-        </RadioGroup>
+          <Label htmlFor={id} className="flex-1 cursor-pointer text-sm leading-5">
+            {checkboxLabel}
+          </Label>
+        </div>
       </div>
-    </div>
-  );
-}
-
-function AgreementChoice({
-  id,
-  value,
-  label,
-  selected,
-}: {
-  id: string;
-  value: "agree" | "disagree";
-  label: string;
-  selected: boolean;
-}) {
-  return (
-    <div className={`flex items-center gap-2 rounded-md border p-3 transition-colors ${selected ? "border-primary bg-primary/5" : "hover:bg-muted/50"}`}>
-      <RadioGroupItem id={id} value={value} />
-      <Label htmlFor={id} className="flex-1 cursor-pointer text-sm leading-5">
-        {label}
-      </Label>
     </div>
   );
 }
