@@ -17,6 +17,8 @@ const makeRsvp = (
   comment: null,
   adminNote: null,
   respondedAt: null,
+  participationOptionId: null,
+  participationOption: null,
   customer: {
     id: overrides.id,
     lastName: "田中",
@@ -79,6 +81,9 @@ describe("toAttendeeRows", () => {
       comment: null,
       adminNote: null,
       respondedAt: "2026-01-13T10:00:00.000Z",
+      participationOptionId: null,
+      participationOptionLabel: null,
+      participationOptionIsActive: null,
     });
   });
 

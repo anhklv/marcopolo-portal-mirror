@@ -1,5 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import type { Community, Customer, Event, Rsvp } from "@/lib/generated/prisma";
+import type {
+  Community,
+  Customer,
+  Event,
+  EventParticipationOption,
+  Rsvp,
+} from "@/lib/generated/prisma";
 
 // ============================================================
 // 型定義
@@ -8,12 +14,20 @@ import type { Community, Customer, Event, Rsvp } from "@/lib/generated/prisma";
 export type RsvpForPage = Rsvp & {
   event: Event & {
     community: Pick<Community, "code" | "name">;
+    participationOptions: EventParticipationOption[];
   };
+  participationOption: EventParticipationOption | null;
   customer: Pick<Customer, "id" | "lastName" | "firstName" | "deletedAt">;
 };
 
 export type RsvpForAdminUpdate = Rsvp & {
-  event: Pick<Event, "id" | "deletedAt" | "hasAfterParty">;
+  event: Pick<
+    Event,
+    "id" | "deletedAt" | "hasAfterParty" | "participationMode"
+  > & {
+    participationOptions: EventParticipationOption[];
+  };
+  participationOption: EventParticipationOption | null;
   customer: Pick<
     Customer,
     | "id"
@@ -41,11 +55,16 @@ export async function findRsvpByToken(
     include: {
       event: {
         include: {
+          participationOptions: {
+            where: { isActive: true },
+            orderBy: { sortOrder: "asc" },
+          },
           community: {
             select: { code: true, name: true },
           },
         },
       },
+      participationOption: true,
       customer: {
         select: {
           id: true,
@@ -77,8 +96,14 @@ export async function findRsvpByIdForAdmin(
           id: true,
           deletedAt: true,
           hasAfterParty: true,
+          participationMode: true,
+          participationOptions: {
+            where: { isActive: true },
+            orderBy: { sortOrder: "asc" },
+          },
         },
       },
+      participationOption: true,
       customer: {
         select: {
           id: true,
@@ -103,6 +128,7 @@ export async function updateRsvpResponse(
     afterPartyStatus: "attending" | "not_attending" | null;
     comment: string | null;
     adminNote?: string | null;
+    participationOptionId: number | null;
     respondedAt: Date;
   }
 ): Promise<Rsvp> {

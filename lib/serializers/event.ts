@@ -45,6 +45,12 @@ export function serializeEventForDetail(e: EventForDetail): SerializedEventDetai
     isPaused: e.isPaused,
     allowsOnline: e.allowsOnline,
     hasAfterParty: e.hasAfterParty,
+    participationMode: e.participationMode,
+    participationOptions: e.participationOptions.map((option) => ({
+      id: option.id,
+      label: option.label,
+      isActive: option.isActive,
+    })),
     responseDeadline: e.responseDeadline?.toISOString() ?? null,
     community: {
       id: e.community.id,
@@ -60,6 +66,14 @@ export function serializeEventForDetail(e: EventForDetail): SerializedEventDetai
       comment: r.comment,
       adminNote: r.adminNote,
       respondedAt: r.respondedAt?.toISOString() ?? null,
+      participationOptionId: r.participationOptionId,
+      participationOption: r.participationOption
+        ? {
+            id: r.participationOption.id,
+            label: r.participationOption.label,
+            isActive: r.participationOption.isActive,
+          }
+        : null,
       customer: {
         id: r.customer.id,
         lastName: r.customer.lastName,

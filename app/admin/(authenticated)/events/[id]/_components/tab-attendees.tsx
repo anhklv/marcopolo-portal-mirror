@@ -351,6 +351,8 @@ export function TabAttendees({
           date: event.date,
           allowsOnline: event.allowsOnline,
           hasAfterParty: event.hasAfterParty,
+          participationMode: event.participationMode,
+          participationOptions: event.participationOptions,
         }}
         attendee={editingAttendee}
         onSaved={handleSaved}

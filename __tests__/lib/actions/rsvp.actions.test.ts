@@ -56,6 +56,8 @@ function createMockRsvpData(overrides: Record<string, unknown> = {}) {
       deletedAt: null,
       isPaused: false,
       hasAfterParty: false,
+      participationMode: "disabled",
+      participationOptions: [],
       responseDeadline: new Date("2099-12-31T23:59:59Z"),
       date: new Date("2099-12-31T23:59:59Z"),
       community: {
@@ -67,6 +69,8 @@ function createMockRsvpData(overrides: Record<string, unknown> = {}) {
       id: 20,
       deletedAt: null,
     },
+    participationOptionId: null,
+    participationOption: null,
     ...overrides,
   };
 }
@@ -100,6 +104,7 @@ describe("submitRsvpAction", () => {
       status: "attending",
       afterPartyStatus: null,
       comment: "よろしくお願いします",
+      participationOptionId: null,
       respondedAt: expect.any(Date),
     });
   });
@@ -229,6 +234,94 @@ describe("submitRsvpAction", () => {
 
     expect(result).toEqual({ success: true });
     expect(mockUpdateRsvpResponse).toHaveBeenCalledOnce();
+  });
+
+  it("異常系: 参加内容が必須なのに未選択", async () => {
+    const rsvpData = createMockRsvpData({
+      event: {
+        ...createMockRsvpData().event,
+        participationMode: "required",
+        participationOptions: [{ id: 101, isActive: true }],
+      },
+    });
+    mockFindRsvpByToken.mockResolvedValue(rsvpData);
+
+    const result = await submitRsvpAction(validFormData);
+
+    expect(result).toEqual({
+      success: false,
+      error: "参加内容を選択してください",
+    });
+    expect(mockUpdateRsvpResponse).not.toHaveBeenCalled();
+  });
+
+  it("正常系: activeな参加内容を選択して保存する", async () => {
+    const rsvpData = createMockRsvpData({
+      event: {
+        ...createMockRsvpData().event,
+        participationMode: "required",
+        participationOptions: [{ id: 101, isActive: true }],
+      },
+    });
+    mockFindRsvpByToken.mockResolvedValue(rsvpData);
+    mockUpdateRsvpResponse.mockResolvedValue({});
+
+    const result = await submitRsvpAction({
+      ...validFormData,
+      participationOptionId: 101,
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(mockUpdateRsvpResponse).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({ participationOptionId: 101 })
+    );
+  });
+
+  it("異常系: Eventに属さない参加内容は保存しない", async () => {
+    const rsvpData = createMockRsvpData({
+      event: {
+        ...createMockRsvpData().event,
+        participationMode: "optional",
+        participationOptions: [{ id: 101, isActive: true }],
+      },
+    });
+    mockFindRsvpByToken.mockResolvedValue(rsvpData);
+
+    const result = await submitRsvpAction({
+      ...validFormData,
+      participationOptionId: 999,
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "参加内容の選択が不正です",
+    });
+  });
+
+  it("正常系: RSVPが既に参照する削除済みoptionは保持できる", async () => {
+    const rsvpData = createMockRsvpData({
+      participationOptionId: 101,
+      participationOption: { id: 101, label: "講演のみ", isActive: false },
+      event: {
+        ...createMockRsvpData().event,
+        participationMode: "required",
+        participationOptions: [],
+      },
+    });
+    mockFindRsvpByToken.mockResolvedValue(rsvpData);
+    mockUpdateRsvpResponse.mockResolvedValue({});
+
+    const result = await submitRsvpAction({
+      ...validFormData,
+      participationOptionId: 101,
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(mockUpdateRsvpResponse).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({ participationOptionId: 101 })
+    );
   });
 
   // =========================================================
@@ -454,6 +547,8 @@ function createMockAdminRsvpData(overrides: Record<string, unknown> = {}) {
       id: 10,
       deletedAt: null,
       hasAfterParty: false,
+      participationMode: "disabled",
+      participationOptions: [],
     },
     customer: {
       id: 20,
@@ -463,6 +558,8 @@ function createMockAdminRsvpData(overrides: Record<string, unknown> = {}) {
       subEmails: ["yamada-sub@example.com"],
       deletedAt: null,
     },
+    participationOptionId: null,
+    participationOption: null,
     ...overrides,
   };
 }
@@ -505,6 +602,7 @@ describe("adminUpdateRsvpAction", () => {
       afterPartyStatus: null,
       comment: "管理者による変更",
       adminNote: "電話連絡により変更",
+      participationOptionId: null,
       respondedAt: expect.any(Date),
     });
     expect(mockRevalidatePath).toHaveBeenCalledWith("/admin/events/10");

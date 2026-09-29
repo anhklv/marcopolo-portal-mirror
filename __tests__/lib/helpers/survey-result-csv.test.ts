@@ -15,6 +15,8 @@ function makeEvent(overrides: Partial<SerializedEventDetail> = {}): SerializedEv
     isPaused: false,
     allowsOnline: false,
     hasAfterParty: false,
+    participationMode: "disabled",
+    participationOptions: [],
     responseDeadline: null,
     community: {
       id: 1,
