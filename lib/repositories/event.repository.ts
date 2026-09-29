@@ -9,7 +9,9 @@ import type {
   Customer,
   Department,
   Event,
+  EventParticipationOption,
   ListingCategory,
+  ParticipationMode,
   Prefecture,
   Rsvp,
 } from "@/lib/generated/prisma";
@@ -25,16 +27,38 @@ export type EventForList = Event & {
 
 export type EventForDetail = Event & {
   community: Community;
+  participationOptions: EventParticipationOption[];
   rsvps: (Rsvp & {
+    participationOption: EventParticipationOption | null;
     customer: Pick<Customer, "id" | "lastName" | "firstName" | "company">;
   })[];
 };
 
+export type EventForEdit = Event & {
+  participationOptions: (EventParticipationOption & {
+    _count: { rsvps: number };
+  })[];
+};
+
+export interface ParticipationOptionInput {
+  id?: number;
+  label: string;
+}
+
 export type EventForAttendeesExport = Pick<Event, "id" | "hasAfterParty"> & {
   rsvps: (Pick<
     Rsvp,
-    "id" | "status" | "afterPartyStatus" | "comment" | "respondedAt"
+    | "id"
+    | "status"
+    | "afterPartyStatus"
+    | "comment"
+    | "respondedAt"
+    | "participationOptionId"
   > & {
+    participationOption: Pick<
+      EventParticipationOption,
+      "id" | "label" | "isActive"
+    > | null;
     customer: Pick<
       Customer,
       | "id"
@@ -143,16 +167,48 @@ export async function createEvent(data: {
   responseDeadline: Date | null;
   allowsOnline: boolean;
   hasAfterParty: boolean;
+  participationMode: ParticipationMode;
+  participationOptions: ParticipationOptionInput[];
 }): Promise<Event> {
-  return prisma.event.create({ data });
+  const { participationOptions, ...eventData } = data;
+  return prisma.event.create({
+    data: {
+      ...eventData,
+      participationOptions: {
+        create: participationOptions.map((option, index) => ({
+          label: option.label,
+          sortOrder: index,
+        })),
+      },
+    },
+  });
+}
+
+export async function findCommunityCodeById(
+  communityId: number
+): Promise<string | null> {
+  const community = await prisma.community.findUnique({
+    where: { id: communityId },
+    select: { code: true },
+  });
+  return community?.code ?? null;
 }
 
 /**
  * イベント単体取得（編集画面用）
  */
-export async function findEventById(eventId: number): Promise<Event | null> {
+export async function findEventById(
+  eventId: number
+): Promise<EventForEdit | null> {
   return prisma.event.findFirst({
     where: { id: eventId, deletedAt: null },
+    include: {
+      participationOptions: {
+        where: { isActive: true },
+        include: { _count: { select: { rsvps: true } } },
+        orderBy: { sortOrder: "asc" },
+      },
+    },
   });
 }
 
@@ -172,11 +228,48 @@ export async function updateEvent(
     responseDeadline: Date | null;
     allowsOnline: boolean;
     hasAfterParty: boolean;
+    participationMode: ParticipationMode;
+    participationOptions: ParticipationOptionInput[];
   }
 ): Promise<Event> {
-  return prisma.event.update({
-    where: { id: eventId },
-    data,
+  const { participationOptions, ...eventData } = data;
+
+  return prisma.$transaction(async (tx) => {
+    const currentOptions = await tx.eventParticipationOption.findMany({
+      where: { eventId, isActive: true },
+      select: { id: true },
+    });
+    const currentIds = new Set(currentOptions.map((option) => option.id));
+    const submittedIds = participationOptions
+      .map((option) => option.id)
+      .filter((id): id is number => id !== undefined);
+
+    if (submittedIds.some((id) => !currentIds.has(id))) {
+      throw new Error("Invalid participation option");
+    }
+
+    await tx.eventParticipationOption.updateMany({
+      where: { eventId, isActive: true },
+      data: { isActive: false },
+    });
+
+    for (const [sortOrder, option] of participationOptions.entries()) {
+      if (option.id) {
+        await tx.eventParticipationOption.update({
+          where: { id: option.id },
+          data: { label: option.label, sortOrder, isActive: true },
+        });
+      } else {
+        await tx.eventParticipationOption.create({
+          data: { eventId, label: option.label, sortOrder },
+        });
+      }
+    }
+
+    return tx.event.update({
+      where: { id: eventId },
+      data: eventData,
+    });
   });
 }
 
@@ -190,8 +283,13 @@ export async function findEventByIdForDetail(
     where: { id: eventId, deletedAt: null },
     include: {
       community: true,
+      participationOptions: {
+        where: { isActive: true },
+        orderBy: { sortOrder: "asc" },
+      },
       rsvps: {
         include: {
+          participationOption: true,
           customer: {
             select: { id: true, lastName: true, firstName: true, company: true },
           },
@@ -221,6 +319,10 @@ export async function findEventByIdForAttendeesExport(
           afterPartyStatus: true,
           comment: true,
           respondedAt: true,
+          participationOptionId: true,
+          participationOption: {
+            select: { id: true, label: true, isActive: true },
+          },
           customer: {
             select: {
               id: true,

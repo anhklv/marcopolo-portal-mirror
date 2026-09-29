@@ -19,6 +19,13 @@ export const rsvpResponseSchema = z.object({
     .optional()
     .transform((val) => val?.trim() || null),
   termsAgreed: z.boolean().optional(),
+  participationOptionId: z
+    .number()
+    .int()
+    .positive()
+    .nullable()
+    .optional()
+    .transform((val) => val ?? null),
 });
 
 export type RsvpResponseInput = z.infer<typeof rsvpResponseSchema>;
@@ -50,6 +57,13 @@ export const adminRsvpUpdateSchema = z
     notifyCustomerByEmail: z.boolean().optional().default(false),
     emailSubject: z.string().optional(),
     emailBody: z.string().optional(),
+    participationOptionId: z
+      .number()
+      .int()
+      .positive()
+      .nullable()
+      .optional()
+      .transform((value) => value ?? null),
   })
   .superRefine((data, ctx) => {
     if (!data.notifyCustomerByEmail) {

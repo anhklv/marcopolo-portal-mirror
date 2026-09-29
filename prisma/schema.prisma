@@ -52,6 +52,12 @@ enum AfterPartyStatus {
   not_attending
 }
 
+enum ParticipationMode {
+  disabled
+  optional
+  required
+}
+
 enum SurveyRating {
   excellent
   good
@@ -279,6 +285,7 @@ model Event {
   isPaused         Boolean   @default(false) @map("is_paused")
   allowsOnline     Boolean   @default(false) @map("allows_online")
   hasAfterParty    Boolean   @default(false) @map("has_after_party")
+  participationMode ParticipationMode @default(disabled) @map("participation_mode")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
   deletedAt        DateTime? @map("deleted_at")
@@ -287,8 +294,25 @@ model Event {
   community Community @relation(fields: [communityId], references: [id])
   rsvps     Rsvp[]
   survey    Survey?
+  participationOptions EventParticipationOption[]
 
   @@map("events")
+}
+
+model EventParticipationOption {
+  id        Int      @id @default(autoincrement())
+  eventId   Int      @map("event_id")
+  label     String   @db.VarChar(200)
+  sortOrder Int      @default(0) @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  event Event  @relation(fields: [eventId], references: [id])
+  rsvps Rsvp[]
+
+  @@index([eventId, isActive, sortOrder])
+  @@map("event_participation_options")
 }
 
 model Rsvp {
@@ -298,6 +322,7 @@ model Rsvp {
   token            String           @unique @db.VarChar(100)
   status           RsvpStatus       @default(pending)
   afterPartyStatus AfterPartyStatus? @map("after_party_status")
+  participationOptionId Int?              @map("participation_option_id")
   comment          String?          @db.Text
   adminNote        String?          @map("admin_note") @db.Text
   respondedAt      DateTime?        @map("responded_at")
@@ -307,8 +332,10 @@ model Rsvp {
   // Relations
   event    Event    @relation(fields: [eventId], references: [id])
   customer Customer @relation(fields: [customerId], references: [id])
+  participationOption EventParticipationOption? @relation(fields: [participationOptionId], references: [id], onDelete: Restrict)
 
   @@unique([eventId, customerId])
+  @@index([participationOptionId])
   @@map("rsvps")
 }
 

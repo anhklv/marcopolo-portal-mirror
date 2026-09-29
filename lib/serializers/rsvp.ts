@@ -18,6 +18,12 @@ export function serializeRsvpForPage(
       note: rsvp.event.note,
       allowsOnline: rsvp.event.allowsOnline,
       hasAfterParty: rsvp.event.hasAfterParty,
+      participationMode: rsvp.event.participationMode,
+      participationOptions: rsvp.event.participationOptions.map((option) => ({
+        id: option.id,
+        label: option.label,
+        isActive: option.isActive,
+      })),
       responseDeadline: rsvp.event.responseDeadline?.toISOString() ?? null,
       community: {
         code: rsvp.event.community.code,
@@ -31,6 +37,14 @@ export function serializeRsvpForPage(
       afterPartyStatus: rsvp.afterPartyStatus,
       comment: rsvp.comment,
       respondedAt: rsvp.respondedAt?.toISOString() ?? null,
+      participationOptionId: rsvp.participationOptionId,
+      participationOption: rsvp.participationOption
+        ? {
+            id: rsvp.participationOption.id,
+            label: rsvp.participationOption.label,
+            isActive: rsvp.participationOption.isActive,
+          }
+        : null,
     },
     customer: {
       lastName: rsvp.customer.lastName,

@@ -44,7 +44,14 @@ export async function submitRsvpAction(
     return { success: false, error: messages[0] };
   }
 
-  const { token, status, afterPartyStatus, comment, termsAgreed } = parsed.data;
+  const {
+    token,
+    status,
+    afterPartyStatus,
+    comment,
+    termsAgreed,
+    participationOptionId,
+  } = parsed.data;
 
   try {
     // 2. トークンでRSVP取得
@@ -87,7 +94,28 @@ export async function submitRsvpAction(
       };
     }
 
-    // 8. ビジネスロジック: 懇親会の回答必須チェック
+    // 8. 参加内容チェック
+    const isParticipating = status === "attending" || status === "online";
+    if (
+      isParticipating &&
+      rsvp.event.participationMode === "required" &&
+      !participationOptionId
+    ) {
+      return { success: false, error: "参加内容を選択してください" };
+    }
+
+    if (isParticipating && participationOptionId) {
+      const isActiveOption = rsvp.event.participationOptions.some(
+        (option) => option.id === participationOptionId
+      );
+      const isCurrentOption =
+        rsvp.participationOptionId === participationOptionId;
+      if (!isActiveOption && !isCurrentOption) {
+        return { success: false, error: "参加内容の選択が不正です" };
+      }
+    }
+
+    // 9. ビジネスロジック: 懇親会の回答必須チェック
     if (
       rsvp.event.hasAfterParty &&
       status === "attending" &&
@@ -99,19 +127,22 @@ export async function submitRsvpAction(
       };
     }
 
-    // 9. 不参加/オンラインの場合、afterPartyStatusをnullにする
+    // 10. 不参加/オンラインの場合、afterPartyStatusをnullにする
     const finalAfterPartyStatus =
       status === "attending" ? afterPartyStatus : null;
 
-    // 10. DB更新
+    // 11. DB更新
     await rsvpRepo.updateRsvpResponse(rsvp.id, {
       status,
       afterPartyStatus: finalAfterPartyStatus,
       comment,
+      participationOptionId: isParticipating
+        ? participationOptionId
+        : null,
       respondedAt: now,
     });
 
-    // 11. 管理画面のキャッシュ無効化
+    // 12. 管理画面のキャッシュ無効化
     revalidatePath(`/admin/events/${rsvp.eventId}`);
 
     return { success: true };
@@ -142,6 +173,7 @@ export async function adminUpdateRsvpAction(
     notifyCustomerByEmail,
     emailSubject,
     emailBody,
+    participationOptionId,
   } = parsed.data;
 
   try {
@@ -163,6 +195,26 @@ export async function adminUpdateRsvpAction(
       return { success: false, error: "この顧客は削除されています" };
     }
 
+    const isParticipating = status === "attending" || status === "online";
+    if (
+      isParticipating &&
+      rsvp.event.participationMode === "required" &&
+      !participationOptionId
+    ) {
+      return { success: false, error: "参加内容を選択してください" };
+    }
+
+    if (isParticipating && participationOptionId) {
+      const isActiveOption = rsvp.event.participationOptions.some(
+        (option) => option.id === participationOptionId
+      );
+      const isCurrentOption =
+        rsvp.participationOptionId === participationOptionId;
+      if (!isActiveOption && !isCurrentOption) {
+        return { success: false, error: "参加内容の選択が不正です" };
+      }
+    }
+
     if (
       rsvp.event.hasAfterParty &&
       status === "attending" &&
@@ -179,6 +231,9 @@ export async function adminUpdateRsvpAction(
       afterPartyStatus: status === "attending" ? afterPartyStatus : null,
       comment,
       adminNote,
+      participationOptionId: isParticipating
+        ? participationOptionId
+        : null,
       respondedAt: new Date(),
     });
 

@@ -22,6 +22,8 @@ function makeEvent(
     isPaused: false,
     allowsOnline: false,
     hasAfterParty: false,
+    participationMode: "disabled",
+    participationOptions: [],
     responseDeadline: null,
     community: {
       id: 1,
@@ -49,6 +51,9 @@ function row(
     comment: null,
     adminNote: null,
     respondedAt: "2024-06-01T15:00:00.000Z",
+    participationOptionId: null,
+    participationOptionLabel: null,
+    participationOptionIsActive: null,
     lastNameKana: "ヤマダ",
     firstNameKana: "タロウ",
     email: "taro.yamada@example.com",
@@ -90,6 +95,7 @@ describe("buildEventAttendeesCsv", () => {
       "都道府県",
       "上場区分",
       "ステータス",
+      "参加内容",
       "メールアドレス",
       "メッセージ",
       "姓",
@@ -114,7 +120,7 @@ describe("buildEventAttendeesCsv", () => {
       "転職意欲",
       "備考",
     ]);
-    expect(csv).toContain("山田 太郎,株式会社テスト,部長,東京都,プライム,参加");
+    expect(csv).toContain("山田 太郎,株式会社テスト,部長,東京都,プライム,参加,");
     expect(csv).toContain(
       "taro.yamada@example.com,,山田,太郎,ヤマダ,タロウ,sub1@example.com,sub2@example.com,,1,1,1,1,1,1,1,その他所属内容,0312345678,1000001,千代田区千代田1-1,1,1,備考テキスト"
     );
@@ -131,6 +137,34 @@ describe("buildEventAttendeesCsv", () => {
     );
     expect(csv).toContain("懇親会");
     expect(csv).toContain("参加");
+  });
+
+  it("参加内容をステータスの次の独立した列に出力する", () => {
+    const csv = buildEventAttendeesCsv(makeEvent(), [
+      row({
+        participationOptionId: 101,
+        participationOptionLabel: "講演のみ",
+        participationOptionIsActive: true,
+      }),
+    ]);
+    const [headerLine, dataLine] = csv.split("\n");
+    const headers = headerLine.replace(/^\uFEFF/, "").split(",");
+    const cells = dataLine.split(",");
+
+    expect(headers.indexOf("参加内容")).toBe(headers.indexOf("ステータス") + 1);
+    expect(cells[headers.indexOf("参加内容")]).toBe("講演のみ");
+  });
+
+  it("削除済みの参加内容には状態を付けて出力する", () => {
+    const csv = buildEventAttendeesCsv(makeEvent(), [
+      row({
+        participationOptionId: 101,
+        participationOptionLabel: "講演のみ",
+        participationOptionIsActive: false,
+      }),
+    ]);
+
+    expect(csv).toContain("講演のみ（削除済み）");
   });
 
   it("空の会社名・メッセージは空セルとして出る", () => {
@@ -230,6 +264,8 @@ describe("toEventAttendeeCsvRows", () => {
           afterPartyStatus: null,
           comment: "参加します",
           respondedAt: new Date("2026-08-13T08:00:00.000Z"),
+          participationOptionId: null,
+          participationOption: null,
           customer: {
             id: 10,
             lastName: "鈴木",

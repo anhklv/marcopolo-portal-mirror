@@ -17,6 +17,7 @@ function makeEvent(overrides: Partial<EventForDetail> = {}): EventForDetail {
     isPaused: false,
     allowsOnline: true,
     hasAfterParty: true,
+    participationMode: "optional",
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
     updatedAt: new Date("2026-01-01T00:00:00.000Z"),
     deletedAt: null,
@@ -29,6 +30,7 @@ function makeEvent(overrides: Partial<EventForDetail> = {}): EventForDetail {
       createdAt: new Date("2026-01-01T00:00:00.000Z"),
       updatedAt: new Date("2026-01-01T00:00:00.000Z"),
     },
+    participationOptions: [],
     rsvps: [
       {
         id: 10,
@@ -37,11 +39,13 @@ function makeEvent(overrides: Partial<EventForDetail> = {}): EventForDetail {
         token: "token-1",
         status: "attending",
         afterPartyStatus: "attending",
+        participationOptionId: null,
         comment: "楽しみです",
         adminNote: "管理者確認済み",
         respondedAt: new Date("2026-02-01T10:00:00.000Z"),
         createdAt: new Date("2026-01-15T00:00:00.000Z"),
         updatedAt: new Date("2026-01-15T00:00:00.000Z"),
+        participationOption: null,
         customer: {
           id: 100,
           lastName: "田中",
@@ -100,6 +104,8 @@ describe("serializeEventForDetail", () => {
       comment: "楽しみです",
       adminNote: "管理者確認済み",
       respondedAt: "2026-02-01T10:00:00.000Z",
+      participationOptionId: null,
+      participationOption: null,
       customer: {
         id: 100,
         lastName: "田中",
@@ -148,11 +154,13 @@ describe("serializeEventForDetail", () => {
           token: "token-2",
           status: "pending",
           afterPartyStatus: null,
+          participationOptionId: null,
           comment: null,
           adminNote: null,
           respondedAt: null,
           createdAt: new Date("2026-01-15T00:00:00.000Z"),
           updatedAt: new Date("2026-01-15T00:00:00.000Z"),
+          participationOption: null,
           customer: {
             id: 200,
             lastName: "佐藤",

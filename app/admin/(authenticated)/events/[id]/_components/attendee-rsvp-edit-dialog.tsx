@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
 import { ActionButton } from "@/components/ui/action-button";
@@ -45,6 +45,8 @@ interface AttendeeRsvpEditDialogProps {
     date: string;
     allowsOnline: boolean;
     hasAfterParty: boolean;
+    participationMode: "disabled" | "optional" | "required";
+    participationOptions: { id: number; label: string; isActive: boolean }[];
   };
   attendee: EditableAttendee | null;
   onSaved: () => void;
@@ -105,6 +107,9 @@ function AttendeeRsvpEditForm({
       () => (attendee.afterPartyStatus as FormAfterPartyStatus) ?? null
     );
   const [comment, setComment] = useState(() => attendee.comment ?? "");
+  const [participationOptionId, setParticipationOptionId] = useState<
+    number | null
+  >(() => attendee.participationOptionId);
   const [adminNote, setAdminNote] = useState(() => attendee.adminNote ?? "");
   const [notifyCustomerByEmail, setNotifyCustomerByEmail] = useState(false);
   const [emailSubject, setEmailSubject] = useState("");
@@ -114,6 +119,24 @@ function AttendeeRsvpEditForm({
     event.id,
     attendee.token
   );
+  const participationOptions = useMemo(() => {
+    const options = [...event.participationOptions];
+    if (
+      attendee.participationOptionId &&
+      attendee.participationOptionLabel &&
+      !options.some((option) => option.id === attendee.participationOptionId)
+    ) {
+      options.push({
+        id: attendee.participationOptionId,
+        label: attendee.participationOptionLabel,
+        isActive: false,
+      });
+    }
+    return options;
+  }, [attendee, event.participationOptions]);
+  const showParticipationOptions =
+    (status === "attend" || status === "online") &&
+    participationOptions.length > 0;
 
   const createEmailContent = (
     nextStatus: FormRsvpStatus | null = status,
@@ -160,6 +183,9 @@ function AttendeeRsvpEditForm({
     if (nextStatus !== "attend") {
       setAfterPartyStatus(null);
     }
+    if (nextStatus === "decline") {
+      setParticipationOptionId(null);
+    }
     if (notifyCustomerByEmail) {
       const content = createEmailContent(nextStatus, nextAfterPartyStatus);
       setEmailSubject(content.subject);
@@ -202,6 +228,15 @@ function AttendeeRsvpEditForm({
       return;
     }
 
+    if (
+      showParticipationOptions &&
+      event.participationMode === "required" &&
+      !participationOptionId
+    ) {
+      toast.error("参加内容を選択してください");
+      return;
+    }
+
     startTransition(async () => {
       try {
         const result = await adminUpdateRsvpAction({
@@ -212,6 +247,9 @@ function AttendeeRsvpEditForm({
             status === "attend" ? afterPartyStatus : null,
           comment: comment || undefined,
           adminNote: adminNote || undefined,
+          participationOptionId: showParticipationOptions
+            ? participationOptionId
+            : null,
           notifyCustomerByEmail,
           emailSubject: notifyCustomerByEmail ? emailSubject : undefined,
           emailBody: notifyCustomerByEmail ? emailBody : undefined,
@@ -291,6 +329,32 @@ function AttendeeRsvpEditForm({
                 selected={afterPartyStatus === "not_attending"}
                 colorClass="border-red-500 bg-red-50 text-red-900"
               />
+            </RadioGroup>
+          </Stack>
+        ) : null}
+
+        {showParticipationOptions ? (
+          <Stack gap="md">
+            <Label className="text-base">
+              参加内容を選択してください
+              {event.participationMode === "required" ? "（必須）" : "（任意）"}
+            </Label>
+            <RadioGroup
+              value={participationOptionId?.toString()}
+              onValueChange={(value) => setParticipationOptionId(Number(value))}
+              className="grid grid-cols-2 gap-3 sm:grid-cols-3"
+            >
+              {participationOptions.map((option) => (
+                <RadioOption
+                  key={option.id}
+                  value={String(option.id)}
+                  label={option.label}
+                  selected={participationOptionId === option.id}
+                  colorClass="border-green-500 bg-green-50 text-green-900"
+                  idPrefix="admin-rsvp-participation"
+                  inactive={!option.isActive}
+                />
+              ))}
             </RadioGroup>
           </Stack>
         ) : null}
@@ -416,13 +480,17 @@ function RadioOption({
   label,
   selected,
   colorClass,
+  idPrefix = "admin-rsvp",
+  inactive = false,
 }: {
   value: string;
   label: string;
   selected: boolean;
   colorClass: string;
+  idPrefix?: string;
+  inactive?: boolean;
 }) {
-  const inputId = `admin-rsvp-${value}`;
+  const inputId = `${idPrefix}-${value}`;
 
   return (
     <div>
@@ -430,12 +498,17 @@ function RadioOption({
       <Label
         htmlFor={inputId}
         className={`flex h-full cursor-pointer flex-col items-center justify-between rounded-md border-2 px-3 py-4 text-center transition-colors ${
-          selected
-            ? colorClass
-            : "border-muted bg-popover hover:bg-accent hover:text-accent-foreground"
+          inactive
+            ? `border-dashed border-muted bg-muted/50 text-muted-foreground opacity-70 ${selected ? "ring-2 ring-primary/40" : ""}`
+            : selected
+              ? colorClass
+              : "border-muted bg-popover hover:bg-accent hover:text-accent-foreground"
         }`}
       >
         <span className="text-sm font-semibold">{label}</span>
+        {inactive ? (
+          <span className="mt-1 text-xs font-normal">削除済み</span>
+        ) : null}
       </Label>
     </div>
   );
