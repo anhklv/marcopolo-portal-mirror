@@ -17,6 +17,12 @@ export interface CommunityOption {
   name: string;
 }
 
+export interface SerializedParticipationOption {
+  id: number;
+  label: string;
+  isActive: boolean;
+}
+
 export interface ListingCategoryOption {
   id: number;
   marketName: string;
@@ -142,6 +148,8 @@ export interface SerializedRsvpForEventDetail {
   comment: string | null;
   adminNote: string | null;
   respondedAt: string | null;
+  participationOptionId: number | null;
+  participationOption: SerializedParticipationOption | null;
   customer: {
     id: number;
     lastName: string;
@@ -161,6 +169,8 @@ export interface SerializedEventDetail {
   isPaused: boolean;
   allowsOnline: boolean;
   hasAfterParty: boolean;
+  participationMode: "disabled" | "optional" | "required";
+  participationOptions: SerializedParticipationOption[];
   responseDeadline: string | null;
   community: CommunityOption & { hasSurvey: boolean };
   rsvps: SerializedRsvpForEventDetail[];
@@ -299,6 +309,8 @@ export interface SerializedRsvpPageData {
     note: string | null;
     allowsOnline: boolean;
     hasAfterParty: boolean;
+    participationMode: "disabled" | "optional" | "required";
+    participationOptions: SerializedParticipationOption[];
     responseDeadline: string | null;
     community: { code: string; name: string };
   };
@@ -309,6 +321,8 @@ export interface SerializedRsvpPageData {
     afterPartyStatus: string | null;
     comment: string | null;
     respondedAt: string | null;
+    participationOptionId: number | null;
+    participationOption: SerializedParticipationOption | null;
   };
   customer: {
     lastName: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createEventAction, updateEventAction } from "@/lib/actions/event.actions";
@@ -11,6 +11,7 @@ import { EVENT_TZ_OFFSET } from "@/lib/constants/event";
 import { isoToDisplay, isRedirectError } from "@/lib/utils";
 import { eventSchema } from "@/lib/validations/event";
 import { formatZodFieldErrors } from "@/lib/validations/utils";
+import { COMMUNITY_CODE } from "@/lib/constants/community";
 
 // ============================================================
 // 型定義
@@ -28,11 +29,23 @@ export interface EventInitialData {
   responseDeadline: string | null;
   allowsOnline: boolean;
   hasAfterParty: boolean;
+  participationMode: "disabled" | "optional" | "required";
+}
+
+export interface ParticipationOptionInitialData {
+  id: number;
+  label: string;
+  rsvpCount: number;
+}
+
+interface ParticipationOptionFormItem extends ParticipationOptionInitialData {
+  key: string;
 }
 
 interface UseEventFormProps {
   mode: "create" | "edit";
   initialData?: EventInitialData;
+  initialParticipationOptions?: ParticipationOptionInitialData[];
   communities: CommunityOption[];
   isSuper: boolean;
   scopedCommunityIds: number[];
@@ -74,6 +87,7 @@ function isoToTime(dateStr: string | null | undefined): string {
 export function useEventForm({
   mode,
   initialData,
+  initialParticipationOptions = [],
   communities,
   isSuper,
   scopedCommunityIds,
@@ -116,6 +130,86 @@ export function useEventForm({
   const [deadlineTime, setDeadlineTime] = useState(isoToTime(initialData?.responseDeadline));
   const [allowsOnline, setAllowsOnline] = useState(initialData?.allowsOnline ?? false);
   const [hasAfterParty, setHasAfterParty] = useState(initialData?.hasAfterParty ?? false);
+  const [participationMode, setParticipationMode] = useState<
+    "optional" | "required"
+  >(initialData?.participationMode === "required" ? "required" : "optional");
+  const [participationOptions, setParticipationOptions] = useState<
+    ParticipationOptionFormItem[]
+  >(() =>
+    initialParticipationOptions.map((option) => ({
+      ...option,
+      key: `existing-${option.id}`,
+    }))
+  );
+  const [participationOptionPendingDelete, setParticipationOptionPendingDelete] =
+    useState<ParticipationOptionFormItem | null>(null);
+
+  const selectedCommunityCode = useMemo(
+    () => availableCommunities.find((community) => community.id === communityId)?.code,
+    [availableCommunities, communityId]
+  );
+  const isNaikanMeetup =
+    selectedCommunityCode === COMMUNITY_CODE.NAIKAN_MEETUP;
+
+  const handleCommunityIdChange = (value: number) => {
+    setCommunityId(value);
+    const nextCommunityCode = availableCommunities.find(
+      (community) => community.id === value
+    )?.code;
+    if (nextCommunityCode !== COMMUNITY_CODE.NAIKAN_MEETUP) {
+      setParticipationOptions([]);
+      setParticipationMode("optional");
+    }
+  };
+
+  const addParticipationOption = () => {
+    setParticipationOptions((current) => [
+      ...current,
+      {
+        key: `new-${Date.now()}-${Math.random()}`,
+        id: 0,
+        label: "",
+        rsvpCount: 0,
+      },
+    ]);
+  };
+
+  const updateParticipationOptionLabel = (key: string, label: string) => {
+    setParticipationOptions((current) =>
+      current.map((option) =>
+        option.key === key ? { ...option, label } : option
+      )
+    );
+  };
+
+  const removeParticipationOption = (key: string) => {
+    const option = participationOptions.find((item) => item.key === key);
+    if (!option) return;
+
+    if (option.rsvpCount > 0) {
+      setParticipationOptionPendingDelete(option);
+      return;
+    }
+
+    setParticipationOptions((current) =>
+      current.filter((item) => item.key !== key)
+    );
+  };
+
+  const cancelParticipationOptionDelete = () => {
+    setParticipationOptionPendingDelete(null);
+  };
+
+  const confirmParticipationOptionDelete = () => {
+    if (!participationOptionPendingDelete) return;
+
+    setParticipationOptions((current) =>
+      current.filter(
+        (item) => item.key !== participationOptionPendingDelete.key
+      )
+    );
+    setParticipationOptionPendingDelete(null);
+  };
 
   // エラー状態
   const { fieldErrors, setFieldErrors, generalError, setGeneralError, clearFieldError } = useFieldErrors();
@@ -140,11 +234,25 @@ export function useEventForm({
       responseDeadline: deadlineStr || undefined,
       allowsOnline,
       hasAfterParty,
+      participationMode:
+        isNaikanMeetup ? participationMode : "disabled",
+      participationOptions: isNaikanMeetup
+        ? participationOptions.map((option) => ({
+            ...(option.id > 0 ? { id: option.id } : {}),
+            label: option.label,
+          }))
+        : [],
     };
 
     // クライアント側Zodバリデーション
     const parsed = eventSchema.safeParse(formData);
     if (!parsed.success) {
+      const participationIssue = parsed.error.issues.find(
+        (issue) => issue.path[0] === "participationOptions" || issue.path[0] === "participationMode"
+      );
+      if (participationIssue) {
+        toast.error(participationIssue.message);
+      }
       const errors = formatZodFieldErrors(parsed.error);
       // 日付・時刻のエラーを適切なフィールドに振り分け
       if (errors["date"]) {
@@ -162,7 +270,9 @@ export function useEventForm({
         }
       }
       setFieldErrors(errors);
-      toast.error("入力内容に誤りがあります");
+      if (!participationIssue) {
+        toast.error("入力内容に誤りがあります");
+      }
       return;
     }
 
@@ -232,7 +342,8 @@ export function useEventForm({
     // コミュニティ
     communitySelectMode,
     availableCommunities,
-    communityId, setCommunityId,
+    communityId, setCommunityId: handleCommunityIdChange,
+    isNaikanMeetup,
 
     // フォーム状態
     title, setTitle,
@@ -246,6 +357,14 @@ export function useEventForm({
     deadlineTime, setDeadlineTime,
     allowsOnline, setAllowsOnline,
     hasAfterParty, setHasAfterParty,
+    participationMode, setParticipationMode,
+    participationOptions,
+    participationOptionPendingDelete,
+    addParticipationOption,
+    updateParticipationOptionLabel,
+    removeParticipationOption,
+    cancelParticipationOptionDelete,
+    confirmParticipationOptionDelete,
 
     // エラー
     fieldErrors,

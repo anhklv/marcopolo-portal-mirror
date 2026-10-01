@@ -76,6 +76,14 @@ export function toEventAttendeeCsvRows(
       afterPartyStatus: rsvp.afterPartyStatus,
       comment: rsvp.comment,
       respondedAt: rsvp.respondedAt?.toISOString() ?? null,
+      participationOptionId: rsvp.participationOptionId,
+      participationOption: rsvp.participationOption
+        ? {
+            id: rsvp.participationOption.id,
+            label: rsvp.participationOption.label,
+            isActive: rsvp.participationOption.isActive,
+          }
+        : null,
       customer: {
         id: rsvp.customer.id,
         lastName: rsvp.customer.lastName,
@@ -129,6 +137,7 @@ export function buildEventAttendeesCsv(
     "都道府県",
     "上場区分",
     "ステータス",
+    "参加内容",
   ];
   if (event.hasAfterParty) {
     headers.push("懇親会");
@@ -170,6 +179,11 @@ function buildRow(hasAfterParty: boolean, row: EventAttendeeCsvRow): string[] {
     row.prefectureName ?? "",
     row.listingCategory?.marketName ?? "",
     statusLabel,
+    row.participationOptionLabel
+      ? `${row.participationOptionLabel}${
+          row.participationOptionIsActive === false ? "（削除済み）" : ""
+        }`
+      : "",
   ];
 
   if (hasAfterParty) {

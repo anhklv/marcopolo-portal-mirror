@@ -40,12 +40,60 @@ export const eventSchema = z.object({
   hasAfterParty: z
     .boolean()
     .optional(),
+  participationMode: z
+    .enum(["disabled", "optional", "required"])
+    .optional()
+    .default("disabled"),
+  participationOptions: z
+    .array(
+      z.object({
+        id: z.number().int().positive().optional(),
+        label: z
+          .string()
+          .trim()
+          .min(1, "参加の選択肢に空のラベルがあります")
+          .max(200, "参加の選択肢は200文字以内で入力してください"),
+      })
+    )
+    .optional()
+    .default([]),
 }).superRefine((data, ctx) => {
   if (data.responseDeadline && data.date && data.responseDeadline > data.date) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: "回答期限は開催日時より前に設定してください",
       path: ["responseDeadline"],
+    });
+  }
+
+  if (
+    data.participationMode === "required" &&
+    data.participationOptions.length === 0
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "必須の場合は参加の選択肢を1つ以上登録してください",
+      path: ["participationOptions"],
+    });
+  }
+
+  if (
+    data.participationMode === "disabled" &&
+    data.participationOptions.length > 0
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "参加の選択肢を使用する場合は必須または任意を選択してください",
+      path: ["participationMode"],
+    });
+  }
+
+  const labels = data.participationOptions.map((option) => option.label.trim());
+  if (new Set(labels).size !== labels.length) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "同じ参加の選択肢が登録されています",
+      path: ["participationOptions"],
     });
   }
 });

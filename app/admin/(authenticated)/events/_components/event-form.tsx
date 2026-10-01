@@ -24,10 +24,24 @@ import { PageHeader } from "@/components/ui/page-header";
 import { CheckboxItem } from "@/components/ui/checkbox-item";
 import { ActionButton } from "@/components/ui/action-button";
 import { DatePickerWithInput } from "@/components/ui/date-picker-with-input";
-import { Mail } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { RadioGroup } from "@/components/ui/radio-group";
+import { RadioItem } from "@/components/ui/radio-item";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Mail, Plus, Trash2 } from "lucide-react";
 import type { CommunityOption } from "@/lib/types/serialized";
 import { useEventForm } from "./use-event-form";
-import type { EventInitialData } from "./use-event-form";
+import type {
+  EventInitialData,
+  ParticipationOptionInitialData,
+} from "./use-event-form";
 
 // ============================================================
 // 型定義
@@ -36,6 +50,7 @@ import type { EventInitialData } from "./use-event-form";
 interface EventFormProps {
   mode: "create" | "edit";
   initialData?: EventInitialData;
+  initialParticipationOptions?: ParticipationOptionInitialData[];
   communities: CommunityOption[];
   isSuper: boolean;
   scopedCommunityIds: number[];
@@ -48,6 +63,7 @@ interface EventFormProps {
 export function EventForm({
   mode,
   initialData,
+  initialParticipationOptions,
   communities,
   isSuper,
   scopedCommunityIds,
@@ -56,6 +72,7 @@ export function EventForm({
   const form = useEventForm({
     mode,
     initialData,
+    initialParticipationOptions,
     communities,
     isSuper,
     scopedCommunityIds,
@@ -292,6 +309,82 @@ export function EventForm({
             checked={form.hasAfterParty}
             onCheckedChange={(checked) => form.setHasAfterParty(checked === true)}
           />
+
+          {form.isNaikanMeetup && (
+            <div className="space-y-3 rounded-lg border p-4">
+              <div>
+                <Label className="text-base">参加の選択肢</Label>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  参加・オンライン参加時に表示される選択肢です。
+                </p>
+              </div>
+
+              <RadioGroup
+                value={form.participationMode}
+                onValueChange={(value) =>
+                  form.setParticipationMode(value as "optional" | "required")
+                }
+              >
+                <div className="flex items-center gap-6">
+                  <RadioItem
+                    value="required"
+                    label="必須"
+                    id="participation-options-required"
+                  />
+                  <RadioItem
+                    value="optional"
+                    label="任意"
+                    id="participation-options-optional"
+                  />
+                </div>
+              </RadioGroup>
+
+              {form.participationOptions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  選択肢がありません。
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {form.participationOptions.map((option) => (
+                    <div key={option.key} className="flex items-center gap-2">
+                      <Input
+                        value={option.label}
+                        maxLength={200}
+                        onChange={(event) =>
+                          form.updateParticipationOptionLabel(
+                            option.key,
+                            event.target.value
+                          )
+                        }
+                        placeholder="例: 講演のみ参加"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() =>
+                          form.removeParticipationOption(option.key)
+                        }
+                        aria-label="選択肢を削除"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={form.addParticipationOption}
+              >
+                <Plus className="h-4 w-4" />
+                選択肢を追加
+              </Button>
+            </div>
+          )}
         </Stack>
 
         <div className="flex justify-center">
@@ -300,6 +393,44 @@ export function EventForm({
           </ActionButton>
         </div>
       </form>
+
+      <Dialog
+        open={form.participationOptionPendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) form.cancelParticipationOptionDelete();
+        }}
+      >
+        <DialogContent className="bg-card">
+          <DialogHeader>
+            <DialogTitle>参加の選択肢を削除</DialogTitle>
+            <DialogDescription>
+              「{form.participationOptionPendingDelete?.label}」は
+              {form.participationOptionPendingDelete?.rsvpCount}
+              件のRSVPで使用されています。
+              <br />
+              削除後も既存の回答には「
+              {form.participationOptionPendingDelete?.label}
+              （削除済み）」として保持されます。新しい回答では選択できなくなります。
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={form.cancelParticipationOptionDelete}
+            >
+              キャンセル
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={form.confirmParticipationOptionDelete}
+            >
+              削除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

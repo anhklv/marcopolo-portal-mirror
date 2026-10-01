@@ -29,12 +29,15 @@ const mockCreateEvent = vi.fn();
 const mockUpdateEvent = vi.fn();
 const mockSoftDeleteEvent = vi.fn();
 const mockToggleEventPause = vi.fn();
+const mockFindCommunityCodeById = vi.fn();
 
 vi.mock("@/lib/repositories/event.repository", () => ({
   createEvent: (...args: unknown[]) => mockCreateEvent(...args),
   updateEvent: (...args: unknown[]) => mockUpdateEvent(...args),
   softDeleteEvent: (...args: unknown[]) => mockSoftDeleteEvent(...args),
   toggleEventPause: (...args: unknown[]) => mockToggleEventPause(...args),
+  findCommunityCodeById: (...args: unknown[]) =>
+    mockFindCommunityCodeById(...args),
 }));
 
 const mockLogServerError = vi.fn();
@@ -79,6 +82,7 @@ function setupCommunityAdmin(scopedIds: number[] = [1]) {
 describe("createEventAction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockFindCommunityCodeById.mockResolvedValue("venture_auditor");
   });
 
   it("正常系: 有効データ → createEvent呼出 → eventId返却", async () => {
@@ -218,6 +222,58 @@ describe("createEventAction", () => {
     );
   });
 
+  it("正常系: ないかんMeetupの参加選択肢をEventと同時に保存する", async () => {
+    setupSuperAdmin();
+    mockFindCommunityCodeById.mockResolvedValue("naikan_meetup");
+    mockCreateEvent.mockResolvedValue({ id: 60 });
+
+    const result = await createEventAction({
+      ...validFormData,
+      participationMode: "required",
+      participationOptions: [
+        { label: "すべて" },
+        { label: "講演のみ" },
+      ],
+    });
+
+    expect(result).toEqual({ success: true, eventId: 60 });
+    expect(mockCreateEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        participationMode: "required",
+        participationOptions: [
+          { label: "すべて" },
+          { label: "講演のみ" },
+        ],
+      })
+    );
+  });
+
+  it("異常系: 必須で選択肢が0件の場合は保存しない", async () => {
+    setupSuperAdmin();
+
+    const result = await createEventAction({
+      ...validFormData,
+      participationMode: "required",
+      participationOptions: [],
+    });
+
+    expect(result.success).toBe(false);
+    expect(mockCreateEvent).not.toHaveBeenCalled();
+  });
+
+  it("異常系: 同じ参加の選択肢は保存しない", async () => {
+    setupSuperAdmin();
+
+    const result = await createEventAction({
+      ...validFormData,
+      participationMode: "optional",
+      participationOptions: [{ label: "講演のみ" }, { label: " 講演のみ " }],
+    });
+
+    expect(result.success).toBe(false);
+    expect(mockCreateEvent).not.toHaveBeenCalled();
+  });
+
   it("異常系: responseDeadline > date → エラー返却", async () => {
     setupSuperAdmin();
 
@@ -263,6 +319,7 @@ describe("createEventAction", () => {
 describe("updateEventAction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockFindCommunityCodeById.mockResolvedValue("venture_auditor");
   });
 
   it("正常系: 有効データ → updateEvent呼出 → redirect", async () => {
