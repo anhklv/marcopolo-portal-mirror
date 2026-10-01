@@ -309,30 +309,6 @@ function AttendeeRsvpEditForm({
           </RadioGroup>
         </Stack>
 
-        {event.hasAfterParty && status === "attend" ? (
-          <Stack gap="md">
-            <Label className="text-base">懇親会も参加しますか？</Label>
-            <RadioGroup
-              value={afterPartyStatus ?? undefined}
-              onValueChange={handleAfterPartyStatusChange}
-              className="grid grid-cols-2 gap-3"
-            >
-              <RadioOption
-                value="attending"
-                label="参加する"
-                selected={afterPartyStatus === "attending"}
-                colorClass="border-green-500 bg-green-50 text-green-900"
-              />
-              <RadioOption
-                value="not_attending"
-                label="参加しない"
-                selected={afterPartyStatus === "not_attending"}
-                colorClass="border-red-500 bg-red-50 text-red-900"
-              />
-            </RadioGroup>
-          </Stack>
-        ) : null}
-
         {showParticipationOptions ? (
           <Stack gap="md">
             <Label className="text-base">
@@ -355,6 +331,30 @@ function AttendeeRsvpEditForm({
                   inactive={!option.isActive}
                 />
               ))}
+            </RadioGroup>
+          </Stack>
+        ) : null}
+
+        {event.hasAfterParty && status === "attend" ? (
+          <Stack gap="md">
+            <Label className="text-base">懇親会も参加しますか？</Label>
+            <RadioGroup
+              value={afterPartyStatus ?? undefined}
+              onValueChange={handleAfterPartyStatusChange}
+              className="grid grid-cols-2 gap-3"
+            >
+              <RadioOption
+                value="attending"
+                label="参加する"
+                selected={afterPartyStatus === "attending"}
+                colorClass="border-green-500 bg-green-50 text-green-900"
+              />
+              <RadioOption
+                value="not_attending"
+                label="参加しない"
+                selected={afterPartyStatus === "not_attending"}
+                colorClass="border-red-500 bg-red-50 text-red-900"
+              />
             </RadioGroup>
           </Stack>
         ) : null}
