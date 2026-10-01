@@ -58,6 +58,35 @@ enum ParticipationMode {
   required
 }
 
+enum EventMailKind {
+  rsvp
+  survey
+  notice
+}
+
+enum EventMailState {
+  draft
+  sent
+}
+
+enum EventMailSendStatus {
+  processing
+  success
+  partial_failed
+  failed
+}
+
+enum EventMailAddressType {
+  main
+  sub
+}
+
+enum EventMailDeliveryStatus {
+  pending
+  success
+  failed
+}
+
 enum SurveyRating {
   excellent
   good
@@ -222,6 +251,7 @@ model Customer {
   surveyResponses         SurveyResponse[]
   fixedSurveyResponses    FixedSurveyResponse[]
   surveyTokens            SurveyToken[]
+  eventMailDeliveries     EventMailDelivery[]
 
   @@map("customers")
 }
@@ -295,6 +325,7 @@ model Event {
   rsvps     Rsvp[]
   survey    Survey?
   participationOptions EventParticipationOption[]
+  eventMails            EventMail[]
 
   @@map("events")
 }
@@ -337,6 +368,61 @@ model Rsvp {
   @@unique([eventId, customerId])
   @@index([participationOptionId])
   @@map("rsvps")
+}
+
+model EventMail {
+  id                   Int                  @id @default(autoincrement())
+  eventId              Int                  @map("event_id")
+  templateNameSnapshot String?              @map("template_name_snapshot") @db.VarChar(200)
+  kind                 EventMailKind
+  state                EventMailState       @default(draft)
+  subject              String               @db.VarChar(500)
+  body                 String               @db.Text
+  fromAddress          String               @map("from_address") @db.VarChar(255)
+  createdByAdminId     Int                  @map("created_by_admin_id")
+  sentByAdminId        Int?                 @map("sent_by_admin_id")
+  sendStatus           EventMailSendStatus? @map("send_status")
+  targetCount          Int                  @default(0) @map("target_count")
+  successCount         Int                  @default(0) @map("success_count")
+  failedCount          Int                  @default(0) @map("failed_count")
+  sentAt               DateTime?            @map("sent_at")
+  createdAt            DateTime             @default(now()) @map("created_at")
+  updatedAt            DateTime             @updatedAt @map("updated_at")
+
+  event          Event               @relation(fields: [eventId], references: [id])
+  createdByAdmin Admin               @relation("EventMailCreatedBy", fields: [createdByAdminId], references: [id])
+  sentByAdmin    Admin?              @relation("EventMailSentBy", fields: [sentByAdminId], references: [id])
+  deliveries    EventMailDelivery[]
+
+  @@index([eventId, sentAt])
+  @@index([eventId, state])
+  @@index([sendStatus])
+  @@map("event_mails")
+}
+
+model EventMailDelivery {
+  id                Int                     @id @default(autoincrement())
+  eventMailId       Int                     @map("event_mail_id")
+  customerId        Int                     @map("customer_id")
+  lastNameSnapshot  String                  @map("last_name_snapshot") @db.VarChar(100)
+  firstNameSnapshot String                  @map("first_name_snapshot") @db.VarChar(100)
+  emailAddress      String                  @map("email_address") @db.VarChar(255)
+  emailType         EventMailAddressType    @map("email_type")
+  subEmailOrder     Int?                    @map("sub_email_order")
+  status            EventMailDeliveryStatus @default(pending)
+  smtpMessageId     String?                 @map("smtp_message_id") @db.VarChar(255)
+  errorCode         String?                 @map("error_code") @db.VarChar(100)
+  errorMessage      String?                 @map("error_message") @db.Text
+  sentAt            DateTime?               @map("sent_at")
+  createdAt         DateTime                @default(now()) @map("created_at")
+  updatedAt         DateTime                @updatedAt @map("updated_at")
+
+  eventMail EventMail @relation(fields: [eventMailId], references: [id], onDelete: Cascade)
+  customer  Customer  @relation(fields: [customerId], references: [id])
+
+  @@index([eventMailId, status])
+  @@index([customerId])
+  @@map("event_mail_deliveries")
 }
 
 // ======================
@@ -463,6 +549,8 @@ model Admin {
 
   // Relations
   adminCommunities AdminCommunity[]
+  createdEventMails EventMail[] @relation("EventMailCreatedBy")
+  sentEventMails    EventMail[] @relation("EventMailSentBy")
 
   @@map("admins")
 }

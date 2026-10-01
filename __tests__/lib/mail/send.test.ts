@@ -79,6 +79,22 @@ describe("sendMail", () => {
       error: "メール送信に失敗しました",
     });
   });
+
+  it("異常系: 不正なメールアドレスはSMTP送信前に失敗として返す", async () => {
+    const result = await sendMail({
+      from: "from@example.com",
+      to: "invalid-address",
+      subject: "テスト件名",
+      text: "テスト本文",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      errorCode: "INVALID_EMAIL",
+      error: "Invalid email address",
+    });
+    expect(sendMailMock).not.toHaveBeenCalled();
+  });
 });
 
 describe("sendMailBatch", () => {
@@ -149,7 +165,7 @@ describe("sendMailBatch", () => {
     expect(result.successCustomerIds).toEqual([1]);
   });
 
-  it("異常系: subEmailsの一部が失敗した場合は顧客単位で失敗扱いにする", async () => {
+  it("正常系: subEmailsの一部が失敗しても成功した宛先があれば顧客は成功扱いにする", async () => {
     const customers: BatchMailCustomer[] = [
       { id: 1, lastName: "田中", firstName: "太郎", email: "tanaka@example.com", subEmails: ["tanaka-sub@example.com"] },
     ];
@@ -159,10 +175,26 @@ describe("sendMailBatch", () => {
 
     const result = await sendMailBatch({ ...baseParams, customers, tokenMap: new Map([[1, "token-1"]]) });
 
-    expect(result.sentCount).toBe(0);
-    expect(result.failedCount).toBe(1);
-    expect(result.failedNames).toEqual(["田中 太郎"]);
-    expect(result.successCustomerIds).toEqual([]);
+    expect(result.sentCount).toBe(1);
+    expect(result.failedCount).toBe(0);
+    expect(result.failedNames).toEqual([]);
+    expect(result.successCustomerIds).toEqual([1]);
+    expect(result.addressSuccessCount).toBe(1);
+    expect(result.addressFailedCount).toBe(1);
+    expect(result.deliveries).toEqual([
+      expect.objectContaining({
+        customerId: 1,
+        email: "tanaka@example.com",
+        emailType: "main",
+        success: true,
+      }),
+      expect.objectContaining({
+        customerId: 1,
+        email: "tanaka-sub@example.com",
+        emailType: "sub",
+        success: false,
+      }),
+    ]);
   });
 
   it("正常系: subEmailsが空配列の場合はメインアドレスのみで送信される", async () => {

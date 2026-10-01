@@ -2,6 +2,44 @@
 // Date → string 変換後の型を一元管理し、ページとコンポーネントで共有する
 import type { RemindTarget } from "@/lib/helpers/remind-target";
 
+export interface SerializedEventMailDelivery {
+  id: number;
+  customerId: number;
+  lastName: string;
+  firstName: string;
+  emailAddress: string;
+  emailType: "main" | "sub";
+  subEmailOrder: number | null;
+  status: "pending" | "success" | "failed";
+  smtpMessageId: string | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+  sentAt: string | null;
+}
+
+export interface SerializedEventMail {
+  id: number;
+  eventId: number;
+  templateName: string | null;
+  kind: "rsvp" | "survey" | "notice";
+  state: "draft" | "sent";
+  subject: string;
+  body: string;
+  fromAddress: string;
+  sendStatus: "processing" | "success" | "partial_failed" | "failed" | null;
+  targetCount: number;
+  successCount: number;
+  failedCount: number;
+  sentAt: string | null;
+  createdAt: string;
+  sentBy: {
+    id: number;
+    lastName: string;
+    firstName: string;
+  } | null;
+  deliveries: SerializedEventMailDelivery[];
+}
+
 // ============================================================
 // 共通
 // ============================================================

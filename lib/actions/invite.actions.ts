@@ -13,6 +13,7 @@ import { getBaseUrl } from "@/lib/helpers/base-url";
 import { generateRsvpToken, buildRsvpUrl, replacePlaceholders } from "@/lib/helpers/invite";
 import { getEventDisplayStatus } from "@/lib/utils/event";
 import { logServerError } from "@/lib/utils/log-error";
+import { createEventMailHistory } from "@/lib/repositories/event-mail.repository";
 
 // ============================================================
 // 型定義
@@ -125,6 +126,16 @@ export async function sendInviteAction(
       tokenMap.set(c.id, existingToken ?? generateRsvpToken());
     }
 
+    // URLを受信したメールが必ず利用できるよう、SMTP送信前にRSVPを保存する。
+    const newRsvpData = newCustomerIds.map((customerId) => ({
+      eventId,
+      customerId,
+      token: tokenMap.get(customerId) ?? "",
+    }));
+    if (newRsvpData.length > 0) {
+      await prisma.rsvp.createMany({ data: newRsvpData, skipDuplicates: true });
+    }
+
     // メール送信（バッチ処理）
     const batchResult = await sendMailBatch({
       customers,
@@ -138,20 +149,31 @@ export async function sendInviteAction(
 
     const { sentCount, failedCount, failedNames, successCustomerIds } = batchResult;
 
-    // 成功分のRSVPデータを構築
-    const successRsvpData = successCustomerIds.map((customerId) => ({
-      eventId,
-      customerId,
-      token: tokenMap.get(customerId) ?? "",
-    }));
-
-    // 送信成功分のみRSVPレコード保存
-    const newRsvpData = successRsvpData.filter((d) => newCustomerIds.includes(d.customerId));
-
-    // 新規顧客 → createMany
-    if (newRsvpData.length > 0) {
-      await prisma.rsvp.createMany({ data: newRsvpData, skipDuplicates: true });
+    // 全アドレスが失敗した新規顧客は、従来どおり案内済みとして残さない。
+    const successCustomerIdSet = new Set(successCustomerIds);
+    const failedNewCustomerIds = newCustomerIds.filter(
+      (customerId) => !successCustomerIdSet.has(customerId)
+    );
+    if (failedNewCustomerIds.length > 0) {
+      await prisma.rsvp.deleteMany({
+        where: {
+          eventId,
+          customerId: { in: failedNewCustomerIds },
+          status: "pending",
+        },
+      });
     }
+
+    await createEventMailHistory({
+      eventId,
+      templateName: "案内メール",
+      kind: "rsvp",
+      subject: emailTitle,
+      body: emailBody,
+      fromAddress: from,
+      adminId: admin.id,
+      deliveries: batchResult.deliveries,
+    });
 
     revalidatePath(`/admin/events/${eventId}`);
 

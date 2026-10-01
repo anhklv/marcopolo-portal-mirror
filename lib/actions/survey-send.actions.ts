@@ -22,6 +22,7 @@ import {
 import { findSurveyByEventId, createSurvey } from "@/lib/repositories/survey.repository";
 import { getEventDisplayStatus } from "@/lib/utils/event";
 import { logServerError } from "@/lib/utils/log-error";
+import { createEventMailHistory } from "@/lib/repositories/event-mail.repository";
 
 // ============================================================
 // 型定義
@@ -127,10 +128,6 @@ export async function sendSurveyAction(
     const newCustomerIds = customerIds.filter(
       (id) => !existingTokenMap.has(id)
     );
-    const resendCustomerIds = customerIds.filter((id) =>
-      existingTokenMap.has(id)
-    );
-
     // 顧客情報取得
     const customers = await prisma.customer.findMany({
       where: { id: { in: customerIds }, deletedAt: null },
@@ -157,6 +154,21 @@ export async function sendSurveyAction(
       tokenMap.set(c.id, existing ?? generateSurveyToken());
     }
 
+    // メール内URLを必ず利用できるよう、SMTP送信前に新規tokenを保存する。
+    const now = new Date();
+    const newTokenData = newCustomerIds.map((customerId) => ({
+      surveyId,
+      customerId,
+      token: tokenMap.get(customerId) ?? "",
+      sentAt: null,
+    }));
+    if (newTokenData.length > 0) {
+      await prisma.surveyToken.createMany({
+        data: newTokenData,
+        skipDuplicates: true,
+      });
+    }
+
     // メール送信（バッチ処理）
     const batchResult = await sendSurveyMailBatch({
       customers,
@@ -171,30 +183,23 @@ export async function sendSurveyAction(
     let { sentCount, failedCount } = batchResult;
     const { failedNames, successCustomerIds } = batchResult;
 
-    // 成功分のDB保存
-    const now = new Date();
-
-    // 新規: createMany
-    const newTokenData = successCustomerIds
-      .filter((id) => newCustomerIds.includes(id))
-      .map((customerId) => ({
-        surveyId,
-        customerId,
-        token: tokenMap.get(customerId) ?? "",
-        sentAt: now,
-      }));
-
-    if (newTokenData.length > 0) {
-      await prisma.surveyToken.createMany({
-        data: newTokenData,
-        skipDuplicates: true,
+    // 全アドレスが失敗した新規顧客の仮tokenは送信済みとして残さない。
+    const successCustomerIdSet = new Set(successCustomerIds);
+    const failedNewCustomerIds = newCustomerIds.filter(
+      (customerId) => !successCustomerIdSet.has(customerId)
+    );
+    if (failedNewCustomerIds.length > 0) {
+      await prisma.surveyToken.deleteMany({
+        where: {
+          surveyId,
+          customerId: { in: failedNewCustomerIds },
+          sentAt: null,
+        },
       });
     }
 
-    // 再送: sentAt 更新
-    for (const customerId of successCustomerIds.filter((id) =>
-      resendCustomerIds.includes(id)
-    )) {
+    // 1件以上のアドレスに送信できた顧客のみ sentAt を更新する。
+    for (const customerId of successCustomerIds) {
       try {
         await prisma.surveyToken.update({
           where: {
@@ -215,6 +220,17 @@ export async function sendSurveyAction(
         }
       }
     }
+
+    await createEventMailHistory({
+      eventId,
+      templateName: "アンケート依頼メール",
+      kind: "survey",
+      subject: emailTitle,
+      body: emailBody,
+      fromAddress: from,
+      adminId: admin.id,
+      deliveries: batchResult.deliveries,
+    });
 
     revalidatePath(`/admin/events/${eventId}`);
 
