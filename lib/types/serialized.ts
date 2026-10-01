@@ -300,7 +300,7 @@ export interface SerializedRsvpPageData {
     allowsOnline: boolean;
     hasAfterParty: boolean;
     responseDeadline: string | null;
-    community: { name: string };
+    community: { code: string; name: string };
   };
   rsvp: {
     id: number;

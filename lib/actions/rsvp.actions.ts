@@ -10,6 +10,7 @@ import {
   requireAuthenticatedAdmin,
 } from "@/lib/auth/permissions";
 import * as rsvpRepo from "@/lib/repositories/rsvp.repository";
+import { COMMUNITY_CODE } from "@/lib/constants/community";
 import { getBaseUrl } from "@/lib/helpers/base-url";
 import { sendMailBatch } from "@/lib/mail/send";
 import { logServerError } from "@/lib/utils/log-error";
@@ -43,7 +44,7 @@ export async function submitRsvpAction(
     return { success: false, error: messages[0] };
   }
 
-  const { token, status, afterPartyStatus, comment } = parsed.data;
+  const { token, status, afterPartyStatus, comment, termsAgreed } = parsed.data;
 
   try {
     // 2. トークンでRSVP取得
@@ -74,7 +75,19 @@ export async function submitRsvpAction(
       return { success: false, error: "回答期限を過ぎています" };
     }
 
-    // 7. ビジネスロジック: 懇親会の回答必須チェック
+    // 7. ないかんMeetupの規約同意チェック
+    if (
+      rsvp.event.community.code === COMMUNITY_CODE.NAIKAN_MEETUP &&
+      status !== "absent" &&
+      termsAgreed !== true
+    ) {
+      return {
+        success: false,
+        error: "3つの確認事項すべてに同意してください",
+      };
+    }
+
+    // 8. ビジネスロジック: 懇親会の回答必須チェック
     if (
       rsvp.event.hasAfterParty &&
       status === "attending" &&
@@ -86,11 +99,11 @@ export async function submitRsvpAction(
       };
     }
 
-    // 8. 不参加/オンラインの場合、afterPartyStatusをnullにする
+    // 9. 不参加/オンラインの場合、afterPartyStatusをnullにする
     const finalAfterPartyStatus =
       status === "attending" ? afterPartyStatus : null;
 
-    // 9. DB更新
+    // 10. DB更新
     await rsvpRepo.updateRsvpResponse(rsvp.id, {
       status,
       afterPartyStatus: finalAfterPartyStatus,
@@ -98,7 +111,7 @@ export async function submitRsvpAction(
       respondedAt: now,
     });
 
-    // 10. 管理画面のキャッシュ無効化
+    // 11. 管理画面のキャッシュ無効化
     revalidatePath(`/admin/events/${rsvp.eventId}`);
 
     return { success: true };
