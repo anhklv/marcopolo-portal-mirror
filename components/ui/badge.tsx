@@ -30,6 +30,10 @@ const badgeVariants = cva(
           "border-transparent bg-[#7AB2B2] text-white [a&]:hover:bg-[#7AB2B2]/90",
         online:
           "border-transparent bg-blue-100 text-blue-800 [a&]:hover:bg-blue-200",
+        attending:
+          "border-transparent bg-green-100 text-green-800 [a&]:hover:bg-green-200",
+        absent:
+          "border-transparent bg-red-50 text-red-800 [a&]:hover:bg-red-100",
         "non-member":
           "border-border bg-white text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
       },
