@@ -17,9 +17,9 @@ export const RSVP_STATUSES: readonly { value: RsvpStatus; label: string }[] = [
 
 // RSVPステータスの表示設定（Badge用）
 export const RSVP_STATUS_CONFIG: Record<RsvpStatus, { label: string; variant: BadgeVariant; description: string }> = {
-  attending: { label: "参加", variant: "default", description: "通常参加" },
+  attending: { label: "参加", variant: "attending", description: "通常参加" },
   online: { label: "オンライン参加", variant: "online", description: "オンライン参加（専用バリアント）" },
-  absent: { label: "不参加", variant: "destructive-outline", description: "不参加" },
+  absent: { label: "不参加", variant: "absent", description: "不参加" },
   pending: { label: "未回答", variant: "secondary", description: "未回答" },
 } as const;
 
