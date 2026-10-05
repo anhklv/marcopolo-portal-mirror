@@ -72,6 +72,9 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
       (data.rsvp.afterPartyStatus as FormAfterPartyStatus) ?? null
     );
   const [comment, setComment] = useState(data.rsvp.comment ?? "");
+  const [participationOptionId, setParticipationOptionId] = useState<
+    number | null
+  >(data.rsvp.participationOptionId);
   const [antiSocialForcesAgreed, setAntiSocialForcesAgreed] = useState(false);
   const [participationRulesAgreed, setParticipationRulesAgreed] = useState(false);
   const [informationSharingAgreed, setInformationSharingAgreed] = useState(false);
@@ -83,6 +86,10 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
   const requiresTermsAgreement =
     data.event.community.code === COMMUNITY_CODE.NAIKAN_MEETUP &&
     (status === "attend" || status === "online");
+  const showParticipationOptions =
+    (status === "attend" || status === "online") &&
+    (data.event.participationOptions.length > 0 ||
+      data.rsvp.participationOption !== null);
 
   // 回答期限チェック
   const isDeadlinePassed = useMemo(() => {
@@ -98,6 +105,7 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
       setAfterPartyStatus(null);
     }
     if (newStatus === "decline") {
+      setParticipationOptionId(null);
       setAntiSocialForcesAgreed(false);
       setParticipationRulesAgreed(false);
       setInformationSharingAgreed(false);
@@ -125,6 +133,15 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
       return;
     }
 
+    if (
+      showParticipationOptions &&
+      data.event.participationMode === "required" &&
+      !participationOptionId
+    ) {
+      toast.error("参加内容を選択してください");
+      return;
+    }
+
     startTransition(async () => {
       try {
         const result = await submitRsvpAction({
@@ -134,6 +151,9 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
             status === "attend" ? afterPartyStatus : null,
           comment: comment || undefined,
           termsAgreed: requiresTermsAgreement ? termsAgreed : undefined,
+          participationOptionId: showParticipationOptions
+            ? participationOptionId
+            : null,
         });
 
         if (result.success) {
@@ -163,6 +183,9 @@ export function useRsvpForm({ data }: UseRsvpFormProps) {
     setAfterPartyStatus,
     comment,
     setComment,
+    participationOptionId,
+    setParticipationOptionId,
+    showParticipationOptions,
     requiresTermsAgreement,
     termsAgreed,
     antiSocialForcesAgreed,

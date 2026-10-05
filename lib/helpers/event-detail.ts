@@ -18,6 +18,9 @@ export interface AttendeeRow {
   comment: string | null;
   adminNote: string | null;
   respondedAt: string | null;
+  participationOptionId: number | null;
+  participationOptionLabel: string | null;
+  participationOptionIsActive: boolean | null;
 }
 
 type AttendeeRsvpSource = Omit<
@@ -64,6 +67,9 @@ export function toAttendeeRows(
       comment: r.comment,
       adminNote: r.adminNote ?? null,
       respondedAt: r.respondedAt,
+      participationOptionId: r.participationOptionId,
+      participationOptionLabel: r.participationOption?.label ?? null,
+      participationOptionIsActive: r.participationOption?.isActive ?? null,
     }))
     .sort((a, b) => {
       const orderA = RSVP_STATUS_ORDER[a.status] ?? 99;

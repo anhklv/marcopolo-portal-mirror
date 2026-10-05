@@ -11,6 +11,7 @@ import { formatZodFieldErrors } from "@/lib/validations/utils";
 import * as eventRepo from "@/lib/repositories/event.repository";
 import type { ActionResult } from "@/lib/types/action";
 import { logServerError } from "@/lib/utils/log-error";
+import { COMMUNITY_CODE } from "@/lib/constants/community";
 
 // ============================================================
 // 型定義
@@ -27,6 +28,30 @@ type DeleteEventResult =
 type TogglePauseEventResult =
   | { success: true; isPaused: boolean }
   | { success: false; error: string };
+
+function getParticipationConfig(
+  communityCode: string,
+  mode: "disabled" | "optional" | "required",
+  options: { id?: number; label: string }[]
+) {
+  if (
+    communityCode !== COMMUNITY_CODE.NAIKAN_MEETUP ||
+    options.length === 0
+  ) {
+    return {
+      participationMode: "disabled" as const,
+      participationOptions: [],
+    };
+  }
+
+  return {
+    participationMode: mode,
+    participationOptions: options.map((option) => ({
+      ...option,
+      label: option.label.trim(),
+    })),
+  };
+}
 
 // ============================================================
 // Actions
@@ -58,6 +83,17 @@ export async function createEventAction(
 
   // 作成
   try {
+    const communityCode = await eventRepo.findCommunityCodeById(
+      data.communityId
+    );
+    if (!communityCode) {
+      return { success: false, error: "コミュニティが見つかりません" };
+    }
+    const participationConfig = getParticipationConfig(
+      communityCode,
+      data.participationMode,
+      data.participationOptions
+    );
     const event = await eventRepo.createEvent({
       communityId: data.communityId,
       title: data.title,
@@ -69,6 +105,7 @@ export async function createEventAction(
       responseDeadline: data.responseDeadline ?? null,
       allowsOnline: data.allowsOnline ?? false,
       hasAfterParty: data.hasAfterParty ?? false,
+      ...participationConfig,
     });
 
     revalidatePath("/admin/events");
@@ -112,6 +149,17 @@ export async function updateEventAction(
 
   // 更新
   try {
+    const communityCode = await eventRepo.findCommunityCodeById(
+      data.communityId
+    );
+    if (!communityCode) {
+      return { success: false, error: "コミュニティが見つかりません" };
+    }
+    const participationConfig = getParticipationConfig(
+      communityCode,
+      data.participationMode,
+      data.participationOptions
+    );
     await eventRepo.updateEvent(eventId, {
       communityId: data.communityId,
       title: data.title,
@@ -123,6 +171,7 @@ export async function updateEventAction(
       responseDeadline: data.responseDeadline ?? null,
       allowsOnline: data.allowsOnline ?? false,
       hasAfterParty: data.hasAfterParty ?? false,
+      ...participationConfig,
     });
   } catch (err) {
     logServerError("updateEventAction", err);

@@ -34,6 +34,9 @@ export function RsvpForm({ data }: RsvpFormProps) {
     setAfterPartyStatus,
     comment,
     setComment,
+    participationOptionId,
+    setParticipationOptionId,
+    showParticipationOptions,
     requiresTermsAgreement,
     termsAgreed,
     antiSocialForcesAgreed,
@@ -50,6 +53,15 @@ export function RsvpForm({ data }: RsvpFormProps) {
 
   const { event, customer } = data;
   const customerName = `${customer.lastName} ${customer.firstName}`;
+  const participationOptions = [...event.participationOptions];
+  if (
+    data.rsvp.participationOption &&
+    !participationOptions.some(
+      (option) => option.id === data.rsvp.participationOption?.id
+    )
+  ) {
+    participationOptions.push(data.rsvp.participationOption);
+  }
 
   // 完了画面
   if (submitted) {
@@ -172,6 +184,34 @@ export function RsvpForm({ data }: RsvpFormProps) {
                 />
               </RadioGroup>
             </Stack>
+
+            {showParticipationOptions && (
+              <Stack gap="md">
+                <Label className="text-base">
+                  参加内容を選択してください
+                  {event.participationMode === "required" ? "（必須）" : "（任意）"}
+                </Label>
+                <RadioGroup
+                  value={participationOptionId?.toString()}
+                  onValueChange={(value) =>
+                    setParticipationOptionId(Number(value))
+                  }
+                  className="grid grid-cols-2 gap-4 sm:grid-cols-3"
+                >
+                  {participationOptions.map((option) => (
+                    <RadioOption
+                      key={option.id}
+                      value={String(option.id)}
+                      label={option.label}
+                      selected={participationOptionId === option.id}
+                      colorClass="border-green-500 bg-green-50 text-green-900"
+                      idPrefix="rsvp-participation"
+                      inactive={!option.isActive}
+                    />
+                  ))}
+                </RadioGroup>
+              </Stack>
+            )}
 
             {/* 懇親会（条件付き表示） */}
             {event.hasAfterParty && status === "attend" && (
@@ -315,24 +355,34 @@ function RadioOption({
   label,
   selected,
   colorClass,
+  idPrefix,
+  inactive = false,
 }: {
   value: string;
   label: string;
   selected: boolean;
   colorClass: string;
+  idPrefix?: string;
+  inactive?: boolean;
 }) {
+  const inputId = `${idPrefix ?? "rsvp-status"}-${value}`;
   return (
     <div>
-      <RadioGroupItem value={value} id={value} className="peer sr-only" />
+      <RadioGroupItem value={value} id={inputId} className="peer sr-only" />
       <Label
-        htmlFor={value}
+        htmlFor={inputId}
         className={`flex flex-col items-center justify-between rounded-md border-2 px-4 py-6 cursor-pointer text-center h-full transition-colors ${
-          selected
-            ? colorClass
-            : "border-muted bg-popover hover:bg-accent hover:text-accent-foreground"
+          inactive
+            ? `border-dashed border-muted bg-muted/50 text-muted-foreground opacity-70 ${selected ? "ring-2 ring-primary/40" : ""}`
+            : selected
+              ? colorClass
+              : "border-muted bg-popover hover:bg-accent hover:text-accent-foreground"
         }`}
       >
         <span className="font-semibold">{label}</span>
+        {inactive && (
+          <span className="mt-1 text-xs font-normal">削除済み</span>
+        )}
       </Label>
     </div>
   );

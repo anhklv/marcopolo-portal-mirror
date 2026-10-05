@@ -50,12 +50,18 @@ export default async function EditEventPage({
       : null,
     allowsOnline: event.allowsOnline,
     hasAfterParty: event.hasAfterParty,
+    participationMode: event.participationMode,
   };
 
   return (
     <EventForm
       mode="edit"
       initialData={initialData}
+      initialParticipationOptions={event.participationOptions.map((option) => ({
+        id: option.id,
+        label: option.label,
+        rsvpCount: option._count.rsvps,
+      }))}
       communities={communities}
       isSuper={isSuper}
       scopedCommunityIds={scopedCommunityIds}
