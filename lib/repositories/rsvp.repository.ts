@@ -1,10 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import type {
+  AfterPartyStatus,
   Community,
   Customer,
   Event,
   EventParticipationOption,
   Rsvp,
+  RsvpStatus,
 } from "@/lib/generated/prisma";
 
 // ============================================================
@@ -38,6 +40,21 @@ export type RsvpForAdminUpdate = Rsvp & {
     | "deletedAt"
   >;
 };
+
+export interface PublicRsvpResponseData {
+  status: Exclude<RsvpStatus, "pending">;
+  afterPartyStatus: AfterPartyStatus | null;
+  comment: string | null;
+  participationOptionId: number | null;
+  respondedAt: Date;
+}
+
+export interface ExpectedPublicRsvpResponse {
+  status: RsvpStatus;
+  afterPartyStatus: AfterPartyStatus | null;
+  comment: string | null;
+  participationOptionId: number | null;
+}
 
 // ============================================================
 // Repository 関数
@@ -136,4 +153,27 @@ export async function updateRsvpResponse(
     where: { id: rsvpId },
     data,
   });
+}
+
+/**
+ * 読み取り時点の回答と一致する場合だけ公開RSVP回答を更新する。
+ * 同じ旧状態からの同時送信では1リクエストだけが成功し、通知重複を防ぐ。
+ */
+export async function updatePublicRsvpResponseIfCurrent(
+  rsvpId: number,
+  expected: ExpectedPublicRsvpResponse,
+  data: PublicRsvpResponseData
+): Promise<boolean> {
+  const updateResult = await prisma.rsvp.updateMany({
+    where: {
+      id: rsvpId,
+      status: expected.status,
+      afterPartyStatus: expected.afterPartyStatus,
+      comment: expected.comment,
+      participationOptionId: expected.participationOptionId,
+    },
+    data,
+  });
+
+  return updateResult.count === 1;
 }
