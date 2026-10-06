@@ -48,6 +48,26 @@ describe("sendMail", () => {
     });
   });
 
+  it("正常系: HTML指定時はtextとhtmlをmultipartで送信する", async () => {
+    sendMailMock.mockResolvedValue({ messageId: "<test-id@mail>" });
+
+    await sendMail({
+      from: "from@example.com",
+      to: "to@example.com",
+      subject: "テスト件名",
+      text: "テスト本文",
+      html: "<strong>テスト本文</strong>",
+    });
+
+    expect(sendMailMock).toHaveBeenCalledWith({
+      from: "from@example.com",
+      to: "to@example.com",
+      subject: "テスト件名",
+      text: "テスト本文",
+      html: "<strong>テスト本文</strong>",
+    });
+  });
+
   it("異常系: 送信エラー時にsuccess=falseとerrorを返す", async () => {
     sendMailMock.mockRejectedValue(new Error("Connection refused"));
 
