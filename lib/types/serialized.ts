@@ -11,7 +11,20 @@ export interface SerializedEventMailDelivery {
   emailType: "main" | "sub";
   subEmailOrder: number | null;
   status: "pending" | "success" | "failed";
+  provider: "unknown" | "mailpit" | "resend";
+  providerStatus:
+    | "unknown"
+    | "sent"
+    | "delivered"
+    | "delayed"
+    | "bounced"
+    | "failed"
+    | "suppressed"
+    | "complained";
   smtpMessageId: string | null;
+  providerEmailId: string | null;
+  providerErrorCode: string | null;
+  providerErrorMessage: string | null;
   errorCode: string | null;
   errorMessage: string | null;
   sentAt: string | null;

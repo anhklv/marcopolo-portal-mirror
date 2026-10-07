@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import { formatDateTime } from "@/lib/utils/event";
 import type { SerializedEventMail } from "@/lib/types/serialized";
+import { isFailedDelivery } from "@/lib/mail/delivery-status";
 import {
   deleteEventMailDraftAction,
   duplicateEventMailAction,
@@ -46,9 +47,7 @@ export function TabMails({ eventId, mails }: TabMailsProps) {
   const [failureDialogMail, setFailureDialogMail] =
     useState<SerializedEventMail | null>(null);
   const failedDeliveries =
-    failureDialogMail?.deliveries.filter(
-      (delivery) => delivery.status === "failed"
-    ) ?? [];
+    failureDialogMail?.deliveries.filter(isFailedDelivery) ?? [];
 
   const handleDuplicate = (mail: SerializedEventMail) => {
     startTransition(async () => {
@@ -224,7 +223,11 @@ export function TabMails({ eventId, mails }: TabMailsProps) {
                       {delivery.emailAddress}
                     </TableCell>
                     <TableCell className="break-words text-muted-foreground">
-                      {delivery.errorMessage || delivery.errorCode || "送信に失敗しました"}
+                      {delivery.providerErrorMessage ||
+                        delivery.errorMessage ||
+                        delivery.providerErrorCode ||
+                        delivery.errorCode ||
+                        "送信に失敗しました"}
                     </TableCell>
                   </TableRow>
                 ))}
