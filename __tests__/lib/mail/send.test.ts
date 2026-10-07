@@ -1,5 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+const { resendSendMock } = vi.hoisted(() => ({
+  resendSendMock: vi.fn(),
+}));
+
+vi.mock("resend", () => ({
+  Resend: class {
+    emails = { send: resendSendMock };
+  },
+}));
+
 // nodemailer をモック
 vi.mock("nodemailer", () => {
   const sendMailMock = vi.fn();
@@ -24,6 +34,8 @@ const sendMailMock = transporter.sendMail as ReturnType<typeof vi.fn>;
 describe("sendMail", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.MAIL_PROVIDER = "mailpit";
+    delete process.env.RESEND_API_KEY;
   });
 
   it("正常系: メール送信成功時にsuccess=trueとmessageIdを返す", async () => {
@@ -95,11 +107,67 @@ describe("sendMail", () => {
     });
     expect(sendMailMock).not.toHaveBeenCalled();
   });
+
+  it("正常系: Resend APIのemail IDをproviderEmailIdとして返す", async () => {
+    process.env.MAIL_PROVIDER = "resend";
+    process.env.RESEND_API_KEY = "re_test";
+    resendSendMock.mockResolvedValue({
+      data: { id: "resend-email-1" },
+      error: null,
+    });
+
+    const result = await sendMail({
+      from: "from@example.com",
+      to: "to@example.com",
+      subject: "テスト件名",
+      text: "テスト本文",
+    });
+
+    expect(result).toEqual({
+      success: true,
+      providerEmailId: "resend-email-1",
+    });
+    expect(resendSendMock).toHaveBeenCalledWith({
+      from: "from@example.com",
+      to: "to@example.com",
+      subject: "テスト件名",
+      text: "テスト本文",
+    });
+    expect(sendMailMock).not.toHaveBeenCalled();
+  });
+
+  it("異常系: Resend APIエラーを同期送信失敗として返す", async () => {
+    process.env.MAIL_PROVIDER = "resend";
+    process.env.RESEND_API_KEY = "re_test";
+    resendSendMock.mockResolvedValue({
+      data: null,
+      error: {
+        name: "validation_error",
+        message: "Invalid recipient",
+        statusCode: 422,
+      },
+    });
+
+    const result = await sendMail({
+      from: "from@example.com",
+      to: "to@example.com",
+      subject: "テスト件名",
+      text: "テスト本文",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      errorCode: "validation_error",
+      error: "Invalid recipient",
+    });
+  });
 });
 
 describe("sendMailBatch", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.MAIL_PROVIDER = "mailpit";
+    delete process.env.RESEND_API_KEY;
   });
 
   const baseCustomers: BatchMailCustomer[] = [

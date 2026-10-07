@@ -58,6 +58,7 @@ export async function createEventMailHistory(
           provider,
           providerStatus: delivery.success ? "sent" : "failed",
           smtpMessageId: delivery.messageId,
+          providerEmailId: delivery.providerEmailId,
           errorCode: delivery.errorCode,
           errorMessage: delivery.errorMessage,
           sentAt,
@@ -69,9 +70,14 @@ export async function createEventMailHistory(
   if (provider === "resend") {
     try {
       await reconcileUnmatchedResendWebhooks(
-        input.deliveries.flatMap((delivery) =>
-          delivery.messageId ? [delivery.messageId] : []
-        )
+        {
+          providerEmailIds: input.deliveries.flatMap((delivery) =>
+            delivery.providerEmailId ? [delivery.providerEmailId] : []
+          ),
+          smtpMessageIds: input.deliveries.flatMap((delivery) =>
+            delivery.messageId ? [delivery.messageId] : []
+          ),
+        }
       );
     } catch (error) {
       // 送信履歴の保存自体は成功しているため、照合の再試行はWebhook replayに委ねる。

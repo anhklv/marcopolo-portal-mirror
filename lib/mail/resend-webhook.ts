@@ -62,11 +62,17 @@ function failureDetails(event: EmailWebhookEvent): {
   bounceSubType?: string;
 } {
   if (event.type === "email.bounced") {
+    const bounce = event.data.bounce as typeof event.data.bounce & {
+      diagnosticCode?: string | string[];
+    };
+    const diagnosticMessage = Array.isArray(bounce.diagnosticCode)
+      ? bounce.diagnosticCode.join("\n")
+      : bounce.diagnosticCode;
     return {
-      code: event.data.bounce.type,
-      message: event.data.bounce.message,
-      bounceType: event.data.bounce.type,
-      bounceSubType: event.data.bounce.subType,
+      code: bounce.type,
+      message: diagnosticMessage || bounce.message,
+      bounceType: bounce.type,
+      bounceSubType: bounce.subType,
     };
   }
   if (event.type === "email.failed") {
@@ -281,18 +287,33 @@ export async function processResendWebhook(
  * SMTP送信完了直後より先にWebhookが届いた場合の競合を解消する。
  */
 export async function reconcileUnmatchedResendWebhooks(
-  smtpMessageIds: string[]
+  identifiers: {
+    providerEmailIds: string[];
+    smtpMessageIds: string[];
+  }
 ): Promise<void> {
+  const providerEmailIds = Array.from(new Set(identifiers.providerEmailIds));
   const candidates = Array.from(
-    new Set(smtpMessageIds.flatMap((messageId) => messageIdCandidates(messageId)))
+    new Set(
+      identifiers.smtpMessageIds.flatMap((messageId) =>
+        messageIdCandidates(messageId)
+      )
+    )
   );
-  if (candidates.length === 0) return;
+  if (providerEmailIds.length === 0 && candidates.length === 0) return;
 
   const events = await prisma.mailProviderWebhookEvent.findMany({
     where: {
       provider: "resend",
       processStatus: "unmatched",
-      smtpMessageId: { in: candidates },
+      OR: [
+        ...(providerEmailIds.length > 0
+          ? [{ providerEmailId: { in: providerEmailIds } }]
+          : []),
+        ...(candidates.length > 0
+          ? [{ smtpMessageId: { in: candidates } }]
+          : []),
+      ],
     },
     select: { id: true },
   });

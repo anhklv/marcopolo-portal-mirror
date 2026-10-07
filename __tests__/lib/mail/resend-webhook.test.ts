@@ -41,6 +41,9 @@ const bouncedEvent: EmailBouncedEvent = {
       type: "Permanent",
       subType: "General",
       message: "550 5.1.1 mailbox does not exist",
+      diagnosticCode: ["smtp; 550-5.1.1 mailbox does not exist"],
+    } as EmailBouncedEvent["data"]["bounce"] & {
+      diagnosticCode: string[];
     },
   },
 };
@@ -96,7 +99,7 @@ describe("processResendWebhook", () => {
           providerStatus: "bounced",
           bounceType: "Permanent",
           bounceSubType: "General",
-          providerErrorMessage: "550 5.1.1 mailbox does not exist",
+          providerErrorMessage: "smtp; 550-5.1.1 mailbox does not exist",
         }),
       })
     );
@@ -205,9 +208,29 @@ describe("processResendWebhook", () => {
       })
     );
 
-    await reconcileUnmatchedResendWebhooks([
-      "<smtp-message-1@example.com>",
-    ]);
+    await reconcileUnmatchedResendWebhooks({
+      providerEmailIds: ["resend-email-1"],
+      smtpMessageIds: ["<smtp-message-1@example.com>"],
+    });
+
+    expect(prismaMock.mailProviderWebhookEvent.findMany).toHaveBeenCalledWith({
+      where: {
+        provider: "resend",
+        processStatus: "unmatched",
+        OR: [
+          { providerEmailId: { in: ["resend-email-1"] } },
+          {
+            smtpMessageId: {
+              in: [
+                "<smtp-message-1@example.com>",
+                "smtp-message-1@example.com",
+              ],
+            },
+          },
+        ],
+      },
+      select: { id: true },
+    });
 
     expect(prismaMock.eventMailDelivery.update).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: 200 } })
