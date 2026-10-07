@@ -223,7 +223,6 @@ export async function submitRsvpAction(
             to: recipient,
             subject: mail.subject,
             text: mail.body,
-            html: mail.html,
           });
           if (!mailResult.success) {
             logServerError(

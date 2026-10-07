@@ -266,7 +266,6 @@ describe("submitRsvpAction", () => {
         to: "13haishin@gmail.com",
         subject: expect.stringContaining("参加回答更新のお知らせ"),
         text: expect.stringContaining("参加ステータス：未回答 → 参加"),
-        html: expect.stringContaining("<strong>変更内容：</strong>"),
       })
     );
   });
