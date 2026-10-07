@@ -58,6 +58,7 @@ async function sendSurveyMailToCustomer(
         ...recipient,
         success: result.success,
         messageId: result.messageId,
+        providerEmailId: result.providerEmailId,
         errorCode: result.errorCode,
         errorMessage: result.error,
       };

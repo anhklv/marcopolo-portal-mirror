@@ -1,4 +1,5 @@
 import { transporter } from "./client";
+import { Resend } from "resend";
 import { z } from "zod";
 import { buildRsvpUrl, replacePlaceholders } from "@/lib/helpers/invite";
 import { logServerError } from "@/lib/utils/log-error";
@@ -13,6 +14,7 @@ interface SendMailParams {
 export interface SendMailResult {
   success: boolean;
   messageId?: string;
+  providerEmailId?: string;
   errorCode?: string;
   error?: string;
 }
@@ -27,6 +29,55 @@ function readMailErrorCode(error: unknown): string | undefined {
   return undefined;
 }
 
+function readResendErrorCode(error: {
+  name?: string;
+  statusCode?: number | null;
+}): string | undefined {
+  if (error.name) return error.name;
+  if (typeof error.statusCode === "number") return String(error.statusCode);
+  return undefined;
+}
+
+async function sendMailWithResend(
+  params: SendMailParams
+): Promise<SendMailResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return {
+      success: false,
+      errorCode: "RESEND_NOT_CONFIGURED",
+      error: "Resend API key is not configured",
+    };
+  }
+
+  const resend = new Resend(apiKey);
+  const { data, error } = await resend.emails.send({
+    from: params.from,
+    to: params.to,
+    subject: params.subject,
+    text: params.text,
+  });
+
+  if (error) {
+    logServerError(`sendMailWithResend to=${params.to}`, error);
+    return {
+      success: false,
+      errorCode: readResendErrorCode(error),
+      error: error.message,
+    };
+  }
+
+  if (!data?.id) {
+    return {
+      success: false,
+      errorCode: "RESEND_MISSING_EMAIL_ID",
+      error: "Resend did not return an email ID",
+    };
+  }
+
+  return { success: true, providerEmailId: data.id };
+}
+
 /** SMTP から同期的に返された結果を画面表示可能な形で返す。 */
 export async function sendMail(params: SendMailParams): Promise<SendMailResult> {
   if (!recipientEmailSchema.safeParse(params.to).success) {
@@ -38,6 +89,10 @@ export async function sendMail(params: SendMailParams): Promise<SendMailResult> 
   }
 
   try {
+    if (process.env.MAIL_PROVIDER === "resend") {
+      return await sendMailWithResend(params);
+    }
+
     const info = await transporter.sendMail({
       from: params.from,
       to: params.to,
@@ -87,6 +142,7 @@ export interface MailDeliveryResult extends RecipientAddress {
   firstName: string;
   success: boolean;
   messageId?: string;
+  providerEmailId?: string;
   errorCode?: string;
   errorMessage?: string;
 }
@@ -156,6 +212,7 @@ async function sendMailToCustomer(
           ...recipient,
           success: result.success,
           messageId: result.messageId,
+          providerEmailId: result.providerEmailId,
           errorCode: result.errorCode,
           errorMessage: result.error,
         };
