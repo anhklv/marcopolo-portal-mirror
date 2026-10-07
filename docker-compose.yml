@@ -14,6 +14,8 @@ services:
   mailpit:
     image: axllent/mailpit:latest
     container_name: marcopolo-portal-mailpit
+    environment:
+      MP_SMTP_ALLOWED_RECIPIENTS: '@success\.test$'
     ports:
       - "1025:1025"
       - "8025:8025"

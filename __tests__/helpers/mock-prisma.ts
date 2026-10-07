@@ -36,6 +36,12 @@ export const mockPrisma = {
     create: vi.fn(),
     update: vi.fn(),
   },
+  eventMail: {
+    findFirst: vi.fn(),
+    create: vi.fn(),
+    updateMany: vi.fn(),
+    deleteMany: vi.fn(),
+  },
   eventParticipationOption: {
     findMany: vi.fn(),
     create: vi.fn(),
@@ -46,6 +52,7 @@ export const mockPrisma = {
     findMany: vi.fn(),
     findUnique: vi.fn(),
     createMany: vi.fn(),
+    deleteMany: vi.fn(),
     update: vi.fn(),
   },
   admin: {
@@ -74,6 +81,7 @@ export const mockPrisma = {
     findMany: vi.fn(),
     findUnique: vi.fn(),
     createMany: vi.fn(),
+    deleteMany: vi.fn(),
     update: vi.fn(),
   },
   surveyResponse: {

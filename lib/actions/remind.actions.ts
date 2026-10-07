@@ -17,6 +17,7 @@ import {
 } from "@/lib/helpers/remind-target";
 import { getEventDisplayStatus } from "@/lib/utils/event";
 import { logServerError } from "@/lib/utils/log-error";
+import { createEventMailHistory } from "@/lib/repositories/event-mail.repository";
 
 // ============================================================
 // 型定義
@@ -111,6 +112,17 @@ export async function sendRemindAction(
     });
 
     const { sentCount, failedCount, failedNames } = batchResult;
+
+    await createEventMailHistory({
+      eventId,
+      templateName: "リマインドメール",
+      kind: "rsvp",
+      subject: emailTitle,
+      body: emailBody,
+      fromAddress: from,
+      adminId: admin.id,
+      deliveries: batchResult.deliveries,
+    });
 
     revalidatePath(`/admin/events/${eventId}`);
 

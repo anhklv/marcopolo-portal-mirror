@@ -43,11 +43,13 @@ import type { RemindTarget } from "@/lib/helpers/remind-target";
 import type { RsvpStatus } from "@/lib/generated/prisma";
 import type {
   SerializedEventDetail,
+  SerializedEventMail,
   SerializedSurveyResult,
 } from "@/lib/types/serialized";
 import { TabAttendees } from "./tab-attendees";
 import { TabDetail } from "./tab-detail";
 import { TabSurvey } from "./tab-survey";
+import { TabMails } from "./tab-mails";
 
 // ============================================================
 // 型定義
@@ -56,13 +58,14 @@ import { TabSurvey } from "./tab-survey";
 interface EventDetailProps {
   event: SerializedEventDetail;
   surveyResult: SerializedSurveyResult | null;
+  eventMails: SerializedEventMail[];
 }
 
 // ============================================================
 // コンポーネント
 // ============================================================
 
-export function EventDetail({ event, surveyResult }: EventDetailProps) {
+export function EventDetail({ event, surveyResult, eventMails }: EventDetailProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -253,6 +256,12 @@ export function EventDetail({ event, surveyResult }: EventDetailProps) {
                 参加状況
               </TabsTrigger>
               <TabsTrigger
+                value="mails"
+                className="px-4 py-2.5 text-sm font-medium"
+              >
+                送信メール
+              </TabsTrigger>
+              <TabsTrigger
                 value="detail"
                 className="px-4 py-2.5 text-sm font-medium"
               >
@@ -278,6 +287,11 @@ export function EventDetail({ event, surveyResult }: EventDetailProps) {
                 selectedStatuses={selectedStatuses}
                 onSelectedStatusesChange={setSelectedStatuses}
               />
+            </TabsContent>
+
+            {/* 送信メールタブ */}
+            <TabsContent value="mails" className="space-y-4">
+              <TabMails eventId={event.id} mails={eventMails} />
             </TabsContent>
 
             {/* 詳細タブ */}
