@@ -7,7 +7,6 @@ interface SendMailParams {
   to: string;
   subject: string;
   text: string;
-  html?: string;
 }
 
 interface SendMailResult {
@@ -26,7 +25,6 @@ export async function sendMail(params: SendMailParams): Promise<SendMailResult> 
       to: params.to,
       subject: params.subject,
       text: params.text,
-      ...(params.html ? { html: params.html } : {}),
     });
     return { success: true, messageId: info.messageId };
   } catch (err) {
