@@ -36,9 +36,17 @@ describe("generateRsvpAdminNotification", () => {
     expect(result.body).toContain(
       "管理画面：https://marcopolo-portal.jp/admin/events/12"
     );
+    expect(result.html).toContain("回答者：<strong>山田 太郎様</strong>");
+    expect(result.html).toContain("<strong>変更内容：</strong>");
+    expect(result.html).toContain(
+      "<strong>・参加ステータス：未回答 → 参加</strong>"
+    );
+    expect(result.html).toContain(
+      "<strong>・コメント：未入力 → 参加します</strong>"
+    );
   });
 
-  it("変更されていない項目は出力しない", () => {
+  it("不参加の場合は懇親会と参加内容を出力しない", () => {
     const result = generateRsvpAdminNotification({
       communityName: "AI部会",
       eventTitle: "定例会",
@@ -46,9 +54,9 @@ describe("generateRsvpAdminNotification", () => {
       customerName: "佐藤 花子",
       previous: {
         status: "attending",
-        afterPartyStatus: null,
-        participationOptionId: null,
-        participationOptionLabel: null,
+        afterPartyStatus: "attending",
+        participationOptionId: 10,
+        participationOptionLabel: "会場参加",
         comment: null,
       },
       current: {
@@ -66,5 +74,7 @@ describe("generateRsvpAdminNotification", () => {
     expect(result.body).not.toContain("・懇親会：");
     expect(result.body).not.toContain("・参加内容：");
     expect(result.body).not.toContain("・コメント：");
+    expect(result.html).not.toContain("・懇親会：");
+    expect(result.html).not.toContain("・参加内容：");
   });
 });
