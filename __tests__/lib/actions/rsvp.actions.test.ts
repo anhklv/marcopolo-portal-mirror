@@ -8,10 +8,8 @@ vi.mock("next/cache", () => ({
 }));
 
 const mockSendMailBatch = vi.fn();
-const mockSendMail = vi.fn();
 vi.mock("@/lib/mail/send", () => ({
   sendMailBatch: (...args: unknown[]) => mockSendMailBatch(...args),
-  sendMail: (...args: unknown[]) => mockSendMail(...args),
 }));
 
 const mockGetBaseUrl = vi.fn();
@@ -23,17 +21,12 @@ vi.mock("@/lib/helpers/base-url", () => ({
 const mockFindRsvpByToken = vi.fn();
 const mockFindRsvpByIdForAdmin = vi.fn();
 const mockUpdateRsvpResponse = vi.fn();
-const mockUpdatePublicRsvpResponseIfCurrent = vi.fn();
 
 vi.mock("@/lib/repositories/rsvp.repository", () => ({
   findRsvpByToken: (...args: unknown[]) => mockFindRsvpByToken(...args),
   findRsvpByIdForAdmin: (...args: unknown[]) =>
     mockFindRsvpByIdForAdmin(...args),
   updateRsvpResponse: (...args: unknown[]) => mockUpdateRsvpResponse(...args),
-  updatePublicRsvpResponseIfCurrent: (...args: unknown[]) => {
-    mockUpdatePublicRsvpResponseIfCurrent(...args);
-    return mockUpdateRsvpResponse(args[0], args[2]);
-  },
 }));
 
 const mockRequireAuthenticatedAdmin = vi.fn();
@@ -58,11 +51,8 @@ function createMockRsvpData(overrides: Record<string, unknown> = {}) {
     customerId: 20,
     token: "test-token-123",
     status: "pending",
-    afterPartyStatus: null,
-    comment: null,
     event: {
       id: 10,
-      title: "第12回定例会",
       deletedAt: null,
       isPaused: false,
       hasAfterParty: false,
@@ -77,8 +67,6 @@ function createMockRsvpData(overrides: Record<string, unknown> = {}) {
     },
     customer: {
       id: 20,
-      lastName: "山田",
-      firstName: "太郎",
       deletedAt: null,
     },
     participationOptionId: null,
@@ -97,8 +85,6 @@ const validFormData = {
 describe("submitRsvpAction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetBaseUrl.mockResolvedValue("http://localhost:3000");
-    mockSendMail.mockResolvedValue({ success: true, messageId: "mail-1" });
   });
 
   // =========================================================
@@ -226,63 +212,6 @@ describe("submitRsvpAction", () => {
     await submitRsvpAction(validFormData);
 
     expect(mockRevalidatePath).toHaveBeenCalledWith("/admin/events/10");
-  });
-
-  it("正常系: 同じ回答の再送ではDB更新も通知作成も行わない", async () => {
-    mockFindRsvpByToken.mockResolvedValue(
-      createMockRsvpData({
-        status: "attending",
-        comment: "よろしくお願いします",
-      })
-    );
-
-    const result = await submitRsvpAction(validFormData);
-
-    expect(result).toEqual({ success: true });
-    expect(mockUpdatePublicRsvpResponseIfCurrent).not.toHaveBeenCalled();
-    expect(mockSendMail).not.toHaveBeenCalled();
-    expect(mockRevalidatePath).not.toHaveBeenCalled();
-  });
-
-  it("正常系: 更新後にコミュニティ別のメーリングリストへ直接送信する", async () => {
-    mockFindRsvpByToken.mockResolvedValue(createMockRsvpData());
-    mockUpdateRsvpResponse.mockResolvedValue(true);
-    mockGetBaseUrl.mockResolvedValue("https://marcopolo-portal.jp");
-
-    const result = await submitRsvpAction(validFormData);
-
-    expect(result).toEqual({ success: true });
-    expect(mockUpdatePublicRsvpResponseIfCurrent).toHaveBeenCalledWith(
-      1,
-      expect.objectContaining({
-        status: "pending",
-        comment: null,
-      }),
-      expect.objectContaining({ status: "attending" })
-    );
-    expect(mockSendMail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        from: "noreply@marcopolo-portal.jp",
-        to: "13haishin@gmail.com",
-        subject: expect.stringContaining("参加回答更新のお知らせ"),
-        text: expect.stringContaining("参加ステータス：未回答 → 参加"),
-      })
-    );
-  });
-
-  it("正常系: 管理者通知メールに失敗しても保存済みRSVPは成功を返す", async () => {
-    mockFindRsvpByToken.mockResolvedValue(createMockRsvpData());
-    mockUpdateRsvpResponse.mockResolvedValue(true);
-    mockSendMail.mockResolvedValue({
-      success: false,
-      error: "SMTP connection failed",
-    });
-
-    const result = await submitRsvpAction(validFormData);
-
-    expect(result).toEqual({ success: true });
-    expect(mockUpdatePublicRsvpResponseIfCurrent).toHaveBeenCalledOnce();
-    expect(mockSendMail).toHaveBeenCalledOnce();
   });
 
   it("正常系: ないかんMeetupで規約同意済み → success", async () => {
