@@ -1,5 +1,6 @@
 import type { findEventMailById, findEventMails } from "@/lib/repositories/event-mail.repository";
 import type { SerializedEventMail } from "@/lib/types/serialized";
+import { summarizeDeliveries } from "@/lib/mail/delivery-status";
 
 type EventMailRecord = Awaited<ReturnType<typeof findEventMails>>[number];
 type EventMailDetailRecord = NonNullable<
@@ -9,6 +10,18 @@ type EventMailDetailRecord = NonNullable<
 export function serializeEventMail(
   mail: EventMailRecord | EventMailDetailRecord
 ): SerializedEventMail {
+  // deliveryを持つ送信済みメールは明細を正として集計し、過去の競合で
+  // event_mailsの集計値がずれていても一覧とモーダルを一致させる。
+  const summary =
+    mail.state === "sent" && mail.deliveries.length > 0
+      ? summarizeDeliveries(mail.deliveries)
+      : {
+          targetCount: mail.targetCount,
+          successCount: mail.successCount,
+          failedCount: mail.failedCount,
+          sendStatus: mail.sendStatus,
+        };
+
   return {
     id: mail.id,
     eventId: mail.eventId,
@@ -18,10 +31,10 @@ export function serializeEventMail(
     subject: mail.subject,
     body: mail.body,
     fromAddress: mail.fromAddress,
-    sendStatus: mail.sendStatus,
-    targetCount: mail.targetCount,
-    successCount: mail.successCount,
-    failedCount: mail.failedCount,
+    sendStatus: summary.sendStatus,
+    targetCount: summary.targetCount,
+    successCount: summary.successCount,
+    failedCount: summary.failedCount,
     sentAt: mail.sentAt?.toISOString() ?? null,
     createdAt: mail.createdAt.toISOString(),
     sentBy: mail.sentByAdmin,

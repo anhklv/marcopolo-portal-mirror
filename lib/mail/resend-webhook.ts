@@ -2,8 +2,8 @@ import type { Prisma, EventMailProviderStatus } from "@/lib/generated/prisma";
 import type { WebhookEventPayload } from "resend";
 import { prisma } from "@/lib/prisma";
 import {
-  isFailedDelivery,
   isFailureProviderStatus,
+  summarizeDeliveries,
 } from "@/lib/mail/delivery-status";
 
 const TRACKED_EVENT_TYPES = new Set([
@@ -95,19 +95,11 @@ async function refreshEventMailSummary(
     where: { eventMailId },
     select: { status: true, providerStatus: true },
   });
-  const failedCount = deliveries.filter(isFailedDelivery).length;
-  const targetCount = deliveries.length;
-  const successCount = targetCount - failedCount;
-  const sendStatus =
-    failedCount === 0
-      ? "success"
-      : successCount === 0
-        ? "failed"
-        : "partial_failed";
+  const summary = summarizeDeliveries(deliveries);
 
   return tx.eventMail.update({
     where: { id: eventMailId },
-    data: { targetCount, successCount, failedCount, sendStatus },
+    data: summary,
     select: { eventId: true },
   });
 }
@@ -174,11 +166,24 @@ async function processStoredWebhookEvent(
   const details = failureDetails(emailEvent);
 
   return prisma.$transaction(async (tx) => {
+    // 同じメール送信に対する複数Webhookの集計競合を防止する。
+    await tx.$queryRaw`
+      SELECT "id"
+      FROM "event_mails"
+      WHERE "id" = ${delivery.eventMailId}
+      FOR UPDATE
+    `;
+
+    // ロック待機中に別Webhookが更新した可能性があるため、最新状態を再取得する。
+    const currentDelivery = await tx.eventMailDelivery.findUniqueOrThrow({
+      where: { id: delivery.id },
+      select: { providerEventAt: true, providerStatus: true },
+    });
     const isOlderEvent =
-      delivery.providerEventAt !== null &&
-      validEventAt.getTime() < delivery.providerEventAt.getTime();
+      currentDelivery.providerEventAt !== null &&
+      validEventAt.getTime() < currentDelivery.providerEventAt.getTime();
     const wouldDowngradeFinalFailure =
-      isFailureProviderStatus(delivery.providerStatus) &&
+      isFailureProviderStatus(currentDelivery.providerStatus) &&
       !isFailureProviderStatus(providerStatus);
     const shouldUpdateOutcome = !isOlderEvent && !wouldDowngradeFinalFailure;
 

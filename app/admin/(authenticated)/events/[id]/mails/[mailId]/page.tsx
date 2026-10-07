@@ -3,6 +3,10 @@ import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { canAccessEvent, getAuthenticatedAdmin } from "@/lib/auth/permissions";
 import { findEventMailById } from "@/lib/repositories/event-mail.repository";
 import { serializeEventMail } from "@/lib/serializers/event-mail";
+import {
+  getDeliveryFailureReason,
+  isFailedDelivery,
+} from "@/lib/mail/delivery-status";
 import { formatDateTime } from "@/lib/utils/event";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -89,7 +93,7 @@ export default async function MailSendDetailPage({
                   </TableCell>
                   <TableCell>
                     <span className="flex items-center gap-1.5">
-                      {delivery.status === "success" ? (
+                      {!isFailedDelivery(delivery) ? (
                         <>
                           <CheckCircle2 className="h-4 w-4 text-green-600" />
                           成功
@@ -103,7 +107,7 @@ export default async function MailSendDetailPage({
                     </span>
                   </TableCell>
                   <TableCell className="max-w-xs break-words text-muted-foreground">
-                    {delivery.errorMessage || delivery.errorCode || "—"}
+                    {getDeliveryFailureReason(delivery) || "—"}
                   </TableCell>
                 </TableRow>
               ))}
