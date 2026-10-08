@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Copy, Mail, MoreVertical, Pencil, Trash2 } from "lucide-react";
@@ -32,6 +32,7 @@ import { formatDateTime } from "@/lib/utils/event";
 import type { SerializedEventMail } from "@/lib/types/serialized";
 import {
   getDeliveryFailureReason,
+  isAwaitingResendResult,
   isFailedDelivery,
 } from "@/lib/mail/delivery-status";
 import {
@@ -44,13 +45,52 @@ interface TabMailsProps {
   mails: SerializedEventMail[];
 }
 
+const RESULT_REFRESH_INTERVAL_MS = 10_000;
+const RESULT_REFRESH_WINDOW_MS = 10 * 60 * 1000;
+
+function isRecentMail(mail: SerializedEventMail): boolean {
+  const sentAt = new Date(mail.sentAt ?? mail.createdAt).getTime();
+  return (
+    Number.isFinite(sentAt) && Date.now() - sentAt <= RESULT_REFRESH_WINDOW_MS
+  );
+}
+
 export function TabMails({ eventId, mails }: TabMailsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [failureDialogMail, setFailureDialogMail] =
-    useState<SerializedEventMail | null>(null);
+  const [failureDialogMailId, setFailureDialogMailId] = useState<number | null>(
+    null
+  );
+  const failureDialogMail =
+    mails.find((mail) => mail.id === failureDialogMailId) ?? null;
   const failedDeliveries =
     failureDialogMail?.deliveries.filter(isFailedDelivery) ?? [];
+  const hasRecentPendingResendResult = mails.some(
+    (mail) =>
+      mail.state === "sent" &&
+      isRecentMail(mail) &&
+      mail.deliveries.some(isAwaitingResendResult)
+  );
+
+  useEffect(() => {
+    if (!hasRecentPendingResendResult) return;
+
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") {
+        router.refresh();
+      }
+    };
+    const intervalId = window.setInterval(
+      refreshWhenVisible,
+      RESULT_REFRESH_INTERVAL_MS
+    );
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, [hasRecentPendingResendResult, router]);
 
   const handleDuplicate = (mail: SerializedEventMail) => {
     startTransition(async () => {
@@ -103,6 +143,8 @@ export function TabMails({ eventId, mails }: TabMailsProps) {
             ) : (
               mails.map((mail) => {
                 const isDraft = mail.state === "draft";
+                const isAwaitingResult =
+                  mail.deliveries.some(isAwaitingResendResult);
                 return (
                 <TableRow key={mail.id}>
                   <TableCell className="max-w-xs">
@@ -130,17 +172,20 @@ export function TabMails({ eventId, mails }: TabMailsProps) {
                   <TableCell className="text-right">
                     {mail.targetCount}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" aria-live="polite">
                     {isDraft ? (
                       <span className="text-muted-foreground">—</span>
                     ) : mail.failedCount > 0 ? (
                       <button
                         type="button"
                         className="font-medium text-destructive hover:underline"
-                        onClick={() => setFailureDialogMail(mail)}
+                        onClick={() => setFailureDialogMailId(mail.id)}
                       >
                         {mail.failedCount}
+                        {isAwaitingResult && "（確認中）"}
                       </button>
+                    ) : isAwaitingResult ? (
+                      <span className="text-muted-foreground">確認中…</span>
                     ) : (
                       <span className="text-muted-foreground">0</span>
                     )}
@@ -197,7 +242,7 @@ export function TabMails({ eventId, mails }: TabMailsProps) {
       <Dialog
         open={failureDialogMail !== null}
         onOpenChange={(open) => {
-          if (!open) setFailureDialogMail(null);
+          if (!open) setFailureDialogMailId(null);
         }}
       >
         <DialogContent className="max-w-[calc(100%-2rem)] overflow-hidden sm:max-w-2xl">

@@ -20,6 +20,17 @@ export function isFailureProviderStatus(
   return FAILURE_PROVIDER_STATUSES.has(status);
 }
 
+export function isAwaitingResendResult(delivery: {
+  provider: "unknown" | "mailpit" | "resend";
+  providerStatus: MailProviderDeliveryStatus;
+}): boolean {
+  return (
+    delivery.provider === "resend" &&
+    (delivery.providerStatus === "sent" ||
+      delivery.providerStatus === "delayed")
+  );
+}
+
 export function isFailedDelivery(delivery: {
   status: "pending" | "success" | "failed";
   providerStatus: MailProviderDeliveryStatus;
