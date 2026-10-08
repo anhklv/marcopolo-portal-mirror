@@ -30,7 +30,10 @@ import {
 } from "@/components/ui/table";
 import { formatDateTime } from "@/lib/utils/event";
 import type { SerializedEventMail } from "@/lib/types/serialized";
-import { isFailedDelivery } from "@/lib/mail/delivery-status";
+import {
+  getDeliveryFailureReason,
+  isFailedDelivery,
+} from "@/lib/mail/delivery-status";
 import {
   deleteEventMailDraftAction,
   duplicateEventMailAction,
@@ -223,10 +226,7 @@ export function TabMails({ eventId, mails }: TabMailsProps) {
                       {delivery.emailAddress}
                     </TableCell>
                     <TableCell className="break-words text-muted-foreground">
-                      {delivery.providerErrorMessage ||
-                        delivery.errorMessage ||
-                        delivery.providerErrorCode ||
-                        delivery.errorCode ||
+                      {getDeliveryFailureReason(delivery) ||
                         "送信に失敗しました"}
                     </TableCell>
                   </TableRow>

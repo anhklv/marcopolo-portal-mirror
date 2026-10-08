@@ -11,12 +11,14 @@ const prismaMock = vi.hoisted(() => ({
   },
   eventMailDelivery: {
     findFirst: vi.fn(),
+    findUniqueOrThrow: vi.fn(),
     findMany: vi.fn(),
     update: vi.fn(),
   },
   eventMail: {
     update: vi.fn(),
   },
+  $queryRaw: vi.fn(),
   $transaction: vi.fn(),
 }));
 
@@ -68,6 +70,11 @@ describe("processResendWebhook", () => {
     );
     prismaMock.mailProviderWebhookEvent.create.mockResolvedValue({ id: 100 });
     prismaMock.mailProviderWebhookEvent.update.mockResolvedValue({});
+    prismaMock.$queryRaw.mockResolvedValue([]);
+    prismaMock.eventMailDelivery.findUniqueOrThrow.mockResolvedValue({
+      providerEventAt: null,
+      providerStatus: "sent",
+    });
     prismaMock.eventMailDelivery.update.mockResolvedValue({});
     prismaMock.eventMail.update.mockResolvedValue({ eventId: 16 });
   });
@@ -91,6 +98,7 @@ describe("processResendWebhook", () => {
     const result = await processResendWebhook("svix-event-1", bouncedEvent);
 
     expect(result).toEqual({ duplicate: false, matched: true, eventId: 16 });
+    expect(prismaMock.$queryRaw).toHaveBeenCalledOnce();
     expect(prismaMock.eventMailDelivery.update).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: 200 },
@@ -151,6 +159,10 @@ describe("processResendWebhook", () => {
     prismaMock.eventMailDelivery.findFirst.mockResolvedValue({
       id: 201,
       eventMailId: 301,
+      providerEventAt: new Date("2026-10-07T01:00:00.000Z"),
+      providerStatus: "bounced",
+    });
+    prismaMock.eventMailDelivery.findUniqueOrThrow.mockResolvedValue({
       providerEventAt: new Date("2026-10-07T01:00:00.000Z"),
       providerStatus: "bounced",
     });
