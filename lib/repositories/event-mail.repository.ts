@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { MailDeliveryResult } from "@/lib/mail/send";
 import { reconcileUnmatchedResendWebhooks } from "@/lib/mail/resend-webhook";
+import { scheduleFailureNotification } from "@/lib/mail/failure-notification";
 import { logServerError } from "@/lib/utils/log-error";
 
 export type EventMailKindValue = "rsvp" | "survey" | "notice";
@@ -84,6 +85,8 @@ export async function createEventMailHistory(
       logServerError("createEventMailHistory:reconcileResendWebhook", error);
     }
   }
+
+  await scheduleFailureNotification(mail.id);
 
   return mail;
 }

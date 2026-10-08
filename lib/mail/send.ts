@@ -6,9 +6,11 @@ import { logServerError } from "@/lib/utils/log-error";
 
 interface SendMailParams {
   from: string;
-  to: string;
+  to: string | string[];
   subject: string;
   text: string;
+  tags?: Array<{ name: string; value: string }>;
+  idempotencyKey?: string;
 }
 
 export interface SendMailResult {
@@ -51,12 +53,18 @@ async function sendMailWithResend(
   }
 
   const resend = new Resend(apiKey);
-  const { data, error } = await resend.emails.send({
+  const payload = {
     from: params.from,
     to: params.to,
     subject: params.subject,
     text: params.text,
-  });
+    ...(params.tags ? { tags: params.tags } : {}),
+  };
+  const { data, error } = params.idempotencyKey
+    ? await resend.emails.send(payload, {
+        idempotencyKey: params.idempotencyKey,
+      })
+    : await resend.emails.send(payload);
 
   if (error) {
     logServerError(`sendMailWithResend to=${params.to}`, error);
@@ -80,7 +88,13 @@ async function sendMailWithResend(
 
 /** SMTP から同期的に返された結果を画面表示可能な形で返す。 */
 export async function sendMail(params: SendMailParams): Promise<SendMailResult> {
-  if (!recipientEmailSchema.safeParse(params.to).success) {
+  const recipients = Array.isArray(params.to) ? params.to : [params.to];
+  if (
+    recipients.length === 0 ||
+    recipients.some(
+      (recipient) => !recipientEmailSchema.safeParse(recipient).success
+    )
+  ) {
     return {
       success: false,
       errorCode: "INVALID_EMAIL",

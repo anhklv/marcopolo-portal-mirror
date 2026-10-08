@@ -104,6 +104,13 @@ enum EventMailProviderStatus {
   complained
 }
 
+enum EventMailFailureNotificationStatus {
+  pending
+  processing
+  sent
+  failed
+}
+
 enum MailWebhookProcessStatus {
   received
   processed
@@ -409,6 +416,13 @@ model EventMail {
   targetCount          Int                  @default(0) @map("target_count")
   successCount         Int                  @default(0) @map("success_count")
   failedCount          Int                  @default(0) @map("failed_count")
+  failureNotificationStatus   EventMailFailureNotificationStatus? @map("failure_notification_status")
+  failureNotificationDueAt    DateTime?     @map("failure_notification_due_at")
+  failureNotificationClaimedAt DateTime?    @map("failure_notification_claimed_at")
+  failureNotificationSentAt   DateTime?     @map("failure_notification_sent_at")
+  failureNotificationVersion  Int           @default(0) @map("failure_notification_version")
+  failureNotificationAttempts Int           @default(0) @map("failure_notification_attempts")
+  failureNotificationError    String?       @map("failure_notification_error") @db.Text
   sentAt               DateTime?            @map("sent_at")
   createdAt            DateTime             @default(now()) @map("created_at")
   updatedAt            DateTime             @updatedAt @map("updated_at")
@@ -421,6 +435,7 @@ model EventMail {
   @@index([eventId, sentAt])
   @@index([eventId, state])
   @@index([sendStatus])
+  @@index([failureNotificationStatus, failureNotificationDueAt])
   @@map("event_mails")
 }
 
@@ -447,6 +462,7 @@ model EventMailDelivery {
   providerErrorMessage String?                 @map("provider_error_message") @db.Text
   errorCode            String?                 @map("error_code") @db.VarChar(100)
   errorMessage         String?                 @map("error_message") @db.Text
+  failureNotifiedAt    DateTime?               @map("failure_notified_at")
   sentAt               DateTime?               @map("sent_at")
   createdAt            DateTime                @default(now()) @map("created_at")
   updatedAt            DateTime                @updatedAt @map("updated_at")
