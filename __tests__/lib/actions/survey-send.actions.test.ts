@@ -32,6 +32,12 @@ vi.mock("@/lib/mail/survey-send", () => ({
     mockSendSurveyMailBatch(...args),
 }));
 
+const mockCreateEventMailHistory = vi.fn();
+vi.mock("@/lib/repositories/event-mail.repository", () => ({
+  createEventMailHistory: (...args: unknown[]) =>
+    mockCreateEventMailHistory(...args),
+}));
+
 // repositories/survey.repository のモック
 const mockFindSurveyByEventId = vi.fn();
 const mockCreateSurvey = vi.fn();
@@ -109,6 +115,7 @@ function setupSuperAdmin() {
 describe("sendSurveyAction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCreateEventMailHistory.mockResolvedValue({ id: 1 });
   });
 
   it("正常系: 新規送信成功", async () => {
@@ -152,6 +159,7 @@ describe("sendSurveyAction", () => {
       ]),
       skipDuplicates: true,
     });
+    expect(mockPrisma.surveyToken.deleteMany).not.toHaveBeenCalled();
     expect(mockRevalidatePath).toHaveBeenCalledWith("/admin/events/1");
   });
 
@@ -271,8 +279,18 @@ describe("sendSurveyAction", () => {
       failedNames: ["佐藤 花子"],
     });
     expect(mockPrisma.surveyToken.createMany).toHaveBeenCalledWith({
-      data: [expect.objectContaining({ customerId: 10 })],
+      data: expect.arrayContaining([
+        expect.objectContaining({ customerId: 10, sentAt: null }),
+        expect.objectContaining({ customerId: 20, sentAt: null }),
+      ]),
       skipDuplicates: true,
+    });
+    expect(mockPrisma.surveyToken.deleteMany).toHaveBeenCalledWith({
+      where: {
+        surveyId: 100,
+        customerId: { in: [20] },
+        sentAt: null,
+      },
     });
   });
 
