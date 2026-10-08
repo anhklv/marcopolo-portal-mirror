@@ -5,6 +5,7 @@ import {
   isFailureProviderStatus,
   summarizeDeliveries,
 } from "@/lib/mail/delivery-status";
+import { scheduleFailureNotification } from "@/lib/mail/failure-notification";
 
 const TRACKED_EVENT_TYPES = new Set([
   "email.sent",
@@ -127,6 +128,20 @@ async function processStoredWebhookEvent(
   }
 
   const emailEvent = event as EmailWebhookEvent;
+  const tags = "tags" in emailEvent.data ? emailEvent.data.tags : undefined;
+  if (tags?.category === "community_notification") {
+    await prisma.mailProviderWebhookEvent.update({
+      where: { id: stored.id },
+      data: {
+        processStatus: "processed",
+        processAttempts: { increment: 1 },
+        processError: null,
+        processedAt: new Date(),
+      },
+    });
+    return { matched: true };
+  }
+
   const providerStatus = toProviderStatus(emailEvent.type);
   if (!providerStatus) return { matched: false };
 
@@ -209,6 +224,7 @@ async function processStoredWebhookEvent(
     });
 
     const mail = await refreshEventMailSummary(tx, delivery.eventMailId);
+    await scheduleFailureNotification(delivery.eventMailId, tx, validEventAt);
     await tx.mailProviderWebhookEvent.update({
       where: { id: stored.id },
       data: {

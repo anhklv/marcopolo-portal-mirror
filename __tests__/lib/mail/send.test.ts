@@ -161,6 +161,35 @@ describe("sendMail", () => {
       error: "Invalid recipient",
     });
   });
+
+  it("複数の通知先、タグ、idempotency keyをResendへ渡す", async () => {
+    process.env.MAIL_PROVIDER = "resend";
+    process.env.RESEND_API_KEY = "re_test";
+    resendSendMock.mockResolvedValue({
+      data: { id: "notification-email-1" },
+      error: null,
+    });
+
+    await sendMail({
+      from: "from@example.com",
+      to: ["first@example.com", "second@example.com"],
+      subject: "通知",
+      text: "本文",
+      tags: [{ name: "category", value: "community_notification" }],
+      idempotencyKey: "event-mail-failure-10-1",
+    });
+
+    expect(resendSendMock).toHaveBeenCalledWith(
+      {
+        from: "from@example.com",
+        to: ["first@example.com", "second@example.com"],
+        subject: "通知",
+        text: "本文",
+        tags: [{ name: "category", value: "community_notification" }],
+      },
+      { idempotencyKey: "event-mail-failure-10-1" }
+    );
+  });
 });
 
 describe("sendMailBatch", () => {
