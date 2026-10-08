@@ -1,9 +1,36 @@
 import { describe, expect, it } from "vitest";
 import {
   getDeliveryFailureReason,
+  isAwaitingResendResult,
   isFailedDelivery,
   summarizeDeliveries,
 } from "@/lib/mail/delivery-status";
+
+describe("isAwaitingResendResult", () => {
+  it.each(["sent", "delayed"] as const)(
+    "Resendの%sは結果確認中として扱う",
+    (providerStatus) => {
+      expect(
+        isAwaitingResendResult({ provider: "resend", providerStatus })
+      ).toBe(true);
+    }
+  );
+
+  it.each(["delivered", "bounced", "failed", "suppressed", "complained"] as const)(
+    "Resendの%sは最終結果として扱う",
+    (providerStatus) => {
+      expect(
+        isAwaitingResendResult({ provider: "resend", providerStatus })
+      ).toBe(false);
+    }
+  );
+
+  it("Mailpitはsentでもポーリング対象にしない", () => {
+    expect(
+      isAwaitingResendResult({ provider: "mailpit", providerStatus: "sent" })
+    ).toBe(false);
+  });
+});
 
 describe("isFailedDelivery", () => {
   it.each(["bounced", "failed", "suppressed"] as const)(
