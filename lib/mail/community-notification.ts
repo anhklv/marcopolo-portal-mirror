@@ -29,11 +29,6 @@ export function parseNotificationRecipients(value?: string): string[] {
 export function getCommunityNotificationRecipients(
   communityCode: string
 ): string[] {
-  const overrideRecipients = parseNotificationRecipients(
-    process.env.COMMUNITY_NOTIFICATION_OVERRIDE_TO
-  );
-  if (overrideRecipients.length > 0) return overrideRecipients;
-
   const envName = (
     COMMUNITY_RECIPIENT_ENV as Record<string, string | undefined>
   )[communityCode];
