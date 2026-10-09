@@ -1,9 +1,20 @@
 import type { AfterPartyStatus, RsvpStatus } from "@/lib/generated/prisma";
-import {
-  AFTER_PARTY_STATUS_CONFIG,
-  RSVP_STATUS_CONFIG,
-} from "@/lib/constants/event";
 import { formatDateTime, formatEventDate } from "@/lib/utils/event";
+
+const NOTIFICATION_RSVP_STATUS_LABELS: Record<RsvpStatus, string> = {
+  pending: "未回答",
+  attending: "現地参加",
+  online: "オンライン参加",
+  absent: "参加しない",
+};
+
+const NOTIFICATION_AFTER_PARTY_STATUS_LABELS: Record<
+  AfterPartyStatus,
+  string
+> = {
+  attending: "参加する",
+  not_attending: "参加しない",
+};
 
 export interface RsvpResponseSnapshot {
   status: RsvpStatus;
@@ -49,22 +60,8 @@ function buildChangeLines(
 
   if (previous.status !== current.status) {
     lines.push(
-      `・参加ステータス：${RSVP_STATUS_CONFIG[previous.status].label} → ${RSVP_STATUS_CONFIG[current.status].label}`
+      `・参加ステータス：${NOTIFICATION_RSVP_STATUS_LABELS[previous.status]} → ${NOTIFICATION_RSVP_STATUS_LABELS[current.status]}`
     );
-  }
-
-  // 不参加の場合、参加内容と懇親会は回答対象外のため通知へ表示しない。
-  if (
-    current.status !== "absent" &&
-    previous.afterPartyStatus !== current.afterPartyStatus
-  ) {
-    const before = previous.afterPartyStatus
-      ? AFTER_PARTY_STATUS_CONFIG[previous.afterPartyStatus].label
-      : "未回答";
-    const after = current.afterPartyStatus
-      ? AFTER_PARTY_STATUS_CONFIG[current.afterPartyStatus].label
-      : "未回答";
-    lines.push(`・懇親会：${before} → ${after}`);
   }
 
   if (
@@ -74,6 +71,20 @@ function buildChangeLines(
     lines.push(
       `・参加内容：${nullableLabel(previous.participationOptionLabel, "未選択")} → ${nullableLabel(current.participationOptionLabel, "未選択")}`
     );
+  }
+
+  // 懇親会は現地参加の場合のみ回答対象となるため、それ以外は通知へ表示しない。
+  if (
+    current.status === "attending" &&
+    previous.afterPartyStatus !== current.afterPartyStatus
+  ) {
+    const before = previous.afterPartyStatus
+      ? NOTIFICATION_AFTER_PARTY_STATUS_LABELS[previous.afterPartyStatus]
+      : "未回答";
+    const after = current.afterPartyStatus
+      ? NOTIFICATION_AFTER_PARTY_STATUS_LABELS[current.afterPartyStatus]
+      : "未回答";
+    lines.push(`・懇親会：${before} → ${after}`);
   }
 
   if (previous.comment !== current.comment) {
