@@ -9,6 +9,7 @@ interface SendMailParams {
   to: string | string[];
   subject: string;
   text: string;
+  html?: string;
   tags?: Array<{ name: string; value: string }>;
   idempotencyKey?: string;
 }
@@ -58,6 +59,7 @@ async function sendMailWithResend(
     to: params.to,
     subject: params.subject,
     text: params.text,
+    ...(params.html ? { html: params.html } : {}),
     ...(params.tags ? { tags: params.tags } : {}),
   };
   const { data, error } = params.idempotencyKey
@@ -112,6 +114,7 @@ export async function sendMail(params: SendMailParams): Promise<SendMailResult> 
       to: params.to,
       subject: params.subject,
       text: params.text,
+      ...(params.html ? { html: params.html } : {}),
     });
     return { success: true, messageId: info.messageId };
   } catch (error) {
