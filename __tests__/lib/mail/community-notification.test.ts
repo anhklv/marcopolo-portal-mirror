@@ -9,6 +9,7 @@ describe("community notification recipients", () => {
     delete process.env.COMMUNITY_NOTIFICATION_TO_NAIKAN_MEETUP;
     delete process.env.COMMUNITY_NOTIFICATION_TO_VENTURE_AUDITOR;
     delete process.env.COMMUNITY_NOTIFICATION_TO_AI_CLUB;
+    delete process.env.COMMUNITY_NOTIFICATION_TO_OTHER;
   });
 
   it("カンマ、セミコロン、改行区切りを重複なしの配列にする", () => {
@@ -33,8 +34,16 @@ describe("community notification recipients", () => {
     ]);
   });
 
-  it("未設定のコミュニティは空配列を返す", () => {
-    expect(getCommunityNotificationRecipients("other")).toEqual([]);
+  it("その他コミュニティの宛先を返す", () => {
+    process.env.COMMUNITY_NOTIFICATION_TO_OTHER = "13haishin@gmail.com";
+
+    expect(getCommunityNotificationRecipients("other")).toEqual([
+      "13haishin@gmail.com",
+    ]);
+  });
+
+  it("通知先が未設定の場合は空配列を返す", () => {
+    expect(getCommunityNotificationRecipients("unknown")).toEqual([]);
   });
 });
 

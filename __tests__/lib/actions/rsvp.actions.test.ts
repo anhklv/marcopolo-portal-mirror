@@ -276,7 +276,7 @@ describe("submitRsvpAction", () => {
         to: ["info@naikan-mup.com", "diunt@codluck.com"],
         subject: "【テストイベント】参加回答更新のお知らせ（山田 太郎様）",
         text: expect.stringContaining(
-          "・参加ステータス：未回答 → 参加"
+          "・参加ステータス：未回答 → 現地参加"
         ),
         html: expect.stringContaining("<strong>■変更内容"),
       })
