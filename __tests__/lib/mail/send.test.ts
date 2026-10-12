@@ -60,6 +60,26 @@ describe("sendMail", () => {
     });
   });
 
+  it("正常系: Mailpitへtextとhtmlを送信する", async () => {
+    sendMailMock.mockResolvedValue({ messageId: "<html-id@mail>" });
+
+    await sendMail({
+      from: "from@example.com",
+      to: ["first@example.com", "second@example.com"],
+      subject: "HTML通知",
+      text: "テキスト本文",
+      html: "<strong>HTML本文</strong>",
+    });
+
+    expect(sendMailMock).toHaveBeenCalledWith({
+      from: "from@example.com",
+      to: ["first@example.com", "second@example.com"],
+      subject: "HTML通知",
+      text: "テキスト本文",
+      html: "<strong>HTML本文</strong>",
+    });
+  });
+
   it("異常系: 送信エラー時にsuccess=falseとerrorを返す", async () => {
     sendMailMock.mockRejectedValue(new Error("Connection refused"));
 
@@ -175,6 +195,7 @@ describe("sendMail", () => {
       to: ["first@example.com", "second@example.com"],
       subject: "通知",
       text: "本文",
+      html: "<strong>本文</strong>",
       tags: [{ name: "category", value: "community_notification" }],
       idempotencyKey: "event-mail-failure-10-1",
     });
@@ -185,6 +206,7 @@ describe("sendMail", () => {
         to: ["first@example.com", "second@example.com"],
         subject: "通知",
         text: "本文",
+        html: "<strong>本文</strong>",
         tags: [{ name: "category", value: "community_notification" }],
       },
       { idempotencyKey: "event-mail-failure-10-1" }

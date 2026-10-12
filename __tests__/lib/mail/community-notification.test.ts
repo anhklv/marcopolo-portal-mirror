@@ -6,8 +6,10 @@ import {
 
 describe("community notification recipients", () => {
   afterEach(() => {
-    delete process.env.COMMUNITY_NOTIFICATION_OVERRIDE_TO;
     delete process.env.COMMUNITY_NOTIFICATION_TO_NAIKAN_MEETUP;
+    delete process.env.COMMUNITY_NOTIFICATION_TO_VENTURE_AUDITOR;
+    delete process.env.COMMUNITY_NOTIFICATION_TO_AI_CLUB;
+    delete process.env.COMMUNITY_NOTIFICATION_TO_OTHER;
   });
 
   it("カンマ、セミコロン、改行区切りを重複なしの配列にする", () => {
@@ -32,14 +34,8 @@ describe("community notification recipients", () => {
     ]);
   });
 
-  it("overrideがあれば全コミュニティの実宛先を置き換える", () => {
-    process.env.COMMUNITY_NOTIFICATION_TO_NAIKAN_MEETUP =
-      "real@example.com";
-    process.env.COMMUNITY_NOTIFICATION_OVERRIDE_TO = "qa@example.com";
-
-    expect(getCommunityNotificationRecipients("naikan_meetup")).toEqual([
-      "qa@example.com",
-    ]);
+  it("通知先が未設定の場合は空配列を返す", () => {
+    expect(getCommunityNotificationRecipients("unknown")).toEqual([]);
   });
 });
 
