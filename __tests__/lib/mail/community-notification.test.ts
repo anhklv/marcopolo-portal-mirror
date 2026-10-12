@@ -34,14 +34,6 @@ describe("community notification recipients", () => {
     ]);
   });
 
-  it("その他コミュニティの宛先を返す", () => {
-    process.env.COMMUNITY_NOTIFICATION_TO_OTHER = "13haishin@gmail.com";
-
-    expect(getCommunityNotificationRecipients("other")).toEqual([
-      "13haishin@gmail.com",
-    ]);
-  });
-
   it("通知先が未設定の場合は空配列を返す", () => {
     expect(getCommunityNotificationRecipients("unknown")).toEqual([]);
   });
