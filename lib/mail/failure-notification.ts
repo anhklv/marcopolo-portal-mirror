@@ -5,7 +5,7 @@ import {
   isFailedDelivery,
 } from "@/lib/mail/delivery-status";
 import { getFailureNotificationReadiness } from "@/lib/mail/failure-notification-readiness";
-import { getCommunityNotificationRecipients } from "@/lib/mail/community-notification";
+import { getCommunityFailureNotificationRecipients } from "@/lib/mail/community-failure-notification";
 import { sendMail } from "@/lib/mail/send";
 import {
   generateFailureNotificationBody,
@@ -187,7 +187,7 @@ async function processOneNotification(
     return "skipped";
   }
 
-  const recipients = getCommunityNotificationRecipients(
+  const recipients = getCommunityFailureNotificationRecipients(
     mail.event.community.code
   );
   const attempts = mail.failureNotificationAttempts;
