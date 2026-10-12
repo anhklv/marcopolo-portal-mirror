@@ -25,8 +25,7 @@ describe("processDueFailureNotifications", () => {
     vi.clearAllMocks();
     process.env.COMMUNITY_NOTIFICATION_ENABLED = "true";
     process.env.APP_ENV = "develop";
-    process.env.COMMUNITY_NOTIFICATION_TO_NAIKAN_MEETUP =
-      "first@example.com,second@example.com";
+    process.env.COMMUNITY_NOTIFICATION_TO_OTHER = "13haishin@gmail.com";
     process.env.SMTP_FROM = "noreply@marcopolo-portal.jp";
     process.env.APP_BASE_URL = "https://portal.example.com";
 
@@ -48,7 +47,7 @@ describe("processDueFailureNotifications", () => {
       event: {
         id: 20,
         title: "イベント",
-        community: { code: "naikan_meetup", name: "ないかんMeetup" },
+        community: { code: "other", name: "その他" },
       },
       deliveries: [
         {
@@ -117,7 +116,7 @@ describe("processDueFailureNotifications", () => {
     expect(sendMailMock).toHaveBeenCalledWith(
       expect.objectContaining({
         from: "noreply@marcopolo-portal.jp",
-        to: ["first@example.com", "second@example.com"],
+        to: ["13haishin@gmail.com"],
         idempotencyKey: "event-mail-failure-develop-10-1",
         text: expect.stringContaining("メールアドレス：one@missing.test"),
       })
