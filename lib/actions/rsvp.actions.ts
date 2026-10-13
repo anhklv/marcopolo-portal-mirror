@@ -199,6 +199,9 @@ export async function submitRsvpAction(
           communityName: rsvp.event.community.name,
           eventTitle: rsvp.event.title,
           eventDate: rsvp.event.date,
+          participationOptionEnabled:
+            rsvp.event.participationMode !== "disabled",
+          hasAfterParty: rsvp.event.hasAfterParty,
           customerName,
           previous,
           current,
