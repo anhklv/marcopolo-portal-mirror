@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import { generateRsvpAdminNotification } from "@/lib/mail/templates/rsvp-admin-notification";
 
 describe("generateRsvpAdminNotification", () => {
-  it("変更された項目だけを設計書のテンプレートへ出力する", () => {
+  it("全項目を表示し、変更された項目を太字にする", () => {
     const result = generateRsvpAdminNotification({
       communityName: "ないかんMeetup",
       eventTitle: "ないかんMeetup #12",
       eventDate: new Date("2026-10-20T10:00:00.000Z"),
+      participationOptionEnabled: true,
+      hasAfterParty: true,
       customerName: "山田 太郎",
       previous: {
         status: "pending",
@@ -71,6 +73,8 @@ describe("generateRsvpAdminNotification", () => {
       communityName: "AI部会",
       eventTitle: "定例会",
       eventDate: new Date("2026-10-20T10:00:00.000Z"),
+      participationOptionEnabled: true,
+      hasAfterParty: true,
       customerName: "佐藤 花子",
       previous: {
         status: "attending",
@@ -107,6 +111,8 @@ describe("generateRsvpAdminNotification", () => {
       communityName: "ないかんMeetup",
       eventTitle: "定例会",
       eventDate: new Date("2026-10-20T10:00:00.000Z"),
+      participationOptionEnabled: true,
+      hasAfterParty: true,
       customerName: "山田 太郎",
       previous: {
         status: "attending",
@@ -129,7 +135,14 @@ describe("generateRsvpAdminNotification", () => {
     expect(result.text).toContain(
       "・参加ステータス：現地参加 → オンライン参加"
     );
+    expect(result.text).not.toContain("・参加内容：");
+    expect(result.text).not.toContain("・メッセージ・連絡事項：");
     expect(result.text).not.toContain("・懇親会：");
+    expect(result.html).toContain(
+      "<strong>・参加ステータス：現地参加 → オンライン参加</strong>"
+    );
+    expect(result.html).not.toContain("・参加内容：");
+    expect(result.html).not.toContain("・メッセージ・連絡事項：");
     expect(result.html).not.toContain("・懇親会：");
   });
 
@@ -138,6 +151,8 @@ describe("generateRsvpAdminNotification", () => {
       communityName: "ないかんMeetup",
       eventTitle: "<イベント>",
       eventDate: new Date("2026-10-20T10:00:00.000Z"),
+      participationOptionEnabled: false,
+      hasAfterParty: false,
       customerName: "山田 & 太郎",
       previous: {
         status: "pending",
