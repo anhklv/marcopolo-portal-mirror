@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@/__tests__/helpers/mock-prisma";
 
 // next/cache のモック
@@ -8,8 +8,16 @@ vi.mock("next/cache", () => ({
 }));
 
 const mockSendMailBatch = vi.fn();
+const mockSendMail = vi.fn();
 vi.mock("@/lib/mail/send", () => ({
   sendMailBatch: (...args: unknown[]) => mockSendMailBatch(...args),
+  sendMail: (...args: unknown[]) => mockSendMail(...args),
+}));
+
+const mockGetCommunityNotificationRecipients = vi.fn();
+vi.mock("@/lib/mail/community-notification", () => ({
+  getCommunityNotificationRecipients: (...args: unknown[]) =>
+    mockGetCommunityNotificationRecipients(...args),
 }));
 
 const mockGetBaseUrl = vi.fn();
@@ -53,6 +61,7 @@ function createMockRsvpData(overrides: Record<string, unknown> = {}) {
     status: "pending",
     event: {
       id: 10,
+      title: "テストイベント",
       deletedAt: null,
       isPaused: false,
       hasAfterParty: false,
@@ -67,8 +76,13 @@ function createMockRsvpData(overrides: Record<string, unknown> = {}) {
     },
     customer: {
       id: 20,
+      lastName: "山田",
+      firstName: "太郎",
       deletedAt: null,
     },
+    afterPartyStatus: null,
+    comment: null,
+    respondedAt: null,
     participationOptionId: null,
     participationOption: null,
     ...overrides,
@@ -85,6 +99,14 @@ const validFormData = {
 describe("submitRsvpAction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("SMTP_FROM", "configured-sender@example.com");
+    mockGetCommunityNotificationRecipients.mockReturnValue([]);
+    mockGetBaseUrl.mockResolvedValue("http://localhost:3000");
+    mockSendMail.mockResolvedValue({ success: true, messageId: "mail-1" });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   // =========================================================
@@ -212,6 +234,99 @@ describe("submitRsvpAction", () => {
     await submitRsvpAction(validFormData);
 
     expect(mockRevalidatePath).toHaveBeenCalledWith("/admin/events/10");
+  });
+
+  it("正常系: 同じ回答の再送では更新・通知・回答日時更新を行わない", async () => {
+    mockFindRsvpByToken.mockResolvedValue(
+      createMockRsvpData({
+        status: "attending",
+        comment: "よろしくお願いします",
+      })
+    );
+    mockGetCommunityNotificationRecipients.mockReturnValue([
+      "admin@example.com",
+    ]);
+
+    const result = await submitRsvpAction(validFormData);
+
+    expect(result).toEqual({ success: true });
+    expect(mockUpdateRsvpResponse).not.toHaveBeenCalled();
+    expect(mockSendMail).not.toHaveBeenCalled();
+    expect(mockRevalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("正常系: 初回回答は保存するが管理者向け通知を送信しない", async () => {
+    mockFindRsvpByToken.mockResolvedValue(createMockRsvpData());
+    mockUpdateRsvpResponse.mockResolvedValue({});
+    mockGetCommunityNotificationRecipients.mockReturnValue([
+      "admin@example.com",
+    ]);
+
+    const result = await submitRsvpAction(validFormData);
+
+    expect(result).toEqual({ success: true });
+    expect(mockUpdateRsvpResponse).toHaveBeenCalledOnce();
+    expect(mockGetCommunityNotificationRecipients).not.toHaveBeenCalled();
+    expect(mockSendMail).not.toHaveBeenCalled();
+  });
+
+  it("正常系: 変更内容をコミュニティの通知先へ1通送信する", async () => {
+    mockFindRsvpByToken.mockResolvedValue(
+      createMockRsvpData({
+        status: "attending",
+        comment: "変更前",
+        respondedAt: new Date("2099-01-01T00:00:00Z"),
+      })
+    );
+    mockUpdateRsvpResponse.mockResolvedValue({});
+    mockGetCommunityNotificationRecipients.mockReturnValue([
+      "info@naikan-mup.com",
+      "diunt@codluck.com",
+    ]);
+    mockGetBaseUrl.mockResolvedValue("https://marcopolo-portal.jp/");
+
+    const result = await submitRsvpAction(validFormData);
+
+    expect(result).toEqual({ success: true });
+    expect(mockGetCommunityNotificationRecipients).toHaveBeenCalledWith(
+      "venture_auditor"
+    );
+    expect(mockSendMail).toHaveBeenCalledOnce();
+    expect(mockSendMail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: "configured-sender@example.com",
+        to: ["info@naikan-mup.com", "diunt@codluck.com"],
+        subject: "【テストイベント】参加回答更新のお知らせ（山田 太郎様）",
+        text: expect.stringContaining(
+          "・メッセージ・連絡事項：変更前 → よろしくお願いします"
+        ),
+        html: expect.stringContaining("<strong>■変更内容"),
+      })
+    );
+  });
+
+  it("正常系: 通知メール送信失敗後も保存済みRSVPは成功を返す", async () => {
+    mockFindRsvpByToken.mockResolvedValue(
+      createMockRsvpData({
+        status: "attending",
+        comment: "変更前",
+        respondedAt: new Date("2099-01-01T00:00:00Z"),
+      })
+    );
+    mockUpdateRsvpResponse.mockResolvedValue({});
+    mockGetCommunityNotificationRecipients.mockReturnValue([
+      "admin@example.com",
+    ]);
+    mockSendMail.mockResolvedValue({
+      success: false,
+      error: "SMTP connection failed",
+    });
+
+    const result = await submitRsvpAction(validFormData);
+
+    expect(result).toEqual({ success: true });
+    expect(mockUpdateRsvpResponse).toHaveBeenCalledOnce();
+    expect(mockSendMail).toHaveBeenCalledOnce();
   });
 
   it("正常系: ないかんMeetupで規約同意済み → success", async () => {

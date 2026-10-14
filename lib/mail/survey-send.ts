@@ -1,9 +1,9 @@
-import { sendMail } from "./send";
+import { buildRecipientAddresses, sendMail } from "./send";
 import {
   buildSurveyUrl,
   replaceSurveyPlaceholders,
 } from "@/lib/helpers/survey";
-import type { BatchMailResult } from "./send";
+import type { BatchMailResult, MailDeliveryResult } from "./send";
 
 export interface SurveyMailCustomer {
   id: number;
@@ -23,94 +23,86 @@ interface SurveyBatchMailParams {
   emailBody: string;
 }
 
-const BATCH_SIZE = 10;
-
-function buildRecipientEmails(customer: SurveyMailCustomer): string[] {
-  return [customer.email, ...(customer.subEmails ?? [])].filter(Boolean);
+interface CustomerSurveyMailResult {
+  customerId: number;
+  success: boolean;
+  deliveries: MailDeliveryResult[];
 }
+
+const BATCH_SIZE = 10;
 
 async function sendSurveyMailToCustomer(
   customer: SurveyMailCustomer,
-  params: Pick<SurveyBatchMailParams, "tokenMap" | "eventId" | "baseUrl" | "from" | "emailTitle" | "emailBody">
-): Promise<{ success: boolean; error?: string }> {
+  params: Pick<
+    SurveyBatchMailParams,
+    "tokenMap" | "eventId" | "baseUrl" | "from" | "emailTitle" | "emailBody"
+  >
+): Promise<CustomerSurveyMailResult> {
   const token = params.tokenMap.get(customer.id) ?? "";
   const surveyUrl = buildSurveyUrl(params.baseUrl, params.eventId, token);
   const customerName = `${customer.lastName} ${customer.firstName}`;
-  const text = replaceSurveyPlaceholders(params.emailBody, {
-    surveyUrl,
-    customerName,
-  });
-  const recipients = buildRecipientEmails(customer);
+  const text = replaceSurveyPlaceholders(params.emailBody, { surveyUrl, customerName });
 
-  const results = await Promise.allSettled(
-    recipients.map((recipient) =>
-      sendMail({
+  const deliveries = await Promise.all(
+    buildRecipientAddresses(customer).map(async (recipient): Promise<MailDeliveryResult> => {
+      const result = await sendMail({
         from: params.from,
-        to: recipient,
+        to: recipient.email,
         subject: params.emailTitle,
         text,
-      })
-    )
+      });
+      return {
+        customerId: customer.id,
+        lastName: customer.lastName,
+        firstName: customer.firstName,
+        ...recipient,
+        success: result.success,
+        messageId: result.messageId,
+        providerEmailId: result.providerEmailId,
+        errorCode: result.errorCode,
+        errorMessage: result.error,
+      };
+    })
   );
 
-  const failed = results.find(
-    (result) => result.status === "rejected" || !result.value.success
-  );
-  if (failed) {
-    const error =
-      failed.status === "rejected"
-        ? failed.reason instanceof Error
-          ? failed.reason.message
-          : "メール送信に失敗しました"
-        : failed.value.error;
-    return { success: false, error };
-  }
-
-  return { success: true };
+  return {
+    customerId: customer.id,
+    success: deliveries.some((delivery) => delivery.success),
+    deliveries,
+  };
 }
 
-/**
- * アンケート依頼メールのバッチ送信
- */
 export async function sendSurveyMailBatch(
   params: SurveyBatchMailParams
 ): Promise<BatchMailResult> {
-  const { customers, tokenMap, eventId, baseUrl, from, emailTitle, emailBody } =
-    params;
-  const sendResults: PromiseSettledResult<{ success: boolean }>[] = [];
+  const customerResults: CustomerSurveyMailResult[] = [];
 
-  for (let i = 0; i < customers.length; i += BATCH_SIZE) {
-    const batch = customers.slice(i, i + BATCH_SIZE);
-    const batchResults = await Promise.allSettled(
-      batch.map((customer) =>
-        sendSurveyMailToCustomer(customer, {
-          tokenMap,
-          eventId,
-          baseUrl,
-          from,
-          emailTitle,
-          emailBody,
-        })
-      )
+  for (let i = 0; i < params.customers.length; i += BATCH_SIZE) {
+    const batch = params.customers.slice(i, i + BATCH_SIZE);
+    customerResults.push(
+      ...(await Promise.all(batch.map((customer) => sendSurveyMailToCustomer(customer, params))))
     );
-    sendResults.push(...batchResults);
   }
 
-  const failedNames: string[] = [];
-  const successCustomerIds: number[] = [];
-  let sentCount = 0;
-  let failedCount = 0;
+  const customerMap = new Map(params.customers.map((customer) => [customer.id, customer]));
+  const successCustomerIds = customerResults
+    .filter((result) => result.success)
+    .map((result) => result.customerId);
+  const failedCustomerIds = customerResults
+    .filter((result) => !result.success)
+    .map((result) => result.customerId);
+  const deliveries = customerResults.flatMap((result) => result.deliveries);
 
-  sendResults.forEach((result, index) => {
-    const customer = customers[index];
-    if (result.status === "fulfilled" && result.value.success) {
-      sentCount++;
-      successCustomerIds.push(customer.id);
-    } else {
-      failedCount++;
-      failedNames.push(`${customer.lastName} ${customer.firstName}`);
-    }
-  });
-
-  return { sentCount, failedCount, failedNames, successCustomerIds };
+  return {
+    sentCount: successCustomerIds.length,
+    failedCount: failedCustomerIds.length,
+    failedNames: failedCustomerIds.map((id) => {
+      const customer = customerMap.get(id);
+      return customer ? `${customer.lastName} ${customer.firstName}` : String(id);
+    }),
+    successCustomerIds,
+    addressSuccessCount: deliveries.filter((result) => result.success).length,
+    addressFailedCount: deliveries.filter((result) => !result.success).length,
+    deliveries,
+  };
 }

@@ -58,6 +58,66 @@ enum ParticipationMode {
   required
 }
 
+enum EventMailKind {
+  rsvp
+  survey
+  notice
+}
+
+enum EventMailState {
+  draft
+  sent
+}
+
+enum EventMailSendStatus {
+  processing
+  success
+  partial_failed
+  failed
+}
+
+enum EventMailAddressType {
+  main
+  sub
+}
+
+enum EventMailDeliveryStatus {
+  pending
+  success
+  failed
+}
+
+enum EventMailProvider {
+  unknown
+  mailpit
+  resend
+}
+
+enum EventMailProviderStatus {
+  unknown
+  sent
+  delivered
+  delayed
+  bounced
+  failed
+  suppressed
+  complained
+}
+
+enum EventMailFailureNotificationStatus {
+  pending
+  processing
+  sent
+  failed
+}
+
+enum MailWebhookProcessStatus {
+  received
+  processed
+  unmatched
+  failed
+}
+
 enum SurveyRating {
   excellent
   good
@@ -79,10 +139,10 @@ enum MembershipInterest {
 
 /// 転職意欲（顧客プロフィール）
 enum JobChangeIntent {
-  active        // 積極的に検討中
-  considering   // 検討している
-  if_good       // よい案件があれば
-  not_thinking  // 全く考えていない
+  active // 積極的に検討中
+  considering // 検討している
+  if_good // よい案件があれば
+  not_thinking // 全く考えていない
 }
 
 // ======================
@@ -191,37 +251,38 @@ model Affiliation {
 // ======================
 
 model Customer {
-  id                        Int             @id @default(autoincrement())
-  lastName                  String          @map("last_name") @db.VarChar(100)
-  firstName                 String          @map("first_name") @db.VarChar(100)
-  lastNameKana              String?         @map("last_name_kana") @db.VarChar(100)
-  firstNameKana             String?         @map("first_name_kana") @db.VarChar(100)
-  company                   String?         @db.VarChar(200)
-  position                  String?         @db.VarChar(50)
-  email                     String          @db.VarChar(255)
-  subEmails                 String[]        @default([]) @map("sub_emails")
-  phone                     String?         @db.VarChar(20)
-  postalCode                String?         @map("postal_code") @db.VarChar(10)
-  prefectureId              Int?            @map("prefecture_id")
-  city                      String?         @db.VarChar(255)
-  gender                    Gender?
-  listingCategoryId         Int?            @map("listing_category_id")
-  memberCategory            MemberCategory? @map("member_category")
-  contractType              ContractType?   @map("contract_type")
-  jobChangeIntent           JobChangeIntent? @map("job_change_intent")
-  note                      String?         @db.Text
-  registeredAt              DateTime        @default(now()) @map("registered_at")
-  deletedAt                 DateTime?       @map("deleted_at")
+  id                Int              @id @default(autoincrement())
+  lastName          String           @map("last_name") @db.VarChar(100)
+  firstName         String           @map("first_name") @db.VarChar(100)
+  lastNameKana      String?          @map("last_name_kana") @db.VarChar(100)
+  firstNameKana     String?          @map("first_name_kana") @db.VarChar(100)
+  company           String?          @db.VarChar(200)
+  position          String?          @db.VarChar(50)
+  email             String           @db.VarChar(255)
+  subEmails         String[]         @default([]) @map("sub_emails")
+  phone             String?          @db.VarChar(20)
+  postalCode        String?          @map("postal_code") @db.VarChar(10)
+  prefectureId      Int?             @map("prefecture_id")
+  city              String?          @db.VarChar(255)
+  gender            Gender?
+  listingCategoryId Int?             @map("listing_category_id")
+  memberCategory    MemberCategory?  @map("member_category")
+  contractType      ContractType?    @map("contract_type")
+  jobChangeIntent   JobChangeIntent? @map("job_change_intent")
+  note              String?          @db.Text
+  registeredAt      DateTime         @default(now()) @map("registered_at")
+  deletedAt         DateTime?        @map("deleted_at")
 
   // Relations
-  prefecture              Prefecture?              @relation(fields: [prefectureId], references: [id])
-  listingCategory         ListingCategory?         @relation(fields: [listingCategoryId], references: [id])
-  customerCommunities     CustomerCommunity[]
-  customerDepartments     CustomerDepartment[]
-  rsvps                   Rsvp[]
-  surveyResponses         SurveyResponse[]
-  fixedSurveyResponses    FixedSurveyResponse[]
-  surveyTokens            SurveyToken[]
+  prefecture           Prefecture?           @relation(fields: [prefectureId], references: [id])
+  listingCategory      ListingCategory?      @relation(fields: [listingCategoryId], references: [id])
+  customerCommunities  CustomerCommunity[]
+  customerDepartments  CustomerDepartment[]
+  rsvps                Rsvp[]
+  surveyResponses      SurveyResponse[]
+  fixedSurveyResponses FixedSurveyResponse[]
+  surveyTokens         SurveyToken[]
+  eventMailDeliveries  EventMailDelivery[]
 
   @@map("customers")
 }
@@ -243,18 +304,18 @@ model CustomerDepartment {
 }
 
 model CustomerCommunity {
-  id                        Int             @id @default(autoincrement())
-  customerId                Int             @map("customer_id")
-  communityId               Int             @map("community_id")
+  id                        Int              @id @default(autoincrement())
+  customerId                Int              @map("customer_id")
+  communityId               Int              @map("community_id")
   joinedAt                  DateTime?       @db.Date @map("joined_at")
   resignedAt                DateTime?       @db.Date @map("resigned_at")
   auditMemberType           AuditMemberType? @map("audit_member_type")
-  auditMemberPremium        Boolean?        @map("audit_member_premium")
-  affiliationId             Int?            @map("affiliation_id")
-  originIndustryId          Int?            @map("origin_industry_id")
-  membershipQualificationId Int?            @map("membership_qualification_id")
-  createdAt                 DateTime        @default(now()) @map("created_at")
-  updatedAt                 DateTime        @updatedAt @map("updated_at")
+  auditMemberPremium        Boolean?         @map("audit_member_premium")
+  affiliationId             Int?             @map("affiliation_id")
+  originIndustryId          Int?             @map("origin_industry_id")
+  membershipQualificationId Int?             @map("membership_qualification_id")
+  createdAt                 DateTime         @default(now()) @map("created_at")
+  updatedAt                 DateTime         @updatedAt @map("updated_at")
 
   // Relations
   customer                Customer                 @relation(fields: [customerId], references: [id])
@@ -272,29 +333,30 @@ model CustomerCommunity {
 // ======================
 
 model Event {
-  id               Int       @id @default(autoincrement())
-  communityId      Int       @map("community_id")
-  title            String    @db.VarChar(200)
-  date             DateTime
-  location         String?   @db.VarChar(255)
-  description      String?   @db.Text
-  timetable        String?   @db.Text
-  note             String?   @db.Text
-  attendeesCount   Int       @default(0) @map("attendees_count")
-  responseDeadline DateTime? @map("response_deadline")
-  isPaused         Boolean   @default(false) @map("is_paused")
-  allowsOnline     Boolean   @default(false) @map("allows_online")
-  hasAfterParty    Boolean   @default(false) @map("has_after_party")
+  id                Int               @id @default(autoincrement())
+  communityId       Int               @map("community_id")
+  title             String            @db.VarChar(200)
+  date              DateTime
+  location          String?           @db.VarChar(255)
+  description       String?           @db.Text
+  timetable         String?           @db.Text
+  note              String?           @db.Text
+  attendeesCount    Int               @default(0) @map("attendees_count")
+  responseDeadline  DateTime?         @map("response_deadline")
+  isPaused          Boolean           @default(false) @map("is_paused")
+  allowsOnline      Boolean           @default(false) @map("allows_online")
+  hasAfterParty     Boolean           @default(false) @map("has_after_party")
   participationMode ParticipationMode @default(disabled) @map("participation_mode")
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
-  deletedAt        DateTime? @map("deleted_at")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  deletedAt         DateTime?         @map("deleted_at")
 
   // Relations
-  community Community @relation(fields: [communityId], references: [id])
-  rsvps     Rsvp[]
-  survey    Survey?
+  community            Community                  @relation(fields: [communityId], references: [id])
+  rsvps                Rsvp[]
+  survey               Survey?
   participationOptions EventParticipationOption[]
+  eventMails           EventMail[]
 
   @@map("events")
 }
@@ -316,27 +378,127 @@ model EventParticipationOption {
 }
 
 model Rsvp {
-  id               Int              @id @default(autoincrement())
-  eventId          Int              @map("event_id")
-  customerId       Int              @map("customer_id")
-  token            String           @unique @db.VarChar(100)
-  status           RsvpStatus       @default(pending)
-  afterPartyStatus AfterPartyStatus? @map("after_party_status")
+  id                    Int               @id @default(autoincrement())
+  eventId               Int               @map("event_id")
+  customerId            Int               @map("customer_id")
+  token                 String            @unique @db.VarChar(100)
+  status                RsvpStatus        @default(pending)
+  afterPartyStatus      AfterPartyStatus? @map("after_party_status")
   participationOptionId Int?              @map("participation_option_id")
-  comment          String?          @db.Text
-  adminNote        String?          @map("admin_note") @db.Text
-  respondedAt      DateTime?        @map("responded_at")
-  createdAt        DateTime         @default(now()) @map("created_at")
-  updatedAt        DateTime         @updatedAt @map("updated_at")
+  comment               String?           @db.Text
+  adminNote             String?           @map("admin_note") @db.Text
+  respondedAt           DateTime?         @map("responded_at")
+  createdAt             DateTime          @default(now()) @map("created_at")
+  updatedAt             DateTime          @updatedAt @map("updated_at")
 
   // Relations
-  event    Event    @relation(fields: [eventId], references: [id])
-  customer Customer @relation(fields: [customerId], references: [id])
+  event               Event                     @relation(fields: [eventId], references: [id])
+  customer            Customer                  @relation(fields: [customerId], references: [id])
   participationOption EventParticipationOption? @relation(fields: [participationOptionId], references: [id], onDelete: Restrict)
 
   @@unique([eventId, customerId])
   @@index([participationOptionId])
   @@map("rsvps")
+}
+
+model EventMail {
+  id                   Int                  @id @default(autoincrement())
+  eventId              Int                  @map("event_id")
+  templateNameSnapshot String?              @map("template_name_snapshot") @db.VarChar(200)
+  kind                 EventMailKind
+  state                EventMailState       @default(draft)
+  subject              String               @db.VarChar(500)
+  body                 String               @db.Text
+  fromAddress          String               @map("from_address") @db.VarChar(255)
+  createdByAdminId     Int                  @map("created_by_admin_id")
+  sentByAdminId        Int?                 @map("sent_by_admin_id")
+  sendStatus           EventMailSendStatus? @map("send_status")
+  targetCount          Int                  @default(0) @map("target_count")
+  successCount         Int                  @default(0) @map("success_count")
+  failedCount          Int                  @default(0) @map("failed_count")
+  failureNotificationStatus   EventMailFailureNotificationStatus? @map("failure_notification_status")
+  failureNotificationDueAt    DateTime?     @map("failure_notification_due_at")
+  failureNotificationClaimedAt DateTime?    @map("failure_notification_claimed_at")
+  failureNotificationSentAt   DateTime?     @map("failure_notification_sent_at")
+  failureNotificationVersion  Int           @default(0) @map("failure_notification_version")
+  failureNotificationAttempts Int           @default(0) @map("failure_notification_attempts")
+  failureNotificationError    String?       @map("failure_notification_error") @db.Text
+  sentAt               DateTime?            @map("sent_at")
+  createdAt            DateTime             @default(now()) @map("created_at")
+  updatedAt            DateTime             @updatedAt @map("updated_at")
+
+  event          Event               @relation(fields: [eventId], references: [id])
+  createdByAdmin Admin               @relation("EventMailCreatedBy", fields: [createdByAdminId], references: [id])
+  sentByAdmin    Admin?              @relation("EventMailSentBy", fields: [sentByAdminId], references: [id])
+  deliveries     EventMailDelivery[]
+
+  @@index([eventId, sentAt])
+  @@index([eventId, state])
+  @@index([sendStatus])
+  @@index([failureNotificationStatus, failureNotificationDueAt])
+  @@map("event_mails")
+}
+
+model EventMailDelivery {
+  id                   Int                     @id @default(autoincrement())
+  eventMailId          Int                     @map("event_mail_id")
+  customerId           Int                     @map("customer_id")
+  lastNameSnapshot     String                  @map("last_name_snapshot") @db.VarChar(100)
+  firstNameSnapshot    String                  @map("first_name_snapshot") @db.VarChar(100)
+  emailAddress         String                  @map("email_address") @db.VarChar(255)
+  emailType            EventMailAddressType    @map("email_type")
+  subEmailOrder        Int?                    @map("sub_email_order")
+  status               EventMailDeliveryStatus @default(pending)
+  provider             EventMailProvider       @default(unknown)
+  providerStatus       EventMailProviderStatus @default(unknown) @map("provider_status")
+  smtpMessageId        String?                 @map("smtp_message_id") @db.VarChar(255)
+  providerEmailId      String?                 @map("provider_email_id") @db.VarChar(255)
+  providerEventAt      DateTime?               @map("provider_event_at")
+  deliveredAt          DateTime?               @map("delivered_at")
+  bouncedAt            DateTime?               @map("bounced_at")
+  bounceType           String?                 @map("bounce_type") @db.VarChar(100)
+  bounceSubType        String?                 @map("bounce_sub_type") @db.VarChar(100)
+  providerErrorCode    String?                 @map("provider_error_code") @db.VarChar(100)
+  providerErrorMessage String?                 @map("provider_error_message") @db.Text
+  errorCode            String?                 @map("error_code") @db.VarChar(100)
+  errorMessage         String?                 @map("error_message") @db.Text
+  failureNotifiedAt    DateTime?               @map("failure_notified_at")
+  sentAt               DateTime?               @map("sent_at")
+  createdAt            DateTime                @default(now()) @map("created_at")
+  updatedAt            DateTime                @updatedAt @map("updated_at")
+
+  eventMail EventMail @relation(fields: [eventMailId], references: [id], onDelete: Cascade)
+  customer  Customer  @relation(fields: [customerId], references: [id])
+
+  @@index([eventMailId, status])
+  @@index([customerId])
+  @@index([smtpMessageId])
+  @@index([provider, providerEmailId])
+  @@map("event_mail_deliveries")
+}
+
+model MailProviderWebhookEvent {
+  id              Int                      @id @default(autoincrement())
+  provider        EventMailProvider
+  providerEventId String                   @map("provider_event_id") @db.VarChar(255)
+  eventType       String                   @map("event_type") @db.VarChar(100)
+  providerEmailId String?                  @map("provider_email_id") @db.VarChar(255)
+  smtpMessageId   String?                  @map("smtp_message_id") @db.VarChar(255)
+  recipient       String?                  @db.VarChar(255)
+  payload         Json
+  processStatus   MailWebhookProcessStatus @default(received) @map("process_status")
+  processAttempts Int                      @default(0) @map("process_attempts")
+  processError    String?                  @map("process_error") @db.Text
+  receivedAt      DateTime                 @default(now()) @map("received_at")
+  processedAt     DateTime?                @map("processed_at")
+  createdAt       DateTime                 @default(now()) @map("created_at")
+  updatedAt       DateTime                 @updatedAt @map("updated_at")
+
+  @@unique([provider, providerEventId])
+  @@index([provider, providerEmailId])
+  @@index([provider, smtpMessageId])
+  @@index([processStatus, receivedAt])
+  @@map("mail_provider_webhook_events")
 }
 
 // ======================
@@ -350,7 +512,7 @@ model Survey {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  event                Event                @relation(fields: [eventId], references: [id])
+  event                Event                 @relation(fields: [eventId], references: [id])
   questions            SurveyQuestion[]
   fixedSurveyResponses FixedSurveyResponse[]
   tokens               SurveyToken[]
@@ -403,18 +565,18 @@ model SurveyResponse {
 /// - membership/membershipReason: ベンチャー監査役の会イベント かつ 非会員の場合のみ入力
 /// - comments: 任意入力
 model FixedSurveyResponse {
-  id                          Int                  @id @default(autoincrement())
-  surveyId                    Int                  @map("survey_id")
-  customerId                  Int                  @map("customer_id")
-  surveyTokenId               Int                  @map("survey_token_id")
-  afterPartyRating            SurveyRating?        @map("after_party_rating")
-  afterPartyReason            String?              @map("after_party_reason") @db.Text
-  futureParticipation         FutureParticipation? @map("future_participation")
-  futureParticipationReason   String?              @map("future_participation_reason") @db.Text
-  membership                  MembershipInterest?
-  membershipReason            String?              @map("membership_reason") @db.Text
-  comments                    String?              @db.Text
-  respondedAt                 DateTime?            @map("responded_at")
+  id                        Int                  @id @default(autoincrement())
+  surveyId                  Int                  @map("survey_id")
+  customerId                Int                  @map("customer_id")
+  surveyTokenId             Int                  @map("survey_token_id")
+  afterPartyRating          SurveyRating?        @map("after_party_rating")
+  afterPartyReason          String?              @map("after_party_reason") @db.Text
+  futureParticipation       FutureParticipation? @map("future_participation")
+  futureParticipationReason String?              @map("future_participation_reason") @db.Text
+  membership                MembershipInterest?
+  membershipReason          String?              @map("membership_reason") @db.Text
+  comments                  String?              @db.Text
+  respondedAt               DateTime?            @map("responded_at")
 
   // Relations
   survey      Survey      @relation(fields: [surveyId], references: [id])
@@ -462,7 +624,9 @@ model Admin {
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  adminCommunities AdminCommunity[]
+  adminCommunities  AdminCommunity[]
+  createdEventMails EventMail[]      @relation("EventMailCreatedBy")
+  sentEventMails    EventMail[]      @relation("EventMailSentBy")
 
   @@map("admins")
 }

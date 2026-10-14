@@ -12,7 +12,12 @@ import {
 import * as rsvpRepo from "@/lib/repositories/rsvp.repository";
 import { COMMUNITY_CODE } from "@/lib/constants/community";
 import { getBaseUrl } from "@/lib/helpers/base-url";
-import { sendMailBatch } from "@/lib/mail/send";
+import { getCommunityNotificationRecipients } from "@/lib/mail/community-notification";
+import { sendMail, sendMailBatch } from "@/lib/mail/send";
+import {
+  generateRsvpAdminNotification,
+  type RsvpResponseSnapshot,
+} from "@/lib/mail/templates/rsvp-admin-notification";
 import { logServerError } from "@/lib/utils/log-error";
 
 // ============================================================
@@ -131,19 +136,99 @@ export async function submitRsvpAction(
     const finalAfterPartyStatus =
       status === "attending" ? afterPartyStatus : null;
 
+    const finalParticipationOptionId = isParticipating
+      ? participationOptionId
+      : null;
+    const selectedOption = finalParticipationOptionId
+      ? rsvp.event.participationOptions.find(
+          (option) => option.id === finalParticipationOptionId
+        ) ?? rsvp.participationOption
+      : null;
+    const isInitialResponse = rsvp.respondedAt === null;
+    const previous: RsvpResponseSnapshot = {
+      status: rsvp.status,
+      afterPartyStatus: rsvp.afterPartyStatus,
+      participationOptionId: rsvp.participationOptionId,
+      participationOptionLabel: rsvp.participationOption?.label ?? null,
+      comment: rsvp.comment ?? null,
+    };
+    const current: RsvpResponseSnapshot = {
+      status,
+      afterPartyStatus: finalAfterPartyStatus,
+      participationOptionId: finalParticipationOptionId,
+      participationOptionLabel: selectedOption?.label ?? null,
+      comment,
+    };
+    const hasChanged =
+      previous.status !== current.status ||
+      previous.afterPartyStatus !== current.afterPartyStatus ||
+      previous.participationOptionId !== current.participationOptionId ||
+      previous.comment !== current.comment;
+
+    // 同じ回答の再送では、回答日時を更新せず通知も送信しない。
+    if (!hasChanged) {
+      return { success: true };
+    }
+
     // 11. DB更新
     await rsvpRepo.updateRsvpResponse(rsvp.id, {
       status,
       afterPartyStatus: finalAfterPartyStatus,
       comment,
-      participationOptionId: isParticipating
-        ? participationOptionId
-        : null,
+      participationOptionId: finalParticipationOptionId,
       respondedAt: now,
     });
 
     // 12. 管理画面のキャッシュ無効化
     revalidatePath(`/admin/events/${rsvp.eventId}`);
+
+    // 初回回答は保存のみ行い、管理者向け通知は送信しない。
+    if (isInitialResponse) {
+      return { success: true };
+    }
+
+    // 13. コミュニティ別メーリングリストへ変更内容を直接通知する。
+    // 通知失敗を理由に、保存済みのRSVPを参加者へ再送させない。
+    const recipients = getCommunityNotificationRecipients(
+      rsvp.event.community.code
+    );
+    if (recipients.length > 0) {
+      try {
+        const customerName = `${rsvp.customer.lastName} ${rsvp.customer.firstName}`;
+        const mail = generateRsvpAdminNotification({
+          communityName: rsvp.event.community.name,
+          eventTitle: rsvp.event.title,
+          eventDate: rsvp.event.date,
+          participationOptionEnabled:
+            rsvp.event.participationMode !== "disabled",
+          hasAfterParty: rsvp.event.hasAfterParty,
+          customerName,
+          previous,
+          current,
+          respondedAt: now,
+          adminEventUrl: `${(await getBaseUrl()).replace(/\/$/, "")}/admin/events/${rsvp.eventId}`,
+        });
+        const result = await sendMail({
+          from:
+            process.env.SMTP_FROM ?? "noreply@marcopolo-portal.jp",
+          to: recipients,
+          subject: mail.subject,
+          text: mail.text,
+          html: mail.html,
+        });
+        if (!result.success) {
+          logServerError(
+            `submitRsvpAction:adminNotification rsvpId=${rsvp.id} eventId=${rsvp.eventId} community=${rsvp.event.community.code}`,
+            new Error(result.error ?? "メール送信に失敗しました")
+          );
+        }
+      } catch (error) {
+        logServerError(
+          `submitRsvpAction:adminNotification rsvpId=${rsvp.id} eventId=${rsvp.eventId} community=${rsvp.event.community.code}`,
+          error
+        );
+      }
+    }
 
     return { success: true };
   } catch (error) {

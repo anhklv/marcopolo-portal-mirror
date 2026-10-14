@@ -26,6 +26,12 @@ vi.mock("@/lib/mail/send", () => ({
   sendMailBatch: (...args: unknown[]) => mockSendMailBatch(...args),
 }));
 
+const mockCreateEventMailHistory = vi.fn();
+vi.mock("@/lib/repositories/event-mail.repository", () => ({
+  createEventMailHistory: (...args: unknown[]) =>
+    mockCreateEventMailHistory(...args),
+}));
+
 import {
   sendInviteAction,
   sendTestInviteAction,
@@ -76,6 +82,7 @@ function setupSuperAdmin() {
 describe("sendInviteAction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCreateEventMailHistory.mockResolvedValue({ id: 1 });
   });
 
   it("正常系: 案内メール送信成功", async () => {
@@ -221,7 +228,7 @@ describe("sendInviteAction", () => {
     });
   });
 
-  it("メール送信失敗分はRSVP作成されない", async () => {
+  it("メール送信前にRSVPを作成し、全宛先失敗分のみ送信後に削除する", async () => {
     setupSuperAdmin();
     mockPrisma.rsvp.findMany.mockResolvedValueOnce([]);
     mockPrisma.customer.findMany.mockResolvedValue([
@@ -240,10 +247,20 @@ describe("sendInviteAction", () => {
       failedCount: 1,
       failedNames: ["佐藤 花子"],
     });
-    // 成功分(customerId: 10)のみRSVP作成
+    // URLを送信前から有効にするため、送信対象全員分のRSVPを作成
     expect(mockPrisma.rsvp.createMany).toHaveBeenCalledWith({
-      data: [expect.objectContaining({ eventId: 1, customerId: 10 })],
+      data: expect.arrayContaining([
+        expect.objectContaining({ eventId: 1, customerId: 10 }),
+        expect.objectContaining({ eventId: 1, customerId: 20 }),
+      ]),
       skipDuplicates: true,
+    });
+    expect(mockPrisma.rsvp.deleteMany).toHaveBeenCalledWith({
+      where: {
+        eventId: 1,
+        customerId: { in: [20] },
+        status: "pending",
+      },
     });
   });
 

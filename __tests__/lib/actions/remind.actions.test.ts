@@ -26,6 +26,12 @@ vi.mock("@/lib/mail/send", () => ({
   sendMailBatch: (...args: unknown[]) => mockSendMailBatch(...args),
 }));
 
+const mockCreateEventMailHistory = vi.fn();
+vi.mock("@/lib/repositories/event-mail.repository", () => ({
+  createEventMailHistory: (...args: unknown[]) =>
+    mockCreateEventMailHistory(...args),
+}));
+
 import {
   sendRemindAction,
   sendTestRemindAction,
@@ -75,6 +81,7 @@ function setupSuperAdmin() {
 describe("sendRemindAction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCreateEventMailHistory.mockResolvedValue({ id: 1 });
   });
 
   it("正常系: pending 2名にリマインドメール送信成功", async () => {

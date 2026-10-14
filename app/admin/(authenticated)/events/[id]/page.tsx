@@ -1,7 +1,9 @@
 import { getAuthenticatedAdmin, canAccessEvent } from "@/lib/auth/permissions";
 import { findEventByIdForDetail } from "@/lib/repositories/event.repository";
 import { findSurveyResultsByEventId } from "@/lib/repositories/survey.repository";
+import { findEventMails } from "@/lib/repositories/event-mail.repository";
 import { serializeEventForDetail } from "@/lib/serializers/event";
+import { serializeEventMails } from "@/lib/serializers/event-mail";
 import { serializeSurveyResult } from "@/lib/serializers/survey";
 import { EventDetail } from "./_components/event-detail";
 import { notFound } from "next/navigation";
@@ -29,7 +31,10 @@ export default async function EventDetailPage({
     notFound();
   }
 
-  const event = await findEventByIdForDetail(eventId);
+  const [event, eventMails] = await Promise.all([
+    findEventByIdForDetail(eventId),
+    findEventMails(eventId),
+  ]);
   if (!event) {
     notFound();
   }
@@ -45,5 +50,11 @@ export default async function EventDetailPage({
     }
   }
 
-  return <EventDetail event={serializedEvent} surveyResult={surveyResult} />;
+  return (
+    <EventDetail
+      event={serializedEvent}
+      surveyResult={surveyResult}
+      eventMails={serializeEventMails(eventMails)}
+    />
+  );
 }

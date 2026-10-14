@@ -2,6 +2,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/lib/mail/send", () => ({
   sendMail: vi.fn(),
+  buildRecipientAddresses: (customer: {
+    email: string;
+    subEmails: string[] | null;
+  }) => [
+    { email: customer.email, emailType: "main", subEmailOrder: null },
+    ...(customer.subEmails ?? []).map((email, index) => ({
+      email,
+      emailType: "sub",
+      subEmailOrder: index + 1,
+    })),
+  ],
 }));
 
 import { sendMail } from "@/lib/mail/send";
@@ -49,7 +60,7 @@ describe("sendSurveyMailBatch", () => {
     expect(result.successCustomerIds).toEqual([1]);
   });
 
-  it("異常系: subEmailsの一部が失敗した場合は顧客単位で失敗扱いにする", async () => {
+  it("正常系: subEmailsの一部が失敗しても成功した宛先があれば顧客は成功扱いにする", async () => {
     const customers: SurveyMailCustomer[] = [
       {
         id: 1,
@@ -65,9 +76,11 @@ describe("sendSurveyMailBatch", () => {
 
     const result = await sendSurveyMailBatch({ ...baseParams, customers });
 
-    expect(result.sentCount).toBe(0);
-    expect(result.failedCount).toBe(1);
-    expect(result.failedNames).toEqual(["田中 太郎"]);
-    expect(result.successCustomerIds).toEqual([]);
+    expect(result.sentCount).toBe(1);
+    expect(result.failedCount).toBe(0);
+    expect(result.failedNames).toEqual([]);
+    expect(result.successCustomerIds).toEqual([1]);
+    expect(result.addressSuccessCount).toBe(1);
+    expect(result.addressFailedCount).toBe(1);
   });
 });
