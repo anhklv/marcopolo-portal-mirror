@@ -20,8 +20,8 @@ import {
   generateSurveyBody,
 } from "@/lib/mail/templates/survey";
 import { getEventDisplayStatus } from "@/lib/utils/event";
-import { prisma } from "@/lib/prisma";
 import { SurveySendForm } from "./_components/survey-send-form";
+import { findAdminsForEventTestSend } from "@/lib/repositories/admin.repository";
 
 export default async function SurveySendPage({
   params,
@@ -72,11 +72,7 @@ export default async function SurveySendPage({
     );
   }
 
-  // 管理者メール取得（テスト送信先用）
-  const adminRecord = await prisma.admin.findUnique({
-    where: { id: admin.id },
-    select: { email: true },
-  });
+  const testSendAdmins = await findAdminsForEventTestSend(eventId);
 
   // テンプレート生成
   const defaultEmailTitle = generateSurveySubject({
@@ -90,7 +86,7 @@ export default async function SurveySendPage({
     <SurveySendForm
       event={serializeEventForSurvey(event)}
       attendees={event.rsvps.map(serializeAttendee)}
-      adminEmail={adminRecord?.email ?? ""}
+      testSendAdmins={testSendAdmins}
       defaultEmailTitle={defaultEmailTitle}
       defaultEmailBody={defaultEmailBody}
     />

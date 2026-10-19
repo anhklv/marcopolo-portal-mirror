@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { mockPrisma } from "@/__tests__/helpers/mock-prisma";
 import {
   findAll,
+  findAdminsForEventTestSend,
   findById,
   create,
   update,
@@ -76,6 +77,46 @@ describe("admin.repository", () => {
         orderBy: { id: "asc" },
       });
       expect(result).toEqual(admins);
+    });
+  });
+
+  describe("findAdminsForEventTestSend", () => {
+    it("全superと対象コミュニティの管理者だけを取得する", async () => {
+      const admins = [
+        { id: 1, lastName: "管理", firstName: "太郎", email: "admin@example.com" },
+        { id: 2, lastName: "確認", firstName: "花子", email: "reviewer@example.com" },
+      ];
+      mockPrisma.event.findFirst.mockResolvedValue({ communityId: 10 });
+      mockPrisma.admin.findMany.mockResolvedValue(admins);
+
+      const result = await findAdminsForEventTestSend(20, [1, 2]);
+
+      expect(mockPrisma.event.findFirst).toHaveBeenCalledWith({
+        where: { id: 20, deletedAt: null },
+        select: { communityId: true },
+      });
+      expect(mockPrisma.admin.findMany).toHaveBeenCalledWith({
+        where: {
+          id: { in: [1, 2] },
+          OR: [
+            { role: "super" },
+            {
+              role: "community_admin",
+              adminCommunities: { some: { communityId: 10 } },
+            },
+          ],
+        },
+        select: { id: true, lastName: true, firstName: true, email: true },
+        orderBy: { id: "asc" },
+      });
+      expect(result).toEqual(admins);
+    });
+
+    it("イベントが存在しない場合は空配列を返す", async () => {
+      mockPrisma.event.findFirst.mockResolvedValue(null);
+
+      await expect(findAdminsForEventTestSend(999)).resolves.toEqual([]);
+      expect(mockPrisma.admin.findMany).not.toHaveBeenCalled();
     });
   });
 

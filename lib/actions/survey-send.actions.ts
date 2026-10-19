@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import {
-  requireAuth,
   requireAuthenticatedAdmin,
   canManageSurvey,
 } from "@/lib/auth/permissions";
@@ -11,18 +10,17 @@ import {
   sendSurveySchema,
   testSurveySchema,
 } from "@/lib/validations/survey-send";
-import { sendMail } from "@/lib/mail/send";
 import { sendSurveyMailBatch } from "@/lib/mail/survey-send";
+import { sendTestMailToAdmins } from "@/lib/mail/test-send";
 import { getBaseUrl } from "@/lib/helpers/base-url";
 import {
   generateSurveyToken,
-  buildSurveyUrl,
-  replaceSurveyPlaceholders,
 } from "@/lib/helpers/survey";
 import { findSurveyByEventId, createSurvey } from "@/lib/repositories/survey.repository";
 import { getEventDisplayStatus } from "@/lib/utils/event";
 import { logServerError } from "@/lib/utils/log-error";
 import { createEventMailHistory } from "@/lib/repositories/event-mail.repository";
+import { findAdminsForEventTestSend } from "@/lib/repositories/admin.repository";
 
 // ============================================================
 // 型定義
@@ -250,9 +248,7 @@ export async function sendSurveyAction(
 export async function sendTestSurveyAction(
   formData: unknown
 ): Promise<SendTestSurveyResult> {
-  // 認証
-  const session = await requireAuth();
-  const adminId = Number(session.user.id);
+  const { admin } = await requireAuthenticatedAdmin();
 
   // バリデーション
   const parsed = testSurveySchema.safeParse(formData);
@@ -261,41 +257,27 @@ export async function sendTestSurveyAction(
     return { success: false, error: messages[0] };
   }
 
-  // 管理者メール取得
-  const admin = await prisma.admin.findUnique({
-    where: { id: adminId },
-    select: { email: true },
-  });
-
-  if (!admin) {
-    return { success: false, error: "管理者が見つかりません" };
-  }
-
-  const baseUrl = await getBaseUrl();
-  const from = process.env.SMTP_FROM ?? "noreply@example.com";
-  const dummyUrl = buildSurveyUrl(
-    baseUrl,
-    parsed.data.eventId,
-    "test-dummy-token"
-  );
-  const text = replaceSurveyPlaceholders(parsed.data.emailBody, {
-    surveyUrl: dummyUrl,
-    customerName: "テスト 太郎",
-  });
-
-  const result = await sendMail({
-    from,
-    to: admin.email,
-    subject: `[テスト] ${parsed.data.emailTitle}`,
-    text,
-  });
-
-  if (!result.success) {
+  if (!(await canManageSurvey(admin, parsed.data.eventId))) {
     return {
       success: false,
-      error: result.error ?? "テスト送信に失敗しました",
+      error: "このイベントのアンケート操作権限がありません",
     };
   }
 
-  return { success: true };
+  const adminIds = [...new Set(parsed.data.adminIds)];
+  const admins = await findAdminsForEventTestSend(parsed.data.eventId, adminIds);
+  if (admins.length !== adminIds.length) {
+    return {
+      success: false,
+      error: "選択された送信先の管理者が見つかりません。",
+    };
+  }
+
+  return sendTestMailToAdmins({
+    eventId: parsed.data.eventId,
+    subject: parsed.data.emailTitle,
+    body: parsed.data.emailBody,
+    kind: "survey",
+    admins,
+  });
 }

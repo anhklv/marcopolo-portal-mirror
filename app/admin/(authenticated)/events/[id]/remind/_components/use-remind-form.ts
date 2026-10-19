@@ -4,7 +4,9 @@ import { useState, useMemo, useTransition, useCallback, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import type { SerializedEventForRemind } from "@/lib/types/serialized";
+import type { AdminForTestSend } from "@/lib/types/test-send";
 import { sendRemindAction, sendTestRemindAction } from "@/lib/actions/remind.actions";
+import { useTestSendDialog } from "@/app/admin/(authenticated)/events/_components/use-test-send-dialog";
 
 // ============================================================
 // 型定義
@@ -14,7 +16,7 @@ export type RemindStep = "recipients" | "email" | "confirm";
 
 export interface UseRemindFormProps {
   event: SerializedEventForRemind;
-  adminEmail: string;
+  testSendAdmins: AdminForTestSend[];
   defaultEmailTitle: string;
   defaultEmailBody: string;
 }
@@ -25,7 +27,7 @@ export interface UseRemindFormProps {
 
 export function useRemindForm({
   event,
-  adminEmail,
+  testSendAdmins,
   defaultEmailTitle,
   defaultEmailBody,
 }: UseRemindFormProps) {
@@ -57,6 +59,18 @@ export function useRemindForm({
   const [emailBody, setEmailBody] = useState(defaultEmailBody);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
+  const sendTestMail = useCallback(
+    (adminIds: number[]) =>
+      sendTestRemindAction({
+        eventId: event.id,
+        adminIds,
+        emailTitle,
+        emailBody,
+      }),
+    [emailBody, emailTitle, event.id]
+  );
+  const testSendDialog = useTestSendDialog({ onSend: sendTestMail });
+
   // リロード時フォールバック: pendingCustomersがいなければrecipientsに戻す
   const step: RemindStep = useMemo(() => {
     if (urlStep === "email" && event.pendingCustomers.length === 0) return "recipients";
@@ -86,25 +100,6 @@ export function useRemindForm({
       return;
     }
     setStep("confirm");
-  };
-
-  const handleTestSend = () => {
-    startTransition(async () => {
-      try {
-        const result = await sendTestRemindAction({
-          eventId: event.id,
-          emailTitle,
-          emailBody,
-        });
-        if (result.success) {
-          toast.success(`テストメールを ${adminEmail} に送信しました`);
-        } else {
-          toast.error(result.error);
-        }
-      } catch {
-        toast.error("テスト送信中にエラーが発生しました");
-      }
-    });
   };
 
   const handleSend = () => {
@@ -145,11 +140,12 @@ export function useRemindForm({
     // ダイアログ
     confirmOpen,
     setConfirmOpen,
+    testSendAdmins,
+    testSendDialog,
     // アクション
     isPending,
     handleRecipientsNext,
     handleEmailNext,
-    handleTestSend,
     handleSend,
   };
 }

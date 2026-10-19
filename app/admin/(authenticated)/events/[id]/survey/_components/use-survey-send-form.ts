@@ -7,10 +7,12 @@ import type {
   SerializedEventForSurvey,
   SerializedAttendee,
 } from "@/lib/types/serialized";
+import type { AdminForTestSend } from "@/lib/types/test-send";
 import {
   sendSurveyAction,
   sendTestSurveyAction,
 } from "@/lib/actions/survey-send.actions";
+import { useTestSendDialog } from "@/app/admin/(authenticated)/events/_components/use-test-send-dialog";
 
 // ============================================================
 // 型定義
@@ -21,7 +23,7 @@ export type Step = "select" | "email" | "confirm";
 export interface UseSurveySendFormProps {
   event: SerializedEventForSurvey;
   attendees: SerializedAttendee[];
-  adminEmail: string;
+  testSendAdmins: AdminForTestSend[];
   defaultEmailTitle: string;
   defaultEmailBody: string;
 }
@@ -33,7 +35,7 @@ export interface UseSurveySendFormProps {
 export function useSurveySendForm({
   event,
   attendees,
-  adminEmail,
+  testSendAdmins,
   defaultEmailTitle,
   defaultEmailBody,
 }: UseSurveySendFormProps) {
@@ -76,6 +78,18 @@ export function useSurveySendForm({
   const [emailTitle, setEmailTitle] = useState(defaultEmailTitle);
   const [emailBody, setEmailBody] = useState(defaultEmailBody);
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const sendTestMail = useCallback(
+    (adminIds: number[]) =>
+      sendTestSurveyAction({
+        eventId: event.id,
+        adminIds,
+        emailTitle,
+        emailBody,
+      }),
+    [emailBody, emailTitle, event.id]
+  );
+  const testSendDialog = useTestSendDialog({ onSend: sendTestMail });
 
   // 確認画面用: 選択済み参加者情報
   const selectedAttendees = useMemo(() => {
@@ -122,25 +136,6 @@ export function useSurveySendForm({
       return;
     }
     setStep("confirm");
-  };
-
-  const handleTestSend = () => {
-    startTransition(async () => {
-      try {
-        const result = await sendTestSurveyAction({
-          eventId: event.id,
-          emailTitle,
-          emailBody,
-        });
-        if (result.success) {
-          toast.success(`テストメールを ${adminEmail} に送信しました`);
-        } else {
-          toast.error(result.error);
-        }
-      } catch {
-        toast.error("テスト送信中にエラーが発生しました");
-      }
-    });
   };
 
   const handleSend = () => {
@@ -207,11 +202,12 @@ export function useSurveySendForm({
     // ダイアログ
     confirmOpen,
     setConfirmOpen,
+    testSendAdmins,
+    testSendDialog,
     // アクション
     isPending,
     handleSelectNext,
     handleCustomizeNext,
-    handleTestSend,
     handleSend,
   };
 }
