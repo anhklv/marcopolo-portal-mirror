@@ -20,4 +20,8 @@ export const sendSurveySchema = surveyEmailBaseSchema.extend({
     .min(1, "送信先を1名以上選択してください"),
 });
 
-export const testSurveySchema = surveyEmailBaseSchema;
+export const testSurveySchema = surveyEmailBaseSchema.extend({
+  adminIds: z
+    .array(z.number().int().positive())
+    .min(1, "送信先の管理者を1名以上選択してください。"),
+});

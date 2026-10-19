@@ -106,6 +106,7 @@ describe("inviteSchema", () => {
 describe("testInviteSchema", () => {
   const validData = {
     eventId: 1,
+    adminIds: [1],
     emailTitle: "【テストイベント】ご案内",
     emailBody: "テスト本文\n{RSVP_URL}",
   };
@@ -135,6 +136,14 @@ describe("testInviteSchema", () => {
     const result = testInviteSchema.safeParse({
       emailTitle: "タイトル",
       emailBody: "本文",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("異常系: adminIds が空配列", () => {
+    const result = testInviteSchema.safeParse({
+      ...validData,
+      adminIds: [],
     });
     expect(result.success).toBe(false);
   });

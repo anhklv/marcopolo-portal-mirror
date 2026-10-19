@@ -3,17 +3,18 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import {
-  requireAuth,
   requireAuthenticatedAdmin,
   canAccessEvent,
 } from "@/lib/auth/permissions";
 import { inviteSchema, testInviteSchema } from "@/lib/validations/invite";
-import { sendMail, sendMailBatch } from "@/lib/mail/send";
+import { sendMailBatch } from "@/lib/mail/send";
+import { sendTestMailToAdmins } from "@/lib/mail/test-send";
 import { getBaseUrl } from "@/lib/helpers/base-url";
-import { generateRsvpToken, buildRsvpUrl, replacePlaceholders } from "@/lib/helpers/invite";
+import { generateRsvpToken } from "@/lib/helpers/invite";
 import { getEventDisplayStatus } from "@/lib/utils/event";
 import { logServerError } from "@/lib/utils/log-error";
 import { createEventMailHistory } from "@/lib/repositories/event-mail.repository";
+import { findAdminsForEventTestSend } from "@/lib/repositories/admin.repository";
 
 // ============================================================
 // 型定義
@@ -190,9 +191,7 @@ export async function sendInviteAction(
 export async function sendTestInviteAction(
   formData: unknown
 ): Promise<SendTestInviteResult> {
-  // 認証
-  const session = await requireAuth();
-  const adminId = Number(session.user.id);
+  const { admin } = await requireAuthenticatedAdmin();
 
   // バリデーション
   const parsed = testInviteSchema.safeParse(formData);
@@ -201,34 +200,24 @@ export async function sendTestInviteAction(
     return { success: false, error: messages[0] };
   }
 
-  // 管理者メール取得
-  const admin = await prisma.admin.findUnique({
-    where: { id: adminId },
-    select: { email: true },
-  });
-
-  if (!admin) {
-    return { success: false, error: "管理者が見つかりません" };
+  if (!(await canAccessEvent(admin, parsed.data.eventId))) {
+    return { success: false, error: "このイベントへのアクセス権がありません" };
   }
 
-  const baseUrl = await getBaseUrl();
-  const from = process.env.SMTP_FROM ?? "noreply@example.com";
-  const dummyUrl = buildRsvpUrl(baseUrl, parsed.data.eventId, "test-dummy-token");
-  const text = replacePlaceholders(parsed.data.emailBody, {
-    rsvpUrl: dummyUrl,
-    customerName: "テスト 太郎",
-  });
-
-  const result = await sendMail({
-    from,
-    to: admin.email,
-    subject: `[テスト] ${parsed.data.emailTitle}`,
-    text,
-  });
-
-  if (!result.success) {
-    return { success: false, error: result.error ?? "テスト送信に失敗しました" };
+  const adminIds = [...new Set(parsed.data.adminIds)];
+  const admins = await findAdminsForEventTestSend(parsed.data.eventId, adminIds);
+  if (admins.length !== adminIds.length) {
+    return {
+      success: false,
+      error: "選択された送信先の管理者が見つかりません。",
+    };
   }
 
-  return { success: true };
+  return sendTestMailToAdmins({
+    eventId: parsed.data.eventId,
+    subject: parsed.data.emailTitle,
+    body: parsed.data.emailBody,
+    kind: "rsvp",
+    admins,
+  });
 }

@@ -7,7 +7,9 @@ import { toast } from "sonner";
 import { filterCustomers } from "@/lib/helpers/customer-filter";
 import type { SerializedEventForInvite, SerializedCustomerForInvite } from "@/lib/types/serialized";
 import type { CommunityOption } from "@/lib/types/serialized";
+import type { AdminForTestSend } from "@/lib/types/test-send";
 import { sendInviteAction, sendTestInviteAction } from "@/lib/actions/invite.actions";
+import { useTestSendDialog } from "@/app/admin/(authenticated)/events/_components/use-test-send-dialog";
 
 // ============================================================
 // 型定義
@@ -23,7 +25,7 @@ export interface UseInviteFormProps {
   event: SerializedEventForInvite;
   customers: SerializedCustomerForInvite[];
   communities: CommunityOption[];
-  adminEmail: string;
+  testSendAdmins: AdminForTestSend[];
   defaultEmailTitle: string;
   defaultEmailBody: string;
 }
@@ -35,7 +37,7 @@ export interface UseInviteFormProps {
 export function useInviteForm({
   event,
   customers,
-  adminEmail,
+  testSendAdmins,
   defaultEmailTitle,
   defaultEmailBody,
 }: UseInviteFormProps) {
@@ -65,6 +67,18 @@ export function useInviteForm({
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<number[]>([]);
   const [emailTitle, setEmailTitle] = useState(defaultEmailTitle);
   const [emailBody, setEmailBody] = useState(defaultEmailBody);
+
+  const sendTestMail = useCallback(
+    (adminIds: number[]) =>
+      sendTestInviteAction({
+        eventId: event.id,
+        adminIds,
+        emailTitle,
+        emailBody,
+      }),
+    [emailBody, emailTitle, event.id]
+  );
+  const testSendDialog = useTestSendDialog({ onSend: sendTestMail });
 
   // フィルター状態
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -183,25 +197,6 @@ export function useInviteForm({
     setStep("confirm");
   };
 
-  const handleTestSend = () => {
-    startTransition(async () => {
-      try {
-        const result = await sendTestInviteAction({
-          eventId: event.id,
-          emailTitle,
-          emailBody,
-        });
-        if (result.success) {
-          toast.success(`テストメールを ${adminEmail} に送信しました`);
-        } else {
-          toast.error(result.error);
-        }
-      } catch {
-        toast.error("テスト送信中にエラーが発生しました");
-      }
-    });
-  };
-
   const handleSend = () => {
     setConfirmOpen(false);
     startTransition(async () => {
@@ -271,11 +266,12 @@ export function useInviteForm({
     // ダイアログ
     confirmOpen,
     setConfirmOpen,
+    testSendAdmins,
+    testSendDialog,
     // アクション
     isPending,
     handleSelectNext,
     handleCustomizeNext,
-    handleTestSend,
     handleSend,
   };
 }

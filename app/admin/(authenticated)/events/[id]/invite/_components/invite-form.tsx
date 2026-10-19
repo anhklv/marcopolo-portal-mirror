@@ -2,6 +2,7 @@
 
 import type { SerializedEventForInvite, SerializedCustomerForInvite } from "@/lib/types/serialized";
 import type { CommunityOption } from "@/lib/types/serialized";
+import type { AdminForTestSend } from "@/lib/types/test-send";
 import { useInviteForm } from "./use-invite-form";
 import { StepSelect } from "./step-select";
 import { StepEmail } from "./step-email";
@@ -12,7 +13,7 @@ interface InviteFormProps {
   customers: SerializedCustomerForInvite[];
   currentUserRole: "super" | "community_admin";
   communities: CommunityOption[];
-  adminEmail: string;
+  testSendAdmins: AdminForTestSend[];
   defaultEmailTitle: string;
   defaultEmailBody: string;
 }
@@ -22,7 +23,7 @@ export function InviteForm({
   customers,
   currentUserRole,
   communities,
-  adminEmail,
+  testSendAdmins,
   defaultEmailTitle,
   defaultEmailBody,
 }: InviteFormProps) {
@@ -30,7 +31,7 @@ export function InviteForm({
     event,
     customers,
     communities,
-    adminEmail,
+    testSendAdmins,
     defaultEmailTitle,
     defaultEmailBody,
   });
