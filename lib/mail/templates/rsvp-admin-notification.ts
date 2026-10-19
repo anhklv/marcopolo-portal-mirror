@@ -1,9 +1,20 @@
 import type { AfterPartyStatus, RsvpStatus } from "@/lib/generated/prisma";
-import {
-  AFTER_PARTY_STATUS_CONFIG,
-  RSVP_STATUS_CONFIG,
-} from "@/lib/constants/event";
 import { formatDateTime, formatEventDate } from "@/lib/utils/event";
+
+const NOTIFICATION_RSVP_STATUS_LABELS: Record<RsvpStatus, string> = {
+  pending: "未回答",
+  attending: "現地参加",
+  online: "オンライン参加",
+  absent: "参加しない",
+};
+
+const NOTIFICATION_AFTER_PARTY_STATUS_LABELS: Record<
+  AfterPartyStatus,
+  string
+> = {
+  attending: "参加する",
+  not_attending: "参加しない",
+};
 
 export interface RsvpResponseSnapshot {
   status: RsvpStatus;
@@ -17,6 +28,8 @@ interface GenerateRsvpAdminNotificationParams {
   communityName: string;
   eventTitle: string;
   eventDate: Date;
+  participationOptionEnabled: boolean;
+  hasAfterParty: boolean;
   customerName: string;
   previous: RsvpResponseSnapshot;
   current: RsvpResponseSnapshot;
@@ -41,45 +54,79 @@ function textToHtml(value: string): string {
   return escapeHtml(value).replaceAll("\n", "<br>");
 }
 
-function buildChangeLines(
+interface ResponseLine {
+  text: string;
+  changed: boolean;
+}
+
+function buildResponseLines(
   previous: RsvpResponseSnapshot,
-  current: RsvpResponseSnapshot
-): string[] {
-  const lines: string[] = [];
+  current: RsvpResponseSnapshot,
+  participationOptionEnabled: boolean,
+  hasAfterParty: boolean
+): ResponseLine[] {
+  const lines: ResponseLine[] = [];
 
-  if (previous.status !== current.status) {
-    lines.push(
-      `・参加ステータス：${RSVP_STATUS_CONFIG[previous.status].label} → ${RSVP_STATUS_CONFIG[current.status].label}`
+  const statusChanged = previous.status !== current.status;
+  lines.push({
+    text: statusChanged
+      ? `・参加ステータス：${NOTIFICATION_RSVP_STATUS_LABELS[previous.status]} → ${NOTIFICATION_RSVP_STATUS_LABELS[current.status]}`
+      : `・参加ステータス：${NOTIFICATION_RSVP_STATUS_LABELS[current.status]}`,
+    changed: statusChanged,
+  });
+
+  if (
+    participationOptionEnabled &&
+    (current.status === "attending" || current.status === "online") &&
+    current.participationOptionLabel?.trim()
+  ) {
+    const participationOptionChanged =
+      previous.participationOptionId !== current.participationOptionId;
+    const previousLabel = nullableLabel(
+      previous.participationOptionLabel,
+      "未選択"
     );
+    const currentLabel = nullableLabel(
+      current.participationOptionLabel,
+      "未選択"
+    );
+    lines.push({
+      text: participationOptionChanged
+        ? `・参加内容：${previousLabel} → ${currentLabel}`
+        : `・参加内容：${currentLabel}`,
+      changed: participationOptionChanged,
+    });
   }
 
-  // 不参加の場合、参加内容と懇親会は回答対象外のため通知へ表示しない。
+  // 懇親会は現地参加の場合のみ回答対象となるため、それ以外は通知へ表示しない。
   if (
-    current.status !== "absent" &&
-    previous.afterPartyStatus !== current.afterPartyStatus
+    hasAfterParty &&
+    current.status === "attending" &&
+    current.afterPartyStatus
   ) {
+    const afterPartyChanged =
+      previous.afterPartyStatus !== current.afterPartyStatus;
     const before = previous.afterPartyStatus
-      ? AFTER_PARTY_STATUS_CONFIG[previous.afterPartyStatus].label
+      ? NOTIFICATION_AFTER_PARTY_STATUS_LABELS[previous.afterPartyStatus]
       : "未回答";
-    const after = current.afterPartyStatus
-      ? AFTER_PARTY_STATUS_CONFIG[current.afterPartyStatus].label
-      : "未回答";
-    lines.push(`・懇親会：${before} → ${after}`);
+    const after = NOTIFICATION_AFTER_PARTY_STATUS_LABELS[current.afterPartyStatus];
+    lines.push({
+      text: afterPartyChanged
+        ? `・懇親会：${before} → ${after}`
+        : `・懇親会：${after}`,
+      changed: afterPartyChanged,
+    });
   }
 
-  if (
-    current.status !== "absent" &&
-    previous.participationOptionId !== current.participationOptionId
-  ) {
-    lines.push(
-      `・参加内容：${nullableLabel(previous.participationOptionLabel, "未選択")} → ${nullableLabel(current.participationOptionLabel, "未選択")}`
-    );
-  }
-
-  if (previous.comment !== current.comment) {
-    lines.push(
-      `・メッセージ・連絡事項：${nullableLabel(previous.comment, "未入力")} → ${nullableLabel(current.comment, "未入力")}`
-    );
+  if (current.comment?.trim()) {
+    const commentChanged = previous.comment !== current.comment;
+    const previousComment = nullableLabel(previous.comment, "未入力");
+    lines.push({
+      text: commentChanged
+        ? `・メッセージ・連絡事項：${previousComment} → ${current.comment}`
+        : `・メッセージ・連絡事項：${current.comment}`,
+      changed: commentChanged,
+    });
   }
 
   return lines;
@@ -88,7 +135,12 @@ function buildChangeLines(
 export function generateRsvpAdminNotification(
   params: GenerateRsvpAdminNotificationParams
 ): { subject: string; text: string; html: string } {
-  const changes = buildChangeLines(params.previous, params.current);
+  const responseLines = buildResponseLines(
+    params.previous,
+    params.current,
+    params.participationOptionEnabled,
+    params.hasAfterParty
+  );
   const subject = `【${params.eventTitle}】参加回答更新のお知らせ（${params.customerName}様）`;
   const eventDate = formatEventDate(params.eventDate);
   const respondedAt = formatDateTime(params.respondedAt);
@@ -110,7 +162,7 @@ export function generateRsvpAdminNotification(
     `${params.customerName} 様`,
     "",
     "■変更内容",
-    ...changes,
+    ...responseLines.map((line) => line.text),
     "",
     "■回答日時",
     respondedAt,
@@ -122,8 +174,11 @@ export function generateRsvpAdminNotification(
   ].join("\n");
 
   const escapedAdminUrl = escapeHtml(params.adminEventUrl);
-  const htmlChanges = changes
-    .map((change) => `<strong>${textToHtml(change)}</strong>`)
+  const htmlResponseLines = responseLines
+    .map((line) => {
+      const htmlLine = textToHtml(line.text);
+      return line.changed ? `<strong>${htmlLine}</strong>` : htmlLine;
+    })
     .join("<br>");
   const html = [
     '<div style="font-family: sans-serif; line-height: 1.7;">',
@@ -133,7 +188,7 @@ export function generateRsvpAdminNotification(
     `<p>■イベント名<br>${textToHtml(params.eventTitle)}</p>`,
     `<p>■開催日時<br>${textToHtml(eventDate)}</p>`,
     `<p>■回答者<br><strong>${textToHtml(params.customerName)} 様</strong></p>`,
-    `<p><strong>■変更内容</strong><br>${htmlChanges}</p>`,
+    `<p><strong>■変更内容</strong><br>${htmlResponseLines}</p>`,
     `<p>■回答日時<br>${textToHtml(respondedAt)}</p>`,
     `<p>■管理画面<br><a href="${escapedAdminUrl}">${escapedAdminUrl}</a></p>`,
     "<p>※本メールは、参加者による参加回答の更新に伴い、自動送信されています。</p>",

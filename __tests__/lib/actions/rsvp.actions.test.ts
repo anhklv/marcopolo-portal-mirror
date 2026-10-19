@@ -82,6 +82,7 @@ function createMockRsvpData(overrides: Record<string, unknown> = {}) {
     },
     afterPartyStatus: null,
     comment: null,
+    respondedAt: null,
     participationOptionId: null,
     participationOption: null,
     ...overrides,
@@ -254,8 +255,29 @@ describe("submitRsvpAction", () => {
     expect(mockRevalidatePath).not.toHaveBeenCalled();
   });
 
-  it("正常系: 変更内容をコミュニティの通知先へ1通送信する", async () => {
+  it("正常系: 初回回答は保存するが管理者向け通知を送信しない", async () => {
     mockFindRsvpByToken.mockResolvedValue(createMockRsvpData());
+    mockUpdateRsvpResponse.mockResolvedValue({});
+    mockGetCommunityNotificationRecipients.mockReturnValue([
+      "admin@example.com",
+    ]);
+
+    const result = await submitRsvpAction(validFormData);
+
+    expect(result).toEqual({ success: true });
+    expect(mockUpdateRsvpResponse).toHaveBeenCalledOnce();
+    expect(mockGetCommunityNotificationRecipients).not.toHaveBeenCalled();
+    expect(mockSendMail).not.toHaveBeenCalled();
+  });
+
+  it("正常系: 変更内容をコミュニティの通知先へ1通送信する", async () => {
+    mockFindRsvpByToken.mockResolvedValue(
+      createMockRsvpData({
+        status: "attending",
+        comment: "変更前",
+        respondedAt: new Date("2099-01-01T00:00:00Z"),
+      })
+    );
     mockUpdateRsvpResponse.mockResolvedValue({});
     mockGetCommunityNotificationRecipients.mockReturnValue([
       "info@naikan-mup.com",
@@ -276,7 +298,7 @@ describe("submitRsvpAction", () => {
         to: ["info@naikan-mup.com", "diunt@codluck.com"],
         subject: "【テストイベント】参加回答更新のお知らせ（山田 太郎様）",
         text: expect.stringContaining(
-          "・参加ステータス：未回答 → 参加"
+          "・メッセージ・連絡事項：変更前 → よろしくお願いします"
         ),
         html: expect.stringContaining("<strong>■変更内容"),
       })
@@ -284,7 +306,13 @@ describe("submitRsvpAction", () => {
   });
 
   it("正常系: 通知メール送信失敗後も保存済みRSVPは成功を返す", async () => {
-    mockFindRsvpByToken.mockResolvedValue(createMockRsvpData());
+    mockFindRsvpByToken.mockResolvedValue(
+      createMockRsvpData({
+        status: "attending",
+        comment: "変更前",
+        respondedAt: new Date("2099-01-01T00:00:00Z"),
+      })
+    );
     mockUpdateRsvpResponse.mockResolvedValue({});
     mockGetCommunityNotificationRecipients.mockReturnValue([
       "admin@example.com",

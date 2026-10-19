@@ -144,6 +144,7 @@ export async function submitRsvpAction(
           (option) => option.id === finalParticipationOptionId
         ) ?? rsvp.participationOption
       : null;
+    const isInitialResponse = rsvp.respondedAt === null;
     const previous: RsvpResponseSnapshot = {
       status: rsvp.status,
       afterPartyStatus: rsvp.afterPartyStatus,
@@ -181,6 +182,11 @@ export async function submitRsvpAction(
     // 12. 管理画面のキャッシュ無効化
     revalidatePath(`/admin/events/${rsvp.eventId}`);
 
+    // 初回回答は保存のみ行い、管理者向け通知は送信しない。
+    if (isInitialResponse) {
+      return { success: true };
+    }
+
     // 13. コミュニティ別メーリングリストへ変更内容を直接通知する。
     // 通知失敗を理由に、保存済みのRSVPを参加者へ再送させない。
     const recipients = getCommunityNotificationRecipients(
@@ -193,6 +199,9 @@ export async function submitRsvpAction(
           communityName: rsvp.event.community.name,
           eventTitle: rsvp.event.title,
           eventDate: rsvp.event.date,
+          participationOptionEnabled:
+            rsvp.event.participationMode !== "disabled",
+          hasAfterParty: rsvp.event.hasAfterParty,
           customerName,
           previous,
           current,

@@ -72,6 +72,7 @@ const validSurveyData = {
 
 const validTestSurveyData = {
   eventId: 1,
+  adminIds: [1, 2],
   emailTitle: "【テストイベント】アンケートのお願い",
   emailBody: "テスト本文\n{SURVEY_URL}",
 };
@@ -462,19 +463,26 @@ describe("sendSurveyAction", () => {
 describe("sendTestSurveyAction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockRequireAuthenticatedAdmin.mockResolvedValue({
+      admin: { id: 1, role: "super", adminCommunities: [] },
+      isSuper: true,
+      scopedCommunityIds: [],
+    });
+    mockCanManageSurvey.mockResolvedValue(true);
+    mockPrisma.event.findFirst.mockResolvedValue({ communityId: 10 });
+    mockPrisma.admin.findMany.mockResolvedValue([
+      { id: 1, lastName: "管理", firstName: "太郎", email: "admin@example.com" },
+      { id: 2, lastName: "確認", firstName: "花子", email: "reviewer@example.com" },
+    ]);
   });
 
   it("正常系: テスト送信成功", async () => {
-    mockRequireAuth.mockResolvedValue(superSession);
-    mockPrisma.admin.findUnique.mockResolvedValue({
-      id: 1,
-      email: "admin@example.com",
-    });
     mockSendMail.mockResolvedValue({ success: true, messageId: "<test>" });
 
     const result = await sendTestSurveyAction(validTestSurveyData);
 
     expect(result).toEqual({ success: true });
+    expect(mockSendMail).toHaveBeenCalledTimes(2);
     expect(mockSendMail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "admin@example.com",
@@ -484,7 +492,7 @@ describe("sendTestSurveyAction", () => {
   });
 
   it("異常系: 未認証", async () => {
-    mockRequireAuth.mockRejectedValue(new Error("認証が必要です"));
+    mockRequireAuthenticatedAdmin.mockRejectedValue(new Error("認証が必要です"));
 
     await expect(
       sendTestSurveyAction(validTestSurveyData)
@@ -492,8 +500,6 @@ describe("sendTestSurveyAction", () => {
   });
 
   it("異常系: バリデーション失敗（emailTitle空）", async () => {
-    mockRequireAuth.mockResolvedValue(superSession);
-
     const result = await sendTestSurveyAction({
       ...validTestSurveyData,
       emailTitle: "",
@@ -503,11 +509,6 @@ describe("sendTestSurveyAction", () => {
   });
 
   it("異常系: メール送信失敗", async () => {
-    mockRequireAuth.mockResolvedValue(superSession);
-    mockPrisma.admin.findUnique.mockResolvedValue({
-      id: 1,
-      email: "admin@example.com",
-    });
     mockSendMail.mockResolvedValue({ success: false, error: "SMTP error" });
 
     const result = await sendTestSurveyAction(validTestSurveyData);
@@ -516,5 +517,19 @@ describe("sendTestSurveyAction", () => {
       success: false,
       error: "SMTP error",
     });
+  });
+
+  it("異常系: 対象コミュニティ外の管理者が含まれる", async () => {
+    mockPrisma.admin.findMany.mockResolvedValue([
+      { id: 1, lastName: "管理", firstName: "太郎", email: "admin@example.com" },
+    ]);
+
+    const result = await sendTestSurveyAction(validTestSurveyData);
+
+    expect(result).toEqual({
+      success: false,
+      error: "選択された送信先の管理者が見つかりません。",
+    });
+    expect(mockSendMail).not.toHaveBeenCalled();
   });
 });

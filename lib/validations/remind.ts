@@ -25,6 +25,9 @@ export const remindSchema = z.object({
  */
 export const testRemindSchema = z.object({
   eventId: z.number().int().positive("イベントIDが不正です"),
+  adminIds: z
+    .array(z.number().int().positive())
+    .min(1, "送信先の管理者を1名以上選択してください。"),
   emailTitle: z
     .string()
     .trim()
