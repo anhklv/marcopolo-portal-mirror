@@ -74,9 +74,10 @@ describe("sendSurveySchema", () => {
 });
 
 describe("testSurveySchema", () => {
-  it("正常系: customerIds不要で成功", () => {
+  it("正常系: adminIdsを指定して成功", () => {
     const result = testSurveySchema.safeParse({
       eventId: 1,
+      adminIds: [1, 2],
       emailTitle: "テストタイトル",
       emailBody: "テスト本文",
     });
@@ -86,7 +87,18 @@ describe("testSurveySchema", () => {
   it("異常系: emailTitle 空文字", () => {
     const result = testSurveySchema.safeParse({
       eventId: 1,
+      adminIds: [1],
       emailTitle: "",
+      emailBody: "テスト本文",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("異常系: adminIds 空配列", () => {
+    const result = testSurveySchema.safeParse({
+      eventId: 1,
+      adminIds: [],
+      emailTitle: "テストタイトル",
       emailBody: "テスト本文",
     });
     expect(result.success).toBe(false);

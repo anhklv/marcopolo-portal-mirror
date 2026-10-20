@@ -6,6 +6,7 @@ import type {
   AdminRole,
 } from "@/lib/generated/prisma";
 import bcrypt from "bcryptjs";
+import type { AdminForTestSend } from "@/lib/types/test-send";
 
 // ============================================================
 // 型定義
@@ -52,6 +53,36 @@ const adminInclude = {
 export async function findAll(): Promise<AdminWithCommunities[]> {
   return prisma.admin.findMany({
     include: adminInclude,
+    orderBy: { id: "asc" },
+  });
+}
+
+/**
+ * イベントのテストメール送信先候補を取得する。
+ * 全スーパー管理者 + 対象イベントのコミュニティ管理者のみを返す。
+ */
+export async function findAdminsForEventTestSend(
+  eventId: number,
+  adminIds?: number[]
+): Promise<AdminForTestSend[]> {
+  const event = await prisma.event.findFirst({
+    where: { id: eventId, deletedAt: null },
+    select: { communityId: true },
+  });
+  if (!event) return [];
+
+  return prisma.admin.findMany({
+    where: {
+      ...(adminIds ? { id: { in: adminIds } } : {}),
+      OR: [
+        { role: "super" },
+        {
+          role: "community_admin",
+          adminCommunities: { some: { communityId: event.communityId } },
+        },
+      ],
+    },
+    select: { id: true, lastName: true, firstName: true, email: true },
     orderBy: { id: "asc" },
   });
 }

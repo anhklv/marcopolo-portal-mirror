@@ -4,9 +4,9 @@ import { findEventByIdForRemind } from "@/lib/repositories/event.repository";
 import { serializeEventForRemind } from "@/lib/serializers/event";
 import { generateRemindSubject, generateRemindBody } from "@/lib/mail/templates/remind";
 import { getEventDisplayStatus } from "@/lib/utils/event";
-import { prisma } from "@/lib/prisma";
 import { RemindForm } from "./_components/remind-form";
 import { parseRemindTarget } from "@/lib/helpers/remind-target";
+import { findAdminsForEventTestSend } from "@/lib/repositories/admin.repository";
 
 export const metadata = {
   title: "リマインドメール送信",
@@ -44,11 +44,7 @@ export default async function EventRemindPage({
     notFound();
   }
 
-  // 管理者メール取得（テスト送信先用）
-  const adminRecord = await prisma.admin.findUnique({
-    where: { id: admin.id },
-    select: { email: true },
-  });
+  const testSendAdmins = await findAdminsForEventTestSend(eventId);
 
   // テンプレート初期値生成
   const serializedEvent = serializeEventForRemind(event, target);
@@ -65,7 +61,7 @@ export default async function EventRemindPage({
   return (
     <RemindForm
       event={serializedEvent}
-      adminEmail={adminRecord?.email ?? ""}
+      testSendAdmins={testSendAdmins}
       defaultEmailTitle={generateRemindSubject(templateParams)}
       defaultEmailBody={generateRemindBody(templateParams)}
     />

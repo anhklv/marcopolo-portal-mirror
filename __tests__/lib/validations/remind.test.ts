@@ -89,6 +89,7 @@ describe("remindSchema", () => {
 describe("testRemindSchema", () => {
   const validData = {
     eventId: 1,
+    adminIds: [1],
     emailTitle: "【テストイベント】参加可否のご回答をお願いします",
     emailBody: "テスト本文\n{RSVP_URL}",
   };
@@ -118,6 +119,14 @@ describe("testRemindSchema", () => {
     const result = testRemindSchema.safeParse({
       emailTitle: "タイトル",
       emailBody: "本文",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("異常系: adminIds が空配列", () => {
+    const result = testRemindSchema.safeParse({
+      ...validData,
+      adminIds: [],
     });
     expect(result.success).toBe(false);
   });

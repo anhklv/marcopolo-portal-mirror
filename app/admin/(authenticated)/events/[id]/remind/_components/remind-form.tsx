@@ -1,6 +1,7 @@
 "use client";
 
 import type { SerializedEventForRemind } from "@/lib/types/serialized";
+import type { AdminForTestSend } from "@/lib/types/test-send";
 import { useRemindForm } from "./use-remind-form";
 import { StepRecipients } from "./step-recipients";
 import { StepEmail } from "./step-email";
@@ -8,20 +9,20 @@ import { StepConfirm } from "./step-confirm";
 
 interface RemindFormProps {
   event: SerializedEventForRemind;
-  adminEmail: string;
+  testSendAdmins: AdminForTestSend[];
   defaultEmailTitle: string;
   defaultEmailBody: string;
 }
 
 export function RemindForm({
   event,
-  adminEmail,
+  testSendAdmins,
   defaultEmailTitle,
   defaultEmailBody,
 }: RemindFormProps) {
   const form = useRemindForm({
     event,
-    adminEmail,
+    testSendAdmins,
     defaultEmailTitle,
     defaultEmailBody,
   });

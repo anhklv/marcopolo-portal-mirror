@@ -19,6 +19,7 @@ import { StepIndicator } from "@/app/admin/(authenticated)/events/[id]/invite/_c
 import { SURVEY_STEPS } from "@/lib/constants/survey";
 import type { SerializedEventForSurvey } from "@/lib/types/serialized";
 import type { useSurveySendForm } from "./use-survey-send-form";
+import { TestSendDialog } from "@/app/admin/(authenticated)/events/_components/test-send-dialog";
 
 interface StepConfirmProps {
   event: SerializedEventForSurvey;
@@ -86,7 +87,7 @@ export function StepConfirm({ event, form }: StepConfirmProps) {
           </ActionButton>
           <ActionButton
             variant="outline"
-            onClick={form.handleTestSend}
+            onClick={form.testSendDialog.handleOpen}
             disabled={form.isPending}
           >
             <Mail className="h-4 w-4" />
@@ -122,6 +123,16 @@ export function StepConfirm({ event, form }: StepConfirmProps) {
           </Dialog>
         </div>
       </div>
+
+      <TestSendDialog
+        open={form.testSendDialog.open}
+        onOpenChange={form.testSendDialog.handleOpenChange}
+        admins={form.testSendAdmins}
+        selectedAdminIds={form.testSendDialog.selectedAdminIds}
+        onToggleAdmin={form.testSendDialog.toggleAdmin}
+        onSend={form.testSendDialog.handleSend}
+        isSending={form.testSendDialog.isSending}
+      />
     </div>
   );
 }
