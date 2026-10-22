@@ -8,6 +8,7 @@ import { generateInviteSubject, generateInviteBody } from "@/lib/mail/templates/
 import * as customerRepo from "@/lib/repositories/customer.repository";
 import { getEventDisplayStatus } from "@/lib/utils/event";
 import { prisma } from "@/lib/prisma";
+import { findAdminsForEventTestSend } from "@/lib/repositories/admin.repository";
 import { InviteForm } from "./_components/invite-form";
 
 export const metadata = {
@@ -48,11 +49,7 @@ export default async function EventInvitePage({
     includeNonMember: true,
   });
 
-  // 管理者メール取得（テスト送信先用）
-  const adminRecord = await prisma.admin.findUnique({
-    where: { id: admin.id },
-    select: { email: true },
-  });
+  const testSendAdmins = await findAdminsForEventTestSend(eventId);
 
   // コミュニティ一覧（フィルタ用。顧客の所属は主要3コミュニティのみのため「その他」は除外）
   const communities = await prisma.community.findMany({
@@ -81,7 +78,7 @@ export default async function EventInvitePage({
       customers={customers.map(serializeCustomerForInvite)}
       currentUserRole={admin.role}
       communities={communities}
-      adminEmail={adminRecord?.email ?? ""}
+      testSendAdmins={testSendAdmins}
       defaultEmailTitle={generateInviteSubject(templateParams)}
       defaultEmailBody={generateInviteBody(templateParams)}
     />

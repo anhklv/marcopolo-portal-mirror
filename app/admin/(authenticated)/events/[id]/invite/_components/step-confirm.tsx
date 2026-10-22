@@ -18,6 +18,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { StepIndicator } from "./step-indicator";
 import type { SerializedEventForInvite } from "@/lib/types/serialized";
 import type { useInviteForm } from "./use-invite-form";
+import { TestSendDialog } from "@/app/admin/(authenticated)/events/_components/test-send-dialog";
 
 interface StepConfirmProps {
   event: SerializedEventForInvite;
@@ -74,7 +75,11 @@ export function StepConfirm({ event, form }: StepConfirmProps) {
           <ActionButton variant="outline" onClick={() => form.setStep("email")}>
             戻る
           </ActionButton>
-          <ActionButton variant="outline" onClick={form.handleTestSend} disabled={form.isPending}>
+          <ActionButton
+            variant="outline"
+            onClick={form.testSendDialog.handleOpen}
+            disabled={form.isPending}
+          >
             <Mail className="h-4 w-4" />
             テスト送信
           </ActionButton>
@@ -104,6 +109,16 @@ export function StepConfirm({ event, form }: StepConfirmProps) {
           </Dialog>
         </div>
       </div>
+
+      <TestSendDialog
+        open={form.testSendDialog.open}
+        onOpenChange={form.testSendDialog.handleOpenChange}
+        admins={form.testSendAdmins}
+        selectedAdminIds={form.testSendDialog.selectedAdminIds}
+        onToggleAdmin={form.testSendDialog.toggleAdmin}
+        onSend={form.testSendDialog.handleSend}
+        isSending={form.testSendDialog.isSending}
+      />
     </div>
   );
 }

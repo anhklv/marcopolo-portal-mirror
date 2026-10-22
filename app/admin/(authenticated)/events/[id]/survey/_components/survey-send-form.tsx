@@ -4,6 +4,7 @@ import type {
   SerializedEventForSurvey,
   SerializedAttendee,
 } from "@/lib/types/serialized";
+import type { AdminForTestSend } from "@/lib/types/test-send";
 import { useSurveySendForm } from "./use-survey-send-form";
 import { StepSelect } from "./step-select";
 import { StepEmail } from "./step-email";
@@ -12,7 +13,7 @@ import { StepConfirm } from "./step-confirm";
 interface SurveySendFormProps {
   event: SerializedEventForSurvey;
   attendees: SerializedAttendee[];
-  adminEmail: string;
+  testSendAdmins: AdminForTestSend[];
   defaultEmailTitle: string;
   defaultEmailBody: string;
 }
@@ -20,14 +21,14 @@ interface SurveySendFormProps {
 export function SurveySendForm({
   event,
   attendees,
-  adminEmail,
+  testSendAdmins,
   defaultEmailTitle,
   defaultEmailBody,
 }: SurveySendFormProps) {
   const form = useSurveySendForm({
     event,
     attendees,
-    adminEmail,
+    testSendAdmins,
     defaultEmailTitle,
     defaultEmailBody,
   });
